@@ -39,6 +39,16 @@ LLM_API_KEY=<REDACTED>
 
 配置 `LLM_BASE_URL` 时使用独立的兼容 Provider，忽略 `LLM_PROVIDER`。端点应包含供应商要求的基础路径（通常为 `/v1`），不要填写 `/chat/completions`。自定义端点必须支持流式 Chat Completions；交互任务管理还需要支持 function calling。此模式暂按 32K 上下文、最大 4096 输出 token 配置，模型费用记录为 `null`，不伪报为免费。
 
+硅基流动配置示例（2026-10-20 已用本机账号真实验证）：
+
+```dotenv
+LLM_BASE_URL=https://api.siliconflow.cn/v1
+LLM_MODEL=deepseek-ai/DeepSeek-V4.1-Flash
+LLM_API_KEY=<REDACTED>
+```
+
+使用现有兼容 Provider 即可，无需改 Pi SDK。应用读取 `LLM_*`，本机另存的 `guiji_*` 不会自动成为活动配置。本次已在忽略的 `.env` 中切换，原 DeepSeek 配置保存在 `DEEPSEEK_PREVIOUS_LLM_*` 供本机回退；实际文件权限0600，凭据不提交。运行中的进程保留旧环境，正常停止再启动后生效，原任务库与会话目录保持不变。账号可用模型与参数参见[硅基流动官方接口文档](https://docs.siliconflow.cn/docs/api/chat-completions-post)，本次真实验证范围见 STATE。
+
 ## 运行
 
 ```sh
