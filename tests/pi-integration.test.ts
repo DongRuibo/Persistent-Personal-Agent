@@ -18,7 +18,39 @@ import { TaskScheduler } from '../src/scheduler.js';
 interface Payload {
   messages: { role: string; content: unknown }[];
   tools?: { function: { name: string } }[];
+  enable_thinking?: boolean;
+  max_tokens?: number;
+  max_completion_tokens?: number;
 }
+
+test('硅基流动显式关闭推理并使用 max_tokens，其他兼容端点保留通用参数', async (t) => {
+  const requests: Payload[] = [];
+  const directory = mkdtempSync(join(tmpdir(), 'personal-agent-thinking-'));
+  const store = new SqliteStore(':memory:');
+  const tasks = new TaskService(store, 'Asia/Shanghai');
+  t.mock.method(globalThis, 'fetch', async (_input: unknown, init?: RequestInit) => {
+    requests.push(JSON.parse(String(init?.body)) as Payload);
+    const frames = [
+      { choices: [{ index: 0, delta: { role: 'assistant', content: 'OK' }, finish_reason: null }] },
+      { choices: [{ index: 0, delta: {}, finish_reason: 'stop' }] },
+    ].map((value) => `data: ${JSON.stringify({ id: 'thinking-stub', model: 'local-stub', ...value })}\n\n`).join('');
+    return new Response(frames + 'data: [DONE]\n\n', { headers: { 'Content-Type': 'text/event-stream' } });
+  });
+  try {
+    for (const [index, baseUrl] of ['https://api.siliconflow.cn/v1', 'https://api.example.com/v1'].entries()) {
+      const executor = await createPiExecutor(readConfig({ LLM_API_KEY: 'fake-thinking-key', LLM_MODEL: 'local-stub', LLM_BASE_URL: baseUrl, SESSION_DIR: join(directory, String(index)) }), tasks);
+      try {
+        await executor.execute({ prompt: '只回复 OK', scope: 'chat', signal: new AbortController().signal, observer: { event: () => {}, modelCall: () => {} } });
+      } finally { await executor.close(); }
+    }
+    assert.equal(requests.length, 2);
+    assert.equal(requests[0]?.enable_thinking, false);
+    assert.equal(requests[0]?.max_tokens, 4096);
+    assert.ok(!Object.hasOwn(requests[0]!, 'max_completion_tokens'));
+    assert.ok(!Object.hasOwn(requests[1]!, 'enable_thinking'));
+    assert.equal(requests[1]?.max_completion_tokens, 4096);
+  } finally { t.mock.restoreAll(); store.close(); rmSync(directory, { recursive: true, force: true }); }
+});
 
 test('真实 Pi SDK + 本地模拟 API：工具白名单、任务创建、Session 隔离、settled、HTTP 不重试', { timeout: 15000 }, async () => {
   const requests: Payload[] = [];

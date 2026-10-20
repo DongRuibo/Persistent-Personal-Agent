@@ -51,6 +51,8 @@ LLM_API_KEY=<REDACTED>
 
 使用现有兼容 Provider 即可，无需改 Pi SDK。应用读取 `LLM_*`，本机另存的 `guiji_*` 不会自动成为活动配置。本次已在忽略的 `.env` 中切换，原 DeepSeek 配置保存在 `DEEPSEEK_PREVIOUS_LLM_*` 供本机回退；实际文件权限0600，凭据不提交。运行中的进程保留旧环境，正常停止再启动后生效，原任务库与会话目录保持不变。账号可用模型与参数参见[硅基流动官方接口文档](https://docs.siliconflow.cn/docs/api/chat-completions-post)，本次真实验证范围见 STATE。
 
+针对官方 `api.siliconflow.cn`，宿主通过 SDK 公开模型参数显式发送 `enable_thinking=false` 和 `max_tokens`，与既有 `thinkingLevel=off` 对齐。仅声明模型 `reasoning=false` 不会自动关闭供应商默认推理；通用适配默认的 `max_completion_tokens` 也不等同于该端点文档的 `max_tokens`。其他兼容端点保持原有参数。该修复已通过临时数据真实模型闭环及本机真实飞书 Project Memory 保存、全新 Session 检索、更新和删除验收，具体证据见 STATE；不保证供应商每次延迟或通知送达。
+
 ## 运行
 
 ```sh
@@ -178,6 +180,8 @@ Aurora 项目当前的数据库决策是什么？请检索 Memory 并给出 id �
 6. 在未删除的非敏感记忆中选择一项创建“两分钟后”的提醒；停服重启，检查 Pending 任务、主动通知及其 Run 的 Memory 命中。后台指令和结果不应出现在交互 JSONL。
 
 验收后停服，恢复原来 `npm start -- --feishu` 即回到原 Session；无需删除任何目录。请只提供日期、操作、脱敏结果和命中 ID/版本，不提供 `.env`、真实隐私正文或完整 Session。最小中文评测样本见 [memory-eval.json](tests/fixtures/memory-eval.json)：4个正例和1个无关问题，自动化只验证关键词检索，不代表通用问答质量。
+
+若收到“执行中断”，先核对本轮 Run、工具事件和实际存储，不能假定写入成功或未成功。默认执行超时120秒，排队和发送时间另计；收到回复前连续发“你好”不会催快模型。原请求中断后，历史文本仍保留，但新一轮普通问候没有写权限，不能借它继续旧的记忆操作。确认没有写入后，在明确的新请求中重新表达“记住：”；为避免失败历史影响验收，可停服后另用一个全新的 SESSION_DIR，保留失败现场，不删除原目录。
 
 ### Context、故障和隐私边界
 

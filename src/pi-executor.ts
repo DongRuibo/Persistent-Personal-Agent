@@ -130,13 +130,16 @@ export async function createPiExecutor(config: Config, tasks: TaskService, chatK
   });
   const provider = config.baseUrl ? 'personal-compatible' : config.provider;
   if (config.baseUrl) {
+    const siliconflow = new URL(config.baseUrl).hostname === 'api.siliconflow.cn';
     runtime.registerProvider(provider, {
       baseUrl: config.baseUrl, api: 'openai-completions', authHeader: true,
       models: [{
         id: config.model, name: config.model, reasoning: false, input: ['text'],
         cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
         contextWindow: 32768, maxTokens: 4096,
-        compat: { supportsDeveloperRole: false, supportsStore: false },
+        // Pi 的 thinkingLevel=off 不会自动关闭兼容端点的默认推理；使用公开模型参数传给硅基流动。
+        samplingParams: siliconflow ? { enable_thinking: false } : undefined,
+        compat: { supportsDeveloperRole: false, supportsStore: false, maxTokensField: siliconflow ? 'max_tokens' : undefined },
       }],
     });
   }

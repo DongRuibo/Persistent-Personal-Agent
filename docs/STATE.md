@@ -1,13 +1,13 @@
 # Personal Agent 当前状态与交接
 
-更新日期：2026-10-20（Asia/Taipei）。此文件是当前快照；稳定架构见 [PROJECT.md](PROJECT.md)，开发规则见 [AGENTS.md](../AGENTS.md)，运行方法见 [README.md](../README.md)。
+更新日期：2026-10-21（Asia/Taipei）。此文件是当前快照；稳定架构见 [PROJECT.md](PROJECT.md)，开发规则见 [AGENTS.md](../AGENTS.md)，运行方法见 [README.md](../README.md)。
 
 ## 当前阶段与进行中事项
 
 - 阶段：V2.0 长期 Memory 基础系统；保留 V1 飞书核心闭环与 V1.2 跨重启上下文真实验收记录。继续 Mac 本地开发，不部署 VPS。
-- 本次工作：四类统一 FileMemoryService、SQLite + Markdown、显式写入门、去重/版本/修复、有预算的 Pi 公开 Context 投影、受控工具和自动化。基于干净 main `87bff5c` 实施，保留 `c2ffcce` 后的诊断和模型验证改动；未操作真实 `.env`、用户进程、任务库、历史或飞书服务，未发真实收费 API 请求。
+- 本次工作：真实飞书 Memory 验收首轮遇到120秒超时；补硅基流动公开参数兼容修复及回归后，临时目录真实模型闭环和正式飞书 Project Memory 核心验收均已通过。用户负责飞书操作和进程重启，开发者只读核验证据并维护文档；未修改真实 .env、未代为重启进程或直接写入正式任务/Memory，不开展 V2.1。
 - 协作规则调整：用户已确认授权范围内可自主修改和测试；核心方案、高风险权限、删除数据、批量改写、推送或范围外事项仍先确认。
-- 进行中：代码、文档与自动化已完成；用户已明确授权将 V2.0 源码、测试和文档提交并推送到 GitHub main，供 ChatGPT 审查。Memory 的真实飞书验收留给用户，不开展 V2.1。
+- 验收状态：正式飞书保存、全新 B 检索、更新、全新 C 读取第2版、指定删除及全新 D 负向检索均已核验通过；测试记忆已移除，重启后未恢复，历史证据保留。其余三类真实飞书 CRUD、真实故障注入和本轮后台提醒未验收。V2.0 主体基线为 GitHub main `73bdad5`；用户已授权将兼容修复、回归测试及验收文档统一提交并推送 main，供本阶段审查，不开展 V2.1。
 - Git：已初始化本地 `main` 分支，`origin` 指向 [DongRuibo/Persistent-Personal-Agent](https://github.com/DongRuibo/Persistent-Personal-Agent)。首次发布包含源码、测试、文档与依赖锁文件，排除 `.env`、数据库、`node_modules/` 和 `dist/`。最新提交及同步状态通过 `git log -1`、`git status -sb` 与 GitHub main 提交记录核对。
 
 ## 已完成功能
@@ -31,25 +31,25 @@
 
 | 日期 | 修改及位置 |
 | --- | --- |
-| 2026-10-20 | 新增 memory-service.ts：四类 CRUD、来源/版本/Hash、原子文件与可重建索引、中文检索和预算 |
+| 2026-10-21 | 完成 Project Memory 真实飞书核心验收：A保存、全新B检索、原id更新、全新C读第2版、指定删除、全新D双查询无命中；STATE记录逐次存储/Context/执行与投递证据 |
+| 2026-10-20 | 真实首轮保存超时未落盘；问候轮尝试继续旧保存被权限门拒绝。硅基流动补 enable_thinking=false / max_tokens，隔离真实闭环通过，完整回归58项 |
 | 2026-10-20 | 新增 memory-tools.ts；PiExecutor 公开 context 动态投影、工具收据及失败中止，保留交互/后台隔离 |
 | 2026-10-20 | main/config 增加 Memory 生命周期、独占锁及目录/预算配置；Channel 传入可信 Run 来源；无密钥变更 |
 | 2026-10-20 | 新增 Memory 单元/真实 SDK 模拟集成测试、四类中文最小评测，保留此前44项回归 |
-| 2026-10-20 | README / PROJECT / AGENTS 同步四类边界、写入门、故障窗口与人工验收；V1/V1.2 真实历史证据保留如下 |
 
 ## 验证记录与证据边界
 
 - 当前环境：macOS，Node `v26.3.1`，npm `11.16.0`；项目运行要求 Node >=24.15.0。
-- 最近代码验证日期：2026-10-20。V2.0 最终检查结果见下表；V1/V1.2 真实验收证据另列如下，不能当成 V2.0 真实模型验收。
+- 最近代码验证日期：2026-10-21，提交前重跑。V2.0 最终检查结果见下表；V1/V1.2 真实验收证据另列如下，不能当成 V2.0 真实模型验收。
 
 | 最近代码检查 | 实际结果 |
 | --- | --- |
-| 文档事实及相对链接 | 4份文档63个本地链接有效；18个变更文件未命中本机凭据；8项运行数据忽略检查通过，Git 无已跟踪运行数据；git diff --check 通过 |
+| 文档事实及相对链接 | 4份文档63个本地链接有效；本轮4个变更文件未命中本机凭据；重新核对8项运行数据忽略检查通过，无已跟踪的 .env、数据库或 Session；git diff --check 通过 |
 | `npm run typecheck` | 通过，退出码0；包含源码和测试 |
 | `npm run build` | 通过，退出码0，生成 dist |
-| `npm test` | 57通过、0失败、0跳过，退出码0；此前44项回归保留，新增13项；本地临时监听获权限，全部使用假凭据/临时数据/模拟服务 |
+| `npm test` | 58通过、0失败、0跳过，退出码0；V2.0 的57项加供应商参数映射测试。提交前首次运行53通过、5项因沙箱 listen EPERM 失败，获本地监听权限后完整重跑58项全部通过，约5.83秒；使用假凭据/临时数据/模拟服务。下面的真实模型诊断单独执行，不计入自动化 |
 
-Git 基线：V1.2 为 `c2ffcce`；飞书诊断为 `a65a25b`，硅基流动验证文档为 `87bff5c`。本次从 `87bff5c` 继续实现 V2.0，不回退历史基线。源码、测试与文档统一以 `feat: add V2 long-term memory foundation` 提交交付，目标为 `origin/main`；准确提交标识和同步结果由 `git log -1`、`git status -sb` 及远端 main 核对。真实 `.env` 与全部运行数据不提交。
+Git 基线：V1.2 为 `c2ffcce`；飞书诊断为 `a65a25b`，硅基流动验证文档为 `87bff5c`。V2.0 主体以 `73bdad5` 提交并推送 main；本次 pi-executor.ts、pi-integration.test.ts、README 和本 STATE 统一以 `fix: adapt SiliconFlow requests and record V2 acceptance` 提交交付，目标为 origin/main。准确提交标识及同步结果由 `git log -1`、`git status -sb` 和远端 main 核对，不在提交内容中自引用 Hash。真实 `.env` 与全部运行数据不提交。
 
 ### V2.0 Memory 自动化证据与待验收（2026-10-20）
 
@@ -65,9 +65,42 @@ Git 基线：V1.2 为 `c2ffcce`；飞书诊断为 `a65a25b`，硅基流动验证
 | Context 故障 | 文件预检查失败不调用模型；context 回调故障通过公开 abort 中止，宿主报错，不静默忽略 |
 | 后台及 Task 隔离 | 后台可读相关 Memory、无工具、输出不写交互 JSONL；forget 后已有 Task 仍 pending；既有任务、鉴权、去重、通知、Session/进程回归继续测试 |
 | 最小中文检索评测 | tests/fixtures/memory-eval.json：四类各1个相关问题首条命中，加1个无关问题无命中，5/5通过；不代表语义召回或真实模型回答正确率 |
-| 真实飞书 Memory | **未执行**。用户需按 README“V2.0”保存事实 → 正常重启 → 全新 SESSION_DIR → 核对 Memory ID/version 与 Run 事件 → 更新/删除 → 后台提醒，不能仅凭“我记得”验收 |
+| 真实飞书 Memory | **Project Memory 核心闭环通过**。修复后保存、全新 Session 检索、原记录更新、另一全新 Session 读取第2版、删除及重启后全新 Session 双查询无命中，六次执行与投递均成功，均有正式存储/Session/Context证据。初次超时记录保留；其他三类真实 CRUD、真实故障注入及本轮后台提醒未验收 |
 
-没有调用本机真实模型或飞书，没有读取用户 Memory/Session 正文，没有启动或停止用户进程。上述新测试中的“飞书来源”由可信测试请求模拟；V1 的真实飞书证据与本阶段测试严格分开。
+V2.0 主体的57项自动化未调用真实模型或飞书，测试中的“飞书来源”为模拟。下面的验收诊断才开始有真实调用和限定范围的只读证据，不把它混入自动化或宣称全部真实场景通过。
+
+### V2.0 首轮真实验收与兼容修复（2026-10-20）
+
+- 用户在 Mac 自行启动 `SESSION_DIR=./data/v2-memory-acceptance-1-a npm start -- --feishu`；提供连接成功日志及手机截图。测试为虚构项目事实，key=`acceptance.v2.mascot`。
+- 保存 Run `cdf6c689-f7b5-490d-809b-5006474a5073`：UTC `15:20:15.387 → 15:22:15.399`，耗时120.012秒，agent_settled.aborted=true；没有 tool_execution_start，模型记录 aborted，正式 Memory 索引无该 key。判定：这次没有成功保存，不是飞书断线或已完成写入。
+- 用户随后发“你好”，Run `03e27e82-c89f-4fdf-87f5-4ccebb9cfb67`：入站 `15:21:44.030`，开始执行 `15:22:16.351`，完成 `15:24:16.356`。包含约32秒排队及120秒执行；模型从历史尝试 memory_remember，宿主因本轮无明确记忆意图拒绝，未越权写入。两条中断通知均 delivery_succeeded，说明消息发送成功与 Agent 执行成功须分开。
+- 只读查询使用 DatabaseSync(readOnly=true)，限定该时间窗、测试 key 与对应 Session 消息；未使用会写索引的 FileMemoryService 读取正式数据，未打印凭据或无关历史。
+- 真实固定短请求：默认参数约0.786秒返回 OK，仍有 reasoning_content；显式 enable_thinking=false 约0.647秒返回 OK 且无推理内容。说明当前凭据/端点可用，不证明完整工具回路可靠。
+- 发现两个可验证的映射问题：仅 thinkingLevel=off / reasoning=false 未下发供应商关闭开关，SDK 通用默认使用 max_completion_tokens。依据硅基流动官方 Chat Completions 文档，通过公开 samplingParams 和 compat.maxTokensField，只对 api.siliconflow.cn 发送 enable_thinking=false / max_tokens；不改 SDK、Key、超时、权限或其他端点参数。
+- 诊断期间只补关闭开关的临时完整 Pi 请求仍30秒中断；25秒 HTTP 对照也未完成。相同虚构8工具载荷改用 max_tokens 直接请求约1.6秒返回工具调用，HTTP 头对照均约1.7–1.8秒完成。它们用于定位，不当作执行成功，返回工具未执行；不能将一次延迟全部归因于某个开关。
+- **最终修复后真实 Pi + 临时数据**：保存约2.202秒，Memory 确认 project/version=1；另建全新空 Session 检索约2.310秒，回答包含虚构测试事实，命中同一 Memory ID/version。4次模型响应，SDK inputTokens 合计6725、outputTokens 合计267；仅此隔离闭环统计，不包含前面的短请求/对照及超时服务器可能消耗的用量，费用未估算。
+- 所有主动模型探测只发固定 OK 或用户提供的虚构事实；SQLite 为内存库，Memory/Session 在私有临时目录并已清理。未向飞书发测试消息，未改正式 Memory/Task/Session，未重启用户服务。该轮隔离探测不代替正式手机验收；后续用户复测结果单独记录如下。
+
+### V2.0 修复后正式飞书验收（2026-10-20至21，Project Memory 核心闭环通过）
+
+| 场景 | 步骤、实际结果及证据 |
+| --- | --- |
+| 明确保存 | 用户在 `v2-memory-acceptance-2-a` 中通过飞书发送虚构项目事实，指定 `kind=project`、`key=acceptance.v2.mascot`；机器人返回 id=`a4040f6d-f167-449c-bc86-cf0b944e98ff`、version=1。只读核对正式索引与对应 projects Markdown：正文符合测试事实、Hash 一致、文件权限0600，source.type=user_explicit、source.channel=feishu |
+| 执行与投递 | 来源 Run `13a9a50c-16b9-4caf-8c24-023b1b627591`，UTC `15:45:21.553 → 15:45:24.331`，耗时2.778秒，succeeded、无执行/投递错误。memory_remember 后 Context 命中同一 id/version=1，agent_settled.aborted=false，`15:45:25.506` delivery_succeeded；2次模型响应，正常 stop 完成 |
+| 全新 Session 检索 | 通过。事先确认 `data/v2-memory-acceptance-2-b` 不存在；本轮文件只有1条用户提问，含项目名、不含答案或保存指令，之前只有 system 消息，没有旧用户/助手/工具对话。首轮 Context 已命中上述 id、kind=project、version=1，355字节/2048预算；随后 memory_search 成功。用户提供的机器人回答与当前正文一致，排除沿用 A 聊天历史作为答案来源 |
+| B 执行与投递 | Run `cb1885e7-90b9-4713-b1b3-6751afa96431`，UTC `15:53:57.870 → 15:54:00.401`，耗时2.531秒，succeeded、无执行/投递错误；agent_settled.aborted=false，`15:54:01.184` delivery_succeeded。2次模型响应，无 Memory 写入工具；该次检索命中同 id/key 的第1版 |
+| 明确更新（本地10月21日） | 用户在 B 以“更新记忆：”明确修改原测试记录；扣除宿主时间前缀后，原始提问识别为 update。实际 memory_update 使用原 id、expectedVersion=1；同 id/key/kind 升至 version=2，createdAt 不变，UTC updatedAt=`2026-10-20T16:03:43.301Z`。只读核对 Markdown 和索引正文、元数据及 Hash 一致，文件0600；当前正文含新值、不含旧值，匹配该 id/key 仅1条，来源仍为 user_explicit/feishu |
+| 更新执行与投递 | Run `fa107502-97df-450a-914b-8fa1e4c5bd8c`，UTC `2026-10-20T16:03:41.767 → 16:03:45.349Z`，耗时3.582秒，succeeded、无执行/投递错误；Context 在更新前命中第1版、更新后命中第2版，均355字节/2048预算；agent_settled.aborted=false，`16:03:46.070` delivery_succeeded，2次模型响应。Session 未存入独立注入资料块；助手回复提及内部标记本身不构成安全隔离证明 |
+| 更新后全新 C 检索（本地10月21日） | 通过。事先确认 C 目录不存在；用户切换 `SESSION_DIR=./data/v2-memory-acceptance-2-c` 后提问，本轮文件仅1条用户消息，含项目名、不含新旧答案，之前仅 system、无旧对话。首轮和 memory_search 后的 Context 均只命中测试 id 的第2版，355字节/2048预算；用户提供的回答为新值，Markdown/索引仍为第2版且无旧值。未调用写入工具，未持久化独立注入块 |
+| C 执行与投递 | Run `5959caf8-00c8-48f9-becf-3258674c1d68`，UTC `2026-10-20T16:06:53.794 → 16:06:56.889Z`，耗时3.095秒，succeeded、无执行/投递错误；agent_settled.aborted=false，`16:06:57.591` delivery_succeeded，2次模型响应 |
+| 指定删除（本地10月21日） | 通过。用户在 C 的本轮明确删除意图识别为 forget；实际先 memory_get，再 memory_forget，目标为指定测试 id、expectedVersion=2。只读核对该 projects Markdown 已不存在，索引按 id 或 key 匹配为0；删除后 Context hits=[]、bytes=0。用户收到删除成功及 historicalCopiesRemoved=false；历史 C Session 和 Task 库文件仍存在，未声称已擦除历史副本或逐项比对其他数据 |
+| 删除执行与投递 | Run `97c2ecb5-f8d7-4e67-9dc9-6d1f7023f154`，UTC `2026-10-20T16:08:26.359 → 16:08:31.565Z`，耗时5.206秒，succeeded、无执行/投递错误；agent_settled.aborted=false，`16:08:32.177` delivery_succeeded，3次模型响应 |
+| 删除后全新 D 负向检索（本地10月21日） | 通过。事先确认 D 目录不存在；用户重启并切换 `SESSION_DIR=./data/v2-memory-acceptance-2-d`，本轮文件仅1条用户提问，含项目名及 key、不含新旧答案，之前只有 system、无旧对话。两次 memory_search 分别查询项目关键词与 acceptance.v2.mascot，均成功返回空数组；两次 Context 均 hits=[]、bytes=0。重启后指定 Markdown 仍不存在，索引按 id/key 匹配为0；回答未包含新旧吉祥物，无写工具调用，未重新创建记忆 |
+| D 执行与投递 | Run `350d519b-973e-475f-82ea-0eff893499ae`，UTC `2026-10-20T16:16:08.624 → 16:16:12.200Z`，耗时3.576秒，succeeded、无执行/投递错误；agent_settled.aborted=false，`16:16:13.064` delivery_succeeded，2次模型响应 |
+
+证据边界：本轮真实验收使用一个虚构 Project Memory 样本，验证保存、跨 Session 读取、更新和删除的核心闭环；不代表四类全场景、普遍召回率或长期稳定性。其他三类真实飞书 CRUD、重复请求的真实复测、真实写入故障恢复、对抗注入、后台 Memory 检索及本轮提醒回归尚未验收，相关自动化与 V1 历史证据分别保留，不能混同。forget 不清除历史 Session、Task、日志或备份副本。
+
+开发者仅只读核验指定测试 id/key、关联 Run 和文件，未自行触发模型、工具或写入正式存储；各验收反馈步骤仅更新文档，未逐次重跑代码测试。用户随后授权统一提交推送，本轮提交前重新完成类型检查、构建和58项自动化，结果见上表；未再调用真实模型或飞书。
 
 ### 硅基流动真实模型验证与切换（2026-10-20）
 
@@ -156,7 +189,7 @@ V1 原有自动化证据：39项测试使用模拟模型/飞书服务和虚拟�
 
 ## 已知问题与限制
 
-- V2.0 真实飞书与当前供应商的记忆写入/使用效果待人工验收；显式意图识别是有界前缀，模型仍可能误分类、选错事实 key 或整理不准，不宣称自动语义冲突解决。
+- V2.0 首轮真实飞书保存超时，修复后 Project Memory 保存/全新Session检索/更新/删除及重启后不命中的核心闭环已核验通过；只是一个限定样本，不保证每轮延迟、其他类型真实效果或长期稳定性。超时记录的0 token不代表供应商没有消耗或计费。显式意图识别仍是有界前缀，模型可能误分类、选错 key 或整理不准。
 - Memory 检索/修复线性扫描；仅四类关键词检索、每轮最多5条，Context 使用 UTF-8 字节上限作保守 token 近似，长条目会截断；没有 Embedding/通用语义召回、自动提取或完整修订历史。
 - Memory 的低信任指令边界不等同于对模型的数学保证。原始用户/助手消息仍持久化，旧事实可能在 Session/Run/备份及 SQLite 空闲页保留；forget 只让当前知识和索引失效，不承诺全链路安全擦除。
 - Markdown 与 Memory 索引不构成跨存储事务；文件落盘后索引失败可能已经保存成功，先查状态再处理。坏格式/Hash 会阻止启动或使本轮执行失败，须恢复有效备份；后台失败不自动重试。不支持手改正文自动采纳、硬断电耐久性或崩溃残留临时文件自动清理。
@@ -176,7 +209,7 @@ V1 原有自动化证据：39项测试使用模拟模型/飞书服务和虚拟�
 ## 下一步与需要提供的信息
 
 1. 审查 GitHub main 的 V2.0 提交，重点检查唯一写入口、文件/索引一致性、context 公开接口、显式授权与四类知识边界；提交包含本阶段代码、测试和文档。
-2. 用户正常停止旧进程、构建并按 README 完成真实飞书 Memory 验收；提供日期、步骤、脱敏结果及命中 ID/版本即可，不提供 Key 或完整私人文件。V1.2 原上下文恢复已实测，无需重复声称待验收。
+2. 本次 Project Memory 真实核心验收完成，测试条目已删除，无需再提供该测试的事实或密钥。保留本机忽略目录内的 A/B/C/D Session 和 Run 证据，本次提交仅交付兼容修复、回归测试及脱敏验收文档供审查；其他三类真实 CRUD、本轮后台提醒和真实故障注入如需补测，另行明确范围，不自动扩展本阶段。
 3. 评审和验收后再决定 V2.1 的自动分类/提取/语义冲突策略；不自动开始 Memory 扩展、Observer、Skill Learning 或 VPS。真实连接若持续告警只提供安全类别/状态码。
 
 ## V2.0 本次关键文件
