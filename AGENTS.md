@@ -23,15 +23,16 @@
 
 - TypeScript + Node.js + npm，单用户、单进程、SQLite；优先保持简单、可运行、易理解、可测试的架构。不引入微服务或复杂工作流框架。
 - 使用原版 `@earendil-works/pi-coding-agent` 创建 Session，复用 Pi Runtime / Agent Loop。**不 Fork、不直接修改 Pi 源码、`node_modules` 中的 SDK 或内部 Agent Loop**；通过公开 SDK 和宿主适配层扩展。
-- 业务模块依赖 `AgentExecutor` 等项目接口，Pi 类型集中在 `src/pi-executor.ts` 和 `src/task-tools.ts`。不得让 Task Service、Scheduler 或 Channel 直接操作 Pi 内部对象。
-- **Task、Session、Memory 必须分离**：SQLite 管理长期任务和执行状态；Pi Session 只管理当前执行上下文；Memory 只预留独立服务接口，V0 不实现。不得把 Session 当任务存储或长期记忆。
+- 业务模块依赖 `AgentExecutor` 等项目接口，Pi 类型集中在 `src/pi-executor.ts`、`src/task-tools.ts` 和 `src/memory-tools.ts`。不得让 Task Service、Memory Service、Scheduler 或 Channel 直接操作 Pi 内部对象。
+- **Task、Session、Memory 必须分离**：Task SQLite 管理任务与执行状态；Pi Session 管理对话上下文；V2 Memory Service 管理四类 Markdown 知识与独立 SQLite 索引。不得把 Session 当任务存储或长期记忆，不以 Project Memory 代替 Task 状态。
 - V1.2 交互 Session 使用 Pi 原生 SessionManager 持久化，在进程内串行复用并跨重启恢复；Console 与飞书隔离，不加载全局 Pi CLI 会话。每个后台任务仍使用独立的临时 Session 并释放，不混入用户交互历史；恢复历史不能自动重放工具或中断请求。
 - Scheduler 独立于终端循环，可通过 `--daemon` 运行；通过统一 `Channel.sendMessage()` 投递结果，不直接依赖 Console Channel。
 - V0 只支持一次性任务，只允许取消 pending。领取与执行记录原子提交；重启保留 pending，将遗留 running 标记 interrupted，失败或中断不自动重试。不得因通知失败重新执行任务，不宣称外部副作用恰好一次。
 - 时间统一以 UTC 持久化，用户时区使用 IANA 配置。自然语言时间由服务解析，拒绝歧义和 DST 无效时间，不依赖服务器时区或模型自行换算。
 - Pi 的 `agent_end` 不代表任务成功。检查 `agent_settled`、中断、模型与工具错误及最终响应后，分别处理执行结束、任务结果提交和消息投递。
-- 工具采用明确白名单：交互仅创建、查询、取消任务，后台 Session 无工具。不默认开放 Shell、任意文件写入或通用网络访问，不自动加载本机扩展、Skills 或 MCP。
-- Memory、周期任务、WebUI、飞书及其他渠道的实现均不在当前 V0 范围；接到明确任务后再推进。
+- 工具采用明确白名单：交互三项任务工具及五项受控 Memory 工具；后台无工具，仅由宿主按需检索 Memory。不默认开放 Shell、任意文件写入或通用网络访问，不自动加载本机扩展、Skills 或 MCP。
+- Memory 唯一写入口为独立服务；仅当前已鉴权用户明确意图可写，禁止从普通聊天自动提取、保存推断或在后台任务写入。Markdown 原子提交、索引可重建；删除只针对 Memory，不清除 Session、Task、日志或备份。
+- Memory 通过 Pi 公开内联扩展的 `context` 事件临时投影，内容按低信任数据处理，有预算，不追加到持久 Session、不修改 Pi 内部数组。四类知识不发展成四套框架；V2.1 自动提取、Observer、Skill、周期任务、WebUI 与 VPS 均需后续明确任务。
 
 ## 验证与文档维护
 

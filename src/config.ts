@@ -1,4 +1,4 @@
-import { resolve } from 'node:path';
+import { dirname, resolve, sep } from 'node:path';
 import { Temporal } from '@js-temporal/polyfill';
 
 export interface Config {
@@ -9,6 +9,8 @@ export interface Config {
   timeZone: string;
   databasePath: string;
   sessionDir: string;
+  memoryDir: string;
+  memoryContextTokens: number;
   pollIntervalMs: number;
   executionTimeoutMs: number;
 }
@@ -56,6 +58,14 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env): Config {
     }
   }
   const databasePath = resolve(env.DATABASE_PATH || './data/agent.db');
+  const sessionDir = resolve(env.SESSION_DIR || `${databasePath}.sessions`);
+  const memoryDir = resolve(env.MEMORY_DIR || `${databasePath}.memory`);
+  const contains = (parent: string, child: string) => parent === child || child.startsWith(parent + sep);
+  if (memoryDir === dirname(memoryDir) || contains(memoryDir, process.cwd()) || [databasePath, sessionDir].some((path) => contains(memoryDir, path) || contains(path, memoryDir))) {
+    throw new Error('MEMORY_DIR 必须是专用目录，不能与 Task 数据库、Session 目录或项目根目录重叠');
+  }
+  const memoryContextTokens = Number(env.MEMORY_CONTEXT_TOKENS ?? 2048);
+  if (!Number.isSafeInteger(memoryContextTokens) || memoryContextTokens < 512 || memoryContextTokens > 8192) throw new Error('MEMORY_CONTEXT_TOKENS 必须为512至8192的整数');
   return {
     provider: env.LLM_PROVIDER || 'openai',
     model: env.LLM_MODEL || 'gpt-4.1-mini',
@@ -63,7 +73,9 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env): Config {
     baseUrl: env.LLM_BASE_URL,
     timeZone,
     databasePath,
-    sessionDir: resolve(env.SESSION_DIR || `${databasePath}.sessions`),
+    sessionDir,
+    memoryDir,
+    memoryContextTokens,
     pollIntervalMs: integer('POLL_INTERVAL_MS', 1000),
     executionTimeoutMs: integer('EXECUTION_TIMEOUT_MS', 120_000),
   };

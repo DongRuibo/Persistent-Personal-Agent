@@ -11,6 +11,7 @@ import { TaskService } from './task-service.js';
 import { ChannelRouter } from './channel-router.js';
 import { FeishuChannel } from './feishu-channel.js';
 import { FeishuSdkTransport } from './feishu-transport.js';
+import { FileMemoryService } from './memory-service.js';
 
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
@@ -39,6 +40,8 @@ async function main(): Promise<void> {
   let store: SqliteStore | undefined;
   let executor: Awaited<ReturnType<typeof createPiExecutor>> | undefined;
   let scheduler: TaskScheduler | undefined;
+  let memory: FileMemoryService | undefined;
+  let releaseMemory: (() => Promise<void>) | undefined;
   process.once('SIGINT', stop);
   process.once('SIGTERM', stop);
   try {
@@ -47,8 +50,14 @@ async function main(): Promise<void> {
       throw new Error('数据库中有待执行的飞书任务，请使用 --feishu 启动；Console 调试请使用独立 DATABASE_PATH');
     }
     const tasks = new TaskService(store, config.timeZone);
+    await mkdir(config.memoryDir, { recursive: true, mode: 0o700 });
+    releaseMemory = await lockfile.lock(config.memoryDir, {
+      realpath: false, retries: 0, stale: 10000, update: 2000,
+      onCompromised: (error) => { reportError(error); stop(); },
+    });
+    memory = new FileMemoryService(config.memoryDir, [config.apiKey, process.env.FEISHU_APP_SECRET ?? '']);
     const chatKey = feishuConfig ? JSON.stringify(['feishu', feishuConfig.appId, feishuConfig.allowedOpenId]) : 'console';
-    executor = await createPiExecutor(config, tasks, chatKey);
+    executor = await createPiExecutor(config, tasks, chatKey, memory);
     if (shutdown.signal.aborted) return;
     const recovered = store.recoverInterrupted(new Date().toISOString());
     const consoleChannel = new ConsoleChannel(redact);
@@ -74,6 +83,8 @@ async function main(): Promise<void> {
       await executor?.close();
     } finally {
       store?.close();
+      memory?.close();
+      await releaseMemory?.();
       await release();
       process.removeListener('SIGINT', stop);
       process.removeListener('SIGTERM', stop);

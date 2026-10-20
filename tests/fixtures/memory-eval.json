@@ -1,0 +1,15 @@
+{
+  "memories": [
+    { "kind": "semantic", "key": "user.language", "content": "用户偏好用中文回答，先讲整体，再讲细节。" },
+    { "kind": "project", "key": "agent.database", "content": "Personal Agent 项目的任务数据使用 SQLite，Agent 执行基于 Pi SDK。" },
+    { "kind": "episodic", "key": "feishu.acceptance", "content": "2026年10月20日完成飞书重启恢复验收，待执行提醒成功发送。" },
+    { "kind": "procedural", "key": "feishu.troubleshooting", "content": "排查飞书连接告警的方法：先检查安全日志中的网络状态码，再确认能否回复新消息。" }
+  ],
+  "queries": [
+    { "query": "用户偏好的回答语言是什么？", "expectedKey": "user.language" },
+    { "query": "Personal Agent 项目的数据库架构是什么？", "expectedKey": "agent.database" },
+    { "query": "飞书重启恢复验收发生了什么？", "expectedKey": "feishu.acceptance" },
+    { "query": "排查飞书连接告警的方法是什么？", "expectedKey": "feishu.troubleshooting" },
+    { "query": "南极企鹅的迁徙路线", "expectedKey": null }
+  ]
+}

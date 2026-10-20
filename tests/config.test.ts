@@ -18,6 +18,14 @@ test('Session 目录可配置，默认跟随数据库，避免独立调试库复
   assert.equal(readConfig({ SESSION_DIR: './data/private-sessions' }).sessionDir, resolve('./data/private-sessions'));
 });
 
+test('Memory 使用独立私有目录和有界 Context 预算，不能覆盖 Task 或 Session 路径', () => {
+  const config = readConfig({ DATABASE_PATH: './data/debug.db' });
+  assert.equal(config.memoryDir, `${config.databasePath}.memory`);
+  assert.equal(readConfig({ MEMORY_DIR: './data/memory' }).memoryDir, resolve('./data/memory'));
+  for (const memoryDir of ['.', '/', './data/agent.db', './data/agent.db.sessions', './data']) assert.throws(() => readConfig({ MEMORY_DIR: memoryDir }), /MEMORY_DIR/);
+  for (const budget of ['0', '511', '8193', 'NaN']) assert.throws(() => readConfig({ MEMORY_CONTEXT_TOKENS: budget }), /MEMORY_CONTEXT/);
+});
+
 test('错误日志不保留配置的 Key 或 Bearer 认证', () => {
   const redact = redactor('test-only-secret');
   assert.equal(redact(new Error('request failed test-only-secret')), 'request failed <REDACTED>');

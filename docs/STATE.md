@@ -4,10 +4,10 @@
 
 ## 当前阶段与进行中事项
 
-- 阶段：V1 飞书 Bot 核心本机闭环与 V1.2 上下文恢复已有用户实测。当前补充飞书安全连接诊断，完整44项自动化测试通过；真实告警根因待新版日志定位。目前继续 Mac 本地开发，暂不部署 VPS。
-- 本次工作：按用户授权将飞书安全诊断与 V1.2 真实验收记录提交并推送 main；再使用本机硅基流动凭据验证指定模型、真实 Pi 工具及后台执行，成功后切换忽略的 `.env`。原 DeepSeek 配置保留供回退，未操作用户进程、实际任务库或交互历史；Memory 与 Observer 未实现。
+- 阶段：V2.0 长期 Memory 基础系统；保留 V1 飞书核心闭环与 V1.2 跨重启上下文真实验收记录。继续 Mac 本地开发，不部署 VPS。
+- 本次工作：四类统一 FileMemoryService、SQLite + Markdown、显式写入门、去重/版本/修复、有预算的 Pi 公开 Context 投影、受控工具和自动化。基于干净 main `87bff5c` 实施，保留 `c2ffcce` 后的诊断和模型验证改动；未操作真实 `.env`、用户进程、任务库、历史或飞书服务，未发真实收费 API 请求。
 - 协作规则调整：用户已确认授权范围内可自主修改和测试；核心方案、高风险权限、删除数据、批量改写、推送或范围外事项仍先确认。
-- 进行中：日志与验收记录已推送，硅基流动测试和本机配置切换已完成。用户运行中的旧进程需要正常停止并重新启动才会使用新配置；真实飞书告警仍待新版日志定位。
+- 进行中：代码、文档与自动化已完成；用户已明确授权将 V2.0 源码、测试和文档提交并推送到 GitHub main，供 ChatGPT 审查。Memory 的真实飞书验收留给用户，不开展 V2.1。
 - Git：已初始化本地 `main` 分支，`origin` 指向 [DongRuibo/Persistent-Personal-Agent](https://github.com/DongRuibo/Persistent-Personal-Agent)。首次发布包含源码、测试、文档与依赖锁文件，排除 `.env`、数据库、`node_modules/` 和 `dist/`。最新提交及同步状态通过 `git log -1`、`git status -sb` 与 GitHub main 提交记录核对。
 
 ## 已完成功能
@@ -18,36 +18,56 @@
 - 重启恢复 pending，遗留 running 标记 interrupted；失败、中断、投递失败不自动重跑任务。
 - UTC ISO 时间存储，IANA 用户时区解析，支持 README 列出的中文时间；拒绝歧义和 DST 重叠/不存在时间。
 - AgentExecutor 封装原版 Pi Session：交互会话进程内串行复用、原生 JSONL 跨重启恢复，后台每任务独立且临时；检查 `agent_settled`、模型/工具错误、截断和中断，记录可观察的模型用量。
-- 交互三项任务工具白名单，后台无工具；内存凭据与设置，关闭自动资源发现与隐式重试。
+- 交互三项任务工具与五项受控 Memory 工具白名单，后台无工具、仅宿主只读检索；内存凭据与设置，关闭自动资源发现与隐式重试。
 - V1.2 新增 `SESSION_DIR`，默认 `<DATABASE_PATH>.sessions`；Console 与飞书应用/白名单用户分开存储，目录0700、文件0600，不扫描其他 Pi 会话，不因恢复重放历史请求或工具。
 - V1 新增 `--feishu` 入口，使用官方 SDK 1.76.0 的 WebSocket 长连接；白名单 open_id、文本私聊，模型与回复串行使用同一交互 Session，后台继续独立 Session。
 - Task 持久化渠道、App ID、chat_id、用户 open_id；消息目标由可信上下文绑定，模型不能指定。旧 V0 SQLite 增量加列与接收去重表，旧任务仍是 Console，保留原有内容和状态。
 - `(appId, message_id)` 与 Run 原子落盘去重，重投及重启后重投不再调用模型；发送失败保存 deliveryError，成功任务不重跑。Console/daemon 发现 pending 飞书任务会拒绝启动，避免使用错误渠道消耗提醒。
-- Memory 仅接口；未新增 Memory、Observer、周期任务、WebUI、Outbox、外部队列服务或 VPS 配置。
+- V2.0 四类 Memory 共用服务与 SQLite 索引：Semantic PROFILE、Project projects、Episodic episodes、Procedural procedures。仅明确记忆意图可写；规范化正文去重、稳定 key 冲突拒绝、版本检查、来源关联 Run、Hash 校验；不自动保存推断或提取全部对话。
+- Memory 正文原子替换，索引可重建，启动和读取前修复；目录/文件0700/0600，宿主独占 Memory 锁，拒绝符号链接和凭据。通过 Pi 1.3.0 公开内联扩展和 context 返回本轮投影，工具只留收据，不把注入正文反复追加 Session；Context 异常公开 abort 并报错。
+- 未新增依赖、Memory 自动提取、Embedding/向量库、Observer、Skill、周期任务、WebUI、Outbox、外部队列或 VPS 配置。
 
 ## 最近关键修改（最多5项）
 
 | 日期 | 修改及位置 |
 | --- | --- |
-| 2026-10-20 | 硅基流动指定模型真实验证通过：3次模型响应，工具创建临时任务与独立后台执行成功；本机 LLM 配置切换，保留 DeepSeek 回退值 |
-| 2026-10-20 | 飞书诊断只保留固定类别、网络/HTTP/业务码；记录 UTC 连接状态，补上重连成功提示，未变更重连或任务重试策略 |
-| 2026-10-20 | 本机 WSClient 断线/自动重连、终止错误和凭据隔离检查通过；完整回归44项，README 补充排查步骤 |
-| 2026-10-20 | V1 验收文档4354d85、结构化证据4f3f153已交付 GitHub main；历史真实样本及统计口径保留如下 |
-| 2026-10-20 | 用户补充确认 V1.2 真实飞书重启后记得此前对话，按用户实测反馈记录通过；未独立采集本次重启日志或会话样本 |
+| 2026-10-20 | 新增 memory-service.ts：四类 CRUD、来源/版本/Hash、原子文件与可重建索引、中文检索和预算 |
+| 2026-10-20 | 新增 memory-tools.ts；PiExecutor 公开 context 动态投影、工具收据及失败中止，保留交互/后台隔离 |
+| 2026-10-20 | main/config 增加 Memory 生命周期、独占锁及目录/预算配置；Channel 传入可信 Run 来源；无密钥变更 |
+| 2026-10-20 | 新增 Memory 单元/真实 SDK 模拟集成测试、四类中文最小评测，保留此前44项回归 |
+| 2026-10-20 | README / PROJECT / AGENTS 同步四类边界、写入门、故障窗口与人工验收；V1/V1.2 真实历史证据保留如下 |
 
 ## 验证记录与证据边界
 
 - 当前环境：macOS，Node `v26.3.1`，npm `11.16.0`；项目运行要求 Node >=24.15.0。
-- 最近代码验证日期：2026-10-20。下表是本次安全诊断改动实际执行的结果；V1/V1.2 真实验收证据另列如下。
+- 最近代码验证日期：2026-10-20。V2.0 最终检查结果见下表；V1/V1.2 真实验收证据另列如下，不能当成 V2.0 真实模型验收。
 
 | 最近代码检查 | 实际结果 |
 | --- | --- |
-| 文档事实及相对链接 | 4份文档59个本地链接有效，本轮敏感信息扫描与 `git diff --check` 通过；Session Git 忽略规则沿用已验证结果，V1 历史样本不说成本轮重复真实联调 |
-| `npm run typecheck` | 通过，退出码0；包含源代码和测试类型检查 |
-| `npm run build` | 通过，退出码0；重新生成 `dist/` |
-| `npm test` | 44通过、0失败、0跳过，退出码0；V1.2 的42项加安全诊断/连接失败2项，扩展官方 WSClient 断线与重连；临时本机监听已获权限 |
+| 文档事实及相对链接 | 4份文档63个本地链接有效；18个变更文件未命中本机凭据；8项运行数据忽略检查通过，Git 无已跟踪运行数据；git diff --check 通过 |
+| `npm run typecheck` | 通过，退出码0；包含源码和测试 |
+| `npm run build` | 通过，退出码0，生成 dist |
+| `npm test` | 57通过、0失败、0跳过，退出码0；此前44项回归保留，新增13项；本地临时监听获权限，全部使用假凭据/临时数据/模拟服务 |
 
-Git 基线：V1.2 实现为 `c2ffcce`；飞书诊断与真实验收记录为 `a65a25b`，本轮已核对同步 GitHub main。硅基流动验证与本机切换结果随 `docs: record SiliconFlow model validation and switch` 文档提交交付；真实 `.env` 不提交。应用实现未再次修改，类型检查、构建及44项测试沿用已运行结果，本次另运行真实 API 探测和文档/敏感信息检查。
+Git 基线：V1.2 为 `c2ffcce`；飞书诊断为 `a65a25b`，硅基流动验证文档为 `87bff5c`。本次从 `87bff5c` 继续实现 V2.0，不回退历史基线。源码、测试与文档统一以 `feat: add V2 long-term memory foundation` 提交交付，目标为 `origin/main`；准确提交标识和同步结果由 `git log -1`、`git status -sb` 及远端 main 核对。真实 `.env` 与全部运行数据不提交。
+
+### V2.0 Memory 自动化证据与待验收（2026-10-20）
+
+| 场景 | 实际证据 / 边界 |
+| --- | --- |
+| 四类创建、读取、更新、删除 | memory-service.test.ts 按四类分别运行，来源关联测试 Run；版本递增，旧关键词不再命中，删除及重开不再返回 |
+| 真正跨进程持久化 | 子进程写入后退出，移除临时测试索引，另一子进程仅从 Markdown 重建并读出相同 key；只操作临时目录 |
+| 重复和冲突 | 规范化相同正文跨类型只保留1条；同 key 不同正文拒绝；expectedVersion 过旧拒绝；不同 key 的语义冲突未实现 |
+| 写故障一致性 | 模拟 rename 失败：旧正文/版本保持且临时文件清理；模拟 SQLite INSERT 失败：Markdown 已是新版本，索引事务回滚，解除故障 repair 后恢复新版本；文件移除后旧索引不复活 |
+| 权限和隐私 | 普通聊天、引用、否定、后台、已取消请求不写；并行请求不继承写权限；拒绝已知凭据/常见 Key 模式、路径穿越和符号链接，文件权限检查通过；不是完整的隐私检测或 OS 沙箱 |
+| 全新 Pi Session 的命中 | memory-integration.test.ts 使用真实 Pi 1.3.0 + 本地模拟流式 API；空 Session 无历史消息且请求不含此前“记住”文本，仍获得 Memory Fact；同时核对临时块与 memory_context 命中事件 |
+| Context 不累积/删除 | 每次模型请求最多1个临时资料块、有字节预算，持久 JSONL 不含注入块；工具返回收据；更新后 Context 仅新值，删除后另一个空 Session 不命中；不保证旧 Session 的自然语言历史不被模型引用 |
+| Context 故障 | 文件预检查失败不调用模型；context 回调故障通过公开 abort 中止，宿主报错，不静默忽略 |
+| 后台及 Task 隔离 | 后台可读相关 Memory、无工具、输出不写交互 JSONL；forget 后已有 Task 仍 pending；既有任务、鉴权、去重、通知、Session/进程回归继续测试 |
+| 最小中文检索评测 | tests/fixtures/memory-eval.json：四类各1个相关问题首条命中，加1个无关问题无命中，5/5通过；不代表语义召回或真实模型回答正确率 |
+| 真实飞书 Memory | **未执行**。用户需按 README“V2.0”保存事实 → 正常重启 → 全新 SESSION_DIR → 核对 Memory ID/version 与 Run 事件 → 更新/删除 → 后台提醒，不能仅凭“我记得”验收 |
+
+没有调用本机真实模型或飞书，没有读取用户 Memory/Session 正文，没有启动或停止用户进程。上述新测试中的“飞书来源”由可信测试请求模拟；V1 的真实飞书证据与本阶段测试严格分开。
 
 ### 硅基流动真实模型验证与切换（2026-10-20）
 
@@ -136,6 +156,11 @@ V1 原有自动化证据：39项测试使用模拟模型/飞书服务和虚拟�
 
 ## 已知问题与限制
 
+- V2.0 真实飞书与当前供应商的记忆写入/使用效果待人工验收；显式意图识别是有界前缀，模型仍可能误分类、选错事实 key 或整理不准，不宣称自动语义冲突解决。
+- Memory 检索/修复线性扫描；仅四类关键词检索、每轮最多5条，Context 使用 UTF-8 字节上限作保守 token 近似，长条目会截断；没有 Embedding/通用语义召回、自动提取或完整修订历史。
+- Memory 的低信任指令边界不等同于对模型的数学保证。原始用户/助手消息仍持久化，旧事实可能在 Session/Run/备份及 SQLite 空闲页保留；forget 只让当前知识和索引失效，不承诺全链路安全擦除。
+- Markdown 与 Memory 索引不构成跨存储事务；文件落盘后索引失败可能已经保存成功，先查状态再处理。坏格式/Hash 会阻止启动或使本轮执行失败，须恢复有效备份；后台失败不自动重试。不支持手改正文自动采纳、硬断电耐久性或崩溃残留临时文件自动清理。
+
 - 用户报告启动后 SDK 告警，随后确认上下文恢复可用；告警发生时是否仍能回复暂未检查。已补安全诊断与重连成功提示，用户需重启到新版才能看到；实际告警根因和持续稳定性尚未确认，不将日志改进称为真实网络故障已修复。
 - V1 手机私聊、任务创建、主动通知及重启恢复已有真实核心闭环证据；取消、多轮、真实事件重投及第二账号隔离未逐项实测。当前由用户在 Mac 终端管理进程，未配置开机自启动或 VPS，退出或睡眠仍会影响服务。
 - V1.2 交互历史跨重启保存，自动压缩仍关闭；长对话可能达到上下文限制，重启不再清空历史，需要使用新的 SESSION_DIR 开始空会话。升级前未持久化的历史不会从 SQLite 日志自动重建。
@@ -150,13 +175,19 @@ V1 原有自动化证据：39项测试使用模拟模型/飞书服务和虚拟�
 
 ## 下一步与需要提供的信息
 
-1. 通过 GitHub main 审查 V1.2 改动，理解入口生成会话身份 → SessionManager 重建上下文 → 新消息触发 Agent Loop → 原生消息落盘的过程，不继续开发 Memory。
-2. V1.2 上下文跨重启核心场景已有用户实测反馈，无需把它继续列为待验收。可按需要补充同轮 Pending 提醒、后台隔离及连接稳定性测试；新增证据提供日期、步骤和脱敏后的实际结果即可，不提供 `.env` 或密钥。
-3. 飞书诊断及验收记录已推送，硅基流动凭据/模型已验证并切换本机配置；正常重启用户进程后验证飞书收发及新安全日志。无需提供 Key，若持续报错只提供安全类别/状态码。Memory、Observer/Skill Learning、VPS 及工程统计不在本次范围。
+1. 审查 GitHub main 的 V2.0 提交，重点检查唯一写入口、文件/索引一致性、context 公开接口、显式授权与四类知识边界；提交包含本阶段代码、测试和文档。
+2. 用户正常停止旧进程、构建并按 README 完成真实飞书 Memory 验收；提供日期、步骤、脱敏结果及命中 ID/版本即可，不提供 Key 或完整私人文件。V1.2 原上下文恢复已实测，无需重复声称待验收。
+3. 评审和验收后再决定 V2.1 的自动分类/提取/语义冲突策略；不自动开始 Memory 扩展、Observer、Skill Learning 或 VPS。真实连接若持续告警只提供安全类别/状态码。
 
-## V1.2 本次文件变更
+## V2.0 本次关键文件
 
-本轮连接诊断另修改 [feishu-transport.ts](../src/feishu-transport.ts)、[feishu-transport.test.ts](../tests/feishu-transport.test.ts)、README 和本 STATE；保留此前 README / PROJECT / STATE 的真实验收补充。
+- 新增 src/memory-service.ts、src/memory-tools.ts、tests/memory-service.test.ts、tests/memory-integration.test.ts、tests/fixtures/memory-eval.json。
+- 修改 src/pi-executor.ts、contracts.ts、config.ts、main.ts，及 Console/Feishu Channel 的可信来源传递；测试配置、.env.example、.gitignore。
+- 更新 README、PROJECT、STATE、AGENTS 的 Memory 架构边界，未变更协作确认规则；无依赖升级或 Task 表迁移。
+
+## V1.2 历史文件变更
+
+此前连接诊断修改 [feishu-transport.ts](../src/feishu-transport.ts)、[feishu-transport.test.ts](../tests/feishu-transport.test.ts)、README 和 STATE；真实验收补充保留。
 
 | 范围 | 文件 |
 | --- | --- |
@@ -164,7 +195,7 @@ V1 原有自动化证据：39项测试使用模拟模型/飞书服务和虚拟�
 | 自动化 | 新增 [session-persistence.test.ts](../tests/session-persistence.test.ts)；扩展 [service.test.ts](../tests/service.test.ts)、[config.test.ts](../tests/config.test.ts)、[pi-integration.test.ts](../tests/pi-integration.test.ts) |
 | 说明与边界 | [README.md](../README.md)、[PROJECT.md](PROJECT.md)、[AGENTS.md](../AGENTS.md)、本 STATE |
 
-没有新增依赖、数据库迁移或框架。Task Service、Scheduler、飞书收发/鉴权与工具实现未改动。
+V1.2 当时没有新增依赖、数据库迁移或框架。Task Service、Scheduler、飞书收发/鉴权与工具实现在该次实现中未改动。
 
 ## V1 历史文件变更
 

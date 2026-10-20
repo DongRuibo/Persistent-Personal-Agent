@@ -55,6 +55,7 @@ export interface ExecutionRequest {
   scope: 'chat' | 'task';
   signal: AbortSignal;
   observer: ExecutionObserver;
+  source?: { channel: 'console' | 'feishu'; reference: string };
 }
 
 // 业务层不接触 Pi Session、事件或模型对象。
@@ -74,8 +75,20 @@ export interface Scheduler {
   stop(): Promise<void>;
 }
 
-// 只预留接口，V0 不接入或实现 Memory。
+export type MemoryKind = 'semantic' | 'project' | 'episodic' | 'procedural';
+export interface MemoryInput { kind: MemoryKind; key: string; content: string }
+export interface MemoryRecord extends MemoryInput {
+  id: string;
+  version: number;
+  createdAt: string;
+  updatedAt: string;
+  hash: string;
+  source: { type: 'user_explicit'; reference: string; channel: 'console' | 'feishu' | 'host' };
+}
 export interface MemoryService {
-  search(query: string): Promise<string[]>;
-  remember(content: string): Promise<void>;
+  search(query: string, kind?: MemoryKind): MemoryRecord[];
+  get(id: string): MemoryRecord;
+  remember(input: MemoryInput): MemoryRecord;
+  update(id: string, content: string, expectedVersion: number): MemoryRecord;
+  forget(id: string, expectedVersion: number): void;
 }

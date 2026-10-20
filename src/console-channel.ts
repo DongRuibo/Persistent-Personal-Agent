@@ -58,7 +58,7 @@ export class ConsoleChannel implements Channel {
           else {
             const run = store.beginRun(null, new Date().toISOString());
             try {
-              const result = await executor.execute({ prompt: text, scope: 'chat', signal, observer: store.observer(run.id) });
+              const result = await executor.execute({ prompt: text, scope: 'chat', signal, observer: store.observer(run.id), source: { channel: 'console', reference: run.id } });
               store.finishRun(run.id, 'succeeded', new Date().toISOString(), result.text);
               output = result.text;
             } catch (error) {

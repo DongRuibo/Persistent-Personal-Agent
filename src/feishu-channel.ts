@@ -72,6 +72,7 @@ export class FeishuChannel implements Channel {
     try {
       const result = await this.tasks.withTarget(target, () => this.executor.execute({
         prompt: text, scope: 'chat', signal: this.shutdown.signal, observer: this.store.observer(runId),
+        source: { channel: 'feishu', reference: runId },
       }));
       if (this.shutdown.signal.aborted) throw new ExecutionInterrupted('服务正在停止');
       this.store.finishRun(runId, 'succeeded', new Date().toISOString(), result.text);
