@@ -1,3 +1,6 @@
+import { createHash } from 'node:crypto';
+import { chmod, mkdir, open } from 'node:fs/promises';
+import { join } from 'node:path';
 import { InMemoryCredentialStore } from '@earendil-works/pi-ai';
 import {
   createAgentSession, createExtensionRuntime, ModelRuntime, SessionManager, SettingsManager,
@@ -87,7 +90,9 @@ export class PiExecutor implements AgentExecutor {
   private readonly active = new Set<SessionPort>();
   private chatBusy = false;
 
-  constructor(private readonly createSession: SessionFactory, private readonly timeoutMs: number) {}
+  constructor(private readonly createSession: SessionFactory, private readonly timeoutMs: number, chat?: SessionPort) {
+    this.chat = chat;
+  }
 
   async execute(request: ExecutionRequest): Promise<{ text: string }> {
     if (request.scope === 'chat' && this.chatBusy) throw new Error('交互会话正在执行');
@@ -113,7 +118,8 @@ export class PiExecutor implements AgentExecutor {
   }
 }
 
-export async function createPiExecutor(config: Config, tasks: TaskService): Promise<PiExecutor> {
+// chatKey 来自可信的启动配置，不能由模型或未经鉴权的消息指定。
+export async function createPiExecutor(config: Config, tasks: TaskService, chatKey = 'console'): Promise<PiExecutor> {
   if (!config.apiKey || config.apiKey === '<REDACTED>') throw new Error('请在本机环境变量或 .env 中配置 LLM_API_KEY');
   const runtime = await ModelRuntime.create({
     credentials: new InMemoryCredentialStore(), modelsPath: null,
@@ -135,7 +141,16 @@ export async function createPiExecutor(config: Config, tasks: TaskService): Prom
   const model = runtime.getModel(provider, config.model);
   if (!model) throw new Error('找不到指定模型；请核对 LLM_PROVIDER / LLM_MODEL，兼容端点请配置 LLM_BASE_URL');
   const tools = taskTools(tasks);
-  return new PiExecutor(async (scope) => {
+  const sessionDir = join(config.sessionDir, createHash('sha256').update(chatKey).digest('hex'));
+  await mkdir(sessionDir, { recursive: true, mode: 0o700 });
+  await chmod(sessionDir, 0o700);
+  const sessionFile = join(sessionDir, 'chat.session.jsonl');
+  // 预先创建私有文件，避免 SDK 的默认文件模式受调用方 umask 影响。
+  const file = await open(sessionFile, 'a', 0o600);
+  await file.close();
+  await chmod(sessionFile, 0o600);
+  const chatManager = SessionManager.open(sessionFile, sessionDir, process.cwd());
+  const createSession: SessionFactory = async (scope) => {
     const loader: ResourceLoader = {
       getExtensions: () => ({ extensions: [], errors: [], runtime: createExtensionRuntime() }),
       getSkills: () => ({ skills: [], diagnostics: [] }),
@@ -153,7 +168,7 @@ export async function createPiExecutor(config: Config, tasks: TaskService): Prom
     const allowed = scope === 'chat' ? tools.map((tool) => tool.name) : [];
     const { session } = await createAgentSession({
       modelRuntime: runtime, model, resourceLoader: loader,
-      sessionManager: SessionManager.inMemory(),
+      sessionManager: scope === 'chat' ? chatManager : SessionManager.inMemory(),
       settingsManager: SettingsManager.inMemory({
         compaction: { enabled: false }, retry: { enabled: false, provider: { maxRetries: 0 } },
         cacheWarming: 'off', enableAnalytics: false, enableInstallTelemetry: false, transport: 'sse',
@@ -171,5 +186,6 @@ export async function createPiExecutor(config: Config, tasks: TaskService): Prom
       dispose: session.dispose.bind(session), getLastAssistantText: session.getLastAssistantText.bind(session),
       prompt: (text, options) => session.prompt(`[当前用户时间：${Temporal.Now.zonedDateTimeISO(config.timeZone).toString()}]\n${text}`, options),
     };
-  }, config.executionTimeoutMs);
+  };
+  return new PiExecutor(createSession, config.executionTimeoutMs, await createSession('chat'));
 }

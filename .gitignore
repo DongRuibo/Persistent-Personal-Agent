@@ -8,4 +8,5 @@ data/
 *.db-shm
 *.db-wal
 *.log
+*.session.jsonl
 .DS_Store

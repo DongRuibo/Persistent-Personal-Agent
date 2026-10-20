@@ -25,7 +25,7 @@
 - 使用原版 `@earendil-works/pi-coding-agent` 创建 Session，复用 Pi Runtime / Agent Loop。**不 Fork、不直接修改 Pi 源码、`node_modules` 中的 SDK 或内部 Agent Loop**；通过公开 SDK 和宿主适配层扩展。
 - 业务模块依赖 `AgentExecutor` 等项目接口，Pi 类型集中在 `src/pi-executor.ts` 和 `src/task-tools.ts`。不得让 Task Service、Scheduler 或 Channel 直接操作 Pi 内部对象。
 - **Task、Session、Memory 必须分离**：SQLite 管理长期任务和执行状态；Pi Session 只管理当前执行上下文；Memory 只预留独立服务接口，V0 不实现。不得把 Session 当任务存储或长期记忆。
-- 交互 Session 仅在当前进程内复用；每个后台任务使用独立 Session 并释放，不混入用户交互历史。
+- V1.2 交互 Session 使用 Pi 原生 SessionManager 持久化，在进程内串行复用并跨重启恢复；Console 与飞书隔离，不加载全局 Pi CLI 会话。每个后台任务仍使用独立的临时 Session 并释放，不混入用户交互历史；恢复历史不能自动重放工具或中断请求。
 - Scheduler 独立于终端循环，可通过 `--daemon` 运行；通过统一 `Channel.sendMessage()` 投递结果，不直接依赖 Console Channel。
 - V0 只支持一次性任务，只允许取消 pending。领取与执行记录原子提交；重启保留 pending，将遗留 running 标记 interrupted，失败或中断不自动重试。不得因通知失败重新执行任务，不宣称外部副作用恰好一次。
 - 时间统一以 UTC 持久化，用户时区使用 IANA 配置。自然语言时间由服务解析，拒绝歧义和 DST 无效时间，不依赖服务器时区或模型自行换算。

@@ -47,7 +47,8 @@ async function main(): Promise<void> {
       throw new Error('数据库中有待执行的飞书任务，请使用 --feishu 启动；Console 调试请使用独立 DATABASE_PATH');
     }
     const tasks = new TaskService(store, config.timeZone);
-    executor = await createPiExecutor(config, tasks);
+    const chatKey = feishuConfig ? JSON.stringify(['feishu', feishuConfig.appId, feishuConfig.allowedOpenId]) : 'console';
+    executor = await createPiExecutor(config, tasks, chatKey);
     if (shutdown.signal.aborted) return;
     const recovered = store.recoverInterrupted(new Date().toISOString());
     const consoleChannel = new ConsoleChannel(redact);

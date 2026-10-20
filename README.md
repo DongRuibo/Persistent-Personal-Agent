@@ -1,6 +1,6 @@
-# Personal Agent：V0 基础与 V1 飞书 Bot
+# Personal Agent：V1 飞书 Bot 与 V1.2 Session 持久化
 
-单用户、单进程 TypeScript 服务，复用原版 Pi Coding Agent SDK 的 Agent Loop。提供终端/飞书私聊、一次性任务、SQLite 持久化和独立后台调度。V1 仅新增飞书渠道，Mac 本地已完成真实手机私聊、主动提醒及 pending 任务跨进程重启恢复的手动验收，未部署 VPS。
+单用户、单进程 TypeScript 服务，复用原版 Pi Coding Agent SDK 的 Agent Loop。提供终端/飞书私聊、一次性任务、SQLite 持久化和独立后台调度。V1 的真实手机私聊、主动提醒及 pending 任务重启恢复已验收；V1.2 新增 Pi 原生交互 Session 持久化，自动化已验证，真实飞书上下文恢复待验收。目前在 Mac 本地运行，暂不部署 VPS。
 
 ## 环境与安装
 
@@ -73,7 +73,41 @@ npm start
 
 `/tasks` 最多返回100个任务；`/task` 查看指定任务的结果、错误、模型用量和执行事件。`/runs` 查看最近100次执行，包括对话。自然语言操作是否被正确理解仍取决于模型；需要精确控制时使用命令，任务创建成功以返回的任务 ID 和 `dueAt` 为准。
 
-## 后台服务与 VPS
+## V1.2 交互 Session 保存与恢复
+
+使用原版 Pi SDK 1.3.0 的 `SessionManager.open()`，不自行序列化聊天历史。启动时打开宿主指定的固定文件；文件不存在时创建，存在时由 Pi 重建对话上下文。收到新的已授权消息后才调用模型；恢复不会续跑旧请求、重放工具或重新执行已完成任务。V1.2 升级前仅在内存中的对话无法追回，从本版启动后的对话开始保存。
+
+默认位置：
+
+```text
+<DATABASE_PATH>.sessions/<会话身份的 SHA-256>/chat.session.jsonl
+# 默认 DATABASE_PATH=./data/agent.db，即 ./data/agent.db.sessions/...
+```
+
+可选设置 `SESSION_DIR=./data/sessions`。相对路径以启动工作目录为准；保持原来的数据库与 Session 目录即可恢复。每份数据库使用自己的 Session 目录，不要用多个不同数据库的进程共享同一目录；进程独占锁仍以数据库为单位。
+
+- Console 使用固定的 `console` 身份；飞书使用当前 App ID 与白名单 open_id 生成身份，同一用户在 Mac/iPhone 的该应用私聊共享上下文。身份由启动配置生成，模型和未授权消息不能指定。
+- Console 与飞书分别保存；更换 App ID 或白名单用户创建另一份 Session。仅轮换密钥、保持身份与目录不变时继续原会话。
+- 不扫描 `~/.pi`、其他项目或目录中最近修改的会话；加载历史不改变本次启动显式配置的模型、工具白名单或资源加载策略。
+- 后台每次任务仍创建 `SessionManager.inMemory()`，不读取交互历史，也不把后台输出写回交互 Session。聊天中创建任务时的工具调用及结果属于聊天记录，仍会正常保存。
+- 每个会话子目录权限 `0700`，文件 `0600`，重新打开时收紧权限；`*.session.jsonl` 已被 Git 忽略。凭据与 SDK 设置仍在内存，不作为配置写入 Session。对话和工具结果会保存且未加密，请勿在提示词中发送密钥。
+- 无法读取或被 SDK 判定无效的文件会阻止启动，不静默覆盖历史。SDK 容忍部分损坏行，当前不额外校验、修复或保证断电时最后一条记录完整。
+
+正常退出用 Ctrl+C（Console 也可 `/quit`）。Pi 在消息落盘时保存记录，`dispose()` 释放会话；不需要手动导出历史。需要全新对话时，停服后改用一个新的 `SESSION_DIR`，旧目录保留作备份。重启本身不清空历史，也不能解决上下文过长问题。
+
+备份/迁移：先正常停服，再一起复制 `DATABASE_PATH`（如有 SQLite WAL/SHM 一并保留）与整个 `SESSION_DIR`；在新位置配置路径和凭据，保持飞书 App ID/白名单身份及目录结构，重新启动。会话打开时显式使用当前工作目录，避免依赖旧机器的目录；此方案尚未在 Linux VPS 实测。
+
+### 真实飞书验收（本次待用户操作）
+
+1. 停止旧实例，执行 `npm run build`、`npm start -- --feishu`，保持原 `.env`；无需新增配置。
+2. 发送“我正在开发一个基于 Pi 的 Personal Agent”，再问“我刚才说我在开发什么？”。
+3. 创建“两分钟后提醒我喝水”，确认创建成功后 Ctrl+C 正常停服。
+4. 重新运行 `npm start -- --feishu`，发送“我们刚才在讨论什么？”，确认模型能接上先前内容。
+5. 等待原提醒主动送达，确认只有一次。再继续对话，检查后台生成的提醒内容未作为聊天历史加载。
+
+记录测试日期、步骤和手机实际结果后再更新 STATE。自动化中的模型回答由本地桩生成，只证明上下文传递与恢复机制，不代表真实模型的理解质量。
+
+## 后台服务与 VPS（保留迁移参考，当前暂不部署）
 
 ```sh
 npm start -- --daemon
@@ -188,8 +222,8 @@ Console 输入 → Task Service / AgentExecutor → Pi 交互 Session
                  Channel.sendMessage()
 ```
 
-- `contracts.ts` 定义业务接口；Pi 类型只存在于 Pi 适配层 `pi-executor.ts` 和 `task-tools.ts`，V1 未改动这两个文件。
-- Task 状态由 SQLite 管理，Pi Session 只保存当前执行上下文。交互 Session 在进程内复用，每次后台任务新建 Session 并释放，二者不混入对话历史。
+- `contracts.ts` 定义业务接口；Pi 类型只存在于 Pi 适配层 `pi-executor.ts` 和 `task-tools.ts`。V1.2 在适配层接入原生 Session 文件，未修改 Pi SDK。
+- Task 状态由 SQLite 管理，Pi Session 只保存当前对话上下文。交互 Session 在进程内复用并跨重启恢复，每次后台任务使用独立内存 Session 并释放，二者不混入对话历史。
 - Scheduler 只依赖 `AgentExecutor`、存储和 `Channel.sendMessage()`；ChannelRouter 根据任务的持久化目标路由到 Console 或 FeishuChannel，飞书官方 SDK 仅封装在 FeishuSdkTransport 中。
 - Memory 仅定义接口，未实现、未调用。没有 WebUI、周期任务或复杂工作流。
 
@@ -204,10 +238,10 @@ Console 输入 → Task Service / AgentExecutor → Pi 交互 Session
 ## 安全与日志
 
 - 交互白名单只有 `create_task`、`list_tasks`、`cancel_task`；后台 Session 无工具。没有 Shell、任意文件读写、浏览器或通用网络工具。
-- SDK 使用内存凭据、设置和 Session，自定义空资源加载器不发现本机扩展、Skills、AGENTS、模板或 MCP；不读取全局 Pi 配置，不保存 Key 到 Pi 认证文件。
+- SDK 使用内存凭据和设置；仅交互 Session 使用宿主指定的私有文件。自定义空资源加载器不发现本机扩展、Skills、AGENTS、模板或 MCP；不读取全局 Pi 配置，不保存 Key 到 Pi 认证文件。
 - 关闭 Agent 自动重试、Provider HTTP 重试、自动压缩、缓存预热和 SDK 可配置的分析功能。保留原版 Pi SDK 及 Agent Loop。
 - 服务自身仍会写 SQLite，并向指定 LLM API 和启用的飞书服务发请求。工具白名单属于应用能力边界，不是操作系统沙箱。模型会收到对话和当前任务内容。
-- `.env`、数据库、构建产物及依赖目录已加入 `.gitignore`。启动设置 umask 0077，新建数据目录权限0700。已有文件权限需要自行检查。
+- `.env`、数据库、Session 文件、构建产物及依赖目录已加入 `.gitignore`。启动设置 umask 0077，新建数据目录权限0700；会话子目录与文件打开时收紧权限，其他已有数据文件权限需要自行检查。
 - `tasks` 保存任务及投递目标；`runs` 保存结果、错误和投递错误；`run_events` 保存执行生命周期；`model_calls` 保存 Provider、模型、token、stopReason 和费用；`feishu_messages` 保存消息 ID 和 Run 关联。错误及输出中的已配置模型 Key、App Secret 和常见认证内容会脱敏，不记录 HTTP 头或原始请求。
 - 模型用量仅能记录 SDK 实际观察到的响应；进程被强杀、网络中断或供应商未报告用量时可能缺失。内置模型费用来自 SDK 价格估算，并非账单；兼容端点费用未知。
 - SQLite 未加密，会保留任务文本和生成结果。V0 没有自动清理；不要把 Key 写进任务或提示词。
@@ -218,12 +252,12 @@ Console 输入 → Task Service / AgentExecutor → Pi 交互 Session
 
 测试覆盖时间解析、服务器时区独立性、DST、取消与领取、SQLite 重开恢复、调度关闭、通知失败、用量与脱敏、Pi 生命周期及会话隔离。集成测试在 `127.0.0.1` 上运行临时模拟 Chat Completions API，使用虚拟 Key；进程测试会启动并关闭临时服务及数据库。在禁止回环监听的沙箱内需要允许本地监听。
 
-当前自动化测试39项全部通过，包含 V0 原有测试，以及鉴权、跨重启去重、提醒目标恢复、串行处理、投递失败不重跑、旧库迁移和启动保护。官方 WSClient 在临时本机 WebSocket 服务上验证首次握手与关闭；官方事件 Dispatcher 接入真实 Pi SDK、模拟模型 API 验证工具目标传递；官方发送客户端以模拟 HTTP 验证序列化和凭据脱敏。
+当前自动化测试42项全部通过，包含原有39项及 V1.2 的目录配置、原生 Session 文件创建/恢复、身份隔离、权限和无效文件保护。实际子进程退出/重启后检查新模型请求中的历史；真实 Pi SDK + 模拟飞书/模型验证对话恢复、历史工具不重放、Pending 任务目标与去重恢复、后台输出隔离。原有鉴权、串行、调度、迁移、通知失败及官方 SDK 模拟测试继续通过。
 
 这些均为**模拟飞书服务/模型 API 测试，不代表全部真实场景均已验收**。另外，本机真实长连接、应用发布、手机私聊、飞书任务创建与主动提醒已确认；用户已报告亲自停止/重启进程后仍收到原任务提醒，并提供手机截图，SQLite 核对该任务 succeeded、仅1条 Run 和1条成功投递记录、无错误。重启操作由用户实测确认，开发者只读核对执行及投递记录；重复事件重投与未授权用户仍只有自动化证据。详细证据见 [STATE](docs/STATE.md)，Linux VPS 本次不部署。
 
-当前限制：不持久化对话历史、没有上下文自动压缩；长对话达到模型上下文限制后需要重启交互会话。服务采用协作式取消，若供应商/SDK 无法响应 abort，退出可能延迟；systemd 强制停止后，下次启动会标记遗留执行中断。崩溃可能发生在结果生成后或通知投递前，不保证通知一定送达。
+当前限制：没有上下文自动压缩；历史跨重启保留，长对话达到模型上下文限制后需要使用新的 Session 目录。会话文件与 SQLite 不是跨存储事务；强杀时可能出现两者记录不一致或最后一条会话记录不完整，恢复只加载上下文，不自动补偿或重放。服务采用协作式取消，若供应商/SDK 无法响应 abort，退出可能延迟；下次启动会标记遗留执行中断。崩溃可能发生在结果生成后或通知投递前，不保证通知一定送达。
 
-V1 核心本机闭环已验收；下一步可在明确任务后进行代码审查与 VPS 部署，尚未实测的多轮/取消/鉴权与重投场景可另行补充。Memory、Observer、周期任务、WebUI 暂不开发。本版只延用已有执行日志接口，未新增 Observer 系统或 Temporal 工作流框架。
+V1 核心本机闭环已验收；当前先审查 V1.2 并完成真实飞书上下文恢复验收，再单独设计长期 Memory。尚未实测的取消/鉴权与重投场景可另行补充。Memory、Observer、周期任务、WebUI 暂不开发，VPS 暂缓。本版延用已有执行日志接口。
 
 官方参考：[Pi SDK](https://pi.dev/docs/latest/sdk)、[1.3.0 完整控制示例](https://github.com/earendil-works/pi/blob/v1.3.0/packages/coding-agent/examples/sdk/12-full-control.ts)、[Node SQLite](https://nodejs.org/api/sqlite.html)。

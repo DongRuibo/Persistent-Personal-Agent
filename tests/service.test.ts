@@ -18,11 +18,13 @@ async function until(predicate: () => boolean, description: string): Promise<voi
   throw new Error(`等待超时：${description}`);
 }
 
-test('进程级：终端创建后重启 daemon，stdin 关闭不影响调度，拒绝双启动，SIGTERM 标记中断', { timeout: 30000 }, async () => {
+test('进程级：交互 Session 重启恢复，daemon 隔离调度，拒绝双启动，SIGTERM 标记中断', { timeout: 30000 }, async () => {
   let blockedRequests = 0;
+  const requests: string[] = [];
   const server = createServer(async (req, res) => {
     let body = '';
     for await (const chunk of req) body += String(chunk);
+    requests.push(body);
     if (body.includes('SERVICE_BLOCK_MARKER')) {
       blockedRequests++;
       // 留下一个正在进行的 HTTP 调用，供 SIGTERM 测试使用。
@@ -52,7 +54,7 @@ test('进程级：终端创建后重启 daemon，stdin 关闭不影响调度，�
       env: {
         ...process.env, LLM_API_KEY: 'local-test-key', LLM_MODEL: 'local-stub',
         LLM_BASE_URL: `http://127.0.0.1:${typeof address === 'object' && address ? address.port : 0}/v1`,
-        DATABASE_PATH: path, USER_TIMEZONE: 'Asia/Taipei', POLL_INTERVAL_MS: '20', EXECUTION_TIMEOUT_MS: '10000',
+        DATABASE_PATH: path, SESSION_DIR: `${path}.sessions`, USER_TIMEZONE: 'Asia/Taipei', POLL_INTERVAL_MS: '20', EXECUTION_TIMEOUT_MS: '10000',
       },
     });
     let output = '';
@@ -66,6 +68,8 @@ test('进程级：终端创建后重启 daemon，stdin 关闭不影响调度，�
   try {
     const consoleProcess = start(false);
     await until(() => consoleProcess.output().includes('Personal Agent 已启动'), '终端启动');
+    consoleProcess.child.stdin.write('SERVICE_CHAT_CONTEXT_MARKER\n');
+    await until(() => consoleProcess.output().includes('SERVICE_RESULT_MARKER'), '第一轮对话完成');
     consoleProcess.child.stdin.write('/create 2秒后 | SERVICE_PENDING_MARKER\n');
     await until(() => store.listTasks().length === 1, '终端任务持久化');
     const pending = store.listTasks()[0]!;
@@ -81,6 +85,7 @@ test('进程级：终端创建后重启 daemon，stdin 关闭不影响调度，�
     await until(() => store.getTask(pending.id)?.status === 'succeeded', '重启后到期执行');
     assert.equal(store.listRuns(pending.id).length, 1);
     await until(() => daemon.output().includes('SERVICE_RESULT_MARKER'), '主动控制台消息');
+    assert.ok(!requests.at(-1)?.includes('SERVICE_CHAT_CONTEXT_MARKER'), '后台任务不能读到交互上下文');
     const interrupted = store.createTask('SERVICE_BLOCK_MARKER', new Date(Date.now() - 1000).toISOString(), new Date().toISOString());
     await until(() => blockedRequests === 1, '模型请求进行中');
     daemon.child.kill('SIGTERM');
@@ -96,6 +101,17 @@ test('进程级：终端创建后重启 daemon，stdin 关闭不影响调度，�
     assert.equal(store.getTask(interrupted.id)?.status, 'interrupted');
     restarted.child.kill('SIGTERM');
     assert.deepEqual(await restarted.exited, [0, null]);
+    const restoredConsole = start(false);
+    await until(() => restoredConsole.output().includes('模式=console'), '恢复交互进程');
+    const beforeChat = requests.length;
+    restoredConsole.child.stdin.write('我们刚才讨论什么？\n');
+    await until(() => restoredConsole.output().includes('SERVICE_RESULT_MARKER'), '恢复后的对话完成');
+    assert.equal(requests.length, beforeChat + 1, '启动与恢复不自动调用模型');
+    assert.ok(requests.at(-1)?.includes('SERVICE_CHAT_CONTEXT_MARKER'));
+    assert.ok(!requests.at(-1)?.includes('SERVICE_PENDING_MARKER'));
+    assert.ok(!requests.at(-1)?.includes('SERVICE_BLOCK_MARKER'));
+    restoredConsole.child.stdin.write('/quit\n');
+    assert.deepEqual(await restoredConsole.exited, [0, null]);
   } finally {
     for (const item of children) {
       if (item.child.exitCode === null && item.child.signalCode === null) item.child.kill('SIGKILL');

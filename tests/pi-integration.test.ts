@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
 import { once } from 'node:events';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { test } from 'node:test';
 import { readConfig, redactor } from '../src/config.js';
 import { createPiExecutor } from '../src/pi-executor.js';
@@ -48,10 +51,12 @@ test('真实 Pi SDK + 本地模拟 API：工具白名单、任务创建、Sessio
   const address = server.address();
   assert.ok(address && typeof address !== 'string');
   const store = new SqliteStore(':memory:', redactor('local-test-key'));
+  const directory = mkdtempSync(join(tmpdir(), 'personal-agent-pi-'));
   const tasks = new TaskService(store, 'Asia/Taipei', () => new Date('2026-10-20T00:00:00Z'));
   const executor = await createPiExecutor(readConfig({
     LLM_API_KEY: 'local-test-key', LLM_MODEL: 'local-stub',
     LLM_BASE_URL: `http://127.0.0.1:${address.port}/v1`, EXECUTION_TIMEOUT_MS: '5000',
+    SESSION_DIR: directory,
   }), tasks);
   const execute = async (scope: 'chat' | 'task', prompt: string) => {
     const run = store.beginRun(null, new Date().toISOString());
@@ -114,6 +119,7 @@ test('真实 Pi SDK + 本地模拟 API：工具白名单、任务创建、Sessio
     assert.equal(requests.length - before, 1, 'HTTP 500 不应触发隐式重试');
   } finally {
     await executor.close(); store.close();
+    rmSync(directory, { recursive: true, force: true });
     server.closeAllConnections();
     await new Promise<void>((resolve) => server.close(() => resolve()));
   }

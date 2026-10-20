@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
+import { resolve } from 'node:path';
 import { readConfig, readFeishuConfig, redactor } from '../src/config.js';
 
 test('配置校验：IANA 时区、有效毫秒值、无凭据的 API URL', () => {
@@ -9,6 +10,12 @@ test('配置校验：IANA 时区、有效毫秒值、无凭据的 API URL', () =
   assert.throws(() => readConfig({ EXECUTION_TIMEOUT_MS: 'NaN' }));
   assert.throws(() => readConfig({ LLM_BASE_URL: 'https://name:password@example.com/v1' }));
   assert.throws(() => readConfig({ LLM_BASE_URL: 'https://example.com/v1?token=test' }));
+});
+
+test('Session 目录可配置，默认跟随数据库，避免独立调试库复用正式会话', () => {
+  const config = readConfig({ DATABASE_PATH: './data/debug.db' });
+  assert.equal(config.sessionDir, `${config.databasePath}.sessions`);
+  assert.equal(readConfig({ SESSION_DIR: './data/private-sessions' }).sessionDir, resolve('./data/private-sessions'));
 });
 
 test('错误日志不保留配置的 Key 或 Bearer 认证', () => {

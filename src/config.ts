@@ -8,6 +8,7 @@ export interface Config {
   baseUrl?: string;
   timeZone: string;
   databasePath: string;
+  sessionDir: string;
   pollIntervalMs: number;
   executionTimeoutMs: number;
 }
@@ -54,13 +55,15 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env): Config {
       throw new Error('LLM_BASE_URL 必须是无凭据、查询参数或片段的 HTTP(S) 地址');
     }
   }
+  const databasePath = resolve(env.DATABASE_PATH || './data/agent.db');
   return {
     provider: env.LLM_PROVIDER || 'openai',
     model: env.LLM_MODEL || 'gpt-4.1-mini',
     apiKey: env.LLM_API_KEY || '',
     baseUrl: env.LLM_BASE_URL,
     timeZone,
-    databasePath: resolve(env.DATABASE_PATH || './data/agent.db'),
+    databasePath,
+    sessionDir: resolve(env.SESSION_DIR || `${databasePath}.sessions`),
     pollIntervalMs: integer('POLL_INTERVAL_MS', 1000),
     executionTimeoutMs: integer('EXECUTION_TIMEOUT_MS', 120_000),
   };

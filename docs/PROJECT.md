@@ -2,7 +2,7 @@
 
 ## 定位与当前范围
 
-面向单用户的长期运行 Personal Agent，未来目标部署在 Linux VPS。V0 提供终端对话及一次性后台任务；当前 V1 在该架构上新增飞书 Bot，支持从 Mac/iPhone 的飞书私聊交互及主动提醒。当前已通过自动化测试及 Mac 本机真实手机私聊、主动提醒、pending 任务重启恢复的手动验收，VPS 仍待另行开展。
+面向单用户的长期运行 Personal Agent，目前在 Mac 本地开发与运行，未来保留迁移 Linux VPS 的能力，暂不部署。V0 提供终端对话及一次性后台任务；V1 新增飞书 Bot，Mac 本机手机私聊、主动提醒、pending 任务重启恢复已通过真实手动验收。V1.2 新增 Pi 原生交互 Session 持久化，已通过模拟模型及进程自动化测试，真实飞书上下文恢复待手动验收。
 
 协作规则见 [AGENTS.md](../AGENTS.md)，当前进展与交接见 [STATE.md](STATE.md)，安装配置与运行说明见 [README.md](../README.md)。本文记录已经确定的方案，不把未来目标当成已实现功能。
 
@@ -23,12 +23,12 @@ API Key 只从环境变量读取，仓库仅放脱敏样例。准确依赖版本
 
 ## 整体架构与边界
 
-终端输入由 Console Channel 处理；飞书入口校验配置用户的文本私聊并落盘去重，在进程内串行调用同一个 AgentExecutor，复用交互 Pi Session。Task Service 通过可信上下文绑定接收目标，不让模型选择接收人。独立 Scheduler 从 SQLite 领取到期任务，通过 AgentExecutor 创建新的后台 Pi Session，先提交结果，再通过 ChannelRouter 和 `Channel.sendMessage()` 通知持久化的接收会话。
+终端输入由 Console Channel 处理；飞书入口校验配置用户的文本私聊并落盘去重，在进程内串行调用同一个 AgentExecutor，复用交互 Pi Session。启动时通过原生 SessionManager 打开固定的私有 JSONL 文件，首次创建、以后恢复；Console 与飞书应用/白名单用户分别存储，不扫描全局 Pi 会话。Task Service 通过可信上下文绑定接收目标，不让模型选择接收人。独立 Scheduler 从 SQLite 领取到期任务，通过 AgentExecutor 创建新的临时后台 Pi Session，先提交结果，再通过 ChannelRouter 和 `Channel.sendMessage()` 通知持久化的接收会话。
 
 | 概念 | 职责与生命周期 |
 | --- | --- |
 | Task / Run | SQLite 保存指令、下次执行时间、渠道接收目标、状态、执行结果与日志，跨进程重启保留 |
-| Pi Session | 当前执行上下文；交互在进程内复用，每个后台任务单独创建并释放 |
+| Pi Session | 短期对话上下文；交互使用 Pi JSONL 文件跨重启恢复，每个后台任务使用独立内存 Session 并释放；不是长期记忆 |
 | Memory Service | 未来独立长期记忆服务；当前仅有接口，不存储、不检索、不参与执行 |
 | Channel | Console 与 FeishuChannel，使用包含目标的统一消息接口；任务引擎不绑定 SDK 或具体渠道 |
 
@@ -41,7 +41,7 @@ Pi SDK 使用公开 API，不 Fork、不修改内部源码和 Agent Loop。宿�
 | [src/main.ts](../src/main.ts) | 组装服务、进程锁、恢复、console/daemon 入口与信号退出 |
 | [src/config.ts](../src/config.ts) | 环境变量、IANA 时区与参数校验、日志脱敏 |
 | [src/contracts.ts](../src/contracts.ts) | Task / Run、AgentExecutor、Channel、Scheduler、MemoryService 业务接口 |
-| [src/pi-executor.ts](../src/pi-executor.ts) | 创建隔离 Session、白名单检查、执行生命周期、取消超时和用量观察 |
+| [src/pi-executor.ts](../src/pi-executor.ts) | 原生 Session 文件创建/恢复与权限、后台隔离、白名单检查、执行生命周期、取消超时和用量观察 |
 | [src/task-tools.ts](../src/task-tools.ts) | Pi 工具适配：创建、查询、取消任务，调用 Task Service |
 | [src/task-service.ts](../src/task-service.ts) | 任务内容与时间校验、查询和 pending 取消规则 |
 | [src/sqlite-store.ts](../src/sqlite-store.ts) | SQLite 表、原子领取、执行状态、日志、恢复与投递记录 |
@@ -70,6 +70,7 @@ Pi SDK 使用公开 API，不 Fork、不修改内部源码和 Agent Loop。宿�
 | V0 本地基础 | 对话与任务闭环；恢复、锁、时间、Session 隔离和执行日志；类型检查、构建及模拟 API/进程测试通过 | 已实现，当前验证见 STATE |
 | V0 真实环境验收 | 使用用户配置的真实模型完成对话、任务管理与短时后台任务；在 Linux VPS 验证启动、日志、重启及退出 | DeepSeek 本地最小闭环已验证；完整使用效果和 VPS 待验收，详见 STATE |
 | V1 飞书本机 | 白名单私聊、上下文复用、主动提醒与恢复、事件去重、保留 Console；无需公网回调地址 | 已实现，39项自动化测试通过；手机私聊、主动提醒与 pending 任务重启恢复核心闭环已实测，去重和鉴权仍以自动化证据为主 |
-| 下一阶段 | 用户明确任务后再做 Linux VPS 验收或其他渠道 | 本次不部署、不展开 |
+| V1.2 Session 持久化 | Pi 原生 JSONL、Console/飞书隔离、正常重启恢复、保持 Task 独立及工具白名单 | 已实现，42项自动化测试通过；真实飞书上下文恢复待用户验收 |
+| 下一阶段 | 先审查及验收 Session 持久化，再单独设计 Memory 的存储、检索和写入策略 | 本次不实现 Memory、Observer，不部署 VPS |
 
 Memory、周期任务、WebUI 和复杂框架不属于本阶段。架构或范围调整先说明并取得确认，再同步本文及 STATE。
