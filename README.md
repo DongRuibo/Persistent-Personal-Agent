@@ -1,6 +1,6 @@
 # Personal Agent：V0 基础与 V1 飞书 Bot
 
-单用户、单进程 TypeScript 服务，复用原版 Pi Coding Agent SDK 的 Agent Loop。提供终端/飞书私聊、一次性任务、SQLite 持久化和独立后台调度。V1 仅新增飞书渠道，当前按 Mac 本地运行交付，未做真实飞书联调或 VPS 部署。
+单用户、单进程 TypeScript 服务，复用原版 Pi Coding Agent SDK 的 Agent Loop。提供终端/飞书私聊、一次性任务、SQLite 持久化和独立后台调度。V1 仅新增飞书渠道，Mac 本地已完成真实手机私聊、主动提醒及 pending 任务跨进程重启恢复的手动验收，未部署 VPS。
 
 ## 环境与安装
 
@@ -118,7 +118,7 @@ WantedBy=multi-user.target
 1. 打开 [飞书开发者后台](https://open.feishu.cn/app)，创建**企业自建应用**。群聊里的自定义 Webhook 机器人不适用于本项目。按平台要求完成企业/开发者设置。
 2. 在应用能力中添加/开启“机器人”，设置名称。在“凭证与基础信息”取得该应用的 App ID、App Secret，只复制到自己的本机 `.env`，不要发进聊天、截图、源码或日志。
 3. 在权限管理申请两项应用身份权限：`im:message.p2p_msg:readonly`（读取用户发给机器人的单聊消息）和 `im:message:send_as_bot`（以应用身份发消息）。当前不需要群消息、文档、文件或 Shell 权限。参见[接收消息事件](https://open.feishu.cn/document/server-docs/im-v1/message/events/receive)和[发送消息 API](https://open.feishu.cn/document/server-docs/im-v1/message/create)。
-4. 按[官方获取 Open ID 指南](https://open.feishu.cn/document/home/user-identity-introduction/open-id)，在 API 调试台选择**当前应用**，将用户 ID 类型设为 `open_id`，通过成员选择器选择自己并复制 `ou_...`。不要用另一个应用的 open_id、union_id 或 user_id。若改用手机号/邮箱查询 ID，按该接口额外申请 `contact:user.id:readonly`；运行 Bot 本身不要求这一额外权限。
+4. 在[发送消息 API 调试台](https://open.feishu.cn/api-explorer?project=im&resource=message&apiName=create&version=v1)选择**当前应用**，将查询参数 `receive_id_type` 选为 `open_id`，点击其下方出现的“快速复制 open_id”，选择自己并点击“复制成员 ID”。若默认已选 open_id 却未显示按钮，可先切换其他 ID 类型再切回。此路径已在真实页面验证，无需点击“开始调试”、发送消息或新增通讯录权限。不要用另一个应用的 open_id、union_id、user_id 或机器人的 ID。其他方式参见[官方获取 Open ID 指南](https://open.feishu.cn/document/home/user-identity-introduction/open-id)；若改用手机号/邮箱查询接口，才需额外申请 `contact:user.id:readonly`。
 5. 在本机现有 `.env` 中追加以下三项，保留原有 DeepSeek/模型配置：
 
    ```dotenv
@@ -130,7 +130,7 @@ WantedBy=multi-user.target
    三项均须替换为自己的真实值。缺少白名单、凭据或格式无效会拒绝启动，不提供临时开放所有用户的模式。`open_id` 虽非密钥，也无需发送给开发者。
 6. 在“事件与回调”中选择“使用长连接接收事件”，订阅**应用身份**的 `im.message.receive_v1`（接收消息）。如果平台提示先建立连接，先按下面命令启动本地进程，再回页面保存订阅；无需填写公网地址、Verification Token 或 Encrypt Key。长连接方式参见[官方 SDK 说明](https://github.com/larksuite/node-sdk/blob/main/README.zh.md)；具体页面以开放平台当前显示为准。
 7. 创建应用版本并发布，使机器人能力、权限和事件配置生效；将应用可用范围限制为自己。平台要求管理员审批时，需由你完成。权限或事件修改后，按平台要求重新发布。
-8. 在 Mac、iPhone 的飞书中登录同一企业内的同一用户，搜索该机器人并进入私聊。Mac 上的 Agent 进程必须保持运行、联网且未睡眠；手机只是交互入口，任务在 Mac 执行。停机/睡眠期间的 pending 提醒会在恢复运行后补执行，不能保证原定时刻送达。
+8. 在 Mac、iPhone 的飞书中使用创建应用时的同一身份（本次为飞书个人身份），搜索该机器人并进入私聊。Mac 上的 Agent 进程必须保持运行、联网且未睡眠；手机只是交互入口，任务在 Mac 执行。停机/睡眠期间的 pending 提醒会在恢复运行后补执行，不能保证原定时刻送达。
 
 ### 本机启动和手动验收
 
@@ -220,10 +220,10 @@ Console 输入 → Task Service / AgentExecutor → Pi 交互 Session
 
 当前自动化测试39项全部通过，包含 V0 原有测试，以及鉴权、跨重启去重、提醒目标恢复、串行处理、投递失败不重跑、旧库迁移和启动保护。官方 WSClient 在临时本机 WebSocket 服务上验证首次握手与关闭；官方事件 Dispatcher 接入真实 Pi SDK、模拟模型 API 验证工具目标传递；官方发送客户端以模拟 HTTP 验证序列化和凭据脱敏。
 
-这些均为**模拟飞书服务/模型 API 测试，不代表真实飞书联调成功**。用户尚未创建飞书应用，Mac/iPhone 实际收发、权限生效、服务重启后的真实提醒均待按上面的手动步骤验收。DeepSeek 的 V0 真实调用证据与用户报告的 V0 本机重启测试单独记录在 [STATE](docs/STATE.md)，不扩大为 V1 飞书证据；Linux VPS 本次不部署。
+这些均为**模拟飞书服务/模型 API 测试，不代表全部真实场景均已验收**。另外，本机真实长连接、应用发布、手机私聊、飞书任务创建与主动提醒已确认；用户已报告亲自停止/重启进程后仍收到原任务提醒，并提供手机截图，SQLite 核对该任务 succeeded、仅1条 Run 和1条成功投递记录、无错误。重启操作由用户实测确认，开发者只读核对执行及投递记录；重复事件重投与未授权用户仍只有自动化证据。详细证据见 [STATE](docs/STATE.md)，Linux VPS 本次不部署。
 
 当前限制：不持久化对话历史、没有上下文自动压缩；长对话达到模型上下文限制后需要重启交互会话。服务采用协作式取消，若供应商/SDK 无法响应 abort，退出可能延迟；systemd 强制停止后，下次启动会标记遗留执行中断。崩溃可能发生在结果生成后或通知投递前，不保证通知一定送达。
 
-下一步由用户完成飞书应用与本机凭据配置，再验收真实 Mac/iPhone 私聊和主动提醒；Memory、Observer、周期任务、WebUI 暂不开发。本版只延用已有执行日志接口，未新增 Observer 系统或 Temporal 工作流框架。
+V1 核心本机闭环已验收；下一步可在明确任务后进行代码审查与 VPS 部署，尚未实测的多轮/取消/鉴权与重投场景可另行补充。Memory、Observer、周期任务、WebUI 暂不开发。本版只延用已有执行日志接口，未新增 Observer 系统或 Temporal 工作流框架。
 
 官方参考：[Pi SDK](https://pi.dev/docs/latest/sdk)、[1.3.0 完整控制示例](https://github.com/earendil-works/pi/blob/v1.3.0/packages/coding-agent/examples/sdk/12-full-control.ts)、[Node SQLite](https://nodejs.org/api/sqlite.html)。
