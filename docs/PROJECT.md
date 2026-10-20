@@ -2,7 +2,7 @@
 
 ## 定位与当前范围
 
-面向单用户的长期运行 Personal Agent，目标部署在 Linux VPS，未来可经飞书、Mac 和手机与用户交互。当前 V0 提供终端对话及一次性后台任务，先建立可靠的执行、持久化与渠道边界。
+面向单用户的长期运行 Personal Agent，未来目标部署在 Linux VPS。V0 提供终端对话及一次性后台任务；当前 V1 在该架构上新增飞书 Bot，支持从 Mac/iPhone 的飞书私聊交互及主动提醒。当前仅实现本机运行与模拟验收，真实飞书联调待用户创建应用，VPS 仍是下一步。
 
 协作规则见 [AGENTS.md](../AGENTS.md)，当前进展与交接见 [STATE.md](STATE.md)，安装配置与运行说明见 [README.md](../README.md)。本文记录已经确定的方案，不把未来目标当成已实现功能。
 
@@ -13,6 +13,7 @@
 | 语言与运行时 | TypeScript / ESM，项目要求 Node.js >=24.15.0 |
 | 依赖管理与构建 | npm + package-lock，TypeScript 编译至 `dist/` |
 | Agent Runtime | 原版 `@earendil-works/pi-coding-agent@1.3.0`，配套 `pi-ai@1.3.0` |
+| 飞书渠道 | 官方 `@larksuiteoapi/node-sdk@1.76.0`，企业自建 Bot、WebSocket 长连接与文本消息 |
 | 模型 | 现成 LLM API；支持 Pi 内置 Provider 或流式 OpenAI Chat Completions 兼容端点 |
 | 持久化 | Node 内置 `node:sqlite`，WAL，单机进程锁 `proper-lockfile` |
 | 时间 | `@js-temporal/polyfill`，IANA 用户时区，UTC ISO 时间存储 |
@@ -22,14 +23,14 @@ API Key 只从环境变量读取，仓库仅放脱敏样例。准确依赖版本
 
 ## 整体架构与边界
 
-终端输入由 Console Channel 处理：确定性任务命令进入 Task Service，普通对话通过 AgentExecutor 进入交互 Pi Session。独立 Scheduler 从 SQLite 领取到期任务，通过 AgentExecutor 创建新的后台 Pi Session，先提交结果，再通过 `Channel.sendMessage()` 通知。
+终端输入由 Console Channel 处理；飞书入口校验配置用户的文本私聊并落盘去重，在进程内串行调用同一个 AgentExecutor，复用交互 Pi Session。Task Service 通过可信上下文绑定接收目标，不让模型选择接收人。独立 Scheduler 从 SQLite 领取到期任务，通过 AgentExecutor 创建新的后台 Pi Session，先提交结果，再通过 ChannelRouter 和 `Channel.sendMessage()` 通知持久化的接收会话。
 
 | 概念 | 职责与生命周期 |
 | --- | --- |
-| Task / Run | SQLite 保存指令、下次执行时间、状态、执行结果与日志，跨进程重启保留 |
+| Task / Run | SQLite 保存指令、下次执行时间、渠道接收目标、状态、执行结果与日志，跨进程重启保留 |
 | Pi Session | 当前执行上下文；交互在进程内复用，每个后台任务单独创建并释放 |
 | Memory Service | 未来独立长期记忆服务；当前仅有接口，不存储、不检索、不参与执行 |
-| Channel | 输入适配及统一主动消息接口；V0 仅 Console，任务引擎不绑定具体渠道 |
+| Channel | Console 与 FeishuChannel，使用包含目标的统一消息接口；任务引擎不绑定 SDK 或具体渠道 |
 
 Pi SDK 使用公开 API，不 Fork、不修改内部源码和 Agent Loop。宿主负责业务状态、权限和投递策略；单用户、单进程、串行后台任务，不引入微服务或工作流框架。
 
@@ -47,6 +48,9 @@ Pi SDK 使用公开 API，不 Fork、不修改内部源码和 Agent Loop。宿�
 | [src/time.ts](../src/time.ts) | 有界中文时间与 ISO 时间解析，明确处理时区和 DST 歧义 |
 | [src/scheduler.ts](../src/scheduler.ts) | 独立扫描循环、串行执行、先提交结果再调用 Channel |
 | [src/console-channel.ts](../src/console-channel.ts) | 终端对话与命令、控制台消息输出；daemon 不启动输入循环 |
+| [src/feishu-channel.ts](../src/feishu-channel.ts) | 白名单私聊、接收去重、交互串行处理、可信任务目标、出站检查与文本分片 |
+| [src/feishu-transport.ts](../src/feishu-transport.ts) | 官方 SDK 长连接、就绪/关闭、带超时的发送及敏感错误隔离 |
+| [src/channel-router.ts](../src/channel-router.ts) | 按持久化渠道投递，飞书不可用时不回退 Console |
 | [tests/](../tests/) | 状态、时间、权限、Pi 生命周期、模拟 API 和真实服务进程测试 |
 
 ## 必须保持的执行语义
@@ -57,13 +61,15 @@ Pi SDK 使用公开 API，不 Fork、不修改内部源码和 Agent Loop。宿�
 - `message_end` 记录模型响应与用量；`agent_settled` 后仍检查 aborted、模型与工具错误、截断及最终文本。执行结束、数据库成功提交、渠道投递成功互相区分。
 - UTC 持久化、IANA 用户时区解析。支持的中文时间语法见 README，歧义或 DST 无效时间要求用户明确，不让模型或服务器时区决定。
 - 交互白名单仅 `create_task`、`list_tasks`、`cancel_task`，后台无工具；禁止默认 Shell、任意文件读写和通用网络能力。服务仍需写数据库并请求配置的模型 API，工具白名单不等同于 OS 沙箱。
+- 飞书只允许配置的应用内 open_id 和文本私聊；`(appId, message_id)` 持久化去重后再安排执行，不自动重放中断消息。模型执行和发送均不阻塞事件接收；发送失败只保存 deliveryError，不重跑 Agent。Outbox 尚未实现，故障窗口与升级方向见 README。
 
 ## 开发阶段与验收目标
 
 | 阶段 | 目标与验收 | 状态 |
 | --- | --- | --- |
 | V0 本地基础 | 对话与任务闭环；恢复、锁、时间、Session 隔离和执行日志；类型检查、构建及模拟 API/进程测试通过 | 已实现，当前验证见 STATE |
-| V0 真实环境验收 | 使用用户配置的真实模型完成对话、任务管理与短时后台任务；在 Linux VPS 验证启动、日志、重启及退出 | 待开展，需要用户配置/部署条件 |
-| 后续明确任务 | 按已批准需求接入飞书等 Channel，继续复用现有边界 | 仅方向，未实现、未授权展开 |
+| V0 真实环境验收 | 使用用户配置的真实模型完成对话、任务管理与短时后台任务；在 Linux VPS 验证启动、日志、重启及退出 | DeepSeek 本地最小闭环已验证；完整使用效果和 VPS 待验收，详见 STATE |
+| V1 飞书本机 | 白名单私聊、上下文复用、主动提醒与恢复、事件去重、保留 Console；无需公网回调地址 | 已实现，39项自动化测试通过；真实飞书联调待用户配置应用 |
+| 下一阶段 | 用户明确任务后再做 Linux VPS 验收或其他渠道 | 本次不部署、不展开 |
 
 Memory、周期任务、WebUI 和复杂框架不属于本阶段。架构或范围调整先说明并取得确认，再同步本文及 STATE。

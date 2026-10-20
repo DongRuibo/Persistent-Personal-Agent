@@ -12,6 +12,26 @@ export interface Config {
   executionTimeoutMs: number;
 }
 
+export interface FeishuConfig {
+  appId: string;
+  appSecret: string;
+  allowedOpenId: string;
+}
+
+export function readFeishuConfig(env: NodeJS.ProcessEnv = process.env): FeishuConfig {
+  const required = (name: string) => {
+    const value = env[name]?.trim();
+    if (!value || value === '<REDACTED>') throw new Error(`飞书模式需要在本机配置 ${name}`);
+    return value;
+  };
+  const appId = required('FEISHU_APP_ID');
+  const appSecret = required('FEISHU_APP_SECRET');
+  const allowedOpenId = required('FEISHU_ALLOWED_OPEN_ID');
+  if (!/^cli_[0-9a-fA-F]{16}$/.test(appId)) throw new Error('FEISHU_APP_ID 格式不正确，请填写企业自建应用的 App ID');
+  if (!/^ou_[A-Za-z0-9_-]+$/.test(allowedOpenId)) throw new Error('FEISHU_ALLOWED_OPEN_ID 必须是该应用下的用户 open_id（ou_ 开头）');
+  return { appId, appSecret, allowedOpenId };
+}
+
 export function validateTimeZone(zone: string): void {
   // 拒绝固定偏移，要求命名时区，夏令时由 IANA 规则处理。
   if (/^[+-]/.test(zone)) throw new Error('USER_TIMEZONE 必须是 IANA 时区，如 Asia/Taipei');
@@ -46,12 +66,14 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env): Config {
   };
 }
 
-export function redactor(secret: string): (value: unknown) => string {
+export function redactor(secret: string, ...additionalSecrets: (string | undefined)[]): (value: unknown) => string {
   return (value) => {
     let text = value instanceof Error ? value.message : String(value);
-    if (secret) text = text.split(secret).join('<REDACTED>');
+    for (const value of [secret, ...additionalSecrets]) {
+      if (value) text = text.split(value).join('<REDACTED>');
+    }
     return text
       .replace(/Bearer\s+[^\s"',}]+/gi, 'Bearer <REDACTED>')
-      .replace(/((?:api[_-]?key|token|password)\s*[=:]\s*)[^\s,;}]+/gi, '$1<REDACTED>');
+      .replace(/((?:api[_-]?key|app[_-]?secret|token|password)\s*[=:]\s*)[^\s,;}]+/gi, '$1<REDACTED>');
   };
 }

@@ -54,7 +54,7 @@ export class TaskScheduler implements Scheduler {
       }
       // 先提交任务结果，再投递通知；通知失败只记录，不重新执行模型或工具。
       try {
-        await this.channel.sendMessage({ text: message, taskId: task.id, runId: run.id });
+        await this.channel.sendMessage({ text: message, taskId: task.id, runId: run.id, target: task.target });
         this.store.event(run.id, 'delivery_succeeded');
       } catch (error) {
         this.store.deliveryFailed(run.id, error instanceof Error ? error.message : String(error));

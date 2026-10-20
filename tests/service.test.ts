@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import type { ChildProcessWithoutNullStreams } from 'node:child_process';
 import { createServer } from 'node:http';
 import { once } from 'node:events';
@@ -105,4 +105,24 @@ test('进程级：终端创建后重启 daemon，stdin 关闭不影响调度，�
     server.closeAllConnections();
     await new Promise<void>((resolve) => server.close(() => resolve()));
   }
+});
+
+test('Console/daemon 模式发现 Pending 飞书任务时拒绝启动，避免错误渠道消耗任务', () => {
+  const directory = mkdtempSync(join(tmpdir(), 'personal-agent-route-guard-'));
+  const path = join(directory, 'agent.db');
+  const store = new SqliteStore(path);
+  try {
+    const task = store.createTask('喝水', new Date(0).toISOString(), new Date().toISOString(), {
+      channel: 'feishu', appId: 'cli_0123456789abcdef', chatId: 'oc_private', userOpenId: 'ou_owner',
+    });
+    for (const mode of [[], ['--daemon']]) {
+      const result = spawnSync(process.execPath, ['--import', 'tsx', 'src/main.ts', ...mode], {
+        encoding: 'utf8', timeout: 10000, env: { ...process.env, LLM_API_KEY: 'test-only-key', DATABASE_PATH: path },
+      });
+      assert.equal(result.status, 1);
+      assert.match(result.stderr, /请使用 --feishu/);
+      assert.equal(store.getTask(task.id)?.status, 'pending');
+      assert.equal(store.listRuns().length, 0);
+    }
+  } finally { store.close(); rmSync(directory, { recursive: true, force: true }); }
 });

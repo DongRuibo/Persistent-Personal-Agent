@@ -1,6 +1,17 @@
 export type TaskStatus = 'pending' | 'running' | 'succeeded' | 'failed' | 'interrupted' | 'cancelled';
 export type RunStatus = 'running' | 'succeeded' | 'failed' | 'interrupted';
 
+export type MessageTarget = { channel: 'console' } | {
+  channel: 'feishu'; appId: string; chatId: string; userOpenId: string;
+};
+
+export interface OutboundMessage {
+  text: string;
+  taskId?: string;
+  runId?: string;
+  target?: MessageTarget;
+}
+
 export interface Task {
   id: string;
   instruction: string;
@@ -8,6 +19,7 @@ export interface Task {
   status: TaskStatus;
   createdAt: string;
   updatedAt: string;
+  target: MessageTarget;
 }
 
 export interface Run {
@@ -54,7 +66,7 @@ export interface AgentExecutor {
 export class ExecutionInterrupted extends Error {}
 
 export interface Channel {
-  sendMessage(message: { text: string; taskId?: string; runId?: string }): Promise<void>;
+  sendMessage(message: OutboundMessage): Promise<void>;
 }
 
 export interface Scheduler {

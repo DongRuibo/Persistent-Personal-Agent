@@ -7,6 +7,10 @@ import { createPiExecutor } from '../src/pi-executor.js';
 import { SqliteStore } from '../src/sqlite-store.js';
 import { TaskService } from '../src/task-service.js';
 import type { ExecutionRequest } from '../src/contracts.js';
+import * as lark from '@larksuiteoapi/node-sdk';
+import { FeishuChannel } from '../src/feishu-channel.js';
+import { ChannelRouter } from '../src/channel-router.js';
+import { TaskScheduler } from '../src/scheduler.js';
 
 interface Payload {
   messages: { role: string; content: unknown }[];
@@ -28,7 +32,8 @@ test('真实 Pi SDK + 本地模拟 API：工具白名单、任务创建、Sessio
     }
     res.writeHead(200, { 'Content-Type': 'text/event-stream' });
     const user = JSON.stringify(payload.messages.filter((message) => message.role === 'user').at(-1)?.content);
-    const callTool = user.includes('CHAT_CREATE_MARKER') && !payload.messages.some((message) => message.role === 'tool');
+    const lastUser = payload.messages.findLastIndex((message) => message.role === 'user');
+    const callTool = user.includes('CHAT_CREATE_MARKER') && !payload.messages.slice(lastUser + 1).some((message) => message.role === 'tool');
     const chunk = (delta: unknown, finish: string | null, usage?: unknown) => {
       res.write(`data: ${JSON.stringify({ id: 'mock-completion', object: 'chat.completion.chunk', created: 1, model: 'local-stub', choices: [{ index: 0, delta, finish_reason: finish }], ...(usage ? { usage } : {}) })}\n\n`);
     };
@@ -74,6 +79,35 @@ test('真实 Pi SDK + 本地模拟 API：工具白名单、任务创建、Sessio
     const continued = requests.at(-1)!;
     assert.ok(JSON.stringify(continued.messages).includes('CHAT_CREATE_MARKER'));
     assert.ok(!JSON.stringify(continued.messages).includes('TASK_PRIVATE_MARKER'));
+    // 真实飞书事件 Dispatcher → Channel → 真实 Pi 工具调用，模型 HTTP 和飞书发送均模拟。
+    tasks.cancel(tasks.list()[0]!.id);
+    const sent: { chatId: string; text: string }[] = [];
+    const feishu = new FeishuChannel(
+      { appId: 'cli_0123456789abcdef', appSecret: 'fake-app-secret', allowedOpenId: 'ou_owner' },
+      { start: async () => {}, stop: () => {}, sendText: async (chatId, text) => { sent.push({ chatId, text }); } },
+      executor, tasks, store, redactor('local-test-key'), () => {},
+    );
+    const dispatcher = new lark.EventDispatcher({ loggerLevel: lark.LoggerLevel.fatal }).register({
+      'im.message.receive_v1': async (event) => { feishu.receive(event); },
+    });
+    const scheduler = new TaskScheduler(store, executor, new ChannelRouter({ sendMessage: async () => { throw new Error('不应投递 Console'); } }, feishu), 10, () => {}, () => new Date('2026-10-22T00:00:00Z'));
+    try {
+      for (const eventId of ['event-one', 'event-redelivered']) {
+        await dispatcher.invoke({ schema: '2.0', header: { event_id: eventId, event_type: 'im.message.receive_v1' }, event: {
+          sender: { sender_type: 'user', sender_id: { open_id: 'ou_owner' } },
+          message: { message_id: 'persistent-feishu-message', chat_id: 'oc_private', chat_type: 'p2p', message_type: 'text', content: JSON.stringify({ text: 'CHAT_CREATE_MARKER 明天上午9点提醒我喝水' }) },
+        } }, { needCheck: false });
+      }
+      await feishu.drain();
+      const created = tasks.list().filter((item) => item.target.channel === 'feishu');
+      assert.equal(created.length, 1);
+      assert.deepEqual(created[0]!.target, { channel: 'feishu', appId: 'cli_0123456789abcdef', chatId: 'oc_private', userOpenId: 'ou_owner' });
+      assert.equal(sent.length, 1, '重投事件不能多回复或多创建任务');
+      await scheduler.tick();
+      assert.equal(tasks.get(created[0]!.id).status, 'succeeded');
+      assert.equal(sent.length, 2, '无需新入站消息即可主动通知');
+      assert.ok(sent.every((message) => message.chatId === 'oc_private'));
+    } finally { await scheduler.stop(); await feishu.stop(); }
     httpError = true;
     const before = requests.length;
     await assert.rejects(execute('task', '模拟 API 错误'), /simulated provider failure|500/);

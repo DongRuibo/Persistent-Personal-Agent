@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { DatabaseSync } from 'node:sqlite';
-import type { ExecutionObserver, ModelCall, Run, RunStatus, Task } from './contracts.js';
+import type { ExecutionObserver, MessageTarget, ModelCall, Run, RunStatus, Task } from './contracts.js';
 
 export class SqliteStore {
   private readonly db: DatabaseSync;
@@ -30,7 +30,15 @@ export class SqliteStore {
         id INTEGER PRIMARY KEY, runId TEXT NOT NULL REFERENCES runs(id),
         at TEXT NOT NULL, type TEXT NOT NULL, details TEXT
       ) STRICT;
+      CREATE TABLE IF NOT EXISTS feishu_messages (
+        appId TEXT NOT NULL, messageId TEXT NOT NULL, runId TEXT NOT NULL REFERENCES runs(id),
+        PRIMARY KEY (appId, messageId)
+      ) STRICT;
     `);
+    // 兼容已有 V0 数据库：增量加列，旧任务继续投递到 Console。
+    if (!this.db.prepare('PRAGMA table_info(tasks)').all().some((column) => column.name === 'target')) {
+      this.db.exec(`ALTER TABLE tasks ADD COLUMN target TEXT NOT NULL DEFAULT '{"channel":"console"}'`);
+    }
   }
 
   private transaction<T>(fn: () => T): T {
@@ -45,19 +53,28 @@ export class SqliteStore {
     }
   }
 
-  createTask(instruction: string, dueAt: string, now: string): Task {
-    const task: Task = { id: randomUUID(), instruction: this.redact(instruction), dueAt, status: 'pending', createdAt: now, updatedAt: now };
-    this.db.prepare('INSERT INTO tasks VALUES (?, ?, ?, ?, ?, ?)')
-      .run(task.id, task.instruction, task.dueAt, task.status, now, now);
+  private readTask(row: Record<string, unknown> | undefined): Task | undefined {
+    if (!row) return undefined;
+    return { ...row, target: JSON.parse(String(row.target)) as MessageTarget } as unknown as Task;
+  }
+
+  createTask(instruction: string, dueAt: string, now: string, target: MessageTarget = { channel: 'console' }): Task {
+    const task: Task = { id: randomUUID(), instruction: this.redact(instruction), dueAt, status: 'pending', createdAt: now, updatedAt: now, target };
+    this.db.prepare('INSERT INTO tasks (id, instruction, dueAt, status, createdAt, updatedAt, target) VALUES (?, ?, ?, ?, ?, ?, ?)')
+      .run(task.id, task.instruction, task.dueAt, task.status, now, now, JSON.stringify(target));
     return task;
   }
 
   getTask(id: string): Task | undefined {
-    return this.db.prepare('SELECT * FROM tasks WHERE id = ?').get(id) as unknown as Task | undefined;
+    return this.readTask(this.db.prepare('SELECT * FROM tasks WHERE id = ?').get(id));
   }
 
   listTasks(): Task[] {
-    return this.db.prepare('SELECT * FROM tasks ORDER BY dueAt, id LIMIT 100').all() as unknown as Task[];
+    return this.db.prepare('SELECT * FROM tasks ORDER BY dueAt, id LIMIT 100').all().map((row) => this.readTask(row)!);
+  }
+
+  hasPendingFeishuTasks(): boolean {
+    return Boolean(this.db.prepare("SELECT 1 FROM tasks WHERE status = 'pending' AND json_extract(target, '$.channel') = 'feishu' LIMIT 1").get());
   }
 
   cancelTask(id: string, now: string): boolean {
@@ -72,11 +89,21 @@ export class SqliteStore {
     return this.getRun(id)!;
   }
 
+  // 收到即持久化去重记录和 Run，随后才安排模型执行。崩溃后不自动重放。
+  acceptFeishuMessage(appId: string, messageId: string, now: string): Run | undefined {
+    return this.transaction(() => {
+      if (this.db.prepare('SELECT 1 FROM feishu_messages WHERE appId = ? AND messageId = ?').get(appId, messageId)) return undefined;
+      const run = this.beginRun(null, now);
+      this.db.prepare('INSERT INTO feishu_messages VALUES (?, ?, ?)').run(appId, messageId, run.id);
+      return run;
+    });
+  }
+
   // 领取与执行记录在同一事务提交；UNIQUE(taskId) 是一次性执行的第二道约束。
   claimDue(now: string): { task: Task; run: Run } | undefined {
     return this.transaction(() => {
-      const task = this.db.prepare("SELECT * FROM tasks WHERE status = 'pending' AND dueAt <= ? ORDER BY dueAt, id LIMIT 1")
-        .get(now) as unknown as Task | undefined;
+      const task = this.readTask(this.db.prepare("SELECT * FROM tasks WHERE status = 'pending' AND dueAt <= ? ORDER BY dueAt, id LIMIT 1")
+        .get(now));
       if (!task) return undefined;
       const changed = this.db.prepare("UPDATE tasks SET status = 'running', updatedAt = ? WHERE id = ? AND status = 'pending'")
         .run(now, task.id).changes;

@@ -5,7 +5,7 @@ import { ExecutionInterrupted } from './contracts.js';
 import { SqliteStore } from './sqlite-store.js';
 import { TaskService } from './task-service.js';
 
-export const consoleHelp = `Personal Agent V0
+export const consoleHelp = `Personal Agent
   普通文本                         与 Agent 对话（支持自然语言任务管理）
   /create 明天上午9点 | 写一段早安问候  直接创建一次性任务
   /tasks                           列出最多100个任务（dueAt 为 UTC）
@@ -14,6 +14,7 @@ export const consoleHelp = `Personal Agent V0
   /runs                            查看最近100次执行（含对话）
   /quit                            停止服务
   --daemon                         无终端后台运行；SIGTERM/SIGINT 停止
+  --feishu                         飞书私聊与主动通知；需配置应用及用户白名单
   --help                           显示说明，不读取 Key 或启动数据库`;
 
 export class ConsoleChannel implements Channel {
