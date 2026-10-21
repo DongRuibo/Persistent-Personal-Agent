@@ -1,0 +1,235 @@
+{
+  "baseCommit": "5e8af07dd7a8644b5d014bfc4dc9ea38a1c45182",
+  "mode": "offline-recorded-output-comparison",
+  "createdAt": "2026-10-21T15:40:53.160Z",
+  "actualApiRequests": 0,
+  "actualTokens": 0,
+  "actualCostCny": 0,
+  "before": {
+    "expectedOutcomes": "10/12",
+    "retainedWorthKeeping": "4/6",
+    "acceptedValidCandidates": "4/4",
+    "falseCandidates": 0,
+    "unauthorizedWrites": 0,
+    "replayCalls": 11
+  },
+  "after": {
+    "expectedOutcomes": "12/12",
+    "retainedWorthKeeping": "6/6",
+    "acceptedValidCandidates": "6/6",
+    "falseCandidates": 0,
+    "unauthorizedWrites": 0,
+    "replayCalls": 11
+  },
+  "rows": [
+    {
+      "id": "F01",
+      "expected": "new",
+      "before": "none",
+      "after": "new",
+      "unchangedRawOutput": true,
+      "unchangedWithoutApproval": true
+    },
+    {
+      "id": "F02",
+      "expected": "new",
+      "before": "none",
+      "after": "new",
+      "unchangedRawOutput": true,
+      "unchangedWithoutApproval": true
+    },
+    {
+      "id": "F03",
+      "expected": "new",
+      "before": "new",
+      "after": "new",
+      "unchangedRawOutput": true,
+      "unchangedWithoutApproval": true
+    },
+    {
+      "id": "F04",
+      "expected": "update",
+      "before": "update",
+      "after": "update",
+      "unchangedRawOutput": true,
+      "unchangedWithoutApproval": true
+    },
+    {
+      "id": "F05",
+      "expected": "duplicate",
+      "before": "duplicate",
+      "after": "duplicate",
+      "unchangedRawOutput": true,
+      "unchangedWithoutApproval": true
+    },
+    {
+      "id": "F06",
+      "expected": "none",
+      "before": "none",
+      "after": "none",
+      "unchangedRawOutput": true,
+      "unchangedWithoutApproval": true
+    },
+    {
+      "id": "F07",
+      "expected": "new",
+      "before": "new",
+      "after": "new",
+      "unchangedRawOutput": true,
+      "unchangedWithoutApproval": true
+    },
+    {
+      "id": "F08",
+      "expected": "new",
+      "before": "new",
+      "after": "new",
+      "unchangedRawOutput": true,
+      "unchangedWithoutApproval": true
+    },
+    {
+      "id": "F09",
+      "expected": "none",
+      "before": "none",
+      "after": "none",
+      "unchangedRawOutput": true,
+      "unchangedWithoutApproval": true
+    },
+    {
+      "id": "F10",
+      "expected": "none",
+      "before": "none",
+      "after": "none",
+      "unchangedRawOutput": true,
+      "unchangedWithoutApproval": true
+    },
+    {
+      "id": "F11",
+      "expected": "none",
+      "before": "none",
+      "after": "none",
+      "unchangedRawOutput": true,
+      "unchangedWithoutApproval": true
+    },
+    {
+      "id": "F12",
+      "expected": "none",
+      "before": "none",
+      "after": "none",
+      "unchangedRawOutput": true,
+      "unchangedWithoutApproval": true
+    }
+  ],
+  "preservedFiles": {
+    "tests/fixtures/memory-formation-live.json": "1821183adcb908dd69e57d8785525671f37401c07f9a343ace1544e83dbe1403",
+    "tests/fixtures/memory-formation-windows.json": "49749896d5b524c12cbe45c37c5d075fc65349f499909a8256f6fe7c322335cf",
+    "docs/evaluations/v2.1b-formation-live.json": "c91a79d0d080275a747f7037924239b07830d43cd9e391f43ac0b5cc422ddf6f",
+    "docs/evaluations/v2.1b-formation-live-review.json": "6cf18d6e7c95dea5bc129f03f950730338f863d17f983a4ad1fdcba4cb545e79",
+    "docs/evaluations/v2.1b-formation-live.redacted-original.txt": "c4cac8cf0eff93f7f4573694a10f6b6bcdcd3b781b0073a28c9cfb010259e8bd",
+    "docs/evaluations/v2.1b-formation-offline.json": "348c55b9bccd3dc9ecf9b3d8a63401572ae4d7f7bfc7a32cb68d45a67258d2ce"
+  },
+  "sourceHashes": {
+    "before": "207e015f35a8c9b587a72120cdc6a284234a3db70cb6a9a82dd8d0f0cbc991cc",
+    "after": "44728e471bddb7316e8f1e1b321f273e38f7c1abd93fb17dcfad2da694d23fc3"
+  },
+  "artifactHashes": {
+    "v2.1b.1-formation-replay-before.json": "e81493284c6464ffb5e2a267bcf80e5db1543e32e9a0ea5928bd382bcfeeb2b0",
+    "v2.1b.1-formation-replay-after.json": "7c95c9dbb41c2bacdd791ef13bf99ff75a076e3dc0fd846bfd7e73775d9afe05",
+    "v2.1b.1-formation-offline.json": "5819a9be56866df62328dd67428c7ac1b0555b70306144e54d4d5c35a2fcc92c",
+    "v2.1b.1-retrieval-regression.json": "cbb53a463f33d343c7c578830d1ec33f4a092ffb5fc6a475eef5f54a78a19241"
+  },
+  "checks": {
+    "typecheck": "exit 0",
+    "build": "exit 0",
+    "tests": {
+      "total": 121,
+      "passed": 118,
+      "failed": 0,
+      "skipped": 3,
+      "durationMs": 11778.8408
+    },
+    "formation60": {
+      "development": {
+        "windows": 30,
+        "passed": 30,
+        "validationPrecision": 1,
+        "fixtureRecall": 1,
+        "falseCandidateCount": 0,
+        "kindCorrect": 11,
+        "unauthorizedWrites": 0,
+        "calls": 20
+      },
+      "holdout": {
+        "windows": 30,
+        "passed": 30,
+        "validationPrecision": 1,
+        "fixtureRecall": 1,
+        "falseCandidateCount": 0,
+        "kindCorrect": 11,
+        "unauthorizedWrites": 0,
+        "calls": 20
+      }
+    },
+    "retrieval": {
+      "original": {
+        "answerable": 12,
+        "top1": 0.75,
+        "recall5": 0.75,
+        "mrr": 0.75,
+        "negativeCount": 4,
+        "insufficientEvidenceCorrect": 4,
+        "supportedCorrect": 9,
+        "falseSupportedNoAnswer": 0,
+        "supportedClaims": 9,
+        "correctSupportedClaims": 9,
+        "supportedRecordPrecision": 1,
+        "contextHitRate": 0.75,
+        "contextBytesMax": 1153,
+        "strictExpectedKeyContextPrecision": 0.6,
+        "latencyP50Ms": 19.14870000000002,
+        "latencyP95Ms": 23.83959999999996
+      },
+      "holdout": {
+        "answerable": 19,
+        "top1": 0.8947368421052632,
+        "recall5": 0.8947368421052632,
+        "mrr": 0.8947368421052632,
+        "negativeCount": 5,
+        "insufficientEvidenceCorrect": 5,
+        "supportedCorrect": 9,
+        "falseSupportedNoAnswer": 0,
+        "supportedClaims": 9,
+        "correctSupportedClaims": 9,
+        "supportedRecordPrecision": 1,
+        "contextHitRate": 0.8947368421052632,
+        "contextBytesMax": 1613,
+        "strictExpectedKeyContextPrecision": 0.4473684210526316,
+        "latencyP50Ms": 17.7967000000001,
+        "latencyP95Ms": 33.479699999999866
+      },
+      "evidenceHoldout": {
+        "answerable": 18,
+        "top1": 0.9444444444444444,
+        "recall5": 0.9444444444444444,
+        "mrr": 0.9444444444444444,
+        "negativeCount": 6,
+        "insufficientEvidenceCorrect": 6,
+        "supportedCorrect": 14,
+        "falseSupportedNoAnswer": 0,
+        "supportedClaims": 14,
+        "correctSupportedClaims": 14,
+        "supportedRecordPrecision": 1,
+        "contextHitRate": 0.9444444444444444,
+        "contextBytesMax": 1578,
+        "strictExpectedKeyContextPrecision": 0.3953488372093023,
+        "latencyP50Ms": 18.02110000000016,
+        "latencyP95Ms": 20.151499999999942
+      }
+    }
+  },
+  "platform": "Windows; WSL仅docker-desktop，Docker Desktop Linux引擎不可用，未运行Mac/Linux平台测试",
+  "limitations": [
+    "仅回放历史模型提议，不估计修复后新模型语义效果",
+    "原模型重复提议与第三人称错误目标未修改",
+    "未重放收费生成、未发送飞书、正式Formation仍默认关闭"
+  ]
+}

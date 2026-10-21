@@ -3,3 +3,4 @@ tests/fixtures/memory-formation-live.json -text
 docs/evaluations/v2.1b-formation-live.json -text
 docs/evaluations/v2.1b-formation-live-review.json -text
 docs/evaluations/v2.1b-formation-live.redacted-original.txt -text
+docs/evaluations/v2.1b.1-*.json -text

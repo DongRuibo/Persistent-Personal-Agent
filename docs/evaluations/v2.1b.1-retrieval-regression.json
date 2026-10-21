@@ -1,0 +1,1652 @@
+{
+  "mode": "offline-lexical",
+  "fixtureVersion": 1,
+  "budgetBytes": 2048,
+  "memoryCount": 10,
+  "summary": {
+    "answerable": 12,
+    "top1": 0.75,
+    "recall5": 0.75,
+    "mrr": 0.75,
+    "negativeCount": 4,
+    "insufficientEvidenceCorrect": 4,
+    "supportedCorrect": 9,
+    "falseSupportedNoAnswer": 0,
+    "supportedClaims": 9,
+    "correctSupportedClaims": 9,
+    "supportedRecordPrecision": 1,
+    "contextHitRate": 0.75,
+    "contextBytesMax": 1153,
+    "strictExpectedKeyContextPrecision": 0.6,
+    "latencyP50Ms": 19.14870000000002,
+    "latencyP95Ms": 23.83959999999996
+  },
+  "groups": {
+    "literal": {
+      "count": 4,
+      "top1": 4,
+      "recall5": 4,
+      "contextHit": 4
+    },
+    "paraphrase": {
+      "count": 4,
+      "top1": 1,
+      "recall5": 1,
+      "contextHit": 1
+    },
+    "distractor": {
+      "count": 4,
+      "top1": 4,
+      "recall5": 4,
+      "contextHit": 4
+    },
+    "negative": {
+      "count": 4,
+      "top1": 1,
+      "recall5": 1,
+      "contextHit": 1
+    }
+  },
+  "cases": [
+    {
+      "group": "literal",
+      "query": "用户偏好的回答语言是什么？",
+      "expectedKey": "user.language",
+      "retrievedKeys": [
+        "user.language"
+      ],
+      "supportKeys": [
+        "user.language"
+      ],
+      "top1": true,
+      "recall5": true,
+      "reciprocalRank": 1,
+      "evidence": "supported",
+      "evidenceCorrect": true,
+      "contextHit": true,
+      "contextKeys": [
+        "user.language"
+      ],
+      "contextBytes": 655,
+      "latencyMs": 23.83959999999996
+    },
+    {
+      "group": "literal",
+      "query": "Atlas 的任务数据存入哪里？",
+      "expectedKey": "atlas.database",
+      "retrievedKeys": [
+        "atlas.database",
+        "atlas.backup",
+        "atlas.language"
+      ],
+      "supportKeys": [
+        "atlas.database"
+      ],
+      "top1": true,
+      "recall5": true,
+      "reciprocalRank": 1,
+      "evidence": "supported",
+      "evidenceCorrect": true,
+      "contextHit": true,
+      "contextKeys": [
+        "atlas.database",
+        "atlas.backup",
+        "atlas.language"
+      ],
+      "contextBytes": 1153,
+      "latencyMs": 18.100099999999998
+    },
+    {
+      "group": "literal",
+      "query": "10月20日飞书重启恢复验收发生了什么？",
+      "expectedKey": "feishu.acceptance",
+      "retrievedKeys": [
+        "feishu.acceptance"
+      ],
+      "supportKeys": [
+        "feishu.acceptance"
+      ],
+      "top1": true,
+      "recall5": true,
+      "reciprocalRank": 1,
+      "evidence": "supported",
+      "evidenceCorrect": true,
+      "contextHit": true,
+      "contextKeys": [
+        "feishu.acceptance"
+      ],
+      "contextBytes": 657,
+      "latencyMs": 19.14870000000002
+    },
+    {
+      "group": "literal",
+      "query": "排查飞书连接告警的方法是什么？",
+      "expectedKey": "feishu.troubleshooting",
+      "retrievedKeys": [
+        "feishu.troubleshooting"
+      ],
+      "supportKeys": [
+        "feishu.troubleshooting"
+      ],
+      "top1": true,
+      "recall5": true,
+      "reciprocalRank": 1,
+      "evidence": "supported",
+      "evidenceCorrect": true,
+      "contextHit": true,
+      "contextKeys": [
+        "feishu.troubleshooting"
+      ],
+      "contextBytes": 758,
+      "latencyMs": 20.006100000000004
+    },
+    {
+      "group": "paraphrase",
+      "query": "平时我更愿意读哪种文字？",
+      "expectedKey": "user.language",
+      "retrievedKeys": [],
+      "supportKeys": [],
+      "top1": false,
+      "recall5": false,
+      "reciprocalRank": 0,
+      "evidence": "none",
+      "evidenceCorrect": false,
+      "contextHit": false,
+      "contextKeys": [],
+      "contextBytes": 0,
+      "latencyMs": 17.269199999999955
+    },
+    {
+      "group": "paraphrase",
+      "query": "我喝拿铁要放方糖吗？",
+      "expectedKey": "user.drink",
+      "retrievedKeys": [],
+      "supportKeys": [],
+      "top1": false,
+      "recall5": false,
+      "reciprocalRank": 0,
+      "evidence": "none",
+      "evidenceCorrect": false,
+      "contextHit": false,
+      "contextKeys": [],
+      "contextBytes": 0,
+      "latencyMs": 18.6952
+    },
+    {
+      "group": "paraphrase",
+      "query": "Atlas 把待办存在哪儿？",
+      "expectedKey": "atlas.database",
+      "retrievedKeys": [
+        "atlas.database",
+        "atlas.backup",
+        "atlas.language"
+      ],
+      "supportKeys": [
+        "atlas.database"
+      ],
+      "top1": true,
+      "recall5": true,
+      "reciprocalRank": 1,
+      "evidence": "supported",
+      "evidenceCorrect": true,
+      "contextHit": true,
+      "contextKeys": [
+        "atlas.database",
+        "atlas.backup",
+        "atlas.language"
+      ],
+      "contextBytes": 1153,
+      "latencyMs": 22.1832
+    },
+    {
+      "group": "paraphrase",
+      "query": "机器人断线了，该从哪儿着手定位？",
+      "expectedKey": "feishu.troubleshooting",
+      "retrievedKeys": [],
+      "supportKeys": [],
+      "top1": false,
+      "recall5": false,
+      "reciprocalRank": 0,
+      "evidence": "none",
+      "evidenceCorrect": false,
+      "contextHit": false,
+      "contextKeys": [],
+      "contextBytes": 0,
+      "latencyMs": 21.08420000000001
+    },
+    {
+      "group": "distractor",
+      "query": "Atlas 数据库架构是什么？",
+      "expectedKey": "atlas.database",
+      "retrievedKeys": [
+        "atlas.database",
+        "atlas.backup",
+        "atlas.language"
+      ],
+      "supportKeys": [
+        "atlas.database"
+      ],
+      "top1": true,
+      "recall5": true,
+      "reciprocalRank": 1,
+      "evidence": "supported",
+      "evidenceCorrect": true,
+      "contextHit": true,
+      "contextKeys": [
+        "atlas.database",
+        "atlas.backup",
+        "atlas.language"
+      ],
+      "contextBytes": 1153,
+      "latencyMs": 19.508299999999963
+    },
+    {
+      "group": "distractor",
+      "query": "Borealis 任务数据库用什么？",
+      "expectedKey": "borealis.database",
+      "retrievedKeys": [
+        "borealis.database"
+      ],
+      "supportKeys": [
+        "borealis.database"
+      ],
+      "top1": true,
+      "recall5": true,
+      "reciprocalRank": 1,
+      "evidence": "supported",
+      "evidenceCorrect": true,
+      "contextHit": true,
+      "contextKeys": [
+        "borealis.database"
+      ],
+      "contextBytes": 676,
+      "latencyMs": 22.38900000000001
+    },
+    {
+      "group": "distractor",
+      "query": "我偏好的回答语言，不是 Atlas 的界面语言",
+      "expectedKey": "user.language",
+      "retrievedKeys": [
+        "user.language"
+      ],
+      "supportKeys": [
+        "user.language"
+      ],
+      "top1": true,
+      "recall5": true,
+      "reciprocalRank": 1,
+      "evidence": "supported",
+      "evidenceCorrect": true,
+      "contextHit": true,
+      "contextKeys": [
+        "user.language"
+      ],
+      "contextBytes": 662,
+      "latencyMs": 22.9135
+    },
+    {
+      "group": "distractor",
+      "query": "10月20日飞书恢复验收的结果，别用19日失败记录",
+      "expectedKey": "feishu.acceptance",
+      "retrievedKeys": [
+        "feishu.acceptance"
+      ],
+      "supportKeys": [
+        "feishu.acceptance"
+      ],
+      "top1": true,
+      "recall5": true,
+      "reciprocalRank": 1,
+      "evidence": "supported",
+      "evidenceCorrect": true,
+      "contextHit": true,
+      "contextKeys": [
+        "feishu.acceptance"
+      ],
+      "contextBytes": 657,
+      "latencyMs": 18.141900000000078
+    },
+    {
+      "group": "negative",
+      "query": "南极企鹅的迁徙路线",
+      "expectedKey": null,
+      "retrievedKeys": [],
+      "supportKeys": [],
+      "top1": true,
+      "recall5": true,
+      "reciprocalRank": 0,
+      "evidence": "none",
+      "evidenceCorrect": true,
+      "contextHit": true,
+      "contextKeys": [],
+      "contextBytes": 0,
+      "latencyMs": 18.011900000000082
+    },
+    {
+      "group": "negative",
+      "query": "Atlas 下一次发布的确切日期",
+      "expectedKey": null,
+      "retrievedKeys": [
+        "atlas.backup",
+        "atlas.database",
+        "atlas.language"
+      ],
+      "supportKeys": [],
+      "top1": false,
+      "recall5": false,
+      "reciprocalRank": 0,
+      "evidence": "insufficient",
+      "evidenceCorrect": true,
+      "contextHit": false,
+      "contextKeys": [
+        "atlas.backup",
+        "atlas.database",
+        "atlas.language"
+      ],
+      "contextBytes": 1146,
+      "latencyMs": 17.800899999999956
+    },
+    {
+      "group": "negative",
+      "query": "用户喜欢哪种茶叶",
+      "expectedKey": null,
+      "retrievedKeys": [
+        "user.drink"
+      ],
+      "supportKeys": [],
+      "top1": false,
+      "recall5": false,
+      "reciprocalRank": 0,
+      "evidence": "insufficient",
+      "evidenceCorrect": true,
+      "contextHit": false,
+      "contextKeys": [
+        "user.drink"
+      ],
+      "contextBytes": 608,
+      "latencyMs": 19.106200000000058
+    },
+    {
+      "group": "negative",
+      "query": "Borealis 线上服务器的密码是什么",
+      "expectedKey": null,
+      "retrievedKeys": [
+        "borealis.database"
+      ],
+      "supportKeys": [],
+      "top1": false,
+      "recall5": false,
+      "reciprocalRank": 0,
+      "evidence": "insufficient",
+      "evidenceCorrect": true,
+      "contextHit": false,
+      "contextKeys": [
+        "borealis.database"
+      ],
+      "contextBytes": 664,
+      "latencyMs": 17.20659999999998
+    }
+  ],
+  "holdout": {
+    "fixtureVersion": 1,
+    "budgetBytes": 2048,
+    "memoryCount": 15,
+    "summary": {
+      "answerable": 19,
+      "top1": 0.8947368421052632,
+      "recall5": 0.8947368421052632,
+      "mrr": 0.8947368421052632,
+      "negativeCount": 5,
+      "insufficientEvidenceCorrect": 5,
+      "supportedCorrect": 9,
+      "falseSupportedNoAnswer": 0,
+      "supportedClaims": 9,
+      "correctSupportedClaims": 9,
+      "supportedRecordPrecision": 1,
+      "contextHitRate": 0.8947368421052632,
+      "contextBytesMax": 1613,
+      "strictExpectedKeyContextPrecision": 0.4473684210526316,
+      "latencyP50Ms": 17.7967000000001,
+      "latencyP95Ms": 33.479699999999866
+    },
+    "groups": {
+      "literal": {
+        "count": 4,
+        "top1": 4,
+        "recall5": 4,
+        "contextHit": 4
+      },
+      "paraphrase": {
+        "count": 4,
+        "top1": 2,
+        "recall5": 2,
+        "contextHit": 2
+      },
+      "mixed": {
+        "count": 2,
+        "top1": 2,
+        "recall5": 2,
+        "contextHit": 2
+      },
+      "entity": {
+        "count": 4,
+        "top1": 4,
+        "recall5": 4,
+        "contextHit": 4
+      },
+      "time": {
+        "count": 3,
+        "top1": 3,
+        "recall5": 3,
+        "contextHit": 3
+      },
+      "procedural": {
+        "count": 2,
+        "top1": 2,
+        "recall5": 2,
+        "contextHit": 2
+      },
+      "negative": {
+        "count": 5,
+        "top1": 1,
+        "recall5": 1,
+        "contextHit": 1
+      }
+    },
+    "cases": [
+      {
+        "group": "literal",
+        "query": "Nacre 使用什么数据库？",
+        "expectedKey": "nacre.storage",
+        "retrievedKeys": [
+          "nacre.storage",
+          "nacre.language",
+          "nacre.check",
+          "nacre.cancel",
+          "nacre.release"
+        ],
+        "supportKeys": [
+          "nacre.storage"
+        ],
+        "top1": true,
+        "recall5": true,
+        "reciprocalRank": 1,
+        "evidence": "supported",
+        "evidenceCorrect": true,
+        "contextHit": true,
+        "contextKeys": [
+          "nacre.storage",
+          "nacre.language",
+          "nacre.check",
+          "nacre.cancel",
+          "nacre.release"
+        ],
+        "contextBytes": 1607,
+        "latencyMs": 15.371800000000007
+      },
+      {
+        "group": "literal",
+        "query": "Quartz 套餐的费用是多少？",
+        "expectedKey": "quartz.price",
+        "retrievedKeys": [
+          "quartz.price",
+          "quartz.review",
+          "quartz.storage"
+        ],
+        "supportKeys": [
+          "quartz.price"
+        ],
+        "top1": true,
+        "recall5": true,
+        "reciprocalRank": 1,
+        "evidence": "supported",
+        "evidenceCorrect": true,
+        "contextHit": true,
+        "contextKeys": [
+          "quartz.price",
+          "quartz.review",
+          "quartz.storage"
+        ],
+        "contextBytes": 1067,
+        "latencyMs": 15.745400000000018
+      },
+      {
+        "group": "literal",
+        "query": "会议纪要偏好按什么顺序写？",
+        "expectedKey": "user.minutes",
+        "retrievedKeys": [
+          "user.minutes",
+          "user.focus"
+        ],
+        "supportKeys": [],
+        "top1": true,
+        "recall5": true,
+        "reciprocalRank": 1,
+        "evidence": "uncertain",
+        "evidenceCorrect": false,
+        "contextHit": true,
+        "contextKeys": [
+          "user.minutes",
+          "user.focus"
+        ],
+        "contextBytes": 858,
+        "latencyMs": 15.576999999999998
+      },
+      {
+        "group": "literal",
+        "query": "设备恢复的方法是什么？",
+        "expectedKey": "device.restore",
+        "retrievedKeys": [
+          "device.restore"
+        ],
+        "supportKeys": [],
+        "top1": true,
+        "recall5": true,
+        "reciprocalRank": 1,
+        "evidence": "uncertain",
+        "evidenceCorrect": false,
+        "contextHit": true,
+        "contextKeys": [
+          "device.restore"
+        ],
+        "contextBytes": 677,
+        "latencyMs": 14.833699999999908
+      },
+      {
+        "group": "paraphrase",
+        "query": "整理讨论记录时，你应该先写决定还是待办？",
+        "expectedKey": "user.minutes",
+        "retrievedKeys": [],
+        "supportKeys": [],
+        "top1": false,
+        "recall5": false,
+        "reciprocalRank": 0,
+        "evidence": "none",
+        "evidenceCorrect": false,
+        "contextHit": false,
+        "contextKeys": [],
+        "contextBytes": 0,
+        "latencyMs": 17.096199999999953
+      },
+      {
+        "group": "paraphrase",
+        "query": "我应该把烧脑的活安排在一天的哪个时段？",
+        "expectedKey": "user.focus",
+        "retrievedKeys": [],
+        "supportKeys": [],
+        "top1": false,
+        "recall5": false,
+        "reciprocalRank": 0,
+        "evidence": "none",
+        "evidenceCorrect": false,
+        "contextHit": false,
+        "contextKeys": [],
+        "contextBytes": 0,
+        "latencyMs": 14.648799999999937
+      },
+      {
+        "group": "paraphrase",
+        "query": "我能吃加了花生酱的面包吗？",
+        "expectedKey": "user.allergy",
+        "retrievedKeys": [
+          "user.allergy"
+        ],
+        "supportKeys": [],
+        "top1": true,
+        "recall5": true,
+        "reciprocalRank": 1,
+        "evidence": "uncertain",
+        "evidenceCorrect": false,
+        "contextHit": true,
+        "contextKeys": [
+          "user.allergy"
+        ],
+        "contextBytes": 617,
+        "latencyMs": 15.249699999999848
+      },
+      {
+        "group": "paraphrase",
+        "query": "Wi-Fi老掉线，先从哪里检查？",
+        "expectedKey": "wireless.check",
+        "retrievedKeys": [
+          "wireless.check"
+        ],
+        "supportKeys": [],
+        "top1": true,
+        "recall5": true,
+        "reciprocalRank": 1,
+        "evidence": "uncertain",
+        "evidenceCorrect": false,
+        "contextHit": true,
+        "contextKeys": [
+          "wireless.check"
+        ],
+        "contextBytes": 661,
+        "latencyMs": 16.13019999999983
+      },
+      {
+        "group": "mixed",
+        "query": "Nacre 的 database 用哪个产品？",
+        "expectedKey": "nacre.storage",
+        "retrievedKeys": [
+          "nacre.storage",
+          "nacre.check",
+          "nacre.language",
+          "nacre.cancel",
+          "nacre.release"
+        ],
+        "supportKeys": [
+          "nacre.storage"
+        ],
+        "top1": true,
+        "recall5": true,
+        "reciprocalRank": 1,
+        "evidence": "supported",
+        "evidenceCorrect": true,
+        "contextHit": true,
+        "contextKeys": [
+          "nacre.storage",
+          "nacre.check",
+          "nacre.language",
+          "nacre.cancel",
+          "nacre.release"
+        ],
+        "contextBytes": 1607,
+        "latencyMs": 54.30009999999993
+      },
+      {
+        "group": "mixed",
+        "query": "Nacre UI language 是什么？",
+        "expectedKey": "nacre.language",
+        "retrievedKeys": [
+          "nacre.language",
+          "nacre.cancel",
+          "nacre.check",
+          "nacre.release",
+          "nacre.storage"
+        ],
+        "supportKeys": [
+          "nacre.language"
+        ],
+        "top1": true,
+        "recall5": true,
+        "reciprocalRank": 1,
+        "evidence": "supported",
+        "evidenceCorrect": true,
+        "contextHit": true,
+        "contextKeys": [
+          "nacre.language",
+          "nacre.cancel",
+          "nacre.check",
+          "nacre.release",
+          "nacre.storage"
+        ],
+        "contextBytes": 1613,
+        "latencyMs": 33.479699999999866
+      },
+      {
+        "group": "entity",
+        "query": "Quartz 数据库是什么，不要 Nacre 的方案",
+        "expectedKey": "quartz.storage",
+        "retrievedKeys": [
+          "quartz.storage",
+          "quartz.price",
+          "quartz.review"
+        ],
+        "supportKeys": [
+          "quartz.storage"
+        ],
+        "top1": true,
+        "recall5": true,
+        "reciprocalRank": 1,
+        "evidence": "supported",
+        "evidenceCorrect": true,
+        "contextHit": true,
+        "contextKeys": [
+          "quartz.storage",
+          "quartz.price",
+          "quartz.review"
+        ],
+        "contextBytes": 1082,
+        "latencyMs": 17.7967000000001
+      },
+      {
+        "group": "entity",
+        "query": "阿青喜欢哪种联系方法，不是阿白？",
+        "expectedKey": "aqing.contact",
+        "retrievedKeys": [
+          "aqing.contact"
+        ],
+        "supportKeys": [
+          "aqing.contact"
+        ],
+        "top1": true,
+        "recall5": true,
+        "reciprocalRank": 1,
+        "evidence": "supported",
+        "evidenceCorrect": true,
+        "contextHit": true,
+        "contextKeys": [
+          "aqing.contact"
+        ],
+        "contextBytes": 628,
+        "latencyMs": 16.731300000000147
+      },
+      {
+        "group": "entity",
+        "query": "阿白喜欢什么沟通方式？",
+        "expectedKey": "abai.contact",
+        "retrievedKeys": [
+          "abai.contact"
+        ],
+        "supportKeys": [
+          "abai.contact"
+        ],
+        "top1": true,
+        "recall5": true,
+        "reciprocalRank": 1,
+        "evidence": "supported",
+        "evidenceCorrect": true,
+        "contextHit": true,
+        "contextKeys": [
+          "abai.contact"
+        ],
+        "contextBytes": 619,
+        "latencyMs": 17.609500000000025
+      },
+      {
+        "group": "entity",
+        "query": "Nacre 的测试命令，不是 Quartz 的费用",
+        "expectedKey": "nacre.check",
+        "retrievedKeys": [
+          "nacre.check",
+          "nacre.cancel",
+          "nacre.language",
+          "nacre.release",
+          "nacre.storage"
+        ],
+        "supportKeys": [],
+        "top1": true,
+        "recall5": true,
+        "reciprocalRank": 1,
+        "evidence": "uncertain",
+        "evidenceCorrect": false,
+        "contextHit": true,
+        "contextKeys": [
+          "nacre.check",
+          "nacre.cancel",
+          "nacre.language",
+          "nacre.release",
+          "nacre.storage"
+        ],
+        "contextBytes": 1576,
+        "latencyMs": 19.505999999999858
+      },
+      {
+        "group": "time",
+        "query": "9月3日 Nacre 发布结果，别用2日取消记录",
+        "expectedKey": "nacre.release",
+        "retrievedKeys": [
+          "nacre.release"
+        ],
+        "supportKeys": [],
+        "top1": true,
+        "recall5": true,
+        "reciprocalRank": 1,
+        "evidence": "insufficient",
+        "evidenceCorrect": false,
+        "contextHit": true,
+        "contextKeys": [
+          "nacre.release"
+        ],
+        "contextBytes": 642,
+        "latencyMs": 17.90190000000007
+      },
+      {
+        "group": "time",
+        "query": "2026-09-02 Nacre 发布发生了什么？",
+        "expectedKey": "nacre.cancel",
+        "retrievedKeys": [
+          "nacre.cancel"
+        ],
+        "supportKeys": [
+          "nacre.cancel"
+        ],
+        "top1": true,
+        "recall5": true,
+        "reciprocalRank": 1,
+        "evidence": "supported",
+        "evidenceCorrect": true,
+        "contextHit": true,
+        "contextKeys": [
+          "nacre.cancel"
+        ],
+        "contextBytes": 656,
+        "latencyMs": 18.723700000000008
+      },
+      {
+        "group": "time",
+        "query": "9月3日 Quartz 评审结果，不是 Nacre",
+        "expectedKey": "quartz.review",
+        "retrievedKeys": [
+          "quartz.review"
+        ],
+        "supportKeys": [
+          "quartz.review"
+        ],
+        "top1": true,
+        "recall5": true,
+        "reciprocalRank": 1,
+        "evidence": "supported",
+        "evidenceCorrect": true,
+        "contextHit": true,
+        "contextKeys": [
+          "quartz.review"
+        ],
+        "contextBytes": 640,
+        "latencyMs": 17.725799999999936
+      },
+      {
+        "group": "procedural",
+        "query": "设备恢复出厂设置之前先做什么？",
+        "expectedKey": "device.restore",
+        "retrievedKeys": [
+          "device.restore"
+        ],
+        "supportKeys": [],
+        "top1": true,
+        "recall5": true,
+        "reciprocalRank": 1,
+        "evidence": "uncertain",
+        "evidenceCorrect": false,
+        "contextHit": true,
+        "contextKeys": [
+          "device.restore"
+        ],
+        "contextBytes": 652,
+        "latencyMs": 19.230299999999943
+      },
+      {
+        "group": "procedural",
+        "query": "无线网络断连的排查步骤是什么？",
+        "expectedKey": "wireless.check",
+        "retrievedKeys": [
+          "wireless.check"
+        ],
+        "supportKeys": [],
+        "top1": true,
+        "recall5": true,
+        "reciprocalRank": 1,
+        "evidence": "uncertain",
+        "evidenceCorrect": false,
+        "contextHit": true,
+        "contextKeys": [
+          "wireless.check"
+        ],
+        "contextBytes": 692,
+        "latencyMs": 18.35220000000004
+      },
+      {
+        "group": "negative",
+        "query": "Nacre 下一次正式发布的确切日期是什么？",
+        "expectedKey": null,
+        "retrievedKeys": [
+          "nacre.cancel",
+          "nacre.release",
+          "nacre.check",
+          "nacre.language",
+          "nacre.storage"
+        ],
+        "supportKeys": [],
+        "top1": false,
+        "recall5": false,
+        "reciprocalRank": 0,
+        "evidence": "insufficient",
+        "evidenceCorrect": true,
+        "contextHit": false,
+        "contextKeys": [
+          "nacre.cancel",
+          "nacre.release",
+          "nacre.check",
+          "nacre.language",
+          "nacre.storage"
+        ],
+        "contextBytes": 1600,
+        "latencyMs": 18.625999999999976
+      },
+      {
+        "group": "negative",
+        "query": "Quartz 的登录密码是什么？",
+        "expectedKey": null,
+        "retrievedKeys": [
+          "quartz.price",
+          "quartz.review",
+          "quartz.storage"
+        ],
+        "supportKeys": [],
+        "top1": false,
+        "recall5": false,
+        "reciprocalRank": 0,
+        "evidence": "insufficient",
+        "evidenceCorrect": true,
+        "contextHit": false,
+        "contextKeys": [
+          "quartz.price",
+          "quartz.review",
+          "quartz.storage"
+        ],
+        "contextBytes": 1065,
+        "latencyMs": 18.11329999999998
+      },
+      {
+        "group": "negative",
+        "query": "用户对哪一种海鲜过敏？",
+        "expectedKey": null,
+        "retrievedKeys": [
+          "user.allergy"
+        ],
+        "supportKeys": [],
+        "top1": false,
+        "recall5": false,
+        "reciprocalRank": 0,
+        "evidence": "uncertain",
+        "evidenceCorrect": true,
+        "contextHit": false,
+        "contextKeys": [
+          "user.allergy"
+        ],
+        "contextBytes": 617,
+        "latencyMs": 18.622500000000173
+      },
+      {
+        "group": "negative",
+        "query": "阿青每个月电话费用多少钱？",
+        "expectedKey": null,
+        "retrievedKeys": [
+          "aqing.contact"
+        ],
+        "supportKeys": [],
+        "top1": false,
+        "recall5": false,
+        "reciprocalRank": 0,
+        "evidence": "insufficient",
+        "evidenceCorrect": true,
+        "contextHit": false,
+        "contextKeys": [
+          "aqing.contact"
+        ],
+        "contextBytes": 612,
+        "latencyMs": 19.249700000000075
+      },
+      {
+        "group": "negative",
+        "query": "木星环的厚度是多少？",
+        "expectedKey": null,
+        "retrievedKeys": [],
+        "supportKeys": [],
+        "top1": true,
+        "recall5": true,
+        "reciprocalRank": 0,
+        "evidence": "none",
+        "evidenceCorrect": true,
+        "contextHit": true,
+        "contextKeys": [],
+        "contextBytes": 0,
+        "latencyMs": 16.536299999999983
+      }
+    ]
+  },
+  "evidenceHoldout": {
+    "fixtureVersion": 1,
+    "budgetBytes": 2048,
+    "memoryCount": 16,
+    "summary": {
+      "answerable": 18,
+      "top1": 0.9444444444444444,
+      "recall5": 0.9444444444444444,
+      "mrr": 0.9444444444444444,
+      "negativeCount": 6,
+      "insufficientEvidenceCorrect": 6,
+      "supportedCorrect": 14,
+      "falseSupportedNoAnswer": 0,
+      "supportedClaims": 14,
+      "correctSupportedClaims": 14,
+      "supportedRecordPrecision": 1,
+      "contextHitRate": 0.9444444444444444,
+      "contextBytesMax": 1578,
+      "strictExpectedKeyContextPrecision": 0.3953488372093023,
+      "latencyP50Ms": 18.02110000000016,
+      "latencyP95Ms": 20.151499999999942
+    },
+    "groups": {
+      "literal": {
+        "count": 4,
+        "top1": 4,
+        "recall5": 4,
+        "contextHit": 4
+      },
+      "mixed": {
+        "count": 2,
+        "top1": 2,
+        "recall5": 2,
+        "contextHit": 2
+      },
+      "field": {
+        "count": 4,
+        "top1": 4,
+        "recall5": 4,
+        "contextHit": 4
+      },
+      "entity": {
+        "count": 2,
+        "top1": 2,
+        "recall5": 2,
+        "contextHit": 2
+      },
+      "time": {
+        "count": 3,
+        "top1": 3,
+        "recall5": 3,
+        "contextHit": 3
+      },
+      "paraphrase": {
+        "count": 2,
+        "top1": 1,
+        "recall5": 1,
+        "contextHit": 1
+      },
+      "procedural": {
+        "count": 1,
+        "top1": 1,
+        "recall5": 1,
+        "contextHit": 1
+      },
+      "negative": {
+        "count": 6,
+        "top1": 1,
+        "recall5": 1,
+        "contextHit": 1
+      }
+    },
+    "cases": [
+      {
+        "group": "literal",
+        "query": "周宁的电话费用是多少？",
+        "expectedKey": "zhouning.phone",
+        "retrievedKeys": [
+          "zhouning.phone",
+          "zhouning.contact"
+        ],
+        "supportKeys": [
+          "zhouning.phone"
+        ],
+        "top1": true,
+        "recall5": true,
+        "reciprocalRank": 1,
+        "evidence": "supported",
+        "evidenceCorrect": true,
+        "contextHit": true,
+        "contextKeys": [
+          "zhouning.phone",
+          "zhouning.contact"
+        ],
+        "contextBytes": 845,
+        "latencyMs": 19.253299999999854
+      },
+      {
+        "group": "literal",
+        "query": "沈禾喜欢哪种联系方法？",
+        "expectedKey": "shenhe.contact",
+        "retrievedKeys": [
+          "shenhe.contact",
+          "shenhe.food"
+        ],
+        "supportKeys": [
+          "shenhe.contact"
+        ],
+        "top1": true,
+        "recall5": true,
+        "reciprocalRank": 1,
+        "evidence": "supported",
+        "evidenceCorrect": true,
+        "contextHit": true,
+        "contextKeys": [
+          "shenhe.contact",
+          "shenhe.food"
+        ],
+        "contextBytes": 829,
+        "latencyMs": 19.779400000000123
+      },
+      {
+        "group": "literal",
+        "query": "Mosaic 的数据库是什么？",
+        "expectedKey": "mosaic.database",
+        "retrievedKeys": [
+          "mosaic.database",
+          "mosaic.languages",
+          "mosaic.port",
+          "mosaic.cancel",
+          "mosaic.pass"
+        ],
+        "supportKeys": [
+          "mosaic.database"
+        ],
+        "top1": true,
+        "recall5": true,
+        "reciprocalRank": 1,
+        "evidence": "supported",
+        "evidenceCorrect": true,
+        "contextHit": true,
+        "contextKeys": [
+          "mosaic.database",
+          "mosaic.languages",
+          "mosaic.port",
+          "mosaic.cancel",
+          "mosaic.pass"
+        ],
+        "contextBytes": 1542,
+        "latencyMs": 19.55100000000016
+      },
+      {
+        "group": "literal",
+        "query": "服务回滚的方法是什么？",
+        "expectedKey": "service.rollback",
+        "retrievedKeys": [
+          "service.rollback"
+        ],
+        "supportKeys": [],
+        "top1": true,
+        "recall5": true,
+        "reciprocalRank": 1,
+        "evidence": "uncertain",
+        "evidenceCorrect": false,
+        "contextHit": true,
+        "contextKeys": [
+          "service.rollback"
+        ],
+        "contextBytes": 676,
+        "latencyMs": 20.151499999999942
+      },
+      {
+        "group": "mixed",
+        "query": "Mosaic UI language 是什么？",
+        "expectedKey": "mosaic.languages",
+        "retrievedKeys": [
+          "mosaic.languages",
+          "mosaic.cancel",
+          "mosaic.database",
+          "mosaic.pass",
+          "mosaic.port"
+        ],
+        "supportKeys": [
+          "mosaic.languages"
+        ],
+        "top1": true,
+        "recall5": true,
+        "reciprocalRank": 1,
+        "evidence": "supported",
+        "evidenceCorrect": true,
+        "contextHit": true,
+        "contextKeys": [
+          "mosaic.languages",
+          "mosaic.cancel",
+          "mosaic.database",
+          "mosaic.pass",
+          "mosaic.port"
+        ],
+        "contextBytes": 1548,
+        "latencyMs": 18.67820000000006
+      },
+      {
+        "group": "mixed",
+        "query": "Helix programming language 是什么？",
+        "expectedKey": "helix.languages",
+        "retrievedKeys": [
+          "helix.languages",
+          "helix.price",
+          "helix.release"
+        ],
+        "supportKeys": [
+          "helix.languages"
+        ],
+        "top1": true,
+        "recall5": true,
+        "reciprocalRank": 1,
+        "evidence": "supported",
+        "evidenceCorrect": true,
+        "contextHit": true,
+        "contextKeys": [
+          "helix.languages",
+          "helix.price",
+          "helix.release"
+        ],
+        "contextBytes": 1131,
+        "latencyMs": 23.88409999999999
+      },
+      {
+        "group": "field",
+        "query": "Mosaic 界面语言和开发语言分别是什么？",
+        "expectedKey": "mosaic.languages",
+        "retrievedKeys": [
+          "mosaic.languages",
+          "mosaic.cancel",
+          "mosaic.database",
+          "mosaic.pass",
+          "mosaic.port"
+        ],
+        "supportKeys": [
+          "mosaic.languages"
+        ],
+        "top1": true,
+        "recall5": true,
+        "reciprocalRank": 1,
+        "evidence": "supported",
+        "evidenceCorrect": true,
+        "contextHit": true,
+        "contextKeys": [
+          "mosaic.languages",
+          "mosaic.cancel",
+          "mosaic.database",
+          "mosaic.pass",
+          "mosaic.port"
+        ],
+        "contextBytes": 1578,
+        "latencyMs": 18.02110000000016
+      },
+      {
+        "group": "field",
+        "query": "我偏好的回答语言是什么？",
+        "expectedKey": "user.reply",
+        "retrievedKeys": [
+          "user.reply"
+        ],
+        "supportKeys": [
+          "user.reply"
+        ],
+        "top1": true,
+        "recall5": true,
+        "reciprocalRank": 1,
+        "evidence": "supported",
+        "evidenceCorrect": true,
+        "contextHit": true,
+        "contextKeys": [
+          "user.reply"
+        ],
+        "contextBytes": 622,
+        "latencyMs": 16.305700000000115
+      },
+      {
+        "group": "field",
+        "query": "我的编辑器字号是多少？",
+        "expectedKey": "user.font",
+        "retrievedKeys": [
+          "user.font"
+        ],
+        "supportKeys": [],
+        "top1": true,
+        "recall5": true,
+        "reciprocalRank": 1,
+        "evidence": "uncertain",
+        "evidenceCorrect": false,
+        "contextHit": true,
+        "contextKeys": [
+          "user.font"
+        ],
+        "contextBytes": 595,
+        "latencyMs": 18.82289999999989
+      },
+      {
+        "group": "field",
+        "query": "Mosaic 的监听端口是多少？",
+        "expectedKey": "mosaic.port",
+        "retrievedKeys": [
+          "mosaic.port",
+          "mosaic.cancel",
+          "mosaic.database",
+          "mosaic.languages",
+          "mosaic.pass"
+        ],
+        "supportKeys": [],
+        "top1": true,
+        "recall5": true,
+        "reciprocalRank": 1,
+        "evidence": "uncertain",
+        "evidenceCorrect": false,
+        "contextHit": true,
+        "contextKeys": [
+          "mosaic.port",
+          "mosaic.cancel",
+          "mosaic.database",
+          "mosaic.languages",
+          "mosaic.pass"
+        ],
+        "contextBytes": 1502,
+        "latencyMs": 17.56490000000008
+      },
+      {
+        "group": "entity",
+        "query": "周宁的联系方式，不是沈禾",
+        "expectedKey": "zhouning.contact",
+        "retrievedKeys": [
+          "zhouning.contact",
+          "zhouning.phone"
+        ],
+        "supportKeys": [
+          "zhouning.contact"
+        ],
+        "top1": true,
+        "recall5": true,
+        "reciprocalRank": 1,
+        "evidence": "supported",
+        "evidenceCorrect": true,
+        "contextHit": true,
+        "contextKeys": [
+          "zhouning.contact",
+          "zhouning.phone"
+        ],
+        "contextBytes": 847,
+        "latencyMs": 16.877500000000055
+      },
+      {
+        "group": "entity",
+        "query": "Helix 的套餐费用，不要周宁的电话费用",
+        "expectedKey": "helix.price",
+        "retrievedKeys": [
+          "helix.price",
+          "helix.languages",
+          "helix.release"
+        ],
+        "supportKeys": [
+          "helix.price"
+        ],
+        "top1": true,
+        "recall5": true,
+        "reciprocalRank": 1,
+        "evidence": "supported",
+        "evidenceCorrect": true,
+        "contextHit": true,
+        "contextKeys": [
+          "helix.price",
+          "helix.languages",
+          "helix.release"
+        ],
+        "contextBytes": 1101,
+        "latencyMs": 19.699400000000196
+      },
+      {
+        "group": "time",
+        "query": "7月14日 Mosaic 验收结果，别用13日的记录",
+        "expectedKey": "mosaic.pass",
+        "retrievedKeys": [
+          "mosaic.pass"
+        ],
+        "supportKeys": [
+          "mosaic.pass"
+        ],
+        "top1": true,
+        "recall5": true,
+        "reciprocalRank": 1,
+        "evidence": "supported",
+        "evidenceCorrect": true,
+        "contextHit": true,
+        "contextKeys": [
+          "mosaic.pass"
+        ],
+        "contextBytes": 632,
+        "latencyMs": 17.645800000000236
+      },
+      {
+        "group": "time",
+        "query": "2026-07-13 Mosaic 验收发生了什么？",
+        "expectedKey": "mosaic.cancel",
+        "retrievedKeys": [
+          "mosaic.cancel"
+        ],
+        "supportKeys": [
+          "mosaic.cancel"
+        ],
+        "top1": true,
+        "recall5": true,
+        "reciprocalRank": 1,
+        "evidence": "supported",
+        "evidenceCorrect": true,
+        "contextHit": true,
+        "contextKeys": [
+          "mosaic.cancel"
+        ],
+        "contextBytes": 634,
+        "latencyMs": 17.383000000000266
+      },
+      {
+        "group": "time",
+        "query": "Helix 下一次正式发布日期是什么？",
+        "expectedKey": "helix.release",
+        "retrievedKeys": [
+          "helix.release",
+          "helix.languages",
+          "helix.price"
+        ],
+        "supportKeys": [
+          "helix.release"
+        ],
+        "top1": true,
+        "recall5": true,
+        "reciprocalRank": 1,
+        "evidence": "supported",
+        "evidenceCorrect": true,
+        "contextHit": true,
+        "contextKeys": [
+          "helix.release",
+          "helix.languages",
+          "helix.price"
+        ],
+        "contextBytes": 1109,
+        "latencyMs": 17.702499999999873
+      },
+      {
+        "group": "paraphrase",
+        "query": "周宁每月要花多少电话费？",
+        "expectedKey": "zhouning.phone",
+        "retrievedKeys": [
+          "zhouning.phone",
+          "zhouning.contact"
+        ],
+        "supportKeys": [
+          "zhouning.phone"
+        ],
+        "top1": true,
+        "recall5": true,
+        "reciprocalRank": 1,
+        "evidence": "supported",
+        "evidenceCorrect": true,
+        "contextHit": true,
+        "contextKeys": [
+          "zhouning.phone",
+          "zhouning.contact"
+        ],
+        "contextBytes": 845,
+        "latencyMs": 18.80619999999999
+      },
+      {
+        "group": "paraphrase",
+        "query": "Mosaic 给用户看的界面使用什么语言？",
+        "expectedKey": "mosaic.languages",
+        "retrievedKeys": [],
+        "supportKeys": [],
+        "top1": false,
+        "recall5": false,
+        "reciprocalRank": 0,
+        "evidence": "none",
+        "evidenceCorrect": false,
+        "contextHit": false,
+        "contextKeys": [],
+        "contextBytes": 0,
+        "latencyMs": 17.410100000000057
+      },
+      {
+        "group": "procedural",
+        "query": "日志归档应该先做什么？",
+        "expectedKey": "log.archive",
+        "retrievedKeys": [
+          "log.archive"
+        ],
+        "supportKeys": [
+          "log.archive"
+        ],
+        "top1": true,
+        "recall5": true,
+        "reciprocalRank": 1,
+        "evidence": "supported",
+        "evidenceCorrect": true,
+        "contextHit": true,
+        "contextKeys": [
+          "log.archive"
+        ],
+        "contextBytes": 659,
+        "latencyMs": 20.041799999999967
+      },
+      {
+        "group": "negative",
+        "query": "沈禾的电话费用是多少？",
+        "expectedKey": null,
+        "retrievedKeys": [
+          "shenhe.food",
+          "shenhe.contact"
+        ],
+        "supportKeys": [],
+        "top1": false,
+        "recall5": false,
+        "reciprocalRank": 0,
+        "evidence": "insufficient",
+        "evidenceCorrect": true,
+        "contextHit": false,
+        "contextKeys": [
+          "shenhe.food",
+          "shenhe.contact"
+        ],
+        "contextBytes": 821,
+        "latencyMs": 16.821799999999712
+      },
+      {
+        "group": "negative",
+        "query": "Mosaic 下一次正式发布日期是什么？",
+        "expectedKey": null,
+        "retrievedKeys": [
+          "mosaic.cancel",
+          "mosaic.database",
+          "mosaic.languages",
+          "mosaic.pass",
+          "mosaic.port"
+        ],
+        "supportKeys": [],
+        "top1": false,
+        "recall5": false,
+        "reciprocalRank": 0,
+        "evidence": "insufficient",
+        "evidenceCorrect": true,
+        "contextHit": false,
+        "contextKeys": [
+          "mosaic.cancel",
+          "mosaic.database",
+          "mosaic.languages",
+          "mosaic.pass",
+          "mosaic.port"
+        ],
+        "contextBytes": 1534,
+        "latencyMs": 19.71100000000024
+      },
+      {
+        "group": "negative",
+        "query": "周宁喜欢喝哪种咖啡？",
+        "expectedKey": null,
+        "retrievedKeys": [
+          "zhouning.contact",
+          "zhouning.phone"
+        ],
+        "supportKeys": [],
+        "top1": false,
+        "recall5": false,
+        "reciprocalRank": 0,
+        "evidence": "insufficient",
+        "evidenceCorrect": true,
+        "contextHit": false,
+        "contextKeys": [
+          "zhouning.contact",
+          "zhouning.phone"
+        ],
+        "contextBytes": 827,
+        "latencyMs": 17.771999999999935
+      },
+      {
+        "group": "negative",
+        "query": "岑安的联系方式是什么？",
+        "expectedKey": null,
+        "retrievedKeys": [],
+        "supportKeys": [],
+        "top1": true,
+        "recall5": true,
+        "reciprocalRank": 0,
+        "evidence": "none",
+        "evidenceCorrect": true,
+        "contextHit": true,
+        "contextKeys": [],
+        "contextBytes": 0,
+        "latencyMs": 15.556900000000041
+      },
+      {
+        "group": "negative",
+        "query": "Helix 的每月电话费用是多少？",
+        "expectedKey": null,
+        "retrievedKeys": [
+          "helix.price",
+          "helix.languages",
+          "helix.release"
+        ],
+        "supportKeys": [],
+        "top1": false,
+        "recall5": false,
+        "reciprocalRank": 0,
+        "evidence": "insufficient",
+        "evidenceCorrect": true,
+        "contextHit": false,
+        "contextKeys": [
+          "helix.price",
+          "helix.languages",
+          "helix.release"
+        ],
+        "contextBytes": 1092,
+        "latencyMs": 16.260499999999865
+      },
+      {
+        "group": "negative",
+        "query": "我的编辑器配色主题是什么？",
+        "expectedKey": null,
+        "retrievedKeys": [
+          "user.font"
+        ],
+        "supportKeys": [],
+        "top1": false,
+        "recall5": false,
+        "reciprocalRank": 0,
+        "evidence": "insufficient",
+        "evidenceCorrect": true,
+        "contextHit": false,
+        "contextKeys": [
+          "user.font"
+        ],
+        "contextBytes": 608,
+        "latencyMs": 16.928100000000086
+      }
+    ]
+  },
+  "usage": {
+    "calls": 0,
+    "failures": 0,
+    "inputTokens": 0,
+    "outputTokens": 0,
+    "cacheReadTokens": 0,
+    "elapsedMs": 0
+  },
+  "rewrites": {},
+  "note": "supported记录精度按预期key计，不证明最终生成；Context Hit与Top5召回分开统计。回放只使用已保存改写，未记录的当前低置信度问题回退，不发新请求。"
+}

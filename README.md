@@ -4,6 +4,8 @@
 
 V2.0 增加四类统一长期 Memory（SQLite 索引 + 可读 Markdown），支持在新 Session 中检索。V2.1b 增加默认关闭的后台 Semantic/Project 候选发现，必须由用户逐条批准才保存；没有自动保存、Embedding、Observer 或 Skill 执行。历史真实飞书与生成验收保留在 STATE。2026-10-21 完成一轮隔离真实 Formation 验收：13次请求，6条值得保留的事实中宿主保留4条；两条合法提议被校验误拒绝，尚未达到质量目标，继续默认关闭。失败原文、一次批准更新及新 Session 回答见[真实验收报告](docs/evaluations/v2.1b-formation-live-review.md)。
 
+V2.1b.1 已在本地定点修复这两条宿主误拒绝，保留完整时间/范围与原有更新目标校验。原输出离线回放12/12、值得保留事实6/6，不代表新真实模型质量已达标；正式Formation仍关闭，等待审查及新的复验授权。前后证据、回归结果与最多12请求的预算见[修复报告](docs/evaluations/v2.1b.1-formation-fix-review.md)。无需Key即可离线核对：`node --import tsx scripts/replay-formation-live.ts`。
+
 ## V2.1b 候选形成（默认关闭）
 
 正式 Formation 未开启；隔离验收仅使用临时虚构数据。审查并修复已发现的问题后如决定试用，请先备份并使用独立的 `DATABASE_PATH`、`SESSION_DIR`、`MEMORY_DIR`，再在本机配置：

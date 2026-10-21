@@ -61,7 +61,9 @@ export async function evaluateFormation() {
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) {
   const report = await evaluateFormation();
-  writeFileSync(new URL('../docs/evaluations/v2.1b-formation-offline.json', import.meta.url), JSON.stringify(report, null, 2) + '\n');
+  // 定点修复可输出到新报告，保留历史验收；显式路径禁止覆盖已有文件。
+  const output = process.argv.find(arg => arg.startsWith('--output='))?.slice('--output='.length);
+  writeFileSync(output ? resolve(output) : new URL('../docs/evaluations/v2.1b-formation-offline.json', import.meta.url), JSON.stringify(report, null, 2) + '\n', output ? { flag: 'wx' } : {});
   console.log(JSON.stringify({ development: report.development, holdout: report.holdout, apiRequests: 0 }, null, 2));
   if (report.rows.some(row => !row.passed || row.unauthorizedWrites !== 0)) process.exitCode = 1;
 }

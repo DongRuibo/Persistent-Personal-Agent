@@ -120,7 +120,9 @@ export class FormationService {
           !['semantic', 'project'].includes(proposal.kind) || excludedSource(job.text) || sensitive(job.text, this.secrets) ||
           !normalized(job.text).includes(normalized(proposal.property)) || !normalized(job.text).includes(normalized(proposal.value))) continue;
         const selfText = normalized(job.text).replace(/^(我|本人)(?:现在|以后|今后|平时|长期|工作时|学习时|目前)/u, '$1');
-        if (proposal.kind === 'semantic' && (proposal.subject !== '用户' || !owns({ content: selfText }, 'semantic', '用户', proposal.property))) continue;
+        // 属性可能包含时间/适用范围，先核对完整原话；仅为省略时间前缀的旧提议保留兼容判定。
+        if (proposal.kind === 'semantic' && (proposal.subject !== '用户' ||
+          !owns({ content: job.text }, 'semantic', '用户', proposal.property) && !owns({ content: selfText }, 'semantic', '用户', proposal.property))) continue;
         if (proposal.kind === 'project' && (!job.text.includes(proposal.subject) || /^(?:项目|这个项目|那个项目|我们)$/u.test(proposal.subject))) continue;
         seen.add(job.id);
         const hash = fingerprint([proposal.kind, normalized(proposal.subject), normalized(proposal.property), canonical(job.text)].join(':'));
