@@ -7,6 +7,7 @@ export class TaskScheduler implements Scheduler {
   private readonly shutdown = new AbortController();
   private loop?: Promise<void>;
   private busy = false;
+  private blockedReason?: string;
 
   constructor(
     private readonly store: SqliteStore,
@@ -34,6 +35,18 @@ export class TaskScheduler implements Scheduler {
     if (this.busy || this.shutdown.signal.aborted) return;
     this.busy = true;
     try {
+      if (!this.store.hasDueTasks(this.clock().toISOString())) return;
+      try { this.executor.checkReady?.(); }
+      catch (error) {
+        const reason = error instanceof Error ? error.message : String(error);
+        if (reason !== this.blockedReason) {
+          this.blockedReason = reason;
+          this.reportError(new Error(`后台任务执行前检查失败，任务保持 pending，尚未领取：${reason}`));
+        }
+        return;
+      }
+      this.blockedReason = undefined;
+      if (this.shutdown.signal.aborted) return;
       const claimed = this.store.claimDue(this.clock().toISOString());
       if (!claimed) return;
       const { task, run } = claimed;

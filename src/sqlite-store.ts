@@ -99,6 +99,10 @@ export class SqliteStore {
     });
   }
 
+  hasDueTasks(now: string): boolean {
+    return Boolean(this.db.prepare("SELECT 1 FROM tasks WHERE status = 'pending' AND dueAt <= ? LIMIT 1").get(now));
+  }
+
   // 领取与执行记录在同一事务提交；UNIQUE(taskId) 是一次性执行的第二道约束。
   claimDue(now: string): { task: Task; run: Run } | undefined {
     return this.transaction(() => {

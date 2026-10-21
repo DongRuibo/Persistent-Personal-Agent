@@ -60,6 +60,8 @@ export interface ExecutionRequest {
 
 // 业务层不接触 Pi Session、事件或模型对象。
 export interface AgentExecutor {
+  // 只检查执行条件，不调用模型或产生业务副作用；失败时尚未领取任务。
+  checkReady?(): void;
   execute(request: ExecutionRequest): Promise<{ text: string }>;
   close(): Promise<void>;
 }

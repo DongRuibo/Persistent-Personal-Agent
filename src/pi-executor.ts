@@ -96,6 +96,8 @@ export class PiExecutor implements AgentExecutor {
     this.chat = chat;
   }
 
+  checkReady(): void { this.memory?.repair(); }
+
   async execute(request: ExecutionRequest): Promise<{ text: string }> {
     if (request.scope === 'chat' && this.chatBusy) throw new Error('交互会话正在执行');
     if (request.scope === 'chat') this.chatBusy = true;

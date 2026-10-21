@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto';
 import { once } from 'node:events';
 import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, unlinkSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:http';
+import { DatabaseSync } from 'node:sqlite';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
@@ -12,9 +13,100 @@ import { createPiExecutor } from '../src/pi-executor.js';
 import { FileMemoryService } from '../src/memory-service.js';
 import { SqliteStore } from '../src/sqlite-store.js';
 import { TaskService } from '../src/task-service.js';
-import type { ExecutionRequest } from '../src/contracts.js';
+import { TaskScheduler } from '../src/scheduler.js';
+import type { ExecutionRequest, OutboundMessage } from '../src/contracts.js';
 
 interface Payload { messages: { role: string; content?: unknown }[]; tools?: { function: { name: string } }[] }
+
+test('Memory 文件或索引故障不领取到期任务，重开后只执行一次；领取后故障仍不重试', { timeout: 15000 }, async (t) => {
+  const root = mkdtempSync(join(tmpdir(), 'personal-agent-memory-scheduler-'));
+  const config = readConfig({ DATABASE_PATH: join(root, 'agent.db'), LLM_API_KEY: 'fake-memory-scheduler-key', LLM_MODEL: 'local-stub', LLM_BASE_URL: 'https://api.example.com/v1' });
+  const payloads: Payload[] = [];
+  t.mock.method(globalThis, 'fetch', async (_input: unknown, init?: RequestInit) => {
+    payloads.push(JSON.parse(String(init?.body)) as Payload);
+    const frames = [
+      { index: 0, delta: { role: 'assistant', content: '正常提醒' }, finish_reason: null },
+      { index: 0, delta: {}, finish_reason: 'stop' },
+    ].map((choice) => `data: ${JSON.stringify({ id: 'scheduler-memory-stub', model: 'local-stub', choices: [choice] })}\n\n`).join('');
+    return new Response(frames + 'data: [DONE]\n\n', { headers: { 'Content-Type': 'text/event-stream' } });
+  });
+  const created = () => new Date('2026-10-20T00:00:00Z');
+  const due = () => new Date('2026-10-20T00:01:00Z');
+  let store = new SqliteStore(config.databasePath);
+  let tasks = new TaskService(store, config.timeZone, created);
+  let memory = new FileMemoryService(config.memoryDir);
+  let executor = await createPiExecutor(config, tasks, 'memory-scheduler-test', memory);
+  const messages: OutboundMessage[] = [];
+  const errors: unknown[] = [];
+  const channel = { sendMessage: async (message: OutboundMessage) => { messages.push(message); } };
+  const report = (error: unknown) => { errors.push(error); };
+  let scheduler = new TaskScheduler(store, executor, channel, 5, report, due);
+  const target = { channel: 'feishu' as const, appId: 'fake-app', chatId: 'fake-chat', userOpenId: 'fake-user' };
+  try {
+    const record = memory.withRequest({ prompt: '记住：测试项目数据库为 SQLite', scope: 'chat', signal: new AbortController().signal, observer: { event: () => {}, modelCall: () => {} }, source: { channel: 'feishu', reference: 'test-source' } },
+      () => memory.remember({ kind: 'project', key: 'test.database', content: '测试项目数据库为 SQLite。' }));
+    const file = join(config.memoryDir, 'projects', `${record.id}.md`);
+    const original = readFileSync(file, 'utf8');
+    const task = tasks.withTarget(target, () => tasks.create('测试项目提醒喝水', '1分钟后'));
+    writeFileSync(file, original.replace('SQLite', 'PostgreSQL'));
+    await scheduler.tick(); await scheduler.tick();
+    assert.equal(store.getTask(task.id)?.status, 'pending', '坏 Memory 不能消耗尚未执行的任务');
+    assert.equal(store.listRuns().length, 0);
+    assert.equal(payloads.length, 0);
+    assert.equal(messages.length, 0);
+    assert.equal(errors.length, 1, '相同故障不随每次轮询刷屏');
+    assert.match(String(errors[0]), /pending/);
+
+    await scheduler.stop(); await executor.close(); memory.close(); store.close();
+    writeFileSync(file, original);
+    store = new SqliteStore(config.databasePath);
+    tasks = new TaskService(store, config.timeZone, created);
+    memory = new FileMemoryService(config.memoryDir);
+    executor = await createPiExecutor(config, tasks, 'memory-scheduler-test', memory);
+    scheduler = new TaskScheduler(store, executor, channel, 5, report, due);
+    assert.equal(store.recoverInterrupted(due().toISOString()), 0, '阻塞期间没有 running Run');
+    await scheduler.tick(); await scheduler.tick();
+    assert.equal(store.getTask(task.id)?.status, 'succeeded');
+    assert.equal(store.listRuns().length, 1);
+    assert.equal(payloads.length, 1);
+    assert.equal(messages.length, 1);
+    assert.deepEqual(messages[0]?.target, target, '重开后仍通知原飞书目标');
+
+    const indexTask = tasks.create('测试项目第二次提醒', '1分钟后');
+    const index = new DatabaseSync(join(config.memoryDir, 'index.db'));
+    try {
+      index.exec("CREATE TRIGGER fail_memory_index BEFORE INSERT ON memories BEGIN SELECT RAISE(FAIL, 'simulated index failure'); END");
+      await scheduler.tick(); await scheduler.tick();
+      assert.equal(store.getTask(indexTask.id)?.status, 'pending');
+      assert.equal(store.listRuns().length, 1);
+      assert.equal(payloads.length, 1);
+      assert.equal(messages.length, 1);
+      assert.equal(errors.length, 2, '恢复后的新故障应重新报告');
+      index.exec('DROP TRIGGER fail_memory_index');
+    } finally { index.close(); }
+    await scheduler.tick(); await scheduler.tick();
+    assert.equal(store.getTask(indexTask.id)?.status, 'succeeded');
+    assert.equal(store.listRuns().length, 2);
+    assert.equal(payloads.length, 2);
+    assert.equal(messages.length, 2);
+
+    const lateTask = tasks.create('领取后的故障不自动重试', '1分钟后');
+    const ready = executor.checkReady.bind(executor);
+    const fault = t.mock.method(executor, 'checkReady', () => { ready(); writeFileSync(file, original.replace('SQLite', 'PostgreSQL')); });
+    try { await scheduler.tick(); } finally { fault.mock.restore(); writeFileSync(file, original); }
+    await scheduler.tick();
+    assert.equal(store.getTask(lateTask.id)?.status, 'failed', '领取后再次校验失败仍保守终止');
+    assert.equal(store.listRuns().length, 3);
+    assert.equal(payloads.length, 2, '执行前故障没有调用模型，终态也不重放');
+    assert.equal(messages.length, 3);
+    assert.ok(payloads.every((payload) => !payload.tools?.length));
+    const session = join(config.sessionDir, createHash('sha256').update('memory-scheduler-test').digest('hex'), 'chat.session.jsonl');
+    assert.ok(!readFileSync(session, 'utf8').includes('提醒喝水'), '后台提醒不写入交互历史');
+  } finally {
+    await scheduler.stop(); await executor.close(); memory.close(); store.close();
+    t.mock.restoreAll(); rmSync(root, { recursive: true, force: true });
+  }
+});
 
 test('真实 Pi 1.3.0 + 模拟模型：受控工具、跨重启和全新 Session 的 Memory 命中、动态投影及后台隔离', { timeout: 25000 }, async () => {
   const root = mkdtempSync(join(tmpdir(), 'personal-agent-memory-pi-'));

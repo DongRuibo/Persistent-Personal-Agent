@@ -61,6 +61,7 @@ Pi SDK 使用公开 API，不 Fork、不修改内部源码和 Agent Loop。宿�
 
 - 一次性任务：`pending → running → succeeded / failed / interrupted`；仅 `pending → cancelled`。
 - 领取和创建 Run 在同一事务提交，条件更新与 `UNIQUE(taskId)` 防止重复领取。独占锁后才能恢复遗留运行状态。
+- V2.0.1 仅在有到期 pending 时，通过 `AgentExecutor.checkReady()` 的同步宿主预检查再领取。PiExecutor 检查整个 Memory 的文件与索引；失败保留 pending，不生成 Run，记录去重后的阻塞原因，后续轮询恢复后继续领取。Scheduler 不依赖 Memory 或 Pi 对象，不增加任务状态或表迁移。预检查与执行之间仍有故障窗口，领取后的异常保持原有终态语义。
 - 重启继续等待中的任务；遗留 running 标记 interrupted；失败、中断和投递失败不自动重跑任务。有外部副作用时须人工核实，不能保证恰好一次。
 - `message_end` 记录模型响应与用量；`agent_settled` 后仍检查 aborted、模型与工具错误、截断及最终文本。执行结束、数据库成功提交、渠道投递成功互相区分。
 - UTC 持久化、IANA 用户时区解析。支持的中文时间语法见 README，歧义或 DST 无效时间要求用户明确，不让模型或服务器时区决定。

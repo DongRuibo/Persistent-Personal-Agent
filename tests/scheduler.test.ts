@@ -16,6 +16,33 @@ function setup(execute: AgentExecutor['execute'], channel: Channel = { sendMessa
   return { store, task, scheduler, errors };
 }
 
+test('没有到期任务不检查 Memory，故障阻塞中的 pending 仍可取消', async () => {
+  const store = new SqliteStore(':memory:');
+  const tasks = new TaskService(store, 'Asia/Taipei', () => new Date('2026-10-20T00:00:00Z'));
+  const task = tasks.create('运行任务', '1分钟后');
+  let now = new Date('2026-10-20T00:00:00Z');
+  let checks = 0, calls = 0;
+  const errors: unknown[] = [];
+  const executor: AgentExecutor = {
+    checkReady: () => { checks++; throw new Error('Memory 暂不可用'); },
+    execute: async () => { calls++; return { text: '不应执行' }; }, close: async () => {},
+  };
+  const scheduler = new TaskScheduler(store, executor, { sendMessage: async () => { throw new Error('不应发送'); } }, 5, (error) => errors.push(error), () => now);
+  try {
+    await scheduler.tick();
+    assert.equal(checks, 0, '未来任务不触发全量 Memory 检查');
+    now = new Date('2026-10-20T00:01:00Z');
+    await scheduler.tick();
+    assert.equal(store.getTask(task.id)?.status, 'pending');
+    assert.equal(tasks.cancel(task.id).status, 'cancelled');
+    await scheduler.tick();
+    assert.equal(checks, 1, '取消后不再检查或领取');
+    assert.equal(calls, 0);
+    assert.equal(store.listRuns().length, 0);
+    assert.equal(errors.length, 1);
+  } finally { await scheduler.stop(); store.close(); }
+});
+
 test('无需 Console，调度器独立循环；并发 tick 不重复执行', async () => {
   let calls = 0;
   const messages: string[] = [];
