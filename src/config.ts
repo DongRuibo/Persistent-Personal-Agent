@@ -1,5 +1,6 @@
 import { dirname, resolve, sep } from 'node:path';
 import { Temporal } from '@js-temporal/polyfill';
+import type { FormationOptions } from './formation-types.js';
 
 export interface Config {
   provider: string;
@@ -14,6 +15,7 @@ export interface Config {
   memoryQueryRewrite?: boolean;
   pollIntervalMs: number;
   executionTimeoutMs: number;
+  formation?: FormationOptions;
 }
 
 export interface FeishuConfig {
@@ -68,6 +70,13 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const memoryContextTokens = Number(env.MEMORY_CONTEXT_TOKENS ?? 2048);
   if (!Number.isSafeInteger(memoryContextTokens) || memoryContextTokens < 512 || memoryContextTokens > 8192) throw new Error('MEMORY_CONTEXT_TOKENS 必须为512至8192的整数');
   if (env.MEMORY_QUERY_REWRITE && !['true', 'false'].includes(env.MEMORY_QUERY_REWRITE)) throw new Error('MEMORY_QUERY_REWRITE 必须为 true 或 false');
+  if (env.MEMORY_FORMATION_ENABLED && !['true', 'false'].includes(env.MEMORY_FORMATION_ENABLED)) throw new Error('MEMORY_FORMATION_ENABLED 必须为 true 或 false');
+  const formationEnabled = env.MEMORY_FORMATION_ENABLED === 'true';
+  const rate = (key: string) => {
+    const value = Number(env[key] ?? 0);
+    if (!Number.isFinite(value) || value < 0 || value > 10000 || formationEnabled && value === 0) throw new Error('启用形成前需显式配置有效的模型输入/输出人民币费率上界');
+    return value;
+  };
   return {
     provider: env.LLM_PROVIDER || 'openai',
     model: env.LLM_MODEL || 'gpt-4.1-mini',
@@ -81,6 +90,8 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env): Config {
     memoryQueryRewrite: env.MEMORY_QUERY_REWRITE === 'true',
     pollIntervalMs: integer('POLL_INTERVAL_MS', 1000),
     executionTimeoutMs: integer('EXECUTION_TIMEOUT_MS', 120_000),
+    formation: { enabled: formationEnabled, owner: 'single-user', inputRate: rate('MEMORY_FORMATION_INPUT_CNY_PER_MILLION'),
+      outputRate: rate('MEMORY_FORMATION_OUTPUT_CNY_PER_MILLION'), dailyCalls: 20, dailyBudget: 0.2, idleMs: 10000 },
   };
 }
 

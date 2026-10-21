@@ -1,9 +1,11 @@
 import { randomUUID } from 'node:crypto';
 import { DatabaseSync } from 'node:sqlite';
 import type { ExecutionObserver, MessageTarget, ModelCall, Run, RunStatus, Task } from './contracts.js';
+import { FormationStore } from './formation-store.js';
 
 export class SqliteStore {
   private readonly db: DatabaseSync;
+  readonly formation: FormationStore;
 
   constructor(path: string, private readonly redact: (value: unknown) => string = String) {
     this.db = new DatabaseSync(path);
@@ -39,6 +41,7 @@ export class SqliteStore {
     if (!this.db.prepare('PRAGMA table_info(tasks)').all().some((column) => column.name === 'target')) {
       this.db.exec(`ALTER TABLE tasks ADD COLUMN target TEXT NOT NULL DEFAULT '{"channel":"console"}'`);
     }
+    this.formation = new FormationStore(this.db);
   }
 
   private transaction<T>(fn: () => T): T {
@@ -123,7 +126,7 @@ export class SqliteStore {
     });
   }
 
-  finishRun(id: string, status: Exclude<RunStatus, 'running'>, now: string, output?: string, error?: string): void {
+  finishRun(id: string, status: Exclude<RunStatus, 'running'>, now: string, output?: string, error?: string, enqueue?: () => void): void {
     this.transaction(() => {
       const run = this.getRun(id);
       if (!run || run.status !== 'running') throw new Error('执行记录已结束或不存在');
@@ -135,6 +138,15 @@ export class SqliteStore {
         if (result.changes !== 1) throw new Error('任务状态与执行记录不一致');
       }
       this.event(id, `run_${status}`, error, now);
+      if (enqueue && status === 'succeeded' && !run.taskId) {
+        // 队列故障只回滚自身，不将已经完成的聊天改成失败；成功时与 Run 原子提交。
+        this.db.exec('SAVEPOINT formation_admission');
+        try { enqueue(); this.db.exec('RELEASE formation_admission'); }
+        catch {
+          this.db.exec('ROLLBACK TO formation_admission'); this.db.exec('RELEASE formation_admission');
+          this.event(id, 'formation_enqueue_failed', '聊天成功；候选入队失败，未自动重试', now);
+        }
+      }
     });
   }
 

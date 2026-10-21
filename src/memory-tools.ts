@@ -4,6 +4,7 @@ import { Type } from 'typebox';
 import type { MemoryRecord } from './contracts.js';
 import type { FileMemoryService } from './memory-service.js';
 import type { OperationGuard } from './operation-guard.js';
+import type { FormationService } from './formation-service.js';
 
 // 正文通过本轮 context 投影提供；持久 Session 中只留下受控的操作收据。
 const receipt = ({ id, kind, key, version, hash, source }: MemoryRecord) => ({ id, kind, key, version, hash, source: source.type });
@@ -13,8 +14,13 @@ const content = Type.String({ minLength: 1, maxLength: 12000 });
 const version = Type.Integer({ minimum: 1 });
 const kind = Type.Union([Type.Literal('semantic'), Type.Literal('project'), Type.Literal('episodic'), Type.Literal('procedural')]);
 
-export function memoryTools(memory: FileMemoryService, guard?: OperationGuard): ToolDefinition[] {
+export function memoryTools(memory: FileMemoryService, guard?: OperationGuard, formation?: FormationService): ToolDefinition[] {
   return [
+    ...(formation?.options.enabled && guard ? [defineTool({
+      name: 'memory_review', label: '查看与审查记忆建议',
+      description: '用户询问有什么建议记住、查看候选、按序号批准/拒绝/修改候选时使用。参数为空；宿主独立理解当前原话、固定清单并检查版本，修改后必须再确认。不能代替直接明确的记忆工具，不能自动批准。仅返回收据，完整清单由宿主发送给用户。',
+      parameters: Type.Object({}), execute: async (_id, _args, signal) => result(await guard.reviewCandidates(formation, signal)),
+    })] : []),
     defineTool({
       name: 'memory_search', label: '检索长期记忆',
       description: '按问题检索最多5条长期记忆，可限定 kind。semantic=稳定偏好/画像，project=项目知识，episodic=重要事件，procedural=明确经验。相关不保证包含答案；返回收据，当前正文及证据线索在下一次临时 Memory Context 中提供。',

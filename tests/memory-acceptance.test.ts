@@ -160,7 +160,7 @@ test('停服备份迁移到新目录：四类 Markdown 重建索引、恢复 Ses
     assert.equal(store.acceptFeishuMessage(identity.appId, 'already-accepted', '2026-10-21T00:02:00Z'), undefined);
     assert.equal(SessionManager.open(sessionFile(restored.sessionDir)).getSessionId(), sessionId);
     for (const record of records) assert.deepEqual(memory.get(record.id), record);
-    assert.equal(statSync(join(restored.memoryDir, 'index.db')).mode & 0o777, 0o600);
+    if (process.platform !== 'win32') assert.equal(statSync(join(restored.memoryDir, 'index.db')).mode & 0o777, 0o600);
     await executor.execute(request('继续之前的话题'));
     assert.ok(JSON.stringify(payloads.at(-1)).includes('RESTORE_CHAT_HISTORY_MARKER'));
     const messages: unknown[] = [];

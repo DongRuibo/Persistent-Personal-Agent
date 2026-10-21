@@ -5,6 +5,7 @@ import type { FeishuConfig } from './config.js';
 import type { FeishuTransport } from './feishu-transport.js';
 import { SqliteStore } from './sqlite-store.js';
 import { TaskService } from './task-service.js';
+import type { FormationService } from './formation-service.js';
 
 type FeishuTarget = Extract<MessageTarget, { channel: 'feishu' }>;
 interface IncomingEvent {
@@ -39,6 +40,7 @@ export class FeishuChannel implements Channel {
     private readonly store: SqliteStore,
     private readonly redact: (value: unknown) => string,
     private readonly reportError: (error: unknown) => void,
+    private readonly formation?: FormationService,
   ) {}
 
   async start(): Promise<void> { await this.transport.start((event) => this.receive(event)); }
@@ -60,7 +62,8 @@ export class FeishuChannel implements Channel {
     const run = this.store.acceptFeishuMessage(this.config.appId, message.message_id, new Date().toISOString());
     if (!run) return;
     const target: FeishuTarget = { channel: 'feishu', appId: this.config.appId, chatId: message.chat_id, userOpenId: this.config.allowedOpenId };
-    this.work = this.work.then(() => this.process(text, target, run.id)).catch((error: unknown) => this.reportError(this.redact(error)));
+    const releaseFormation = this.formation?.foreground();
+    this.work = this.work.then(() => this.process(text, target, run.id)).catch((error: unknown) => this.reportError(this.redact(error))).finally(() => releaseFormation?.());
   }
 
   private async process(text: string, target: FeishuTarget, runId: string): Promise<void> {
@@ -75,8 +78,9 @@ export class FeishuChannel implements Channel {
         source: { channel: 'feishu', reference: runId },
       }));
       if (this.shutdown.signal.aborted) throw new ExecutionInterrupted('服务正在停止');
-      this.store.finishRun(runId, 'succeeded', new Date().toISOString(), result.text);
-      reply = result.text;
+      const at = new Date().toISOString();
+      this.store.finishRun(runId, 'succeeded', at, result.text, undefined, this.formation ? () => this.formation!.enqueue({ owner: this.formation!.options.owner, runId, text, channel: 'feishu', at }) : undefined);
+      reply = result.text + (this.formation?.hint() ?? '');
     } catch (error) {
       const interrupted = this.shutdown.signal.aborted || error instanceof ExecutionInterrupted;
       this.store.finishRun(runId, interrupted ? 'interrupted' : 'failed', new Date().toISOString(), undefined, this.redact(error));

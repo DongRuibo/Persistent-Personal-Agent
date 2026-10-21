@@ -43,6 +43,8 @@ export interface ModelCall {
   cost: number | null;
   stopReason: string;
   error?: string;
+  purpose?: 'memory_formation';
+  jobId?: string;
 }
 
 export interface ExecutionObserver {

@@ -18,7 +18,8 @@ async function until(predicate: () => boolean, description: string): Promise<voi
   throw new Error(`等待超时：${description}`);
 }
 
-test('进程级：交互 Session 重启恢复，daemon 隔离调度，拒绝双启动，SIGTERM 标记中断', { timeout: 30000 }, async () => {
+test('进程级：交互 Session 重启恢复，daemon 隔离调度，拒绝双启动，SIGTERM 标记中断', { timeout: 30000,
+  skip: process.platform === 'win32' ? 'Windows child.kill(SIGTERM) 强杀，无法验证 POSIX 优雅退出；需在 Mac/Linux 重跑' : false }, async () => {
   let blockedRequests = 0;
   const requests: string[] = [];
   const server = createServer(async (req, res) => {

@@ -1,4 +1,5 @@
 import { mkdir } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
 import { dirname } from 'node:path';
 import { once } from 'node:events';
 import lockfile from 'proper-lockfile';
@@ -12,6 +13,7 @@ import { ChannelRouter } from './channel-router.js';
 import { FeishuChannel } from './feishu-channel.js';
 import { FeishuSdkTransport } from './feishu-transport.js';
 import { FileMemoryService } from './memory-service.js';
+import { FormationService } from './formation-service.js';
 
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
@@ -41,6 +43,7 @@ async function main(): Promise<void> {
   let executor: Awaited<ReturnType<typeof createPiExecutor>> | undefined;
   let scheduler: TaskScheduler | undefined;
   let memory: FileMemoryService | undefined;
+  let formation: FormationService | undefined;
   let releaseMemory: (() => Promise<void>) | undefined;
   process.once('SIGINT', stop);
   process.once('SIGTERM', stop);
@@ -57,28 +60,31 @@ async function main(): Promise<void> {
     });
     memory = new FileMemoryService(config.memoryDir, [config.apiKey, process.env.FEISHU_APP_SECRET ?? '']);
     const chatKey = feishuConfig ? JSON.stringify(['feishu', feishuConfig.appId, feishuConfig.allowedOpenId]) : 'console';
-    executor = await createPiExecutor(config, tasks, chatKey, memory);
+    if (config.formation?.enabled) formation = new FormationService({ ...config.formation, owner: createHash('sha256').update(chatKey).digest('hex') }, store, { listForHost: () => memory!.listForHost() }, [config.apiKey, process.env.FEISHU_APP_SECRET ?? '']);
+    executor = await createPiExecutor(config, tasks, chatKey, memory, formation);
     if (shutdown.signal.aborted) return;
     const recovered = store.recoverInterrupted(new Date().toISOString());
     const consoleChannel = new ConsoleChannel(redact);
     if (feishuConfig) {
       const transport = new FeishuSdkTransport(feishuConfig, reportError, () => { process.exitCode = 1; stop(); });
-      feishu = new FeishuChannel(feishuConfig, transport, executor, tasks, store, redact, reportError);
+      feishu = new FeishuChannel(feishuConfig, transport, executor, tasks, store, redact, reportError, formation);
       await feishu.start();
     }
     if (shutdown.signal.aborted) return;
     scheduler = new TaskScheduler(store, executor, new ChannelRouter(consoleChannel, feishu), config.pollIntervalMs, reportError);
     scheduler.start();
+    formation?.start();
     console.log(`Personal Agent 已启动；用户时区=${config.timeZone}；中断记录=${recovered}；模式=${feishu ? 'feishu' : args.includes('--daemon') ? 'daemon' : 'console'}`);
     if (args.includes('--daemon') || feishu) {
       if (!shutdown.signal.aborted) await once(shutdown.signal, 'abort');
     } else {
-      await consoleChannel.run(executor, tasks, store, shutdown.signal);
+      await consoleChannel.run(executor, tasks, store, shutdown.signal, formation);
     }
   } finally {
     stop();
     // 先中断并等待执行，再关闭存储；避免日志写入已关闭的数据库。
     try {
+      await formation?.stop();
       await Promise.all([scheduler?.stop(), feishu?.stop()]);
       await executor?.close();
     } finally {

@@ -110,8 +110,10 @@ test('真实 Pi Session 文件：飞书上下文恢复、目标和去重跨重�
     assert.ok(transcript.includes('toolResult'));
     assert.ok(!transcript.includes('SCHEDULER_ONLY_RESULT_MARKER'));
     for (const secret of [config.apiKey, identity.appSecret]) assert.ok(!transcript.includes(secret));
-    assert.equal(statSync(file).mode & 0o777, 0o600);
-    assert.equal(statSync(join(file, '..')).mode & 0o777, 0o700);
+    if (process.platform !== 'win32') {
+      assert.equal(statSync(file).mode & 0o777, 0o600);
+      assert.equal(statSync(join(file, '..')).mode & 0o777, 0o700);
+    }
     assert.equal(readdirSync(config.sessionDir).length, 1, '后台执行不创建持久化会话');
     assert.deepEqual(errors, []);
 
@@ -147,8 +149,11 @@ test('仅打开宿主指定文件；无关 Pi 会话不加载，权限收紧，�
     chmodSync(file, 0o644);
     chmodSync(join(file, '..'), 0o755);
     executor = await createPiExecutor(config, tasks);
-    assert.equal(statSync(file).mode & 0o777, 0o600);
-    assert.equal(statSync(join(file, '..')).mode & 0o777, 0o700);
+    // Windows 不能用 Unix mode 验证 ACL，隔离/历史不重放等断言仍完整运行。
+    if (process.platform !== 'win32') {
+      assert.equal(statSync(file).mode & 0o777, 0o600);
+      assert.equal(statSync(join(file, '..')).mode & 0o777, 0o700);
+    }
     await executor.close();
     const invalid = 'not a Pi session\n';
     writeFileSync(file, invalid);

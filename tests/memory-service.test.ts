@@ -146,7 +146,7 @@ test('异步请求并行时写权限与来源隔离，后台和普通聊天不�
   } finally { env.close(); }
 });
 
-test('索引丢失重建；损坏文件报错保留；拒绝路径穿越、符号链接和凭据，私有权限', () => {
+test('索引丢失重建；损坏文件报错保留；拒绝路径穿越、符号链接和凭据，私有权限', async t => {
   const env = setup();
   try {
     env.memory.withRequest(request('记住：偏好'), () => {
@@ -159,10 +159,13 @@ test('索引丢失重建；损坏文件报错保留；拒绝路径穿越、符�
     });
     const profile = join(env.directory, 'PROFILE.md');
     const original = readFileSync(profile, 'utf8');
-    assert.equal(statSync(profile).mode & 0o777, 0o600);
-    assert.equal(statSync(env.directory).mode & 0o777, 0o700);
-    assert.equal(statSync(join(env.directory, 'index.db')).mode & 0o777, 0o600);
-    chmodSync(profile, 0o644); env.memory.repair(); assert.equal(statSync(profile).mode & 0o777, 0o600);
+    // Windows 的 mode 不表示 ACL；仅在 POSIX 检验权限位，其他数据安全断言继续执行。
+    await t.test('POSIX 私有权限位', { skip: process.platform === 'win32' ? 'Windows mode 不代表 ACL；ACL 隔离未验证' : false }, () => {
+      assert.equal(statSync(profile).mode & 0o777, 0o600);
+      assert.equal(statSync(env.directory).mode & 0o777, 0o700);
+      assert.equal(statSync(join(env.directory, 'index.db')).mode & 0o777, 0o600);
+      chmodSync(profile, 0o644); env.memory.repair(); assert.equal(statSync(profile).mode & 0o777, 0o600);
+    });
     const index = new DatabaseSync(join(env.directory, 'index.db'));
     try { index.exec('DELETE FROM memories'); } finally { index.close(); }
     assert.equal(env.memory.search('中文').length, 1);
@@ -171,9 +174,16 @@ test('索引丢失重建；损坏文件报错保留；拒绝路径穿越、符�
     assert.ok(readFileSync(profile, 'utf8').includes('被外部改变的正文'));
     writeFileSync(profile, original);
     const external = join(env.root, 'private.txt'); writeFileSync(external, 'DO_NOT_TOUCH');
-    unlinkSync(profile); symlinkSync(external, profile);
-    assert.throws(() => env.memory.search('中文'), /符号链接/);
-    assert.equal(readFileSync(external, 'utf8'), 'DO_NOT_TOUCH');
+    unlinkSync(profile);
+    await t.test('拒绝符号链接且不触碰外部文件', t => {
+      try { symlinkSync(external, profile); }
+      catch (error) {
+        if (process.platform !== 'win32' || (error as NodeJS.ErrnoException).code !== 'EPERM') throw error;
+        t.skip('Windows 当前账户无创建符号链接权限，本项未验证'); return;
+      }
+      assert.throws(() => env.memory.search('中文'), /符号链接/);
+      assert.equal(readFileSync(external, 'utf8'), 'DO_NOT_TOUCH');
+    });
   } finally { env.close(); }
 });
 

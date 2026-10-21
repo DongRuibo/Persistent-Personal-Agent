@@ -7,16 +7,19 @@ import type { ExecutionRequest, MemoryRecord, Task, WriteOperation } from './con
 import type { TaskService } from './task-service.js';
 import type { FileMemoryService } from './memory-service.js';
 import { parseTaskTime, taskTimeRange } from './time.js';
+import type { FormationService } from './formation-service.js';
+import type { CandidateView } from './formation-types.js';
 
 const text = Type.String({ maxLength: 12000 });
 export const intentSchema = Type.Object({
-  action: Type.Union([Type.Literal('none'), Type.Literal('create_task'), Type.Literal('cancel_task'), Type.Literal('memory_remember'), Type.Literal('memory_update'), Type.Literal('memory_forget')]),
+  action: Type.Union([Type.Literal('none'), Type.Literal('create_task'), Type.Literal('cancel_task'), Type.Literal('memory_remember'), Type.Literal('memory_update'), Type.Literal('memory_forget'), Type.Literal('memory_review')]),
   mode: Type.Union([Type.Literal('request'), Type.Literal('query'), Type.Literal('negated'), Type.Literal('hypothetical'), Type.Literal('quoted'), Type.Literal('uncertain')]),
   evidence: text,
   confirmation: Type.Optional(Type.Boolean()),
   bodyEvidence: Type.Optional(text), body: Type.Optional(text), when: Type.Optional(text),
   kind: Type.Optional(Type.Union([Type.Literal('semantic'), Type.Literal('project'), Type.Literal('episodic'), Type.Literal('procedural')])),
   key: Type.Optional(Type.String({ maxLength: 100 })),
+  review: Type.Optional(Type.Union([Type.Literal('list'), Type.Literal('approve'), Type.Literal('reject'), Type.Literal('reject_view'), Type.Literal('edit'), Type.Literal('clarify')])),
   selector: Type.Optional(Type.Object({
     keywords: Type.Array(Type.String({ minLength: 1, maxLength: 100 }), { maxItems: 8 }),
     when: Type.Optional(text), reference: Type.Optional(Type.Union([Type.Literal('latest'), Type.Literal('last'), Type.Literal('choice')])),
@@ -30,9 +33,10 @@ export interface DialogueReferences {
   tasks?: string[]; lastTask?: string; lastMemory?: string;
   taskViewExpires?: number; lastTaskExpires?: number; lastMemoryExpires?: number;
   choices?: Choices; confirmation?: { operation: WriteOperation; expires: number };
+  candidateReview?: CandidateView;
 }
 interface Frame { request: ExecutionRequest; references: DialogueReferences; plan?: Promise<WriteOperation | string>; used: boolean; answer?: string }
-export type Interpret = (message: string, pending: { tool?: Tool; count?: number; confirmation?: boolean }, request: ExecutionRequest) => Promise<unknown>;
+export type Interpret = (message: string, pending: { tool?: Tool | 'memory_review'; count?: number; confirmation?: boolean }, request: ExecutionRequest) => Promise<unknown>;
 const normalize = (value: string) => value.normalize('NFKC').toLowerCase().replace(/\s+/gu, '');
 const segmenter = new Intl.Segmenter('zh', { granularity: 'word' });
 function matches(text: string, term: string): boolean {
@@ -84,7 +88,7 @@ export class OperationGuard {
         const result = await action();
         return frame.answer ? { ...result, text: frame.answer } : result;
       } finally {
-        if (!frame.plan && (this.state.choices || this.state.confirmation)) { delete this.state.choices; delete this.state.confirmation; this.saveState(this.state); }
+        if (!frame.plan && (this.state.choices || this.state.confirmation || this.state.candidateReview)) { delete this.state.choices; delete this.state.confirmation; delete this.state.candidateReview; this.saveState(this.state); }
       }
     });
   }
@@ -98,6 +102,7 @@ export class OperationGuard {
   // 查询的显示顺序由宿主固定，防止模型重排后“第二个”对应了错误任务。
   taskList(id?: string, when?: string, keywords: string[] = [], pendingOnly = false): Task[] {
     const frame = this.frame();
+    delete this.state.candidateReview;
     const visible = this.tasks.visibleTasks();
     if ((when && !frame.request.prompt.includes(when)) || keywords.some((term) => !frame.request.prompt.includes(term))) throw new Error('查询条件必须来自当前用户消息');
     let records = id ? visible.filter((record) => record.id === id) : visible.slice(0, 100);
@@ -114,6 +119,62 @@ export class OperationGuard {
 
   private local(time: string): string { return new Date(time).toLocaleString('zh-CN', { timeZone: this.tasks.timeZone, hour12: false }); }
 
+  async reviewCandidates(formation: FormationService, signal?: AbortSignal): Promise<unknown> {
+    const frame = this.frame();
+    if (signal) frame.request = { ...frame.request, signal: AbortSignal.any([frame.request.signal, signal]) };
+    if (frame.used || frame.plan) throw new Error('本轮操作已经消费或正在解析；不能同时批准候选和执行其他写入');
+    // 先占用同一个 Frame，防止并发工具在等待隔离解析时另获授权。
+    frame.used = true; frame.plan = Promise.resolve('candidate_review');
+    const request = frame.request, view = frame.references.candidateReview;
+    const raw = await this.interpret(request.prompt, { tool: 'memory_review', count: view?.items.length, confirmation: view?.confirm }, request);
+    request.signal.throwIfAborted();
+    if (!Value.Check(intentSchema, raw)) throw new Error('候选审批意图格式无效');
+    const intent = raw as Intent;
+    if (intent.action !== 'memory_review' || !intent.evidence.trim() || !request.prompt.includes(intent.evidence) || !intent.review) throw new Error('当前消息没有候选审查意图');
+    request.observer.event('formation_review', intent.review);
+    delete this.state.choices; delete this.state.confirmation; delete this.state.tasks; delete this.state.lastTask;
+    const show = (result: { view: CandidateView; text: string }) => {
+      this.state.candidateReview = { ...result.view, displayRunId: request.source?.reference, displayHash: createHash('sha256').update(result.text).digest('hex') };
+      frame.answer = result.text; this.saveState(this.state);
+    };
+    if (intent.review === 'list' && ['query', 'request'].includes(intent.mode)) { show(formation.view()); return { status: 'displayed' }; }
+    if (!view || intent.mode !== 'request' || /如果|假设|假如|他说|她说|引用|[?？]/u.test(request.prompt)) throw new Error('需要先查看当前候选，再明确批准或拒绝');
+    formation.validateDisplay(view);
+    const reference = referenceFromMessage(request.prompt);
+    const confirming = view.confirm && /^(?:确认|同意|就这样|好的，就这样)[。！!]?$/u.test(request.prompt.trim());
+    const position = confirming ? 1 : reference && reference !== 'ambiguous' && reference.reference === 'choice' ? reference.position : undefined;
+    if (!confirming && intent.review !== 'reject_view' && (position === undefined || intent.selector?.reference !== 'choice' || intent.selector.position !== position)) throw new Error('候选序号与当前原话不一致，请重新查看并选择');
+    if (intent.review === 'reject_view') {
+      if (!/这些|全部|都/u.test(request.prompt) || !/不(?:用|要)?(?:保存|记)|不保存|不记|拒绝/u.test(request.prompt)) throw new Error('没有明确拒绝当前清单的依据');
+      formation.reject(view); frame.answer = '当前展示的候选已拒绝；没有写入长期 Memory。';
+    } else if (intent.review === 'reject') {
+      if (!/不要|不用|不记|不存|拒绝|先不/u.test(request.prompt)) throw new Error('没有明确拒绝依据');
+      formation.reject(view, position!); frame.answer = '这条候选已拒绝；没有写入长期 Memory。';
+    } else if (intent.review === 'edit') {
+      const draft = intent.bodyEvidence?.trim();
+      if (!draft || !request.prompt.includes(draft) || intent.body !== draft) throw new Error('新草稿必须是本轮用户原话，不允许模型扩写');
+      show(formation.edit(view, position!, draft)); return { status: 'confirmation_required' };
+    } else if (intent.review === 'clarify' || view.targets) {
+      show(formation.clarify(view, view.targets ? 1 : position!, view.targets ? position : undefined)); return { status: 'clarification' };
+    } else if (intent.review === 'approve') {
+      if (!confirming && (!/记|保存|收下|批准|同意/u.test(request.prompt) || /不|别|暂缓/u.test(request.prompt))) throw new Error('当前没有明确批准');
+      const candidate = formation.approve(view, position!, request, operation => {
+        if (!this.memory) throw new Error('Memory 不可用');
+        this.validateCurrent(operation);
+        request.observer.event('operation_authorized', JSON.stringify({ tool: operation.tool, candidate: true }));
+        return this.memory.withRequest(request, () => {
+          if (operation.tool === 'memory_remember') return this.memory!.remember(operation.args);
+          if (operation.tool === 'memory_update') return this.memory!.update(operation.args.id, operation.args.content, operation.args.expectedVersion);
+          throw new Error('候选只能新增或更新 Memory');
+        }, operation);
+      });
+      frame.answer = `已按你批准的草稿保存长期记忆：${candidate.draft}\n版本：${candidate.resultVersion}`;
+    } else throw new Error('不支持的候选操作');
+    delete this.state.candidateReview; this.saveState(this.state);
+    // 持久 Session 仅保留状态收据，不将未批准草稿作为模型工具正文。
+    return { status: intent.review === 'approve' ? 'applied' : 'rejected' };
+  }
+
   async perform<K extends Tool>(tool: K, proposed: unknown, execute: (operation: Extract<WriteOperation, { tool: K }>, request: ExecutionRequest) => unknown, signal?: AbortSignal): Promise<unknown> {
     const frame = this.frame();
     if (signal) frame.request = { ...frame.request, signal: AbortSignal.any([frame.request.signal, signal]) };
@@ -128,6 +189,7 @@ export class OperationGuard {
     // 工具参数只是提议。实际执行只使用宿主从隔离解析和真实存储核对过的值。
     void proposed;
     frame.used = true;
+    delete this.state.candidateReview;
     frame.request.observer.event('operation_authorized', JSON.stringify({ tool, id: 'id' in operation.args ? operation.args.id : undefined }));
     this.validateCurrent(operation);
     const value = execute(operation as Extract<WriteOperation, { tool: K }>, frame.request);
@@ -163,6 +225,7 @@ export class OperationGuard {
     if (confirming && confirming.expires <= now) confirming = undefined;
     if (!Value.Check(intentSchema, raw)) throw new Error('意图解析格式无效，本轮没有执行写操作');
     const intent = raw as Intent;
+    if (intent.action === 'memory_review') return '请通过候选审查工具查看并审批；没有执行其他写操作。';
     if (intent.mode === 'uncertain') return '我还不能确定你希望执行什么操作，请补充要处理的提醒或记忆；本轮没有修改。';
     if (intent.mode !== 'request' || intent.action === 'none' || !intent.evidence.trim() || !request.prompt.includes(intent.evidence)) throw new Error('当前消息没有明确的写入授权，未执行');
     if (intent.confirmation) {

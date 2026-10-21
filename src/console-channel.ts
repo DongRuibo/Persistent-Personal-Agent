@@ -4,6 +4,7 @@ import type { AgentExecutor, Channel } from './contracts.js';
 import { ExecutionInterrupted } from './contracts.js';
 import { SqliteStore } from './sqlite-store.js';
 import { TaskService } from './task-service.js';
+import type { FormationService } from './formation-service.js';
 
 export const consoleHelp = `Personal Agent
   普通文本                         与 Agent 对话（支持自然语言任务管理）
@@ -26,7 +27,7 @@ export class ConsoleChannel implements Channel {
     if (process.stdin.isTTY) this.reader?.prompt(true);
   }
 
-  async run(executor: AgentExecutor, tasks: TaskService, store: SqliteStore, signal: AbortSignal): Promise<void> {
+  async run(executor: AgentExecutor, tasks: TaskService, store: SqliteStore, signal: AbortSignal, formation?: FormationService): Promise<void> {
     const reader = this.reader = createInterface({ input: process.stdin, output: process.stdout, terminal: !!process.stdin.isTTY });
     const close = () => reader.close();
     signal.addEventListener('abort', close, { once: true });
@@ -39,9 +40,11 @@ export class ConsoleChannel implements Channel {
         if (signal.aborted) break;
         const text = raw.trim();
         if (text === '/quit') break;
+        const releaseFormation = formation?.foreground();
         try {
           if (!text) continue;
           let output: unknown;
+          let chatRunId: string | undefined;
           if (text === '/help') output = consoleHelp;
           else if (text === '/tasks') output = tasks.list();
           else if (text.startsWith('/task ')) {
@@ -59,17 +62,20 @@ export class ConsoleChannel implements Channel {
             const run = store.beginRun(null, new Date().toISOString());
             try {
               const result = await executor.execute({ prompt: text, scope: 'chat', signal, observer: store.observer(run.id), source: { channel: 'console', reference: run.id } });
-              store.finishRun(run.id, 'succeeded', new Date().toISOString(), result.text);
-              output = result.text;
+              const at = new Date().toISOString();
+              store.finishRun(run.id, 'succeeded', at, result.text, undefined, formation ? () => formation.enqueue({ owner: formation.options.owner, runId: run.id, text, channel: 'console', at }) : undefined);
+              output = result.text + (formation?.hint() ?? '');
+              chatRunId = run.id;
             } catch (error) {
               store.finishRun(run.id, error instanceof ExecutionInterrupted || signal.aborted ? 'interrupted' : 'failed', new Date().toISOString(), undefined, this.redact(error));
               throw error;
             }
           }
           await this.sendMessage({ text: typeof output === 'string' ? output : JSON.stringify(output, null, 2) });
+          if (chatRunId) store.event(chatRunId, 'delivery_succeeded');
         } catch (error) {
           await this.sendMessage({ text: `错误：${this.redact(error)}` });
-        }
+        } finally { releaseFormation?.(); }
       }
     } finally {
       signal.removeEventListener('abort', close);

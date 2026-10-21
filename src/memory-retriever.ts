@@ -108,7 +108,8 @@ export function retrieve(records: MemoryRecord[], query: string, kind?: MemoryKi
     !(field.id === 'cost' && /(?:电话|手机|通话).*(?:费用|多少钱)|话费/u.test(positive)) &&
     !(field.id === 'procedure' && /联系|沟通|contact/u.test(positive)) && !(field.id === 'database' && preferred === 'procedural'));
   const eligible = documents.filter(doc => {
-    const matches = (name: string) => hasName(doc.text, name);
+    // 候选批准后保留“我…”原话；沿用已识别的自述主体，不能要求正文必须写“用户”。
+    const matches = (name: string) => hasName(doc.text, name) || name === '用户' && doc.scopes.some(scope => scope.owner === '用户');
     return (!entities.length || (multipleSubjects ? entities.some(matches) : entities.every(matches))) &&
       (!excluded.some(matches) || entities.some(matches)) && dates.every(date => hasDate(doc.text, date));
   }).map(doc => ({ ...doc, tokens: new Set(words(doc.record.content + ' ' + doc.record.key)) }));

@@ -1,8 +1,38 @@
-# Personal Agent：长期 Memory 与 Retriever
+# Personal Agent：长期 Memory、Retriever 与候选形成
 
 单用户、单进程 TypeScript 服务，复用原版 Pi Coding Agent SDK 的 Agent Loop。提供终端/飞书私聊、一次性任务、SQLite 持久化和独立后台调度。V1 的真实手机私聊、主动提醒及 pending 任务重启恢复已验收；V1.2 新增 Pi 原生交互 Session 持久化，自动化已验证，用户已实测真实飞书重启后能够接上此前对话。目前在 Mac 本地运行，暂不部署 VPS。
 
-V2.0 增加四类统一长期 Memory（SQLite 索引 + 可读 Markdown），只保存用户明确要求记住的信息，支持在新 Session 中检索。没有自动聊天提取、Embedding、Observer 或 Skill 执行。V2.0 已有真实飞书 Project Memory 核心验收，证据见 STATE；本次 V2.1a.1 修复 Retriever 的主体/字段证据及 Context 选择。4问×两轮只读真实生成已验收：主答案8/8，整段7/8有证据；有1条额外断言错误、3次改写超时回退，新版手机与成功改写后的生成仍待验证。
+V2.0 增加四类统一长期 Memory（SQLite 索引 + 可读 Markdown），支持在新 Session 中检索。V2.1b 增加默认关闭的后台 Semantic/Project 候选发现，必须由用户逐条批准才保存；没有自动保存、Embedding、Observer 或 Skill 执行。历史真实飞书与生成验收保留在 STATE，不能作为本次候选形成的真实验收。V2.1b 当前仅通过模拟模型和离线机制测试。
+
+## V2.1b 候选形成（默认关闭）
+
+本轮没有修改正式 `.env`，也没有启动真实形成。审查后如决定试用，请先备份并使用独立的 `DATABASE_PATH`、`SESSION_DIR`、`MEMORY_DIR`，再在本机配置：
+
+```dotenv
+MEMORY_FORMATION_ENABLED=true
+# 示例是保守费率上界，启用前核对自己供应商的实际价格并调整，单位：元/百万 Token。
+MEMORY_FORMATION_INPUT_CNY_PER_MILLION=10
+MEMORY_FORMATION_OUTPUT_CNY_PER_MILLION=20
+```
+
+运行 `npm run build`、`npm start -- --feishu`（Console 仍可用）。只分析开关开启后的新成功聊天；不扫描旧 Session。正常回复发送尝试结束、前台空闲约10秒后提取：每窗最多3条消息、一次请求、最多3条候选；无工具、无历史、最多5条相关且非敏感的既有事实参考。输入以2000 UTF-8字节控制，输出512 Token，10秒超时，不自动重试。过长消息整句跳过，不能截掉否定或限定词。
+
+体验验收请只用虚构事实：
+
+1. 说“我以后开发虚构 Agent 项目主要使用 TypeScript”，等待正常回复后空闲约10秒。此时正式 Memory 应没有新记录。
+2. 问“有什么建议记住的吗？”看到宿主固定清单后说“第一条记下来”。每轮只批准一项；没有清单、编号不符或过期会拒绝。
+3. 在另一条虚构事实上测试“第二条先不要”或“这些先不保存”。同一规范化原话拒绝后不再推荐；完全不同的改述仍可能再产生建议。
+4. 测试“把第一条改成‘我主要使用 TypeScript 和 Go’再记”：先显示新草稿，**再回复确认**才写入。涉及旧事实会先显示旧值；多目标先按旧事实列表澄清，再确认。
+5. 停止服务后换一个全新 `SESSION_DIR`，保持相同数据库和 Memory 目录，询问批准的虚构事实；核对 `memory_context` 的 ID/version，而不只看“我记得”的文字。
+6. 创建更新候选后，通过原有明确记忆工具更新/删除正式知识，旧清单应失效，不能恢复旧值。没有可确认目标时用原有明确记忆操作澄清，不自动新增矛盾事实。
+
+首版草稿保留完整原话，避免模型把“Python用得少了”改成“完全不用Python”；不是成熟语义摘要器。疑问、假设、引用、临时信息和常见敏感内容保守跳过，可能漏掉有价值信息。候选仅在应用数据库的 `memory_formation_jobs` / `memory_candidates`，不写 Markdown、不进普通 Memory 检索或 Pi Context。拒绝不写 Memory；提示仅附在下一条正常回复，每个渠道审批空间每天至多一次，不额外主动发消息。
+
+20次/UTC日、0.2元/UTC日的形成预算跨渠道共享。按费率上界和输入字节/输出上限预留，中断不退预算；示例费率下不保证每天能提取20次。这是本地保守限额，不是供应商账单硬上限；审批解析及正常聊天不计入形成预算。实际可见用量在 `model_calls`（`purpose=memory_formation`、jobId），排队、预留、失败在形成表和 `run_events`；中断请求可能有未知用量。
+
+候选7天过期，运行中清理正文/引文/旧值，停服期间在下次开启时清理。最小 Hash/状态保留用于抑制重复；SQLite空闲页、WAL、Run、Session及备份不保证擦除。Memory任意变化使尚未审批的旧候选失效，这是保守取舍。提取中崩溃不重试；批准前标 applying，重启只核对匹配落盘结果，无法确认则 blocked，需人工查状态，不盲重放。
+
+数据默认在项目私有数据目录，Git已忽略。Mac/Linux沿用0700/0600；Windows chmod 不代表 ACL 隔离，需用当前账户的私有目录并自行核对访问权限。本轮未验证 Windows ACL，也未做真实手机/收费语义验收。验证命令：`npm run typecheck`、`npm run build`、`npm test`、`npm run eval:memory`、`npm run eval:formation`。详细边界和结果见 [设计与实现](docs/designs/v2.1b-memory-formation.md)及[离线报告](docs/evaluations/v2.1b-formation-review.md)。
 
 ## 环境与安装
 
@@ -179,7 +209,7 @@ PROFILE 和知识文件在首次写入对应类型时创建。四类共用 `memo
 忘掉 Aurora 项目的数据库选择这条记忆。
 ```
 
-没有“记住”等明确保存要求的普通聊天不自动提取。类型和 key 可由模型提议，用户不必学习元数据格式。宿主从当前原始请求独立提取事实并核对目标，实质改写先展示待确认正文；用户确认后才写入。多个目标必须澄清，更新/删除继续使用当前版本检查。相同规范化正文去重、同 `(kind,key)` 不同正文要求更新的规则保留；来源 `user_explicit` 关联本轮 Channel/Run，不证明事实客观正确。
+默认没有“记住”等明确保存要求的普通聊天不提取；显式开启V2.1b后可形成待审候选，仍不能自动保存。类型和 key 可由模型提议，用户不必学习元数据格式。宿主从当前原始请求独立提取事实并核对目标，实质改写先展示待确认正文；用户确认后才写入。多个目标必须澄清，更新/删除继续使用当前版本检查。相同规范化正文去重、同 `(kind,key)` 不同正文要求更新的规则保留；来源 `user_explicit` 关联本轮 Channel/Run，不证明事实客观正确。
 
 安全边界：主模型看到的 Memory、历史对话和工具结果不能授予写权限。写工具调用前，宿主使用一次不含这些数据、没有工具的隔离意图解析，再校验当前消息证据、实际记录和参数；工具调用参数仅作提议，不能扩大已核对的操作。读到偏好不等于有权修改偏好；只有当前明确请求或有效宿主澄清/确认状态可以继续操作。语义解析仍可能出错，不承诺完全免疫提示注入。
 
@@ -232,7 +262,7 @@ node --env-file-if-exists=.env --import tsx scripts/evaluate-memory.ts --live --
 
 后续[收尾修复及指标](docs/evaluations/v2.1a.1-closeout.md)：未知新主体不再继承上一子句owner；明确“也喜欢简短解释”等省略仍保留支持证据。Context与系统提示明确区分检索片段和全库检查。96项自动化通过，64题排名/召回/Context命中不退，1项事件证据保守降级；本轮没有收费调用或新版真实生成验收，不能据提示测试声称已消除真实模型附加断言。
 
-下一步仅有[V2.1b自动记忆形成设计草案](docs/designs/v2.1b-memory-formation.md)，尚未实施：推荐后台形成候选、集中展示、MVP每轮批准一条；默认关闭，候选不进入知识Context。真正批量批准或授权范围内自动保存需另行决策与授权；当前程序仍只在用户明确要求时写Memory。
+V2.1b已按[方案B](docs/designs/v2.1b-memory-formation.md)实现后台候选、集中展示、每轮批准一条，默认关闭，未批准候选不进入知识Context。真正批量批准或自动保存需另行决策与授权；当前程序仍只在用户明确要求/批准时写Memory。
 
 手机最小复测：在专用测试目录保存非敏感联系人/项目事实，停服后换全新 `SESSION_DIR` 并保持同一测试Memory；分别问联系方式、费用、UI/开发语言和未记录的发布日期，核对 `memory_context` 的候选/支持项/实际注入ID、version、evidence与预算。更新、删除后再换新Session确认当前值与不命中，不要在问题中带答案或清空正式目录。完整步骤和未验收边界见本次报告。
 
@@ -250,7 +280,7 @@ node --env-file-if-exists=.env --import tsx scripts/evaluate-memory.ts --live --
 - 领取前检查与后续执行不是原子操作。领取后再次发生 Memory/Context 故障，仍按现有 failed/interrupted 终止，不自动重试；升级也不会重置此前失败的任务。启动时 Memory 已损坏仍拒绝启动，交互读取仍保留原来的失败处理，本次没有增加无 Memory 降级执行。
 - 目录0700、文件0600，拒绝符号链接和路径穿越。默认目录、`data/`、数据库、PROFILE 及受管 UUID Markdown（含临时文件）已忽略；自定义目录仍建议放在仓库外或 `data/` 下，并核对 Git 忽略规则。拒绝已配置凭据和常见 Key/Token 模式，但检测不是完整的隐私识别，不要向 Agent 发送密钥。
 - forget 删除当前知识及有效索引，**不会自动抹除原始 Pi Session、任务/Run 日志、SQLite 空闲页、备份或供应商副本**。文件及数据库未加密，断电/硬件故障不保证最后一次写入完整；备份在正常停服后进行。
-- 检索、校验与索引重建目前是线性扫描，适合小型个人知识库；可选只读改写已隔离评测，可改善召回但仍有主体/字段误匹配；没有Embedding、完整修订历史或精准跨 key 冲突检测。历史对话中仍可能有旧值，模型是否正确采用当前版本需要真实验收。未开发 V2.1 自动提取。
+- 检索、校验与索引重建目前是线性扫描，适合小型个人知识库；可选只读改写已隔离评测，可改善召回但仍有主体/字段误匹配；没有Embedding、完整修订历史或精准跨 key 冲突检测。历史对话中仍可能有旧值，模型是否正确采用当前版本需要真实验收。V2.1b仅提供默认关闭且需逐条批准的候选发现，尚无真实语义质量证据。
 
 ## 后台服务与 VPS（保留迁移参考，当前暂不部署）
 
@@ -401,7 +431,7 @@ Console 输入 → Task Service / AgentExecutor → Pi 交互 Session
 
 ## 安全与日志
 
-- 交互白名单为 `create_task`、`list_tasks`、`cancel_task` 及五项 Memory 工具；后台 Session 无工具，允许宿主只读检索。没有 Shell、任意文件读写、浏览器或通用网络工具。
+- 交互白名单为 `create_task`、`list_tasks`、`cancel_task` 及五项 Memory 工具；显式开启Formation后另加 `memory_review`。后台 Session/形成请求无工具，允许宿主只读检索。没有 Shell、任意文件读写、浏览器或通用网络工具。
 - SDK 使用内存凭据和设置；交互 Session 使用宿主指定私有文件。资源加载器只注册宿主内联 Memory 扩展，关闭本机扩展、Skills、AGENTS、模板及 MCP 自动发现；不读取全局 Pi 配置，不保存 Key 到 Pi 认证文件。
 - 关闭 Agent 自动重试、Provider HTTP 重试、自动压缩、缓存预热和 SDK 可配置的分析功能。保留原版 Pi SDK 及 Agent Loop。
 - 服务自身仍会写 SQLite，并向指定 LLM API 和启用的飞书服务发请求。工具白名单属于应用能力边界，不是操作系统沙箱。模型会收到对话和当前任务内容。

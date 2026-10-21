@@ -6,6 +6,8 @@
 
 V2.0 在此基础上增加独立的 SQLite + Markdown 长期 Memory，只由明确的记忆请求写入。四类知识共用服务、索引和检索，不增加外部服务、依赖或 Pi 内部改动。实现及自动化验证与真实飞书验收分开记录。
 
+V2.1b 已批准方案B：默认关闭的后台Semantic/Project候选发现，用户逐条批准后仍由原MemoryService保存。Formation不是Task调度器或新Memory事实源，不自动保存，不回扫历史。仅离线机制与真实SDK+模拟模型验证通过，真实语义效果待验收。
+
 协作规则见 [AGENTS.md](../AGENTS.md)，当前进展与交接见 [STATE.md](STATE.md)，安装配置与运行说明见 [README.md](../README.md)。本文记录已经确定的方案，不把未来目标当成已实现功能。
 
 ## 技术栈
@@ -67,7 +69,7 @@ Pi SDK 使用公开 API，不 Fork、不修改内部源码和 Agent Loop。宿�
 - 重启继续等待中的任务；遗留 running 标记 interrupted；失败、中断和投递失败不自动重跑任务。有外部副作用时须人工核实，不能保证恰好一次。
 - `message_end` 记录模型响应与用量；`agent_settled` 后仍检查 aborted、模型与工具错误、截断及最终文本。执行结束、数据库成功提交、渠道投递成功互相区分。
 - UTC 持久化、IANA 用户时区解析。支持的中文时间语法见 README，歧义或 DST 无效时间要求用户明确，不让模型或服务器时区决定。
-- 交互白名单为三项任务工具及 `memory_search/get/remember/update/forget`；后台无工具，可由宿主只读检索 Memory。禁止默认 Shell、任意文件读写和通用网络能力。服务仍需写数据库并请求配置的模型 API，工具白名单不等同于 OS 沙箱。
+- 交互白名单为三项任务工具及 `memory_search/get/remember/update/forget`；显式开启Formation后增加无参数 `memory_review`，后台无工具，可由宿主只读检索 Memory。禁止默认 Shell、任意文件读写和通用网络能力。服务仍需写数据库并请求配置的模型 API，工具白名单不等同于 OS 沙箱。
 - 飞书只允许配置的应用内 open_id 和文本私聊；`(appId, message_id)` 持久化去重后再安排执行，不自动重放中断消息。模型执行和发送均不阻塞事件接收；发送失败只保存 deliveryError，不重跑 Agent。Outbox 尚未实现，故障窗口与升级方向见 README。
 
 ## V2.0 四类长期 Memory
@@ -137,6 +139,16 @@ Memory 是低信任知识而非权限来源。历史用户/助手文字仍由 Pi
 | V2.0 授权与固定验收 | 原文/目标绑定、Task 宿主门、四类/后台/停服备份恢复、同义及干扰检索基线 | 已实现；模拟与真实证据见 STATE |
 | V2.1 第一阶段 Retriever | 词法约束、排序/证据、可选只读查询改写、独立留出与性能评测 | V2.1a已实现；历史真实改写两轮同义3/4与4/4，主体/字段风险促成本次修复 |
 | V2.1a.1 证据与Context | 原问题约束、同主体子句证明、支持与相关项分离、截断降级、未知owner与检索范围收尾 | 96项自动化通过；64题候选/Context不退，1项事件证据保守降级。旧提示真实生成主答案8/8、整段7/8；本次提示尚无新真实生成，改写默认关闭 |
-| V2.1b 自动记忆形成 | 比较逐条确认、集中候选、范围自动保存 | 只有[设计草案](designs/v2.1b-memory-formation.md)，待用户/ChatGPT审查；推荐后台候选、MVP单项批准，尚无Worker、表或自动保存权限 |
+| V2.1b 候选形成MVP | 后台发现、集中候选、用户单项批准 | 已按方案B实现，默认关闭；见[实际实现边界](designs/v2.1b-memory-formation.md)，没有自动保存权限，真实模型/手机尚未验收 |
 
-本阶段不做自动提取、Embedding、向量库、Observer、自主 Skill、周期任务、WebUI、复杂框架或 VPS。架构或范围调整先说明并取得确认，再同步本文及 STATE。
+本阶段不做未经批准的自动保存、另外两类自动提取、Embedding、向量库、Observer、自主 Skill、周期任务、WebUI、复杂框架或 VPS。架构或范围调整先说明并取得确认，再同步本文及 STATE。
+
+## V2.1b 候选与正式知识的边界
+
+- `formation-types.ts`定义来源、候选、视图与严格输出Schema；`formation-store.ts`在应用库新增Job/候选两表；`formation-service.ts`负责有界Worker、去重/保守冲突、快照失效与审批状态。Pi相关调用仅在适配器，用公开completeSimple，不创建另一套Agent Loop。
+- 正常成功chat与符合条件的Job同事务提交，队列故障用SAVEPOINT隔离；关闭开关、失败/后台Run、已经提交的Memory操作及候选审查不入队。Worker只获得只读Memory端口，最多3条新消息，不读Session或助手回复；候选未批准不进Markdown、Memory索引或普通Context。
+- 相同规范化完整事实去重，不能只看“喜欢/加糖”就丢掉否定或范围。更新目标由主体/属性前缀及当前真实记录保守核对，模型targetId仅参考；多目标先澄清，未知归属不能自动覆盖。相似改述仍可能重复建议，这是MVP限制。
+- 审批通过已有OperationGuard，持有同一轮一次操作能力。固定清单最多3条、5分钟，绑定owner、ID/revision/草稿Hash、整库ID/version/hash摘要和成功显示Run/发送记录；编辑后重新显示并确认。用户未看到的清单不能批准。工具只回收据，宿主渲染清单；Session自定义引用仅保存元数据。
+- 最终source=user_explicit关联当前审批Run；原始发现Run/quote/hash在候选保留。采用现有remember/update与expectedVersion，不伪造请求、不放宽服务授权。任意正式Memory变化让旧候选保守失效。applying先落盘，崩溃仅精确对账，不确定blocked、不重放写入。
+- 单一应用库跨渠道共用UTC日20次/0.2元预留预算；审批owner是渠道身份的隔离Hash，不是长期个人ID。提取input≤2000字节、output≤512Token、10秒、无重试；前台优先，中断费用不退。参考最多5条相关且非敏感记录，语义正确性依然取决于模型与用户审查。
+- 候选7天过期后运行时清除来源/草稿/旧值，保留最小Hash抑制重复；历史Run/Session、WAL/空闲页和备份不擦除。Mac/Linux沿用私有模式，Windows使用账户ACL，当前未验证其隔离性。默认关闭，不将模拟机制成绩当作真实语义门槛达标。
