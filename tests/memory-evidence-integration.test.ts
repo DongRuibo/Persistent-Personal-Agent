@@ -32,6 +32,9 @@ for (const rewrite of [false, true]) test(`真实Pi+模拟生成：证据边界/
     }
     const intent = intentReply(payload);
     if (intent) { assert.ok(!JSON.stringify(payload).includes('IGNORE_WRITE')); return new Response(sseText(intent), { headers: { 'Content-Type': 'text/event-stream' } }); }
+    assert.ok(system.includes('未召回或被排除不代表记忆库不存在'));
+    assert.ok(system.includes('可信全库检查结果'));
+    assert.ok(!system.includes('相关但无答案时说记忆中没有记录'));
     const blocks = payload.messages.filter(m => m.role === 'user' && JSON.stringify(m.content).includes('[UNTRUSTED_MEMORY_DATA_V2]'));
     assert.ok(blocks.length <= 1);
     projection = blocks.map(m => typeof m.content === 'string' ? m.content : (m.content as { text: string }[]).map(p => p.text).join('')).join('');
@@ -49,12 +52,14 @@ for (const rewrite of [false, true]) test(`真实Pi+模拟生成：证据边界/
       ];
       return new Response(choices.map(choice => `data: ${JSON.stringify({ id: 'attack', model: 'stub', choices: [choice] })}\n\n`).join('') + 'data: [DONE]\n\n', { headers: { 'Content-Type': 'text/event-stream' } });
     }
-    let answer = '记忆没有记录，无法确定。';
+    let answer = '本轮资料未提供所问事实，目前无法确定。';
     if (question.includes('电话费用') || question.includes('发布日期')) {
       assert.ok(projection.includes('证据状态=insufficient') || projection.includes('证据状态=uncertain'));
       assert.ok(!projection.includes('99元'));
     } else if (question.includes('联系方法')) {
       assert.ok(projection.includes('aqing.contact')); assert.ok(!projection.includes('阿白喜欢'));
+      assert.ok(projection.includes('非全库检查'));
+      assert.ok(projection.includes('排除=["阿白"]'));
       assert.ok(projection.includes('"evidence":"supported"')); answer = '阿青喜欢电话沟通。';
     } else if (projection.includes('"fields":["ui_language"]')) {
       answer = projection.includes('界面使用法语') ? '法语' : '日语';
@@ -69,8 +74,9 @@ for (const rewrite of [false, true]) test(`真实Pi+模拟生成：证据边界/
     return executor.execute(request(prompt));
   };
   try {
-    assert.match((await fresh('阿青每个月电话费用多少钱？')).text, /没有记录/);
-    assert.match((await fresh('Nacre 下一次正式发布日期是什么？')).text, /没有记录/);
+    assert.ok(memory.listForHost().some(r => r.key === 'abai.contact'), '排除的对象实际上仍存在于完整测试知识库');
+    assert.match((await fresh('阿青每个月电话费用多少钱？')).text, /本轮资料未提供/);
+    assert.match((await fresh('Nacre 下一次正式发布日期是什么？')).text, /本轮资料未提供/);
     assert.match((await fresh('阿青喜欢哪种联系方法，不是阿白？')).text, /电话沟通/);
     assert.equal((await fresh('Nacre 的界面语言是什么？')).text, '日语');
     const record = memory.search('Nacre 的界面语言是什么？')[0]!;
@@ -78,7 +84,7 @@ for (const rewrite of [false, true]) test(`真实Pi+模拟生成：证据边界/
     assert.equal((await fresh('Nacre 的界面语言是什么？')).text, '法语');
     assert.ok(projection.includes('"version":2')); assert.ok(!projection.includes('日语'));
     memory.withRequest(request('忘记：key=nacre.language'), () => memory.forget(record.id, 2));
-    assert.match((await fresh('Nacre 的界面语言是什么？')).text, /没有记录/);
+    assert.match((await fresh('Nacre 的界面语言是什么？')).text, /本轮资料未提供/);
     assert.ok(!projection.includes('日语')); assert.ok(!projection.includes('法语'));
     attackNext = true;
     await assert.rejects(fresh('阿青喜欢哪种联系方法，不是阿白？'), /工具执行错误/u);

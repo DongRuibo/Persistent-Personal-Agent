@@ -60,12 +60,17 @@ function subject(text: string): string | undefined {
   return name && !/语言|费用|价格|界面|数据库|步骤|方法|流程|周期|套餐|备份|开发/u.test(name) ? name : undefined;
 }
 function scopes(record: MemoryRecord) {
-  let owner: string | undefined; let dates: string[] = [];
+  let owner: string | undefined; let dates: string[] = []; let uncertainOwner = false;
   return record.content.split(/[。；;，,\n]/u).filter(Boolean).map(quote => {
     const text = normalize(quote.trim());
-    owner = subject(text) ?? owner;
+    // 只允许明确的省略谓语/属性声明延续主体；未知新主语不能借用上一句的归属。
+    const continuing = !text.includes('的') && /^(?:(?:也|还|并且|而且|同时|并)\s*)?(?:喜欢|偏好|习惯|使用|采用)|^(?:开发语言|编程语言|界面语言|数据库|备份周期|电话费用|话费|费用|价格|联系(?:方式|方法))\s*(?:为|是|使用|采用|每|[:=])/u.test(text);
+    const next = continuing ? owner : subject(text);
+    uncertainOwner = !next && (!!owner || uncertainOwner);
+    if (next !== owner) dates = [];
+    owner = next;
     const explicitDates = datesIn(text); if (explicitDates.length) dates = explicitDates;
-    return { quote: quote.trim(), text, owner, dates };
+    return { quote: quote.trim(), text, owner, dates, uncertainOwner };
   });
 }
 function preferredKind(query: string): MemoryKind | undefined {
@@ -120,7 +125,7 @@ export function retrieve(records: MemoryRecord[], query: string, kind?: MemoryKi
       coverage = Math.max(coverage, weight ? matched.reduce((sum, token) => sum + idf(token), 0) / weight : 0);
       return (matched.reduce((sum, token) => sum + idf(token), 0) + grams.filter(token => doc.text.includes(token)).length * 0.12) * (index ? 0.8 : 1);
     }));
-    const owned = doc.scopes.filter(scope => (!entities.length || !!scope.owner && entities.includes(scope.owner)) &&
+    const owned = doc.scopes.filter(scope => !scope.uncertainOwner && (!entities.length || !!scope.owner && entities.includes(scope.owner)) &&
       !excluded.some(name => hasName(scope.text, name)) && dates.every(date => scope.dates.some(value => hasDate(value, date))) &&
       mentions.filter(pattern => pattern.test(scope.text)).length <= 1);
     const proofs: EvidenceProof[] = [];

@@ -1,0 +1,2674 @@
+{
+  "baselineCommit": "eeaeae9dd5fc1606b508824e0c68f2d7fca81d29",
+  "apiCalls": 0,
+  "modelTokens": 0,
+  "node": "v26.3.1",
+  "note": "同一64题及冻结预期，先测原引擎再测收尾修复；候选/证据/Context分开。新owner矩阵是真实retrieve前后运行，非语义模型。历史结果未改写。",
+  "sourceHashes": {
+    "src/memory-retriever.ts": "16eb0415b3bbf19527b853659c85516c606311159106d8cf38c74d1cd98a25fc",
+    "src/memory-service.ts": "00c9a03d1dc7f7fe758f51f02f11d8b85b9130e39d2f411fbedbbd150fab0990",
+    "src/pi-executor.ts": "fda5c192679ba8ef9d3030c1d41778b8fc2a63e9aae1bb1e924c5cff07b3a93c"
+  },
+  "frozenFixtureHashes": {
+    "tests/fixtures/memory-evidence-holdout.json": "f333908a776a1b9cd4186e5066829fed34150780646226b00bfd5f192a328dda",
+    "tests/fixtures/memory-eval.json": "461074ccd3ce16657e37b5fdc9dac240d0cad8edc4a342c0f3f3aaf17c3c0483",
+    "tests/fixtures/memory-retrieval-holdout.json": "96c50d46205a869f18a737d0659f57b088a47762241ba5a85d6a15e07fc14663",
+    "tests/fixtures/memory-retrieval-eval.json": "9f1f110f675695517bd9508656dd0c90083a34899ec9942e67c759632ec1fc7e",
+    "tests/fixtures/memory-retrieval-development.json": "fbd84aa46803a2e1d1e70144f85780ec0e63c08bbac39377a0fff3f6ba774ca6"
+  },
+  "datasets": [
+    {
+      "name": "original16",
+      "before": {
+        "answerable": 12,
+        "top1": 0.75,
+        "recall5": 0.75,
+        "mrr": 0.75,
+        "negativeCount": 4,
+        "insufficientEvidenceCorrect": 4,
+        "supportedCorrect": 9,
+        "falseSupportedNoAnswer": 0,
+        "supportedClaims": 9,
+        "correctSupportedClaims": 9,
+        "supportedRecordPrecision": 1,
+        "contextHitRate": 0.75,
+        "contextBytesMax": 1051,
+        "strictExpectedKeyContextPrecision": 0.6,
+        "latencyP50Ms": 1.9229170000000124,
+        "latencyP95Ms": 9.865082999999998
+      },
+      "after": {
+        "answerable": 12,
+        "top1": 0.75,
+        "recall5": 0.75,
+        "mrr": 0.75,
+        "negativeCount": 4,
+        "insufficientEvidenceCorrect": 4,
+        "supportedCorrect": 9,
+        "falseSupportedNoAnswer": 0,
+        "supportedClaims": 9,
+        "correctSupportedClaims": 9,
+        "supportedRecordPrecision": 1,
+        "contextHitRate": 0.75,
+        "contextBytesMax": 1153,
+        "strictExpectedKeyContextPrecision": 0.6,
+        "latencyP50Ms": 4.101166000000035,
+        "latencyP95Ms": 13.967750000000024
+      },
+      "cases": [
+        {
+          "query": "用户偏好的回答语言是什么？",
+          "expectedKey": "user.language",
+          "before": {
+            "retrievedKeys": [
+              "user.language"
+            ],
+            "supportKeys": [
+              "user.language"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "user.language"
+            ],
+            "contextBytes": 553
+          },
+          "after": {
+            "retrievedKeys": [
+              "user.language"
+            ],
+            "supportKeys": [
+              "user.language"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "user.language"
+            ],
+            "contextBytes": 655
+          }
+        },
+        {
+          "query": "Atlas 的任务数据存入哪里？",
+          "expectedKey": "atlas.database",
+          "before": {
+            "retrievedKeys": [
+              "atlas.database",
+              "atlas.backup",
+              "atlas.language"
+            ],
+            "supportKeys": [
+              "atlas.database"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "atlas.database",
+              "atlas.backup",
+              "atlas.language"
+            ],
+            "contextBytes": 1051
+          },
+          "after": {
+            "retrievedKeys": [
+              "atlas.database",
+              "atlas.backup",
+              "atlas.language"
+            ],
+            "supportKeys": [
+              "atlas.database"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "atlas.database",
+              "atlas.backup",
+              "atlas.language"
+            ],
+            "contextBytes": 1153
+          }
+        },
+        {
+          "query": "10月20日飞书重启恢复验收发生了什么？",
+          "expectedKey": "feishu.acceptance",
+          "before": {
+            "retrievedKeys": [
+              "feishu.acceptance"
+            ],
+            "supportKeys": [
+              "feishu.acceptance"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "feishu.acceptance"
+            ],
+            "contextBytes": 555
+          },
+          "after": {
+            "retrievedKeys": [
+              "feishu.acceptance"
+            ],
+            "supportKeys": [
+              "feishu.acceptance"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "feishu.acceptance"
+            ],
+            "contextBytes": 657
+          }
+        },
+        {
+          "query": "排查飞书连接告警的方法是什么？",
+          "expectedKey": "feishu.troubleshooting",
+          "before": {
+            "retrievedKeys": [
+              "feishu.troubleshooting"
+            ],
+            "supportKeys": [
+              "feishu.troubleshooting"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "feishu.troubleshooting"
+            ],
+            "contextBytes": 656
+          },
+          "after": {
+            "retrievedKeys": [
+              "feishu.troubleshooting"
+            ],
+            "supportKeys": [
+              "feishu.troubleshooting"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "feishu.troubleshooting"
+            ],
+            "contextBytes": 758
+          }
+        },
+        {
+          "query": "平时我更愿意读哪种文字？",
+          "expectedKey": "user.language",
+          "before": {
+            "retrievedKeys": [],
+            "supportKeys": [],
+            "evidence": "none",
+            "contextKeys": [],
+            "contextBytes": 0
+          },
+          "after": {
+            "retrievedKeys": [],
+            "supportKeys": [],
+            "evidence": "none",
+            "contextKeys": [],
+            "contextBytes": 0
+          }
+        },
+        {
+          "query": "我喝拿铁要放方糖吗？",
+          "expectedKey": "user.drink",
+          "before": {
+            "retrievedKeys": [],
+            "supportKeys": [],
+            "evidence": "none",
+            "contextKeys": [],
+            "contextBytes": 0
+          },
+          "after": {
+            "retrievedKeys": [],
+            "supportKeys": [],
+            "evidence": "none",
+            "contextKeys": [],
+            "contextBytes": 0
+          }
+        },
+        {
+          "query": "Atlas 把待办存在哪儿？",
+          "expectedKey": "atlas.database",
+          "before": {
+            "retrievedKeys": [
+              "atlas.database",
+              "atlas.backup",
+              "atlas.language"
+            ],
+            "supportKeys": [
+              "atlas.database"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "atlas.database",
+              "atlas.backup",
+              "atlas.language"
+            ],
+            "contextBytes": 1051
+          },
+          "after": {
+            "retrievedKeys": [
+              "atlas.database",
+              "atlas.backup",
+              "atlas.language"
+            ],
+            "supportKeys": [
+              "atlas.database"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "atlas.database",
+              "atlas.backup",
+              "atlas.language"
+            ],
+            "contextBytes": 1153
+          }
+        },
+        {
+          "query": "机器人断线了，该从哪儿着手定位？",
+          "expectedKey": "feishu.troubleshooting",
+          "before": {
+            "retrievedKeys": [],
+            "supportKeys": [],
+            "evidence": "none",
+            "contextKeys": [],
+            "contextBytes": 0
+          },
+          "after": {
+            "retrievedKeys": [],
+            "supportKeys": [],
+            "evidence": "none",
+            "contextKeys": [],
+            "contextBytes": 0
+          }
+        },
+        {
+          "query": "Atlas 数据库架构是什么？",
+          "expectedKey": "atlas.database",
+          "before": {
+            "retrievedKeys": [
+              "atlas.database",
+              "atlas.backup",
+              "atlas.language"
+            ],
+            "supportKeys": [
+              "atlas.database"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "atlas.database",
+              "atlas.backup",
+              "atlas.language"
+            ],
+            "contextBytes": 1051
+          },
+          "after": {
+            "retrievedKeys": [
+              "atlas.database",
+              "atlas.backup",
+              "atlas.language"
+            ],
+            "supportKeys": [
+              "atlas.database"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "atlas.database",
+              "atlas.backup",
+              "atlas.language"
+            ],
+            "contextBytes": 1153
+          }
+        },
+        {
+          "query": "Borealis 任务数据库用什么？",
+          "expectedKey": "borealis.database",
+          "before": {
+            "retrievedKeys": [
+              "borealis.database"
+            ],
+            "supportKeys": [
+              "borealis.database"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "borealis.database"
+            ],
+            "contextBytes": 574
+          },
+          "after": {
+            "retrievedKeys": [
+              "borealis.database"
+            ],
+            "supportKeys": [
+              "borealis.database"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "borealis.database"
+            ],
+            "contextBytes": 676
+          }
+        },
+        {
+          "query": "我偏好的回答语言，不是 Atlas 的界面语言",
+          "expectedKey": "user.language",
+          "before": {
+            "retrievedKeys": [
+              "user.language"
+            ],
+            "supportKeys": [
+              "user.language"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "user.language"
+            ],
+            "contextBytes": 553
+          },
+          "after": {
+            "retrievedKeys": [
+              "user.language"
+            ],
+            "supportKeys": [
+              "user.language"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "user.language"
+            ],
+            "contextBytes": 662
+          }
+        },
+        {
+          "query": "10月20日飞书恢复验收的结果，别用19日失败记录",
+          "expectedKey": "feishu.acceptance",
+          "before": {
+            "retrievedKeys": [
+              "feishu.acceptance"
+            ],
+            "supportKeys": [
+              "feishu.acceptance"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "feishu.acceptance"
+            ],
+            "contextBytes": 555
+          },
+          "after": {
+            "retrievedKeys": [
+              "feishu.acceptance"
+            ],
+            "supportKeys": [
+              "feishu.acceptance"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "feishu.acceptance"
+            ],
+            "contextBytes": 657
+          }
+        },
+        {
+          "query": "南极企鹅的迁徙路线",
+          "expectedKey": null,
+          "before": {
+            "retrievedKeys": [],
+            "supportKeys": [],
+            "evidence": "none",
+            "contextKeys": [],
+            "contextBytes": 0
+          },
+          "after": {
+            "retrievedKeys": [],
+            "supportKeys": [],
+            "evidence": "none",
+            "contextKeys": [],
+            "contextBytes": 0
+          }
+        },
+        {
+          "query": "Atlas 下一次发布的确切日期",
+          "expectedKey": null,
+          "before": {
+            "retrievedKeys": [
+              "atlas.backup",
+              "atlas.database",
+              "atlas.language"
+            ],
+            "supportKeys": [],
+            "evidence": "insufficient",
+            "contextKeys": [
+              "atlas.backup",
+              "atlas.database",
+              "atlas.language"
+            ],
+            "contextBytes": 1044
+          },
+          "after": {
+            "retrievedKeys": [
+              "atlas.backup",
+              "atlas.database",
+              "atlas.language"
+            ],
+            "supportKeys": [],
+            "evidence": "insufficient",
+            "contextKeys": [
+              "atlas.backup",
+              "atlas.database",
+              "atlas.language"
+            ],
+            "contextBytes": 1146
+          }
+        },
+        {
+          "query": "用户喜欢哪种茶叶",
+          "expectedKey": null,
+          "before": {
+            "retrievedKeys": [
+              "user.drink"
+            ],
+            "supportKeys": [],
+            "evidence": "insufficient",
+            "contextKeys": [
+              "user.drink"
+            ],
+            "contextBytes": 506
+          },
+          "after": {
+            "retrievedKeys": [
+              "user.drink"
+            ],
+            "supportKeys": [],
+            "evidence": "insufficient",
+            "contextKeys": [
+              "user.drink"
+            ],
+            "contextBytes": 608
+          }
+        },
+        {
+          "query": "Borealis 线上服务器的密码是什么",
+          "expectedKey": null,
+          "before": {
+            "retrievedKeys": [
+              "borealis.database"
+            ],
+            "supportKeys": [],
+            "evidence": "insufficient",
+            "contextKeys": [
+              "borealis.database"
+            ],
+            "contextBytes": 562
+          },
+          "after": {
+            "retrievedKeys": [
+              "borealis.database"
+            ],
+            "supportKeys": [],
+            "evidence": "insufficient",
+            "contextKeys": [
+              "borealis.database"
+            ],
+            "contextBytes": 664
+          }
+        }
+      ]
+    },
+    {
+      "name": "existing24",
+      "before": {
+        "answerable": 19,
+        "top1": 0.8947368421052632,
+        "recall5": 0.8947368421052632,
+        "mrr": 0.8947368421052632,
+        "negativeCount": 5,
+        "insufficientEvidenceCorrect": 5,
+        "supportedCorrect": 10,
+        "falseSupportedNoAnswer": 0,
+        "supportedClaims": 10,
+        "correctSupportedClaims": 10,
+        "supportedRecordPrecision": 1,
+        "contextHitRate": 0.8947368421052632,
+        "contextBytesMax": 1511,
+        "strictExpectedKeyContextPrecision": 0.4473684210526316,
+        "latencyP50Ms": 2.1731249999999704,
+        "latencyP95Ms": 2.8094580000000065
+      },
+      "after": {
+        "answerable": 19,
+        "top1": 0.8947368421052632,
+        "recall5": 0.8947368421052632,
+        "mrr": 0.8947368421052632,
+        "negativeCount": 5,
+        "insufficientEvidenceCorrect": 5,
+        "supportedCorrect": 9,
+        "falseSupportedNoAnswer": 0,
+        "supportedClaims": 9,
+        "correctSupportedClaims": 9,
+        "supportedRecordPrecision": 1,
+        "contextHitRate": 0.8947368421052632,
+        "contextBytesMax": 1613,
+        "strictExpectedKeyContextPrecision": 0.4473684210526316,
+        "latencyP50Ms": 4.45804099999998,
+        "latencyP95Ms": 15.57929200000001
+      },
+      "cases": [
+        {
+          "query": "Nacre 使用什么数据库？",
+          "expectedKey": "nacre.storage",
+          "before": {
+            "retrievedKeys": [
+              "nacre.storage",
+              "nacre.language",
+              "nacre.check",
+              "nacre.cancel",
+              "nacre.release"
+            ],
+            "supportKeys": [
+              "nacre.storage"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "nacre.storage",
+              "nacre.language",
+              "nacre.check",
+              "nacre.cancel",
+              "nacre.release"
+            ],
+            "contextBytes": 1505
+          },
+          "after": {
+            "retrievedKeys": [
+              "nacre.storage",
+              "nacre.language",
+              "nacre.check",
+              "nacre.cancel",
+              "nacre.release"
+            ],
+            "supportKeys": [
+              "nacre.storage"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "nacre.storage",
+              "nacre.language",
+              "nacre.check",
+              "nacre.cancel",
+              "nacre.release"
+            ],
+            "contextBytes": 1607
+          }
+        },
+        {
+          "query": "Quartz 套餐的费用是多少？",
+          "expectedKey": "quartz.price",
+          "before": {
+            "retrievedKeys": [
+              "quartz.price",
+              "quartz.review",
+              "quartz.storage"
+            ],
+            "supportKeys": [
+              "quartz.price"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "quartz.price",
+              "quartz.review",
+              "quartz.storage"
+            ],
+            "contextBytes": 965
+          },
+          "after": {
+            "retrievedKeys": [
+              "quartz.price",
+              "quartz.review",
+              "quartz.storage"
+            ],
+            "supportKeys": [
+              "quartz.price"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "quartz.price",
+              "quartz.review",
+              "quartz.storage"
+            ],
+            "contextBytes": 1067
+          }
+        },
+        {
+          "query": "会议纪要偏好按什么顺序写？",
+          "expectedKey": "user.minutes",
+          "before": {
+            "retrievedKeys": [
+              "user.minutes",
+              "user.focus"
+            ],
+            "supportKeys": [],
+            "evidence": "uncertain",
+            "contextKeys": [
+              "user.minutes",
+              "user.focus"
+            ],
+            "contextBytes": 756
+          },
+          "after": {
+            "retrievedKeys": [
+              "user.minutes",
+              "user.focus"
+            ],
+            "supportKeys": [],
+            "evidence": "uncertain",
+            "contextKeys": [
+              "user.minutes",
+              "user.focus"
+            ],
+            "contextBytes": 858
+          }
+        },
+        {
+          "query": "设备恢复的方法是什么？",
+          "expectedKey": "device.restore",
+          "before": {
+            "retrievedKeys": [
+              "device.restore"
+            ],
+            "supportKeys": [],
+            "evidence": "uncertain",
+            "contextKeys": [
+              "device.restore"
+            ],
+            "contextBytes": 575
+          },
+          "after": {
+            "retrievedKeys": [
+              "device.restore"
+            ],
+            "supportKeys": [],
+            "evidence": "uncertain",
+            "contextKeys": [
+              "device.restore"
+            ],
+            "contextBytes": 677
+          }
+        },
+        {
+          "query": "整理讨论记录时，你应该先写决定还是待办？",
+          "expectedKey": "user.minutes",
+          "before": {
+            "retrievedKeys": [],
+            "supportKeys": [],
+            "evidence": "none",
+            "contextKeys": [],
+            "contextBytes": 0
+          },
+          "after": {
+            "retrievedKeys": [],
+            "supportKeys": [],
+            "evidence": "none",
+            "contextKeys": [],
+            "contextBytes": 0
+          }
+        },
+        {
+          "query": "我应该把烧脑的活安排在一天的哪个时段？",
+          "expectedKey": "user.focus",
+          "before": {
+            "retrievedKeys": [],
+            "supportKeys": [],
+            "evidence": "none",
+            "contextKeys": [],
+            "contextBytes": 0
+          },
+          "after": {
+            "retrievedKeys": [],
+            "supportKeys": [],
+            "evidence": "none",
+            "contextKeys": [],
+            "contextBytes": 0
+          }
+        },
+        {
+          "query": "我能吃加了花生酱的面包吗？",
+          "expectedKey": "user.allergy",
+          "before": {
+            "retrievedKeys": [
+              "user.allergy"
+            ],
+            "supportKeys": [],
+            "evidence": "uncertain",
+            "contextKeys": [
+              "user.allergy"
+            ],
+            "contextBytes": 515
+          },
+          "after": {
+            "retrievedKeys": [
+              "user.allergy"
+            ],
+            "supportKeys": [],
+            "evidence": "uncertain",
+            "contextKeys": [
+              "user.allergy"
+            ],
+            "contextBytes": 617
+          }
+        },
+        {
+          "query": "Wi-Fi老掉线，先从哪里检查？",
+          "expectedKey": "wireless.check",
+          "before": {
+            "retrievedKeys": [
+              "wireless.check"
+            ],
+            "supportKeys": [],
+            "evidence": "uncertain",
+            "contextKeys": [
+              "wireless.check"
+            ],
+            "contextBytes": 559
+          },
+          "after": {
+            "retrievedKeys": [
+              "wireless.check"
+            ],
+            "supportKeys": [],
+            "evidence": "uncertain",
+            "contextKeys": [
+              "wireless.check"
+            ],
+            "contextBytes": 661
+          }
+        },
+        {
+          "query": "Nacre 的 database 用哪个产品？",
+          "expectedKey": "nacre.storage",
+          "before": {
+            "retrievedKeys": [
+              "nacre.storage",
+              "nacre.check",
+              "nacre.language",
+              "nacre.cancel",
+              "nacre.release"
+            ],
+            "supportKeys": [
+              "nacre.storage"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "nacre.storage",
+              "nacre.check",
+              "nacre.language",
+              "nacre.cancel",
+              "nacre.release"
+            ],
+            "contextBytes": 1505
+          },
+          "after": {
+            "retrievedKeys": [
+              "nacre.storage",
+              "nacre.check",
+              "nacre.language",
+              "nacre.cancel",
+              "nacre.release"
+            ],
+            "supportKeys": [
+              "nacre.storage"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "nacre.storage",
+              "nacre.check",
+              "nacre.language",
+              "nacre.cancel",
+              "nacre.release"
+            ],
+            "contextBytes": 1607
+          }
+        },
+        {
+          "query": "Nacre UI language 是什么？",
+          "expectedKey": "nacre.language",
+          "before": {
+            "retrievedKeys": [
+              "nacre.language",
+              "nacre.cancel",
+              "nacre.check",
+              "nacre.release",
+              "nacre.storage"
+            ],
+            "supportKeys": [
+              "nacre.language"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "nacre.language",
+              "nacre.cancel",
+              "nacre.check",
+              "nacre.release",
+              "nacre.storage"
+            ],
+            "contextBytes": 1511
+          },
+          "after": {
+            "retrievedKeys": [
+              "nacre.language",
+              "nacre.cancel",
+              "nacre.check",
+              "nacre.release",
+              "nacre.storage"
+            ],
+            "supportKeys": [
+              "nacre.language"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "nacre.language",
+              "nacre.cancel",
+              "nacre.check",
+              "nacre.release",
+              "nacre.storage"
+            ],
+            "contextBytes": 1613
+          }
+        },
+        {
+          "query": "Quartz 数据库是什么，不要 Nacre 的方案",
+          "expectedKey": "quartz.storage",
+          "before": {
+            "retrievedKeys": [
+              "quartz.storage",
+              "quartz.price",
+              "quartz.review"
+            ],
+            "supportKeys": [
+              "quartz.storage"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "quartz.storage",
+              "quartz.price",
+              "quartz.review"
+            ],
+            "contextBytes": 973
+          },
+          "after": {
+            "retrievedKeys": [
+              "quartz.storage",
+              "quartz.price",
+              "quartz.review"
+            ],
+            "supportKeys": [
+              "quartz.storage"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "quartz.storage",
+              "quartz.price",
+              "quartz.review"
+            ],
+            "contextBytes": 1082
+          }
+        },
+        {
+          "query": "阿青喜欢哪种联系方法，不是阿白？",
+          "expectedKey": "aqing.contact",
+          "before": {
+            "retrievedKeys": [
+              "aqing.contact"
+            ],
+            "supportKeys": [
+              "aqing.contact"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "aqing.contact"
+            ],
+            "contextBytes": 518
+          },
+          "after": {
+            "retrievedKeys": [
+              "aqing.contact"
+            ],
+            "supportKeys": [
+              "aqing.contact"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "aqing.contact"
+            ],
+            "contextBytes": 628
+          }
+        },
+        {
+          "query": "阿白喜欢什么沟通方式？",
+          "expectedKey": "abai.contact",
+          "before": {
+            "retrievedKeys": [
+              "abai.contact"
+            ],
+            "supportKeys": [
+              "abai.contact"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "abai.contact"
+            ],
+            "contextBytes": 517
+          },
+          "after": {
+            "retrievedKeys": [
+              "abai.contact"
+            ],
+            "supportKeys": [
+              "abai.contact"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "abai.contact"
+            ],
+            "contextBytes": 619
+          }
+        },
+        {
+          "query": "Nacre 的测试命令，不是 Quartz 的费用",
+          "expectedKey": "nacre.check",
+          "before": {
+            "retrievedKeys": [
+              "nacre.check",
+              "nacre.cancel",
+              "nacre.language",
+              "nacre.release",
+              "nacre.storage"
+            ],
+            "supportKeys": [],
+            "evidence": "uncertain",
+            "contextKeys": [
+              "nacre.check",
+              "nacre.cancel",
+              "nacre.language",
+              "nacre.release",
+              "nacre.storage"
+            ],
+            "contextBytes": 1466
+          },
+          "after": {
+            "retrievedKeys": [
+              "nacre.check",
+              "nacre.cancel",
+              "nacre.language",
+              "nacre.release",
+              "nacre.storage"
+            ],
+            "supportKeys": [],
+            "evidence": "uncertain",
+            "contextKeys": [
+              "nacre.check",
+              "nacre.cancel",
+              "nacre.language",
+              "nacre.release",
+              "nacre.storage"
+            ],
+            "contextBytes": 1576
+          }
+        },
+        {
+          "query": "9月3日 Nacre 发布结果，别用2日取消记录",
+          "expectedKey": "nacre.release",
+          "before": {
+            "retrievedKeys": [
+              "nacre.release"
+            ],
+            "supportKeys": [
+              "nacre.release"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "nacre.release"
+            ],
+            "contextBytes": 548
+          },
+          "after": {
+            "retrievedKeys": [
+              "nacre.release"
+            ],
+            "supportKeys": [],
+            "evidence": "insufficient",
+            "contextKeys": [
+              "nacre.release"
+            ],
+            "contextBytes": 642
+          }
+        },
+        {
+          "query": "2026-09-02 Nacre 发布发生了什么？",
+          "expectedKey": "nacre.cancel",
+          "before": {
+            "retrievedKeys": [
+              "nacre.cancel"
+            ],
+            "supportKeys": [
+              "nacre.cancel"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "nacre.cancel"
+            ],
+            "contextBytes": 554
+          },
+          "after": {
+            "retrievedKeys": [
+              "nacre.cancel"
+            ],
+            "supportKeys": [
+              "nacre.cancel"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "nacre.cancel"
+            ],
+            "contextBytes": 656
+          }
+        },
+        {
+          "query": "9月3日 Quartz 评审结果，不是 Nacre",
+          "expectedKey": "quartz.review",
+          "before": {
+            "retrievedKeys": [
+              "quartz.review"
+            ],
+            "supportKeys": [
+              "quartz.review"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "quartz.review"
+            ],
+            "contextBytes": 531
+          },
+          "after": {
+            "retrievedKeys": [
+              "quartz.review"
+            ],
+            "supportKeys": [
+              "quartz.review"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "quartz.review"
+            ],
+            "contextBytes": 640
+          }
+        },
+        {
+          "query": "设备恢复出厂设置之前先做什么？",
+          "expectedKey": "device.restore",
+          "before": {
+            "retrievedKeys": [
+              "device.restore"
+            ],
+            "supportKeys": [],
+            "evidence": "uncertain",
+            "contextKeys": [
+              "device.restore"
+            ],
+            "contextBytes": 550
+          },
+          "after": {
+            "retrievedKeys": [
+              "device.restore"
+            ],
+            "supportKeys": [],
+            "evidence": "uncertain",
+            "contextKeys": [
+              "device.restore"
+            ],
+            "contextBytes": 652
+          }
+        },
+        {
+          "query": "无线网络断连的排查步骤是什么？",
+          "expectedKey": "wireless.check",
+          "before": {
+            "retrievedKeys": [
+              "wireless.check"
+            ],
+            "supportKeys": [],
+            "evidence": "uncertain",
+            "contextKeys": [
+              "wireless.check"
+            ],
+            "contextBytes": 590
+          },
+          "after": {
+            "retrievedKeys": [
+              "wireless.check"
+            ],
+            "supportKeys": [],
+            "evidence": "uncertain",
+            "contextKeys": [
+              "wireless.check"
+            ],
+            "contextBytes": 692
+          }
+        },
+        {
+          "query": "Nacre 下一次正式发布的确切日期是什么？",
+          "expectedKey": null,
+          "before": {
+            "retrievedKeys": [
+              "nacre.cancel",
+              "nacre.release",
+              "nacre.check",
+              "nacre.language",
+              "nacre.storage"
+            ],
+            "supportKeys": [],
+            "evidence": "insufficient",
+            "contextKeys": [
+              "nacre.cancel",
+              "nacre.release",
+              "nacre.check",
+              "nacre.language",
+              "nacre.storage"
+            ],
+            "contextBytes": 1498
+          },
+          "after": {
+            "retrievedKeys": [
+              "nacre.cancel",
+              "nacre.release",
+              "nacre.check",
+              "nacre.language",
+              "nacre.storage"
+            ],
+            "supportKeys": [],
+            "evidence": "insufficient",
+            "contextKeys": [
+              "nacre.cancel",
+              "nacre.release",
+              "nacre.check",
+              "nacre.language",
+              "nacre.storage"
+            ],
+            "contextBytes": 1600
+          }
+        },
+        {
+          "query": "Quartz 的登录密码是什么？",
+          "expectedKey": null,
+          "before": {
+            "retrievedKeys": [
+              "quartz.price",
+              "quartz.review",
+              "quartz.storage"
+            ],
+            "supportKeys": [],
+            "evidence": "insufficient",
+            "contextKeys": [
+              "quartz.price",
+              "quartz.review",
+              "quartz.storage"
+            ],
+            "contextBytes": 963
+          },
+          "after": {
+            "retrievedKeys": [
+              "quartz.price",
+              "quartz.review",
+              "quartz.storage"
+            ],
+            "supportKeys": [],
+            "evidence": "insufficient",
+            "contextKeys": [
+              "quartz.price",
+              "quartz.review",
+              "quartz.storage"
+            ],
+            "contextBytes": 1065
+          }
+        },
+        {
+          "query": "用户对哪一种海鲜过敏？",
+          "expectedKey": null,
+          "before": {
+            "retrievedKeys": [
+              "user.allergy"
+            ],
+            "supportKeys": [],
+            "evidence": "uncertain",
+            "contextKeys": [
+              "user.allergy"
+            ],
+            "contextBytes": 515
+          },
+          "after": {
+            "retrievedKeys": [
+              "user.allergy"
+            ],
+            "supportKeys": [],
+            "evidence": "uncertain",
+            "contextKeys": [
+              "user.allergy"
+            ],
+            "contextBytes": 617
+          }
+        },
+        {
+          "query": "阿青每个月电话费用多少钱？",
+          "expectedKey": null,
+          "before": {
+            "retrievedKeys": [
+              "aqing.contact"
+            ],
+            "supportKeys": [],
+            "evidence": "insufficient",
+            "contextKeys": [
+              "aqing.contact"
+            ],
+            "contextBytes": 510
+          },
+          "after": {
+            "retrievedKeys": [
+              "aqing.contact"
+            ],
+            "supportKeys": [],
+            "evidence": "insufficient",
+            "contextKeys": [
+              "aqing.contact"
+            ],
+            "contextBytes": 612
+          }
+        },
+        {
+          "query": "木星环的厚度是多少？",
+          "expectedKey": null,
+          "before": {
+            "retrievedKeys": [],
+            "supportKeys": [],
+            "evidence": "none",
+            "contextKeys": [],
+            "contextBytes": 0
+          },
+          "after": {
+            "retrievedKeys": [],
+            "supportKeys": [],
+            "evidence": "none",
+            "contextKeys": [],
+            "contextBytes": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "evidence24",
+      "before": {
+        "answerable": 18,
+        "top1": 0.9444444444444444,
+        "recall5": 0.9444444444444444,
+        "mrr": 0.9444444444444444,
+        "negativeCount": 6,
+        "insufficientEvidenceCorrect": 6,
+        "supportedCorrect": 14,
+        "falseSupportedNoAnswer": 0,
+        "supportedClaims": 14,
+        "correctSupportedClaims": 14,
+        "supportedRecordPrecision": 1,
+        "contextHitRate": 0.9444444444444444,
+        "contextBytesMax": 1476,
+        "strictExpectedKeyContextPrecision": 0.3953488372093023,
+        "latencyP50Ms": 2.029792000000043,
+        "latencyP95Ms": 2.665457999999944
+      },
+      "after": {
+        "answerable": 18,
+        "top1": 0.9444444444444444,
+        "recall5": 0.9444444444444444,
+        "mrr": 0.9444444444444444,
+        "negativeCount": 6,
+        "insufficientEvidenceCorrect": 6,
+        "supportedCorrect": 14,
+        "falseSupportedNoAnswer": 0,
+        "supportedClaims": 14,
+        "correctSupportedClaims": 14,
+        "supportedRecordPrecision": 1,
+        "contextHitRate": 0.9444444444444444,
+        "contextBytesMax": 1578,
+        "strictExpectedKeyContextPrecision": 0.3953488372093023,
+        "latencyP50Ms": 3.497333000000026,
+        "latencyP95Ms": 8.560082999999963
+      },
+      "cases": [
+        {
+          "query": "周宁的电话费用是多少？",
+          "expectedKey": "zhouning.phone",
+          "before": {
+            "retrievedKeys": [
+              "zhouning.phone",
+              "zhouning.contact"
+            ],
+            "supportKeys": [
+              "zhouning.phone"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "zhouning.phone",
+              "zhouning.contact"
+            ],
+            "contextBytes": 743
+          },
+          "after": {
+            "retrievedKeys": [
+              "zhouning.phone",
+              "zhouning.contact"
+            ],
+            "supportKeys": [
+              "zhouning.phone"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "zhouning.phone",
+              "zhouning.contact"
+            ],
+            "contextBytes": 845
+          }
+        },
+        {
+          "query": "沈禾喜欢哪种联系方法？",
+          "expectedKey": "shenhe.contact",
+          "before": {
+            "retrievedKeys": [
+              "shenhe.contact",
+              "shenhe.food"
+            ],
+            "supportKeys": [
+              "shenhe.contact"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "shenhe.contact",
+              "shenhe.food"
+            ],
+            "contextBytes": 727
+          },
+          "after": {
+            "retrievedKeys": [
+              "shenhe.contact",
+              "shenhe.food"
+            ],
+            "supportKeys": [
+              "shenhe.contact"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "shenhe.contact",
+              "shenhe.food"
+            ],
+            "contextBytes": 829
+          }
+        },
+        {
+          "query": "Mosaic 的数据库是什么？",
+          "expectedKey": "mosaic.database",
+          "before": {
+            "retrievedKeys": [
+              "mosaic.database",
+              "mosaic.languages",
+              "mosaic.port",
+              "mosaic.cancel",
+              "mosaic.pass"
+            ],
+            "supportKeys": [
+              "mosaic.database"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "mosaic.database",
+              "mosaic.languages",
+              "mosaic.port",
+              "mosaic.cancel",
+              "mosaic.pass"
+            ],
+            "contextBytes": 1440
+          },
+          "after": {
+            "retrievedKeys": [
+              "mosaic.database",
+              "mosaic.languages",
+              "mosaic.port",
+              "mosaic.cancel",
+              "mosaic.pass"
+            ],
+            "supportKeys": [
+              "mosaic.database"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "mosaic.database",
+              "mosaic.languages",
+              "mosaic.port",
+              "mosaic.cancel",
+              "mosaic.pass"
+            ],
+            "contextBytes": 1542
+          }
+        },
+        {
+          "query": "服务回滚的方法是什么？",
+          "expectedKey": "service.rollback",
+          "before": {
+            "retrievedKeys": [
+              "service.rollback"
+            ],
+            "supportKeys": [],
+            "evidence": "uncertain",
+            "contextKeys": [
+              "service.rollback"
+            ],
+            "contextBytes": 574
+          },
+          "after": {
+            "retrievedKeys": [
+              "service.rollback"
+            ],
+            "supportKeys": [],
+            "evidence": "uncertain",
+            "contextKeys": [
+              "service.rollback"
+            ],
+            "contextBytes": 676
+          }
+        },
+        {
+          "query": "Mosaic UI language 是什么？",
+          "expectedKey": "mosaic.languages",
+          "before": {
+            "retrievedKeys": [
+              "mosaic.languages",
+              "mosaic.cancel",
+              "mosaic.database",
+              "mosaic.pass",
+              "mosaic.port"
+            ],
+            "supportKeys": [
+              "mosaic.languages"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "mosaic.languages",
+              "mosaic.cancel",
+              "mosaic.database",
+              "mosaic.pass",
+              "mosaic.port"
+            ],
+            "contextBytes": 1446
+          },
+          "after": {
+            "retrievedKeys": [
+              "mosaic.languages",
+              "mosaic.cancel",
+              "mosaic.database",
+              "mosaic.pass",
+              "mosaic.port"
+            ],
+            "supportKeys": [
+              "mosaic.languages"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "mosaic.languages",
+              "mosaic.cancel",
+              "mosaic.database",
+              "mosaic.pass",
+              "mosaic.port"
+            ],
+            "contextBytes": 1548
+          }
+        },
+        {
+          "query": "Helix programming language 是什么？",
+          "expectedKey": "helix.languages",
+          "before": {
+            "retrievedKeys": [
+              "helix.languages",
+              "helix.price",
+              "helix.release"
+            ],
+            "supportKeys": [
+              "helix.languages"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "helix.languages",
+              "helix.price",
+              "helix.release"
+            ],
+            "contextBytes": 1029
+          },
+          "after": {
+            "retrievedKeys": [
+              "helix.languages",
+              "helix.price",
+              "helix.release"
+            ],
+            "supportKeys": [
+              "helix.languages"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "helix.languages",
+              "helix.price",
+              "helix.release"
+            ],
+            "contextBytes": 1131
+          }
+        },
+        {
+          "query": "Mosaic 界面语言和开发语言分别是什么？",
+          "expectedKey": "mosaic.languages",
+          "before": {
+            "retrievedKeys": [
+              "mosaic.languages",
+              "mosaic.cancel",
+              "mosaic.database",
+              "mosaic.pass",
+              "mosaic.port"
+            ],
+            "supportKeys": [
+              "mosaic.languages"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "mosaic.languages",
+              "mosaic.cancel",
+              "mosaic.database",
+              "mosaic.pass",
+              "mosaic.port"
+            ],
+            "contextBytes": 1476
+          },
+          "after": {
+            "retrievedKeys": [
+              "mosaic.languages",
+              "mosaic.cancel",
+              "mosaic.database",
+              "mosaic.pass",
+              "mosaic.port"
+            ],
+            "supportKeys": [
+              "mosaic.languages"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "mosaic.languages",
+              "mosaic.cancel",
+              "mosaic.database",
+              "mosaic.pass",
+              "mosaic.port"
+            ],
+            "contextBytes": 1578
+          }
+        },
+        {
+          "query": "我偏好的回答语言是什么？",
+          "expectedKey": "user.reply",
+          "before": {
+            "retrievedKeys": [
+              "user.reply"
+            ],
+            "supportKeys": [
+              "user.reply"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "user.reply"
+            ],
+            "contextBytes": 520
+          },
+          "after": {
+            "retrievedKeys": [
+              "user.reply"
+            ],
+            "supportKeys": [
+              "user.reply"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "user.reply"
+            ],
+            "contextBytes": 622
+          }
+        },
+        {
+          "query": "我的编辑器字号是多少？",
+          "expectedKey": "user.font",
+          "before": {
+            "retrievedKeys": [
+              "user.font"
+            ],
+            "supportKeys": [],
+            "evidence": "uncertain",
+            "contextKeys": [
+              "user.font"
+            ],
+            "contextBytes": 493
+          },
+          "after": {
+            "retrievedKeys": [
+              "user.font"
+            ],
+            "supportKeys": [],
+            "evidence": "uncertain",
+            "contextKeys": [
+              "user.font"
+            ],
+            "contextBytes": 595
+          }
+        },
+        {
+          "query": "Mosaic 的监听端口是多少？",
+          "expectedKey": "mosaic.port",
+          "before": {
+            "retrievedKeys": [
+              "mosaic.port",
+              "mosaic.cancel",
+              "mosaic.database",
+              "mosaic.languages",
+              "mosaic.pass"
+            ],
+            "supportKeys": [],
+            "evidence": "uncertain",
+            "contextKeys": [
+              "mosaic.port",
+              "mosaic.cancel",
+              "mosaic.database",
+              "mosaic.languages",
+              "mosaic.pass"
+            ],
+            "contextBytes": 1400
+          },
+          "after": {
+            "retrievedKeys": [
+              "mosaic.port",
+              "mosaic.cancel",
+              "mosaic.database",
+              "mosaic.languages",
+              "mosaic.pass"
+            ],
+            "supportKeys": [],
+            "evidence": "uncertain",
+            "contextKeys": [
+              "mosaic.port",
+              "mosaic.cancel",
+              "mosaic.database",
+              "mosaic.languages",
+              "mosaic.pass"
+            ],
+            "contextBytes": 1502
+          }
+        },
+        {
+          "query": "周宁的联系方式，不是沈禾",
+          "expectedKey": "zhouning.contact",
+          "before": {
+            "retrievedKeys": [
+              "zhouning.contact",
+              "zhouning.phone"
+            ],
+            "supportKeys": [
+              "zhouning.contact"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "zhouning.contact",
+              "zhouning.phone"
+            ],
+            "contextBytes": 737
+          },
+          "after": {
+            "retrievedKeys": [
+              "zhouning.contact",
+              "zhouning.phone"
+            ],
+            "supportKeys": [
+              "zhouning.contact"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "zhouning.contact",
+              "zhouning.phone"
+            ],
+            "contextBytes": 847
+          }
+        },
+        {
+          "query": "Helix 的套餐费用，不要周宁的电话费用",
+          "expectedKey": "helix.price",
+          "before": {
+            "retrievedKeys": [
+              "helix.price",
+              "helix.languages",
+              "helix.release"
+            ],
+            "supportKeys": [
+              "helix.price"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "helix.price",
+              "helix.languages",
+              "helix.release"
+            ],
+            "contextBytes": 991
+          },
+          "after": {
+            "retrievedKeys": [
+              "helix.price",
+              "helix.languages",
+              "helix.release"
+            ],
+            "supportKeys": [
+              "helix.price"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "helix.price",
+              "helix.languages",
+              "helix.release"
+            ],
+            "contextBytes": 1101
+          }
+        },
+        {
+          "query": "7月14日 Mosaic 验收结果，别用13日的记录",
+          "expectedKey": "mosaic.pass",
+          "before": {
+            "retrievedKeys": [
+              "mosaic.pass"
+            ],
+            "supportKeys": [
+              "mosaic.pass"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "mosaic.pass"
+            ],
+            "contextBytes": 530
+          },
+          "after": {
+            "retrievedKeys": [
+              "mosaic.pass"
+            ],
+            "supportKeys": [
+              "mosaic.pass"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "mosaic.pass"
+            ],
+            "contextBytes": 632
+          }
+        },
+        {
+          "query": "2026-07-13 Mosaic 验收发生了什么？",
+          "expectedKey": "mosaic.cancel",
+          "before": {
+            "retrievedKeys": [
+              "mosaic.cancel"
+            ],
+            "supportKeys": [
+              "mosaic.cancel"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "mosaic.cancel"
+            ],
+            "contextBytes": 532
+          },
+          "after": {
+            "retrievedKeys": [
+              "mosaic.cancel"
+            ],
+            "supportKeys": [
+              "mosaic.cancel"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "mosaic.cancel"
+            ],
+            "contextBytes": 634
+          }
+        },
+        {
+          "query": "Helix 下一次正式发布日期是什么？",
+          "expectedKey": "helix.release",
+          "before": {
+            "retrievedKeys": [
+              "helix.release",
+              "helix.languages",
+              "helix.price"
+            ],
+            "supportKeys": [
+              "helix.release"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "helix.release",
+              "helix.languages",
+              "helix.price"
+            ],
+            "contextBytes": 1007
+          },
+          "after": {
+            "retrievedKeys": [
+              "helix.release",
+              "helix.languages",
+              "helix.price"
+            ],
+            "supportKeys": [
+              "helix.release"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "helix.release",
+              "helix.languages",
+              "helix.price"
+            ],
+            "contextBytes": 1109
+          }
+        },
+        {
+          "query": "周宁每月要花多少电话费？",
+          "expectedKey": "zhouning.phone",
+          "before": {
+            "retrievedKeys": [
+              "zhouning.phone",
+              "zhouning.contact"
+            ],
+            "supportKeys": [
+              "zhouning.phone"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "zhouning.phone",
+              "zhouning.contact"
+            ],
+            "contextBytes": 743
+          },
+          "after": {
+            "retrievedKeys": [
+              "zhouning.phone",
+              "zhouning.contact"
+            ],
+            "supportKeys": [
+              "zhouning.phone"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "zhouning.phone",
+              "zhouning.contact"
+            ],
+            "contextBytes": 845
+          }
+        },
+        {
+          "query": "Mosaic 给用户看的界面使用什么语言？",
+          "expectedKey": "mosaic.languages",
+          "before": {
+            "retrievedKeys": [],
+            "supportKeys": [],
+            "evidence": "none",
+            "contextKeys": [],
+            "contextBytes": 0
+          },
+          "after": {
+            "retrievedKeys": [],
+            "supportKeys": [],
+            "evidence": "none",
+            "contextKeys": [],
+            "contextBytes": 0
+          }
+        },
+        {
+          "query": "日志归档应该先做什么？",
+          "expectedKey": "log.archive",
+          "before": {
+            "retrievedKeys": [
+              "log.archive"
+            ],
+            "supportKeys": [
+              "log.archive"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "log.archive"
+            ],
+            "contextBytes": 557
+          },
+          "after": {
+            "retrievedKeys": [
+              "log.archive"
+            ],
+            "supportKeys": [
+              "log.archive"
+            ],
+            "evidence": "supported",
+            "contextKeys": [
+              "log.archive"
+            ],
+            "contextBytes": 659
+          }
+        },
+        {
+          "query": "沈禾的电话费用是多少？",
+          "expectedKey": null,
+          "before": {
+            "retrievedKeys": [
+              "shenhe.food",
+              "shenhe.contact"
+            ],
+            "supportKeys": [],
+            "evidence": "insufficient",
+            "contextKeys": [
+              "shenhe.food",
+              "shenhe.contact"
+            ],
+            "contextBytes": 719
+          },
+          "after": {
+            "retrievedKeys": [
+              "shenhe.food",
+              "shenhe.contact"
+            ],
+            "supportKeys": [],
+            "evidence": "insufficient",
+            "contextKeys": [
+              "shenhe.food",
+              "shenhe.contact"
+            ],
+            "contextBytes": 821
+          }
+        },
+        {
+          "query": "Mosaic 下一次正式发布日期是什么？",
+          "expectedKey": null,
+          "before": {
+            "retrievedKeys": [
+              "mosaic.cancel",
+              "mosaic.database",
+              "mosaic.languages",
+              "mosaic.pass",
+              "mosaic.port"
+            ],
+            "supportKeys": [],
+            "evidence": "insufficient",
+            "contextKeys": [
+              "mosaic.cancel",
+              "mosaic.database",
+              "mosaic.languages",
+              "mosaic.pass",
+              "mosaic.port"
+            ],
+            "contextBytes": 1432
+          },
+          "after": {
+            "retrievedKeys": [
+              "mosaic.cancel",
+              "mosaic.database",
+              "mosaic.languages",
+              "mosaic.pass",
+              "mosaic.port"
+            ],
+            "supportKeys": [],
+            "evidence": "insufficient",
+            "contextKeys": [
+              "mosaic.cancel",
+              "mosaic.database",
+              "mosaic.languages",
+              "mosaic.pass",
+              "mosaic.port"
+            ],
+            "contextBytes": 1534
+          }
+        },
+        {
+          "query": "周宁喜欢喝哪种咖啡？",
+          "expectedKey": null,
+          "before": {
+            "retrievedKeys": [
+              "zhouning.contact",
+              "zhouning.phone"
+            ],
+            "supportKeys": [],
+            "evidence": "insufficient",
+            "contextKeys": [
+              "zhouning.contact",
+              "zhouning.phone"
+            ],
+            "contextBytes": 725
+          },
+          "after": {
+            "retrievedKeys": [
+              "zhouning.contact",
+              "zhouning.phone"
+            ],
+            "supportKeys": [],
+            "evidence": "insufficient",
+            "contextKeys": [
+              "zhouning.contact",
+              "zhouning.phone"
+            ],
+            "contextBytes": 827
+          }
+        },
+        {
+          "query": "岑安的联系方式是什么？",
+          "expectedKey": null,
+          "before": {
+            "retrievedKeys": [],
+            "supportKeys": [],
+            "evidence": "none",
+            "contextKeys": [],
+            "contextBytes": 0
+          },
+          "after": {
+            "retrievedKeys": [],
+            "supportKeys": [],
+            "evidence": "none",
+            "contextKeys": [],
+            "contextBytes": 0
+          }
+        },
+        {
+          "query": "Helix 的每月电话费用是多少？",
+          "expectedKey": null,
+          "before": {
+            "retrievedKeys": [
+              "helix.price",
+              "helix.languages",
+              "helix.release"
+            ],
+            "supportKeys": [],
+            "evidence": "insufficient",
+            "contextKeys": [
+              "helix.price",
+              "helix.languages",
+              "helix.release"
+            ],
+            "contextBytes": 990
+          },
+          "after": {
+            "retrievedKeys": [
+              "helix.price",
+              "helix.languages",
+              "helix.release"
+            ],
+            "supportKeys": [],
+            "evidence": "insufficient",
+            "contextKeys": [
+              "helix.price",
+              "helix.languages",
+              "helix.release"
+            ],
+            "contextBytes": 1092
+          }
+        },
+        {
+          "query": "我的编辑器配色主题是什么？",
+          "expectedKey": null,
+          "before": {
+            "retrievedKeys": [
+              "user.font"
+            ],
+            "supportKeys": [],
+            "evidence": "insufficient",
+            "contextKeys": [
+              "user.font"
+            ],
+            "contextBytes": 506
+          },
+          "after": {
+            "retrievedKeys": [
+              "user.font"
+            ],
+            "supportKeys": [],
+            "evidence": "insufficient",
+            "contextKeys": [
+              "user.font"
+            ],
+            "contextBytes": 608
+          }
+        }
+      ]
+    }
+  ],
+  "ownerRegressionCases": [
+    {
+      "id": "unknown-colleague",
+      "content": "用户喜欢邮件沟通，另一位同事电话费用每月88元。",
+      "query": "我的电话费用每个月多少钱？",
+      "expectedSupported": false,
+      "before": {
+        "evidence": "supported",
+        "keys": [
+          "unknown-colleague"
+        ],
+        "proofs": [
+          {
+            "subject": "用户",
+            "field": "phone_cost",
+            "quote": "另一位同事电话费用每月88元"
+          }
+        ]
+      },
+      "after": {
+        "evidence": "insufficient",
+        "keys": [
+          "unknown-colleague"
+        ],
+        "proofs": []
+      }
+    },
+    {
+      "id": "unknown-english",
+      "content": "用户喜欢邮件沟通，Teammate B 电话费用每月73元。",
+      "query": "我的电话费用每个月多少钱？",
+      "expectedSupported": false,
+      "before": {
+        "evidence": "supported",
+        "keys": [
+          "unknown-english"
+        ],
+        "proofs": [
+          {
+            "subject": "用户",
+            "field": "phone_cost",
+            "quote": "Teammate B 电话费用每月73元"
+          }
+        ]
+      },
+      "after": {
+        "evidence": "insufficient",
+        "keys": [
+          "unknown-english"
+        ],
+        "proofs": []
+      }
+    },
+    {
+      "id": "pronoun",
+      "content": "用户喜欢邮件沟通，他电话费用每月61元。",
+      "query": "我的电话费用每个月多少钱？",
+      "expectedSupported": false,
+      "before": {
+        "evidence": "supported",
+        "keys": [
+          "pronoun"
+        ],
+        "proofs": [
+          {
+            "subject": "用户",
+            "field": "phone_cost",
+            "quote": "他电话费用每月61元"
+          }
+        ]
+      },
+      "after": {
+        "evidence": "insufficient",
+        "keys": [
+          "pronoun"
+        ],
+        "proofs": []
+      }
+    },
+    {
+      "id": "nominal-sequence",
+      "content": "用户喜欢邮件沟通，最后一位访客电话费用每月67元。",
+      "query": "我的电话费用每个月多少钱？",
+      "expectedSupported": false,
+      "before": {
+        "evidence": "supported",
+        "keys": [
+          "nominal-sequence"
+        ],
+        "proofs": [
+          {
+            "subject": "用户",
+            "field": "phone_cost",
+            "quote": "最后一位访客电话费用每月67元"
+          }
+        ]
+      },
+      "after": {
+        "evidence": "insufficient",
+        "keys": [
+          "nominal-sequence"
+        ],
+        "proofs": []
+      }
+    },
+    {
+      "id": "relative-clause",
+      "content": "用户喜欢邮件沟通，喜欢电话的同事电话费用每月52元。",
+      "query": "我的电话费用每个月多少钱？",
+      "expectedSupported": false,
+      "before": {
+        "evidence": "insufficient",
+        "keys": [
+          "relative-clause"
+        ],
+        "proofs": []
+      },
+      "after": {
+        "evidence": "insufficient",
+        "keys": [
+          "relative-clause"
+        ],
+        "proofs": []
+      }
+    },
+    {
+      "id": "unknown-then-ellipsis",
+      "content": "用户喜欢中文回答，外部访客电话费用每月79元，也喜欢简短解释。",
+      "query": "我的解释风格是什么？",
+      "expectedSupported": false,
+      "before": {
+        "evidence": "supported",
+        "keys": [
+          "unknown-then-ellipsis"
+        ],
+        "proofs": [
+          {
+            "subject": "用户",
+            "field": "style",
+            "quote": "也喜欢简短解释"
+          }
+        ]
+      },
+      "after": {
+        "evidence": "insufficient",
+        "keys": [
+          "unknown-then-ellipsis"
+        ],
+        "proofs": []
+      }
+    },
+    {
+      "id": "generic-unknown",
+      "content": "用户喜欢中文回答，外部访客电话费用每月79元，也喜欢简短解释。",
+      "query": "电话费用多少钱？",
+      "expectedSupported": false,
+      "before": {
+        "evidence": "supported",
+        "keys": [
+          "generic-unknown"
+        ],
+        "proofs": [
+          {
+            "subject": "用户",
+            "field": "phone_cost",
+            "quote": "外部访客电话费用每月79元"
+          }
+        ]
+      },
+      "after": {
+        "evidence": "insufficient",
+        "keys": [
+          "generic-unknown"
+        ],
+        "proofs": []
+      }
+    },
+    {
+      "id": "also",
+      "content": "用户喜欢中文回答，也喜欢简短解释。",
+      "query": "我的解释风格是什么？",
+      "expectedSupported": true,
+      "before": {
+        "evidence": "supported",
+        "keys": [
+          "also"
+        ],
+        "proofs": [
+          {
+            "subject": "用户",
+            "field": "style",
+            "quote": "也喜欢简短解释"
+          }
+        ]
+      },
+      "after": {
+        "evidence": "supported",
+        "keys": [
+          "also"
+        ],
+        "proofs": [
+          {
+            "subject": "用户",
+            "field": "style",
+            "quote": "也喜欢简短解释"
+          }
+        ]
+      }
+    },
+    {
+      "id": "and",
+      "content": "用户喜欢中文回答，并且喜欢简短解释。",
+      "query": "我的解释风格是什么？",
+      "expectedSupported": true,
+      "before": {
+        "evidence": "insufficient",
+        "keys": [
+          "and"
+        ],
+        "proofs": []
+      },
+      "after": {
+        "evidence": "supported",
+        "keys": [
+          "and"
+        ],
+        "proofs": [
+          {
+            "subject": "用户",
+            "field": "style",
+            "quote": "并且喜欢简短解释"
+          }
+        ]
+      }
+    },
+    {
+      "id": "bare-predicate",
+      "content": "用户喜欢中文回答，喜欢简短解释。",
+      "query": "我的解释风格是什么？",
+      "expectedSupported": true,
+      "before": {
+        "evidence": "supported",
+        "keys": [
+          "bare-predicate"
+        ],
+        "proofs": [
+          {
+            "subject": "用户",
+            "field": "style",
+            "quote": "喜欢简短解释"
+          }
+        ]
+      },
+      "after": {
+        "evidence": "supported",
+        "keys": [
+          "bare-predicate"
+        ],
+        "proofs": [
+          {
+            "subject": "用户",
+            "field": "style",
+            "quote": "喜欢简短解释"
+          }
+        ]
+      }
+    },
+    {
+      "id": "field-ellipsis",
+      "content": "Orion 项目的界面使用韩语，开发语言为 Elixir。",
+      "query": "Orion 的开发语言是什么？",
+      "expectedSupported": true,
+      "before": {
+        "evidence": "supported",
+        "keys": [
+          "field-ellipsis"
+        ],
+        "proofs": [
+          {
+            "subject": "orion",
+            "field": "dev_language",
+            "quote": "开发语言为 Elixir"
+          }
+        ]
+      },
+      "after": {
+        "evidence": "supported",
+        "keys": [
+          "field-ellipsis"
+        ],
+        "proofs": [
+          {
+            "subject": "orion",
+            "field": "dev_language",
+            "quote": "开发语言为 Elixir"
+          }
+        ]
+      }
+    },
+    {
+      "id": "known-other-self",
+      "content": "用户喜欢邮件沟通，柏舟的电话费用每月83元。",
+      "query": "我的电话费用多少钱？",
+      "expectedSupported": false,
+      "before": {
+        "evidence": "insufficient",
+        "keys": [
+          "known-other-self"
+        ],
+        "proofs": []
+      },
+      "after": {
+        "evidence": "insufficient",
+        "keys": [
+          "known-other-self"
+        ],
+        "proofs": []
+      }
+    },
+    {
+      "id": "known-other-correct",
+      "content": "用户喜欢邮件沟通，柏舟的电话费用每月83元。",
+      "query": "柏舟的电话费用多少钱？",
+      "expectedSupported": true,
+      "before": {
+        "evidence": "supported",
+        "keys": [
+          "known-other-correct"
+        ],
+        "proofs": [
+          {
+            "subject": "柏舟",
+            "field": "phone_cost",
+            "quote": "柏舟的电话费用每月83元"
+          }
+        ]
+      },
+      "after": {
+        "evidence": "supported",
+        "keys": [
+          "known-other-correct"
+        ],
+        "proofs": [
+          {
+            "subject": "柏舟",
+            "field": "phone_cost",
+            "quote": "柏舟的电话费用每月83元"
+          }
+        ]
+      }
+    },
+    {
+      "id": "ambiguous-de-conservative",
+      "content": "用户喜欢中文回答，也喜欢简短的解释。",
+      "query": "我的解释风格是什么？",
+      "expectedSupported": false,
+      "before": {
+        "evidence": "insufficient",
+        "keys": [
+          "ambiguous-de-conservative"
+        ],
+        "proofs": []
+      },
+      "after": {
+        "evidence": "insufficient",
+        "keys": [
+          "ambiguous-de-conservative"
+        ],
+        "proofs": []
+      }
+    }
+  ],
+  "ownerCorrectBefore": 7,
+  "ownerCorrectAfter": 14,
+  "performance": {
+    "before": {
+      "node": "v26.3.1",
+      "platform": "darwin",
+      "iterations": 12,
+      "modelCalls": 0,
+      "results": [
+        {
+          "count": 100,
+          "coldMs": 6.471958000000001,
+          "search": {
+            "p50Ms": 4.478334000000004,
+            "p95Ms": 5.3608329999999995
+          },
+          "context": {
+            "p50Ms": 4.176457999999997,
+            "p95Ms": 6.524166999999977
+          },
+          "broadSearch": {
+            "p50Ms": 5.2298330000000135,
+            "p95Ms": 5.535291999999998
+          },
+          "broadContext": {
+            "p50Ms": 5.267875000000004,
+            "p95Ms": 5.559459000000004
+          },
+          "cpuMs": 271.321,
+          "rssDeltaMiB": 20.78125,
+          "heapDeltaMiB": 0.3224639892578125,
+          "rssMiB": 85.734375,
+          "maxRssKiB": 87792
+        },
+        {
+          "count": 1000,
+          "coldMs": 51.450334,
+          "search": {
+            "p50Ms": 50.890916999999945,
+            "p95Ms": 53.77116699999999
+          },
+          "context": {
+            "p50Ms": 55.541749999999865,
+            "p95Ms": 135.34345800000006
+          },
+          "broadSearch": {
+            "p50Ms": 171.08641699999998,
+            "p95Ms": 196.55375000000004
+          },
+          "broadContext": {
+            "p50Ms": 162.176375,
+            "p95Ms": 174.60716700000012
+          },
+          "cpuMs": 5681.173,
+          "rssDeltaMiB": 71,
+          "heapDeltaMiB": 17.12823486328125,
+          "rssMiB": 156.984375,
+          "maxRssKiB": 160752
+        }
+      ]
+    },
+    "after": {
+      "node": "v26.3.1",
+      "platform": "darwin",
+      "iterations": 12,
+      "modelCalls": 0,
+      "results": [
+        {
+          "count": 100,
+          "coldMs": 6.819249999999997,
+          "search": {
+            "p50Ms": 4.642959000000005,
+            "p95Ms": 5.389040999999992
+          },
+          "context": {
+            "p50Ms": 4.114417000000003,
+            "p95Ms": 4.615333000000021
+          },
+          "broadSearch": {
+            "p50Ms": 4.873209000000031,
+            "p95Ms": 5.094750000000005
+          },
+          "broadContext": {
+            "p50Ms": 4.945249999999987,
+            "p95Ms": 5.2891669999999635
+          },
+          "cpuMs": 259.15,
+          "rssDeltaMiB": 21.078125,
+          "heapDeltaMiB": 0.373321533203125,
+          "rssMiB": 85.96875,
+          "maxRssKiB": 88032
+        },
+        {
+          "count": 1000,
+          "coldMs": 46.52187500000002,
+          "search": {
+            "p50Ms": 53.66883300000006,
+            "p95Ms": 57.213916999999924
+          },
+          "context": {
+            "p50Ms": 53.80470800000012,
+            "p95Ms": 66.49012500000003
+          },
+          "broadSearch": {
+            "p50Ms": 118.19712500000014,
+            "p95Ms": 123.16137499999991
+          },
+          "broadContext": {
+            "p50Ms": 116.96274999999969,
+            "p95Ms": 120.53591700000015
+          },
+          "cpuMs": 4434.982,
+          "rssDeltaMiB": 70.71875,
+          "heapDeltaMiB": 0.26070404052734375,
+          "rssMiB": 156.921875,
+          "maxRssKiB": 160688
+        }
+      ]
+    }
+  },
+  "verification": {
+    "date": "2026-10-21",
+    "typecheck": {
+      "command": "npm run typecheck",
+      "exitCode": 0
+    },
+    "build": {
+      "command": "npm run build",
+      "exitCode": 0
+    },
+    "test": {
+      "command": "npm test",
+      "exitCode": 0,
+      "passed": 96,
+      "failed": 0,
+      "skipped": 0,
+      "durationMs": 6662.71575,
+      "environmentNote": "Final sandbox attempt hit listen EPERM 127.0.0.1; rerun with local-loopback permission passed."
+    },
+    "eval": {
+      "command": "npm run eval:memory",
+      "exitCode": 0,
+      "cases": 64,
+      "finalRerunMatchesCasesAndMetricsExceptLatency": true
+    },
+    "benchmark": {
+      "command": "node --import tsx scripts/benchmark-memory.ts",
+      "counts": [
+        100,
+        1000
+      ],
+      "iterations": 12
+    },
+    "liveModelCalls": 0,
+    "liveFeishu": false,
+    "integrationTestHashes": {
+      "tests/memory-closeout.test.ts": "dc77ae661fe447d19974d5aa9231c8c201959b5dadb86700bd09d0cbe22b2e41",
+      "tests/memory-evidence-integration.test.ts": "3bdada1a2e1ef475b522d639a11d8487248042f3a5d3eb9a0e807d64db230504"
+    }
+  }
+}
