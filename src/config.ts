@@ -11,6 +11,7 @@ export interface Config {
   sessionDir: string;
   memoryDir: string;
   memoryContextTokens: number;
+  memoryQueryRewrite?: boolean;
   pollIntervalMs: number;
   executionTimeoutMs: number;
 }
@@ -66,6 +67,7 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env): Config {
   }
   const memoryContextTokens = Number(env.MEMORY_CONTEXT_TOKENS ?? 2048);
   if (!Number.isSafeInteger(memoryContextTokens) || memoryContextTokens < 512 || memoryContextTokens > 8192) throw new Error('MEMORY_CONTEXT_TOKENS 必须为512至8192的整数');
+  if (env.MEMORY_QUERY_REWRITE && !['true', 'false'].includes(env.MEMORY_QUERY_REWRITE)) throw new Error('MEMORY_QUERY_REWRITE 必须为 true 或 false');
   return {
     provider: env.LLM_PROVIDER || 'openai',
     model: env.LLM_MODEL || 'gpt-4.1-mini',
@@ -76,6 +78,7 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env): Config {
     sessionDir,
     memoryDir,
     memoryContextTokens,
+    memoryQueryRewrite: env.MEMORY_QUERY_REWRITE === 'true',
     pollIntervalMs: integer('POLL_INTERVAL_MS', 1000),
     executionTimeoutMs: integer('EXECUTION_TIMEOUT_MS', 120_000),
   };

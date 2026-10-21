@@ -1,0 +1,380 @@
+{
+  "fixtureVersion": 1,
+  "budgetBytes": 2048,
+  "memoryCount": 15,
+  "groups": {
+    "literal": {
+      "count": 4,
+      "top1": 4,
+      "recall5": 4,
+      "contextHit": 4
+    },
+    "paraphrase": {
+      "count": 4,
+      "top1": 2,
+      "recall5": 2,
+      "contextHit": 2
+    },
+    "mixed": {
+      "count": 2,
+      "top1": 1,
+      "recall5": 2,
+      "contextHit": 2
+    },
+    "entity": {
+      "count": 4,
+      "top1": 3,
+      "recall5": 4,
+      "contextHit": 4
+    },
+    "time": {
+      "count": 3,
+      "top1": 2,
+      "recall5": 3,
+      "contextHit": 3
+    },
+    "procedural": {
+      "count": 2,
+      "top1": 2,
+      "recall5": 2,
+      "contextHit": 2
+    },
+    "negative": {
+      "count": 5,
+      "top1": 1,
+      "recall5": 1,
+      "contextHit": 1
+    }
+  },
+  "cases": [
+    {
+      "group": "literal",
+      "query": "Nacre 使用什么数据库？",
+      "expectedKey": "nacre.storage",
+      "retrievedKeys": [
+        "nacre.storage",
+        "nacre.language",
+        "nacre.cancel",
+        "nacre.release",
+        "nacre.check"
+      ],
+      "top1": true,
+      "recall5": true,
+      "contextHit": true,
+      "contextBytes": 1079
+    },
+    {
+      "group": "literal",
+      "query": "Quartz 套餐的费用是多少？",
+      "expectedKey": "quartz.price",
+      "retrievedKeys": [
+        "quartz.price",
+        "quartz.review",
+        "quartz.storage"
+      ],
+      "top1": true,
+      "recall5": true,
+      "contextHit": true,
+      "contextBytes": 649
+    },
+    {
+      "group": "literal",
+      "query": "会议纪要偏好按什么顺序写？",
+      "expectedKey": "user.minutes",
+      "retrievedKeys": [
+        "user.minutes",
+        "user.focus"
+      ],
+      "top1": true,
+      "recall5": true,
+      "contextHit": true,
+      "contextBytes": 523
+    },
+    {
+      "group": "literal",
+      "query": "设备恢复的方法是什么？",
+      "expectedKey": "device.restore",
+      "retrievedKeys": [
+        "device.restore"
+      ],
+      "top1": true,
+      "recall5": true,
+      "contextHit": true,
+      "contextBytes": 366
+    },
+    {
+      "group": "paraphrase",
+      "query": "整理讨论记录时，你应该先写决定还是待办？",
+      "expectedKey": "user.minutes",
+      "retrievedKeys": [],
+      "top1": false,
+      "recall5": false,
+      "contextHit": false,
+      "contextBytes": 0
+    },
+    {
+      "group": "paraphrase",
+      "query": "我应该把烧脑的活安排在一天的哪个时段？",
+      "expectedKey": "user.focus",
+      "retrievedKeys": [],
+      "top1": false,
+      "recall5": false,
+      "contextHit": false,
+      "contextBytes": 0
+    },
+    {
+      "group": "paraphrase",
+      "query": "我能吃加了花生酱的面包吗？",
+      "expectedKey": "user.allergy",
+      "retrievedKeys": [
+        "user.allergy"
+      ],
+      "top1": true,
+      "recall5": true,
+      "contextHit": true,
+      "contextBytes": 323
+    },
+    {
+      "group": "paraphrase",
+      "query": "Wi-Fi老掉线，先从哪里检查？",
+      "expectedKey": "wireless.check",
+      "retrievedKeys": [
+        "wireless.check"
+      ],
+      "top1": true,
+      "recall5": true,
+      "contextHit": true,
+      "contextBytes": 375
+    },
+    {
+      "group": "mixed",
+      "query": "Nacre 的 database 用哪个产品？",
+      "expectedKey": "nacre.storage",
+      "retrievedKeys": [
+        "nacre.cancel",
+        "nacre.release",
+        "nacre.language",
+        "nacre.check",
+        "nacre.storage"
+      ],
+      "top1": false,
+      "recall5": true,
+      "contextHit": true,
+      "contextBytes": 1079
+    },
+    {
+      "group": "mixed",
+      "query": "Nacre UI language 是什么？",
+      "expectedKey": "nacre.language",
+      "retrievedKeys": [
+        "nacre.language",
+        "nacre.cancel",
+        "nacre.release",
+        "nacre.check",
+        "nacre.storage"
+      ],
+      "top1": true,
+      "recall5": true,
+      "contextHit": true,
+      "contextBytes": 1079
+    },
+    {
+      "group": "entity",
+      "query": "Quartz 数据库是什么，不要 Nacre 的方案",
+      "expectedKey": "quartz.storage",
+      "retrievedKeys": [
+        "quartz.storage",
+        "nacre.storage",
+        "quartz.review",
+        "nacre.cancel",
+        "nacre.release"
+      ],
+      "top1": true,
+      "recall5": true,
+      "contextHit": true,
+      "contextBytes": 1044
+    },
+    {
+      "group": "entity",
+      "query": "阿青喜欢哪种联系方法，不是阿白？",
+      "expectedKey": "aqing.contact",
+      "retrievedKeys": [
+        "device.restore",
+        "aqing.contact",
+        "abai.contact"
+      ],
+      "top1": false,
+      "recall5": true,
+      "contextHit": true,
+      "contextBytes": 669
+    },
+    {
+      "group": "entity",
+      "query": "阿白喜欢什么沟通方式？",
+      "expectedKey": "abai.contact",
+      "retrievedKeys": [
+        "abai.contact",
+        "aqing.contact"
+      ],
+      "top1": true,
+      "recall5": true,
+      "contextHit": true,
+      "contextBytes": 451
+    },
+    {
+      "group": "entity",
+      "query": "Nacre 的测试命令，不是 Quartz 的费用",
+      "expectedKey": "nacre.check",
+      "retrievedKeys": [
+        "nacre.check",
+        "nacre.cancel",
+        "quartz.review",
+        "nacre.release",
+        "nacre.language"
+      ],
+      "top1": true,
+      "recall5": true,
+      "contextHit": true,
+      "contextBytes": 1076
+    },
+    {
+      "group": "time",
+      "query": "9月3日 Nacre 发布结果，别用2日取消记录",
+      "expectedKey": "nacre.release",
+      "retrievedKeys": [
+        "nacre.cancel",
+        "nacre.release",
+        "nacre.language",
+        "nacre.check",
+        "nacre.storage"
+      ],
+      "top1": false,
+      "recall5": true,
+      "contextHit": true,
+      "contextBytes": 1079
+    },
+    {
+      "group": "time",
+      "query": "2026-09-02 Nacre 发布发生了什么？",
+      "expectedKey": "nacre.cancel",
+      "retrievedKeys": [
+        "nacre.cancel",
+        "nacre.release",
+        "nacre.language",
+        "nacre.check",
+        "nacre.storage"
+      ],
+      "top1": true,
+      "recall5": true,
+      "contextHit": true,
+      "contextBytes": 1079
+    },
+    {
+      "group": "time",
+      "query": "9月3日 Quartz 评审结果，不是 Nacre",
+      "expectedKey": "quartz.review",
+      "retrievedKeys": [
+        "quartz.review",
+        "nacre.cancel",
+        "nacre.release",
+        "nacre.language",
+        "quartz.price"
+      ],
+      "top1": true,
+      "recall5": true,
+      "contextHit": true,
+      "contextBytes": 1044
+    },
+    {
+      "group": "procedural",
+      "query": "设备恢复出厂设置之前先做什么？",
+      "expectedKey": "device.restore",
+      "retrievedKeys": [
+        "device.restore"
+      ],
+      "top1": true,
+      "recall5": true,
+      "contextHit": true,
+      "contextBytes": 366
+    },
+    {
+      "group": "procedural",
+      "query": "无线网络断连的排查步骤是什么？",
+      "expectedKey": "wireless.check",
+      "retrievedKeys": [
+        "wireless.check"
+      ],
+      "top1": true,
+      "recall5": true,
+      "contextHit": true,
+      "contextBytes": 375
+    },
+    {
+      "group": "negative",
+      "query": "Nacre 下一次正式发布的确切日期是什么？",
+      "expectedKey": null,
+      "retrievedKeys": [
+        "nacre.cancel",
+        "nacre.release",
+        "nacre.language",
+        "nacre.check",
+        "nacre.storage"
+      ],
+      "top1": false,
+      "recall5": false,
+      "contextHit": false,
+      "contextBytes": 1079
+    },
+    {
+      "group": "negative",
+      "query": "Quartz 的登录密码是什么？",
+      "expectedKey": null,
+      "retrievedKeys": [
+        "quartz.review",
+        "quartz.price",
+        "quartz.storage"
+      ],
+      "top1": false,
+      "recall5": false,
+      "contextHit": false,
+      "contextBytes": 649
+    },
+    {
+      "group": "negative",
+      "query": "用户对哪一种海鲜过敏？",
+      "expectedKey": null,
+      "retrievedKeys": [
+        "user.allergy",
+        "nacre.release",
+        "user.focus",
+        "user.minutes"
+      ],
+      "top1": false,
+      "recall5": false,
+      "contextHit": false,
+      "contextBytes": 886
+    },
+    {
+      "group": "negative",
+      "query": "阿青每个月电话费用多少钱？",
+      "expectedKey": null,
+      "retrievedKeys": [
+        "aqing.contact"
+      ],
+      "top1": false,
+      "recall5": false,
+      "contextHit": false,
+      "contextBytes": 300
+    },
+    {
+      "group": "negative",
+      "query": "木星环的厚度是多少？",
+      "expectedKey": null,
+      "retrievedKeys": [],
+      "top1": true,
+      "recall5": true,
+      "contextHit": true,
+      "contextBytes": 0
+    }
+  ]
+}

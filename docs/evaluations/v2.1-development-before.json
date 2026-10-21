@@ -1,0 +1,394 @@
+{
+  "fixtureVersion": 1,
+  "budgetBytes": 2048,
+  "memoryCount": 17,
+  "groups": {
+    "literal": {
+      "count": 4,
+      "top1": 1,
+      "recall5": 4,
+      "contextHit": 4
+    },
+    "paraphrase": {
+      "count": 4,
+      "top1": 1,
+      "recall5": 2,
+      "contextHit": 2
+    },
+    "mixed": {
+      "count": 2,
+      "top1": 2,
+      "recall5": 2,
+      "contextHit": 2
+    },
+    "entity": {
+      "count": 4,
+      "top1": 3,
+      "recall5": 4,
+      "contextHit": 4
+    },
+    "time": {
+      "count": 3,
+      "top1": 2,
+      "recall5": 3,
+      "contextHit": 3
+    },
+    "procedural": {
+      "count": 2,
+      "top1": 2,
+      "recall5": 2,
+      "contextHit": 2
+    },
+    "negative": {
+      "count": 5,
+      "top1": 1,
+      "recall5": 1,
+      "contextHit": 1
+    }
+  },
+  "cases": [
+    {
+      "group": "literal",
+      "query": "Orion 用什么数据库？",
+      "expectedKey": "orion.database",
+      "retrievedKeys": [
+        "orion.review",
+        "orion.database",
+        "orion.failure",
+        "orion.stage",
+        "orion.language"
+      ],
+      "top1": false,
+      "recall5": true,
+      "contextHit": true,
+      "contextBytes": 1063
+    },
+    {
+      "group": "literal",
+      "query": "Vega 的开发语言是什么？",
+      "expectedKey": "vega.language",
+      "retrievedKeys": [
+        "vega.review",
+        "vega.backup",
+        "vega.language",
+        "vega.database"
+      ],
+      "top1": false,
+      "recall5": true,
+      "contextHit": true,
+      "contextBytes": 832
+    },
+    {
+      "group": "literal",
+      "query": "我偏好的解释风格是什么？",
+      "expectedKey": "user.style",
+      "retrievedKeys": [
+        "user.temperature",
+        "user.style"
+      ],
+      "top1": false,
+      "recall5": true,
+      "contextHit": true,
+      "contextBytes": 503
+    },
+    {
+      "group": "literal",
+      "query": "恢复备份的方法是什么？",
+      "expectedKey": "backup.restore",
+      "retrievedKeys": [
+        "backup.restore",
+        "vega.backup"
+      ],
+      "top1": true,
+      "recall5": true,
+      "contextHit": true,
+      "contextBytes": 540
+    },
+    {
+      "group": "paraphrase",
+      "query": "我上班通常搭哪种交通工具？",
+      "expectedKey": "user.transport",
+      "retrievedKeys": [],
+      "top1": false,
+      "recall5": false,
+      "contextHit": false,
+      "contextBytes": 0
+    },
+    {
+      "group": "paraphrase",
+      "query": "给我倒饮料时要加冰块吗？",
+      "expectedKey": "user.temperature",
+      "retrievedKeys": [
+        "user.temperature"
+      ],
+      "top1": true,
+      "recall5": true,
+      "contextHit": true,
+      "contextBytes": 321
+    },
+    {
+      "group": "paraphrase",
+      "query": "我更想看精炼的母语还是冗长的外语说明？",
+      "expectedKey": "user.style",
+      "retrievedKeys": [],
+      "top1": false,
+      "recall5": false,
+      "contextHit": false,
+      "contextBytes": 0
+    },
+    {
+      "group": "paraphrase",
+      "query": "服务上线出问题应该先看什么？",
+      "expectedKey": "deployment.check",
+      "retrievedKeys": [
+        "backup.restore",
+        "deployment.check"
+      ],
+      "top1": false,
+      "recall5": true,
+      "contextHit": true,
+      "contextBytes": 603
+    },
+    {
+      "group": "mixed",
+      "query": "Orion 的 analysis data 用哪个 database？",
+      "expectedKey": "orion.database",
+      "retrievedKeys": [
+        "orion.database",
+        "database.review",
+        "vega.database",
+        "orion.failure",
+        "orion.review"
+      ],
+      "top1": true,
+      "recall5": true,
+      "contextHit": true,
+      "contextBytes": 1081
+    },
+    {
+      "group": "mixed",
+      "query": "Vega 的 UI language 是什么？",
+      "expectedKey": "vega.language",
+      "retrievedKeys": [
+        "vega.language",
+        "vega.review",
+        "vega.backup",
+        "vega.database",
+        "orion.language"
+      ],
+      "top1": true,
+      "recall5": true,
+      "contextHit": true,
+      "contextBytes": 1004
+    },
+    {
+      "group": "entity",
+      "query": "Vega 数据库是什么，不要 Orion 的配置",
+      "expectedKey": "vega.database",
+      "retrievedKeys": [
+        "orion.review",
+        "vega.backup",
+        "vega.database",
+        "orion.database",
+        "vega.review"
+      ],
+      "top1": false,
+      "recall5": true,
+      "contextHit": true,
+      "contextBytes": 1025
+    },
+    {
+      "group": "entity",
+      "query": "小林喜欢什么主题，不是小周？",
+      "expectedKey": "lin.preference",
+      "retrievedKeys": [
+        "lin.preference",
+        "zhou.preference",
+        "user.style"
+      ],
+      "top1": true,
+      "recall5": true,
+      "contextHit": true,
+      "contextBytes": 637
+    },
+    {
+      "group": "entity",
+      "query": "Orion 开发用的语言，不是界面语言",
+      "expectedKey": "orion.language",
+      "retrievedKeys": [
+        "orion.language",
+        "orion.failure",
+        "orion.review",
+        "orion.stage",
+        "orion.database"
+      ],
+      "top1": true,
+      "recall5": true,
+      "contextHit": true,
+      "contextBytes": 1063
+    },
+    {
+      "group": "entity",
+      "query": "Vega 的备份周期，不是恢复步骤",
+      "expectedKey": "vega.backup",
+      "retrievedKeys": [
+        "vega.backup",
+        "vega.review",
+        "vega.language",
+        "vega.database",
+        "backup.restore"
+      ],
+      "top1": true,
+      "recall5": true,
+      "contextHit": true,
+      "contextBytes": 1061
+    },
+    {
+      "group": "time",
+      "query": "8月12日 Orion 评审结果，别用11日的失败记录",
+      "expectedKey": "orion.review",
+      "retrievedKeys": [
+        "orion.failure",
+        "orion.review",
+        "orion.stage",
+        "orion.language",
+        "orion.database"
+      ],
+      "top1": false,
+      "recall5": true,
+      "contextHit": true,
+      "contextBytes": 1063
+    },
+    {
+      "group": "time",
+      "query": "8月11日 Orion 评审发生了什么？",
+      "expectedKey": "orion.failure",
+      "retrievedKeys": [
+        "orion.failure",
+        "orion.review",
+        "orion.stage",
+        "orion.language",
+        "orion.database"
+      ],
+      "top1": true,
+      "recall5": true,
+      "contextHit": true,
+      "contextBytes": 1063
+    },
+    {
+      "group": "time",
+      "query": "8月12日 Vega 评审结果，不是 Orion",
+      "expectedKey": "vega.review",
+      "retrievedKeys": [
+        "vega.review",
+        "orion.review",
+        "orion.failure",
+        "vega.backup",
+        "orion.stage"
+      ],
+      "top1": true,
+      "recall5": true,
+      "contextHit": true,
+      "contextBytes": 1060
+    },
+    {
+      "group": "procedural",
+      "query": "数据库设计评审要先干什么？",
+      "expectedKey": "database.review",
+      "retrievedKeys": [
+        "database.review",
+        "orion.review",
+        "vega.backup",
+        "vega.review",
+        "orion.failure"
+      ],
+      "top1": true,
+      "recall5": true,
+      "contextHit": true,
+      "contextBytes": 1079
+    },
+    {
+      "group": "procedural",
+      "query": "备份还原前应该如何操作？",
+      "expectedKey": "backup.restore",
+      "retrievedKeys": [
+        "backup.restore",
+        "vega.backup"
+      ],
+      "top1": true,
+      "recall5": true,
+      "contextHit": true,
+      "contextBytes": 540
+    },
+    {
+      "group": "negative",
+      "query": "Orion 下次正式发布日期是哪天？",
+      "expectedKey": null,
+      "retrievedKeys": [
+        "orion.stage",
+        "orion.failure",
+        "orion.review",
+        "orion.language",
+        "orion.database"
+      ],
+      "top1": false,
+      "recall5": false,
+      "contextHit": false,
+      "contextBytes": 1063
+    },
+    {
+      "group": "negative",
+      "query": "Vega 的服务器登录密码是什么？",
+      "expectedKey": null,
+      "retrievedKeys": [
+        "vega.review",
+        "vega.backup",
+        "vega.language",
+        "vega.database",
+        "backup.restore"
+      ],
+      "top1": false,
+      "recall5": false,
+      "contextHit": false,
+      "contextBytes": 1061
+    },
+    {
+      "group": "negative",
+      "query": "小林喜欢喝哪种咖啡？",
+      "expectedKey": null,
+      "retrievedKeys": [
+        "lin.preference",
+        "zhou.preference",
+        "user.style"
+      ],
+      "top1": false,
+      "recall5": false,
+      "contextHit": false,
+      "contextBytes": 637
+    },
+    {
+      "group": "negative",
+      "query": "用户每月通勤花多少钱？",
+      "expectedKey": null,
+      "retrievedKeys": [
+        "user.transport",
+        "user.temperature",
+        "user.style"
+      ],
+      "top1": false,
+      "recall5": false,
+      "contextHit": false,
+      "contextBytes": 674
+    },
+    {
+      "group": "negative",
+      "query": "海王星卫星的直径是多少？",
+      "expectedKey": null,
+      "retrievedKeys": [],
+      "top1": true,
+      "recall5": true,
+      "contextHit": true,
+      "contextBytes": 0
+    }
+  ]
+}

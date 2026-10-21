@@ -1,0 +1,143 @@
+{
+  "date": "2026-10-21",
+  "baseCommit": "dcec1f4e55e3de816245e0983b8cbfff75efd0b3",
+  "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+  "providerOrigin": "https://api.siliconflow.cn",
+  "authorization": {
+    "maxRequests": 80,
+    "maxRounds": 2,
+    "data": "fixed fictional current queries only; no Memory bodies, production data or Feishu",
+    "maxOutputTokensPerRequest": 512,
+    "inputEstimateUpperTokens": 2000
+  },
+  "transport": "isolated non-streaming Chat Completions query rewriting; local production retrieval/context; not full real-model Pi execution or answer generation",
+  "observedWindowUTC": {
+    "firstProcessObserved": "2026-10-21T05:36:53Z",
+    "bothRoundsCompletedObserved": "2026-10-21T05:38:30Z",
+    "note": "observations, not precise individual API request timestamps"
+  },
+  "usage": {
+    "calls": 44,
+    "failures": 1,
+    "inputTokens": 4671,
+    "outputTokens": 1253,
+    "cacheReadTokens": 0,
+    "elapsedMs": 53568.383749000015
+  },
+  "remainingAuthorizationNotUsed": 36,
+  "reportedTokensNote": "Only responses with usage fields; failed request may have unobserved consumption. Prompt tokens are provider prompt_tokens; cacheRead is reported separately, not added twice.",
+  "estimatedReportedUsageCNY": 0.019366,
+  "priceReference": {
+    "url": "https://www.siliconflow.cn/pricing",
+    "checkedDate": "2026-10-21",
+    "inputCNYPerMillion": 2,
+    "outputCNYPerMillion": 8,
+    "note": "estimate for reported usage at observed daytime rate, not supplier bill; one failed call has unknown usage"
+  },
+  "failure": {
+    "round": 1,
+    "query": "木星环的厚度是多少？",
+    "result": "lexical fallback",
+    "cause": "not distinguished by current harness: upstream/JSON/schema error; raw error/credential data not retained"
+  },
+  "validation": {
+    "typecheck": "passed",
+    "build": "passed",
+    "tests": {
+      "passed": 84,
+      "failed": 0,
+      "skipped": 0,
+      "durationMs": 6190.794833
+    },
+    "offlineEvaluation": "passed",
+    "replay": "80 case results identical except latency; 0 additional API calls",
+    "productionDataTouched": false,
+    "feishuMessagesSent": 0,
+    "rankingOrPromptChangedBetweenRounds": false
+  },
+  "sourceHashes": {
+    "src/memory-retriever.ts": "17f377231e51fade7ef543e42bbe5feb6410b4e4139e20abd9d94c6a8c2d7c6e",
+    "src/memory-service.ts": "28c0a61ef42ba360c67faf1897b5fae6507e3cfa6ad5f7d96046f531d9afd04a",
+    "src/pi-executor.ts": "35baae318197178925e816ed41074a44db3db3bfffd67b02cb599609d07c142a",
+    "scripts/evaluate-memory.ts": "ad19b6f1426e09d1c3c2cb3e2bd596dd6bd43e0553c6f1abb229e2f37290ad7a",
+    "tests/fixtures/memory-retrieval-eval.json": "9f1f110f675695517bd9508656dd0c90083a34899ec9942e67c759632ec1fc7e",
+    "tests/fixtures/memory-retrieval-holdout.json": "96c50d46205a869f18a737d0659f57b088a47762241ba5a85d6a15e07fc14663"
+  },
+  "rounds": [
+    {
+      "round": 1,
+      "artifact": "v2.1-live-rewrite-round1.json",
+      "sha256": "5eaf351b0511259ae621973334599b0164f4fe9cace16a17c6df15b2b4b2c482",
+      "usage": {
+        "calls": 22,
+        "failures": 1,
+        "inputTokens": 2282,
+        "outputTokens": 610,
+        "cacheReadTokens": 0,
+        "elapsedMs": 29222.507958000006
+      },
+      "original": {
+        "answerable": 12,
+        "top1": 0.9166666666666666,
+        "recall5": 1,
+        "mrr": 0.9583333333333334,
+        "negativeCount": 4,
+        "insufficientEvidenceCorrect": 4,
+        "supportedCorrect": 11,
+        "strictExpectedKeyContextPrecision": 0.9230769230769231,
+        "latencyP50Ms": 5.948332999999366,
+        "latencyP95Ms": 1528.749875
+      },
+      "holdout": {
+        "answerable": 19,
+        "top1": 0.8947368421052632,
+        "recall5": 1,
+        "mrr": 0.9385964912280703,
+        "negativeCount": 5,
+        "insufficientEvidenceCorrect": 4,
+        "supportedCorrect": 10,
+        "strictExpectedKeyContextPrecision": 0.6923076923076923,
+        "latencyP50Ms": 1124.0976249999985,
+        "latencyP95Ms": 1547.0162079999973
+      }
+    },
+    {
+      "round": 2,
+      "artifact": "v2.1-live-rewrite-round2.json",
+      "sha256": "7a7730a9286b8b7f374e0d20a4a7f88f4250abbbd4b29f11cc7967b8402a8192",
+      "usage": {
+        "calls": 22,
+        "failures": 0,
+        "inputTokens": 2389,
+        "outputTokens": 643,
+        "cacheReadTokens": 0,
+        "elapsedMs": 24345.875791000006
+      },
+      "original": {
+        "answerable": 12,
+        "top1": 1,
+        "recall5": 1,
+        "mrr": 1,
+        "negativeCount": 4,
+        "insufficientEvidenceCorrect": 4,
+        "supportedCorrect": 11,
+        "strictExpectedKeyContextPrecision": 1,
+        "latencyP50Ms": 5.986374999999498,
+        "latencyP95Ms": 1455.772
+      },
+      "holdout": {
+        "answerable": 19,
+        "top1": 0.8947368421052632,
+        "recall5": 1,
+        "mrr": 0.9385964912280703,
+        "negativeCount": 5,
+        "insufficientEvidenceCorrect": 4,
+        "supportedCorrect": 10,
+        "strictExpectedKeyContextPrecision": 0.6923076923076923,
+        "latencyP50Ms": 978.0022080000017,
+        "latencyP95Ms": 1345.3603330000005
+      }
+    }
+  ],
+  "decision": "Keep query rewriting opt-in/default false. Recall improved but people/field scope and false supported evidence are unresolved; do not treat this as real refusal or Feishu acceptance."
+}

@@ -17,7 +17,7 @@ export function memoryTools(memory: FileMemoryService, guard?: OperationGuard): 
   return [
     defineTool({
       name: 'memory_search', label: '检索长期记忆',
-      description: '按关键词查询最多5条长期记忆，可限定 kind。semantic=稳定偏好/画像，project=项目知识，episodic=重要事件，procedural=明确经验。返回收据，正文在下一次模型调用的临时 Memory Context 中提供。',
+      description: '按问题检索最多5条长期记忆，可限定 kind。semantic=稳定偏好/画像，project=项目知识，episodic=重要事件，procedural=明确经验。相关不保证包含答案；返回收据，当前正文及证据线索在下一次临时 Memory Context 中提供。',
       parameters: Type.Object({ query: Type.String({ minLength: 1, maxLength: 500 }), kind: Type.Optional(kind) }),
       execute: async (_id, args) => {
         const records = memory.search(args.query, args.kind);

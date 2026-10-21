@@ -1,0 +1,213 @@
+{
+  "version": 1,
+  "purpose": "Frozen before retriever implementation; fictional, author-defined holdout, not a blind external benchmark.",
+  "memories": [
+    {
+      "kind": "semantic",
+      "key": "user.style",
+      "content": "用户喜欢简短的中文解释，不喜欢长篇英文。"
+    },
+    {
+      "kind": "semantic",
+      "key": "user.temperature",
+      "content": "用户喝饮料偏好常温，不喝冰饮。"
+    },
+    {
+      "kind": "semantic",
+      "key": "user.transport",
+      "content": "用户平日通勤选择地铁，不开车。"
+    },
+    {
+      "kind": "project",
+      "key": "orion.database",
+      "content": "Orion 项目使用 DuckDB 保存分析数据。"
+    },
+    {
+      "kind": "project",
+      "key": "vega.database",
+      "content": "Vega 项目使用 MariaDB 保存业务数据。"
+    },
+    {
+      "kind": "project",
+      "key": "orion.language",
+      "content": "Orion 项目使用 Rust，界面显示中文。"
+    },
+    {
+      "kind": "project",
+      "key": "vega.language",
+      "content": "Vega 项目使用 Python，界面显示英文。"
+    },
+    {
+      "kind": "project",
+      "key": "orion.stage",
+      "content": "Orion 项目目前在离线测试，未确定正式发布日期。"
+    },
+    {
+      "kind": "project",
+      "key": "vega.backup",
+      "content": "Vega 项目每周备份一次数据库。"
+    },
+    {
+      "kind": "episodic",
+      "key": "orion.review",
+      "content": "2026年8月12日 Orion 项目评审通过，数据库保持 DuckDB。"
+    },
+    {
+      "kind": "episodic",
+      "key": "orion.failure",
+      "content": "2026年8月11日 Orion 项目评审失败，需要补充测试。"
+    },
+    {
+      "kind": "episodic",
+      "key": "vega.review",
+      "content": "2026年8月12日 Vega 项目评审延期到8月15日。"
+    },
+    {
+      "kind": "procedural",
+      "key": "deployment.check",
+      "content": "部署排查步骤：先检查服务健康状态，再查看错误日志，最后检查配置。"
+    },
+    {
+      "kind": "procedural",
+      "key": "backup.restore",
+      "content": "恢复备份的方法：先停止服务，校验备份 Hash，再还原文件，最后启动服务。"
+    },
+    {
+      "kind": "procedural",
+      "key": "database.review",
+      "content": "数据库设计评审步骤：先梳理访问模式，再检查索引设计。"
+    },
+    {
+      "kind": "semantic",
+      "key": "lin.preference",
+      "content": "小林喜欢深色主题。"
+    },
+    {
+      "kind": "semantic",
+      "key": "zhou.preference",
+      "content": "小周喜欢浅色主题。"
+    }
+  ],
+  "queries": [
+    {
+      "group": "literal",
+      "query": "Orion 用什么数据库？",
+      "expectedKey": "orion.database"
+    },
+    {
+      "group": "literal",
+      "query": "Vega 的开发语言是什么？",
+      "expectedKey": "vega.language"
+    },
+    {
+      "group": "literal",
+      "query": "我偏好的解释风格是什么？",
+      "expectedKey": "user.style"
+    },
+    {
+      "group": "literal",
+      "query": "恢复备份的方法是什么？",
+      "expectedKey": "backup.restore"
+    },
+    {
+      "group": "paraphrase",
+      "query": "我上班通常搭哪种交通工具？",
+      "expectedKey": "user.transport"
+    },
+    {
+      "group": "paraphrase",
+      "query": "给我倒饮料时要加冰块吗？",
+      "expectedKey": "user.temperature"
+    },
+    {
+      "group": "paraphrase",
+      "query": "我更想看精炼的母语还是冗长的外语说明？",
+      "expectedKey": "user.style"
+    },
+    {
+      "group": "paraphrase",
+      "query": "服务上线出问题应该先看什么？",
+      "expectedKey": "deployment.check"
+    },
+    {
+      "group": "mixed",
+      "query": "Orion 的 analysis data 用哪个 database？",
+      "expectedKey": "orion.database"
+    },
+    {
+      "group": "mixed",
+      "query": "Vega 的 UI language 是什么？",
+      "expectedKey": "vega.language"
+    },
+    {
+      "group": "entity",
+      "query": "Vega 数据库是什么，不要 Orion 的配置",
+      "expectedKey": "vega.database"
+    },
+    {
+      "group": "entity",
+      "query": "小林喜欢什么主题，不是小周？",
+      "expectedKey": "lin.preference"
+    },
+    {
+      "group": "entity",
+      "query": "Orion 开发用的语言，不是界面语言",
+      "expectedKey": "orion.language"
+    },
+    {
+      "group": "entity",
+      "query": "Vega 的备份周期，不是恢复步骤",
+      "expectedKey": "vega.backup"
+    },
+    {
+      "group": "time",
+      "query": "8月12日 Orion 评审结果，别用11日的失败记录",
+      "expectedKey": "orion.review"
+    },
+    {
+      "group": "time",
+      "query": "8月11日 Orion 评审发生了什么？",
+      "expectedKey": "orion.failure"
+    },
+    {
+      "group": "time",
+      "query": "8月12日 Vega 评审结果，不是 Orion",
+      "expectedKey": "vega.review"
+    },
+    {
+      "group": "procedural",
+      "query": "数据库设计评审要先干什么？",
+      "expectedKey": "database.review"
+    },
+    {
+      "group": "procedural",
+      "query": "备份还原前应该如何操作？",
+      "expectedKey": "backup.restore"
+    },
+    {
+      "group": "negative",
+      "query": "Orion 下次正式发布日期是哪天？",
+      "expectedKey": null
+    },
+    {
+      "group": "negative",
+      "query": "Vega 的服务器登录密码是什么？",
+      "expectedKey": null
+    },
+    {
+      "group": "negative",
+      "query": "小林喜欢喝哪种咖啡？",
+      "expectedKey": null
+    },
+    {
+      "group": "negative",
+      "query": "用户每月通勤花多少钱？",
+      "expectedKey": null
+    },
+    {
+      "group": "negative",
+      "query": "海王星卫星的直径是多少？",
+      "expectedKey": null
+    }
+  ]
+}

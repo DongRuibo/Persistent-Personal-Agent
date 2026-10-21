@@ -1,0 +1,85 @@
+{
+  "node": "v26.3.1",
+  "platform": "darwin",
+  "iterations": 12,
+  "modelCalls": 0,
+  "results": [
+    {
+      "count": 100,
+      "coldMs": 6.572583000000009,
+      "search": {
+        "p50Ms": 4.229874999999993,
+        "p95Ms": 10.906374999999997
+      },
+      "context": {
+        "p50Ms": 7.941624999999988,
+        "p95Ms": 8.436958000000004
+      },
+      "cpuMs": 164.631,
+      "rssDeltaMiB": 9.90625,
+      "heapDeltaMiB": 1.3083038330078125,
+      "rssMiB": 80.859375,
+      "maxRssKiB": 82800
+    },
+    {
+      "count": 1000,
+      "coldMs": 53.68266700000004,
+      "search": {
+        "p50Ms": 53.86008299999992,
+        "p95Ms": 56.688041
+      },
+      "context": {
+        "p50Ms": 102.62587499999995,
+        "p95Ms": 111.30074999999988
+      },
+      "cpuMs": 1971.887,
+      "rssDeltaMiB": 51.390625,
+      "heapDeltaMiB": 0.5662612915039062,
+      "rssMiB": 132.6875,
+      "maxRssKiB": 135872
+    }
+  ],
+  "repeatWithCorrectnessCheck": {
+    "node": "v26.3.1",
+    "platform": "darwin",
+    "iterations": 12,
+    "modelCalls": 0,
+    "results": [
+      {
+        "count": 100,
+        "coldMs": 6.292541999999997,
+        "search": {
+          "p50Ms": 4.0659590000000065,
+          "p95Ms": 4.451458000000002
+        },
+        "context": {
+          "p50Ms": 7.472209000000021,
+          "p95Ms": 8.613040999999981
+        },
+        "cpuMs": 162.883,
+        "rssDeltaMiB": 7.859375,
+        "heapDeltaMiB": 1.6607894897460938,
+        "rssMiB": 82.75,
+        "maxRssKiB": 84736
+      },
+      {
+        "count": 1000,
+        "coldMs": 48.54091699999998,
+        "search": {
+          "p50Ms": 50.68554199999994,
+          "p95Ms": 57.97408399999995
+        },
+        "context": {
+          "p50Ms": 97.81595900000002,
+          "p95Ms": 113.642292
+        },
+        "cpuMs": 1944.299,
+        "rssDeltaMiB": 66.125,
+        "heapDeltaMiB": 11.130142211914062,
+        "rssMiB": 149.234375,
+        "maxRssKiB": 152816
+      }
+    ]
+  },
+  "repeatSource": "git show dcec1f4:src/memory-service.ts, same benchmark harness with correctness assertion"
+}

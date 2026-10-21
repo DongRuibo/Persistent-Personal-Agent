@@ -1,0 +1,203 @@
+{
+  "version": 1,
+  "purpose": "Final author-defined holdout frozen after algorithm development. Not an external blind benchmark; do not tune algorithm or expectations after this evaluation.",
+  "memories": [
+    {
+      "kind": "semantic",
+      "key": "user.minutes",
+      "content": "用户的会议纪要偏好先列结论，再列行动项。"
+    },
+    {
+      "kind": "semantic",
+      "key": "user.focus",
+      "content": "用户通常上午处理需要专注的工作，下午参加会议。"
+    },
+    {
+      "kind": "semantic",
+      "key": "user.allergy",
+      "content": "用户对花生过敏，不吃含花生的食物。"
+    },
+    {
+      "kind": "semantic",
+      "key": "aqing.contact",
+      "content": "阿青喜欢电话沟通。"
+    },
+    {
+      "kind": "semantic",
+      "key": "abai.contact",
+      "content": "阿白喜欢邮件沟通。"
+    },
+    {
+      "kind": "project",
+      "key": "nacre.storage",
+      "content": "Nacre 项目使用 MongoDB 保存客户数据。"
+    },
+    {
+      "kind": "project",
+      "key": "quartz.storage",
+      "content": "Quartz 项目使用 SQLite 保存客户数据。"
+    },
+    {
+      "kind": "project",
+      "key": "nacre.check",
+      "content": "Nacre 项目的测试命令为 npm run verify，目前正在内测。"
+    },
+    {
+      "kind": "project",
+      "key": "quartz.price",
+      "content": "Quartz 项目的套餐每月99元。"
+    },
+    {
+      "kind": "project",
+      "key": "nacre.language",
+      "content": "Nacre 项目的界面使用日语，开发语言为 Kotlin。"
+    },
+    {
+      "kind": "episodic",
+      "key": "nacre.release",
+      "content": "2026年9月3日 Nacre 项目发布 v1.0，用户反馈良好。"
+    },
+    {
+      "kind": "episodic",
+      "key": "nacre.cancel",
+      "content": "2026年9月2日 Nacre 项目发布取消，需要补充回归测试。"
+    },
+    {
+      "kind": "episodic",
+      "key": "quartz.review",
+      "content": "2026年9月3日 Quartz 项目评审通过。"
+    },
+    {
+      "kind": "procedural",
+      "key": "device.restore",
+      "content": "设备恢复方法：先保存当前配置，再恢复出厂设置，最后导入备份。"
+    },
+    {
+      "kind": "procedural",
+      "key": "wireless.check",
+      "content": "无线网络断连排查步骤：先检查信号，再重启路由器，最后检查地址分配。"
+    }
+  ],
+  "queries": [
+    {
+      "group": "literal",
+      "query": "Nacre 使用什么数据库？",
+      "expectedKey": "nacre.storage"
+    },
+    {
+      "group": "literal",
+      "query": "Quartz 套餐的费用是多少？",
+      "expectedKey": "quartz.price"
+    },
+    {
+      "group": "literal",
+      "query": "会议纪要偏好按什么顺序写？",
+      "expectedKey": "user.minutes"
+    },
+    {
+      "group": "literal",
+      "query": "设备恢复的方法是什么？",
+      "expectedKey": "device.restore"
+    },
+    {
+      "group": "paraphrase",
+      "query": "整理讨论记录时，你应该先写决定还是待办？",
+      "expectedKey": "user.minutes"
+    },
+    {
+      "group": "paraphrase",
+      "query": "我应该把烧脑的活安排在一天的哪个时段？",
+      "expectedKey": "user.focus"
+    },
+    {
+      "group": "paraphrase",
+      "query": "我能吃加了花生酱的面包吗？",
+      "expectedKey": "user.allergy"
+    },
+    {
+      "group": "paraphrase",
+      "query": "Wi-Fi老掉线，先从哪里检查？",
+      "expectedKey": "wireless.check"
+    },
+    {
+      "group": "mixed",
+      "query": "Nacre 的 database 用哪个产品？",
+      "expectedKey": "nacre.storage"
+    },
+    {
+      "group": "mixed",
+      "query": "Nacre UI language 是什么？",
+      "expectedKey": "nacre.language"
+    },
+    {
+      "group": "entity",
+      "query": "Quartz 数据库是什么，不要 Nacre 的方案",
+      "expectedKey": "quartz.storage"
+    },
+    {
+      "group": "entity",
+      "query": "阿青喜欢哪种联系方法，不是阿白？",
+      "expectedKey": "aqing.contact"
+    },
+    {
+      "group": "entity",
+      "query": "阿白喜欢什么沟通方式？",
+      "expectedKey": "abai.contact"
+    },
+    {
+      "group": "entity",
+      "query": "Nacre 的测试命令，不是 Quartz 的费用",
+      "expectedKey": "nacre.check"
+    },
+    {
+      "group": "time",
+      "query": "9月3日 Nacre 发布结果，别用2日取消记录",
+      "expectedKey": "nacre.release"
+    },
+    {
+      "group": "time",
+      "query": "2026-09-02 Nacre 发布发生了什么？",
+      "expectedKey": "nacre.cancel"
+    },
+    {
+      "group": "time",
+      "query": "9月3日 Quartz 评审结果，不是 Nacre",
+      "expectedKey": "quartz.review"
+    },
+    {
+      "group": "procedural",
+      "query": "设备恢复出厂设置之前先做什么？",
+      "expectedKey": "device.restore"
+    },
+    {
+      "group": "procedural",
+      "query": "无线网络断连的排查步骤是什么？",
+      "expectedKey": "wireless.check"
+    },
+    {
+      "group": "negative",
+      "query": "Nacre 下一次正式发布的确切日期是什么？",
+      "expectedKey": null
+    },
+    {
+      "group": "negative",
+      "query": "Quartz 的登录密码是什么？",
+      "expectedKey": null
+    },
+    {
+      "group": "negative",
+      "query": "用户对哪一种海鲜过敏？",
+      "expectedKey": null
+    },
+    {
+      "group": "negative",
+      "query": "阿青每个月电话费用多少钱？",
+      "expectedKey": null
+    },
+    {
+      "group": "negative",
+      "query": "木星环的厚度是多少？",
+      "expectedKey": null
+    }
+  ]
+}
