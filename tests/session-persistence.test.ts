@@ -1,3 +1,4 @@
+import { intentReply, sseText } from './helpers/intent-stub.js';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { once } from 'node:events';
@@ -27,6 +28,8 @@ test('真实 Pi Session 文件：飞书上下文恢复、目标和去重跨重�
     for await (const chunk of req) body += String(chunk);
     const payload = JSON.parse(body) as Payload;
     requests.push(payload);
+    const intent = intentReply(payload);
+    if (intent !== undefined) { res.writeHead(200, { 'Content-Type': 'text/event-stream' }); res.end(sseText(intent)); return; }
     const lastUser = payload.messages.findLastIndex((message) => message.role === 'user');
     const user = JSON.stringify(payload.messages[lastUser]?.content);
     const callTool = user.includes('1分钟后提醒我生成后台提醒') && !payload.messages.slice(lastUser + 1).some((message) => message.role === 'tool');

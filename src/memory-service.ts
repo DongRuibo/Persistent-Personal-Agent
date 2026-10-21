@@ -3,7 +3,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import { chmodSync, closeSync, constants, existsSync, fsyncSync, lstatSync, mkdirSync, openSync, readFileSync, readdirSync, renameSync, unlinkSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
-import type { ExecutionRequest, MemoryInput, MemoryKind, MemoryRecord, MemoryService } from './contracts.js';
+import type { ExecutionRequest, MemoryInput, MemoryKind, MemoryRecord, MemoryService, WriteOperation } from './contracts.js';
 
 const folders = { semantic: '', project: 'projects', episodic: 'episodes', procedural: 'procedures' } as const;
 const marker = '<!-- personal-agent-memory ';
@@ -12,7 +12,7 @@ const normalize = (text: string) => text.normalize('NFKC').replace(/\s+/gu, ' ')
 const uuid = /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/;
 const kinds = Object.keys(folders) as MemoryKind[];
 type Intent = 'remember' | 'update' | 'forget';
-interface RequestContext { request: ExecutionRequest; intent?: Intent; selected: Set<string> }
+interface RequestContext { request: ExecutionRequest; intent?: Intent; selected: Set<string>; permission?: WriteOperation | null }
 
 // 保守的宿主授权门：普通对话、引用中的命令、后台任务均不能写入。
 export function memoryIntent(text: string): Intent | undefined {
@@ -92,14 +92,15 @@ export class FileMemoryService implements MemoryService {
     } catch (error) { this.db.close(); throw error; }
   }
 
-  withRequest<T>(request: ExecutionRequest, action: () => T): T {
-    return this.context.run({ request, intent: request.scope === 'chat' ? memoryIntent(request.prompt) : undefined, selected: new Set() }, action);
+  withRequest<T>(request: ExecutionRequest, action: () => T, permission?: WriteOperation | null): T {
+    return this.context.run({ request, intent: request.scope === 'chat' ? memoryIntent(request.prompt) : undefined, selected: new Set(), permission }, action);
   }
 
   private authorize(intent: Intent): MemoryRecord['source'] {
     const context = this.context.getStore();
     context?.request.signal.throwIfAborted();
-    if (!context || context.request.scope !== 'chat' || context.intent !== intent) {
+    const allowed = context?.permission === undefined ? context?.intent === intent : context.permission?.tool === `memory_${intent}`;
+    if (!context || context.request.scope !== 'chat' || !allowed) {
       throw new Error(`Memory ${intent} 需要本轮用户明确意图；请以“记住：”“更新记忆：”或“忘记：”开头，后台不能写入`);
     }
     const source = context.request.source;
@@ -107,6 +108,13 @@ export class FileMemoryService implements MemoryService {
   }
 
   private authorizeRecord(intent: Intent, record: Pick<MemoryRecord, 'id' | 'key' | 'kind'> | MemoryInput, content?: string, all: MemoryRecord[] = []): void {
+    const permission = this.context.getStore()!.permission;
+    if (permission !== undefined) {
+      const args = permission?.args;
+      if (!args || (intent === 'remember' ? !('kind' in args) || args.kind !== record.kind || args.key !== record.key || args.content !== content
+        : !('id' in args) || !('id' in record) || args.id !== record.id || !('expectedVersion' in args) || !('version' in record) || args.expectedVersion !== record.version || (intent === 'update' && (!('content' in args) || args.content !== content)))) throw new Error('Memory 参数不在本轮宿主授权范围内');
+      return;
+    }
     const input = command(this.context.getStore()!.request.prompt);
     if ((input.kind && input.kind !== record.kind) || (input.key && input.key !== record.key) ||
       (input.id && (!('id' in record) || input.id !== record.id))) throw new Error('Memory 操作必须匹配用户本轮指定的 kind/key/id');
@@ -200,6 +208,8 @@ export class FileMemoryService implements MemoryService {
     return (this.db.prepare('SELECT record FROM memories ORDER BY updated_at DESC, id').all() as { record: string }[])
       .map((row) => JSON.parse(row.record) as MemoryRecord);
   }
+
+  listForHost(): MemoryRecord[] { return this.all(); }
 
   search(query: string, kind?: MemoryKind): MemoryRecord[] {
     const keywords = terms(query);

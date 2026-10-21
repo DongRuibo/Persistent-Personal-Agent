@@ -1,0 +1,76 @@
+{
+  "date": "2026-10-21",
+  "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+  "baseCommit": "2938a6fa84121f55d837e7dbd1e3fb95ea7fa562",
+  "realModel": true,
+  "realFeishu": false,
+  "formalDataAccessed": false,
+  "rounds": [
+    {
+      "round": 1,
+      "started": "2026-10-21T02:16:19.157Z",
+      "finished": "2026-10-21T02:16:59.912Z",
+      "runs": 13,
+      "modelCalls": 27,
+      "inputTokens": 12382,
+      "outputTokens": 1915,
+      "evidence": "natural-language-real-report.json",
+      "interpretation": "Development version: found an incorrect cancellation and unfulfilled requests; not passed."
+    },
+    {
+      "round": 2,
+      "started": "2026-10-21T02:18:38.408Z",
+      "finished": "2026-10-21T02:19:10.841Z",
+      "runs": 8,
+      "modelCalls": 24,
+      "inputTokens": 13287,
+      "outputTokens": 1127,
+      "evidence": "natural-language-real-report-v2.json",
+      "interpretation": "Retest: creation and meeting cancellation passed; last-reference and ambiguity still failed."
+    },
+    {
+      "round": 3,
+      "started": "2026-10-21T02:21:04.486Z",
+      "finished": "2026-10-21T02:21:16.974Z",
+      "runs": 4,
+      "modelCalls": 13,
+      "inputTokens": 8176,
+      "outputTokens": 510,
+      "evidence": "natural-language-real-report-v3.json",
+      "interpretation": "Targeted final retest: last-reference cancellation, ambiguity without mutation, and second-choice cancellation verified against actual records."
+    }
+  ],
+  "totalRuns": 25,
+  "totalModelCalls": 64,
+  "totalInputTokens": 33845,
+  "totalOutputTokens": 3552,
+  "cost": null,
+  "targetedFinalCases": [
+    {
+      "message": "两分钟之后叫我喝水",
+      "observed": "One pending water reminder created in isolated SQLite.",
+      "passed": true
+    },
+    {
+      "message": "刚才那个提醒不用了",
+      "observed": "The previously created water reminder changed to cancelled.",
+      "passed": true
+    },
+    {
+      "message": "取消我刚才设的上厕所提醒",
+      "setup": "Two isolated pending fixtures: 上厕所 and 去厕所; both seeded through TaskService, not model-created in this round.",
+      "observed": "Host displayed 1.去厕所 and 2.上厕所; both remained pending. Water remained cancelled.",
+      "passed": true
+    },
+    {
+      "message": "第二个",
+      "observed": "Only 上厕所 changed to cancelled; 去厕所 remained pending and water remained cancelled.",
+      "passed": true
+    }
+  ],
+  "limitations": [
+    "Different working implementations across rounds; not a single all-scenario final E2E run.",
+    "Feishu delivery and final-build real Memory update/delete not verified.",
+    "Small fictional sample; no general accuracy or prompt-injection immunity claim."
+  ]
+}

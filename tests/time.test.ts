@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { parseTaskTime } from '../src/time.js';
+import { parseTaskTime, taskTimeRange } from '../src/time.js';
 
 const now = new Date('2026-10-20T00:00:00.000Z');
 
@@ -46,4 +46,13 @@ test('夏令时重叠和不存在的时间必须显式指定偏移', () => {
   assert.equal(parseTaskTime('2026-11-01T01:30:00-04:00', 'America/New_York', before), '2026-11-01T05:30:00.000Z');
   assert.throws(() => parseTaskTime('1天后', 'America/New_York', new Date('2026-03-07T07:30:00Z')), /夏令时/);
   assert.throws(() => parseTaskTime('明天凌晨两点半', 'America/New_York', new Date('2026-03-07T07:30:00Z')), /夏令时/);
+});
+
+test('常见自然时间别名与筛选时段：不为含糊提醒补造几点', () => {
+  for (const input of ['过两分钟', '过两分钟后', '过两分钟之后', '两分钟之后']) assert.equal(parseTaskTime(input, 'Asia/Shanghai', now), '2026-10-20T00:02:00.000Z');
+  assert.equal(parseTaskTime('晚上8点', 'Asia/Shanghai', now), '2026-10-20T12:00:00.000Z');
+  assert.equal(parseTaskTime('明早九点', 'Asia/Shanghai', now), '2026-10-21T01:00:00.000Z');
+  assert.deepEqual(taskTimeRange('明天早上', 'Asia/Shanghai', now), ['2026-10-20T22:00:00.000Z', '2026-10-21T04:00:00.000Z']);
+  assert.throws(() => parseTaskTime('明天早上', 'Asia/Shanghai', now));
+  assert.throws(() => parseTaskTime('洗完澡', 'Asia/Shanghai', now));
 });

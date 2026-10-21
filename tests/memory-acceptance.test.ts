@@ -1,3 +1,4 @@
+import { intentReply, sseText } from './helpers/intent-stub.js';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, unlinkSync } from 'node:fs';
@@ -37,6 +38,8 @@ function model(t: TestContext) {
   t.mock.method(globalThis, 'fetch', async (_input: unknown, init?: RequestInit) => {
     const payload = JSON.parse(String(init?.body)) as Payload;
     payloads.push(payload);
+    const intent = intentReply(payload);
+    if (intent !== undefined) return new Response(sseText(intent), { headers: { 'Content-Type': 'text/event-stream' } });
     const last = payload.messages.findLastIndex((item) => item.role === 'user');
     const prompt = contentText(payload.messages[last]?.content).replace(/^\[当前用户时间：[^\n]*\]\n/u, '');
     const call = payload.messages.slice(last + 1).some((item) => item.role === 'tool') ? undefined : calls.get(prompt);

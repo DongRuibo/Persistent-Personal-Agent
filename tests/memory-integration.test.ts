@@ -1,3 +1,4 @@
+import { intentReply, sseText } from './helpers/intent-stub.js';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { once } from 'node:events';
@@ -117,6 +118,8 @@ test('真实 Pi 1.3.0 + 模拟模型：受控工具、跨重启和全新 Session
     let body = ''; for await (const chunk of req) body += String(chunk);
     const payload = JSON.parse(body) as Payload;
     payloads.push(payload);
+    const intent = intentReply(payload);
+    if (intent !== undefined) { res.writeHead(200, { 'Content-Type': 'text/event-stream' }); res.end(sseText(intent)); return; }
     const lastUser = payload.messages.findLastIndex((message) => message.role === 'user');
     const text = JSON.stringify(payload.messages[lastUser]?.content);
     const followedByTool = payload.messages.slice(lastUser + 1).some((message) => message.role === 'tool');

@@ -73,6 +73,13 @@ export class SqliteStore {
     return this.db.prepare('SELECT * FROM tasks ORDER BY dueAt, id LIMIT 100').all().map((row) => this.readTask(row)!);
   }
 
+  tasksForTarget(target: MessageTarget): Task[] {
+    const owner = target.channel === 'console' ? "json_extract(target, '$.channel') = 'console'"
+      : "json_extract(target, '$.channel') = 'feishu' AND json_extract(target, '$.appId') = ? AND json_extract(target, '$.userOpenId') = ? AND json_extract(target, '$.chatId') = ?";
+    const params = target.channel === 'console' ? [] : [target.appId, target.userOpenId, target.chatId];
+    return this.db.prepare(`SELECT * FROM tasks WHERE ${owner} ORDER BY createdAt DESC, rowid DESC LIMIT 101`).all(...params).map((row) => this.readTask(row)!);
+  }
+
   hasPendingFeishuTasks(): boolean {
     return Boolean(this.db.prepare("SELECT 1 FROM tasks WHERE status = 'pending' AND json_extract(target, '$.channel') = 'feishu' LIMIT 1").get());
   }

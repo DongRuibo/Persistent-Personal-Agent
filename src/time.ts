@@ -19,7 +19,8 @@ function chineseNumber(text: string): number {
 // 有界语法，不用 Date.parse 解析本地时间，也不让 LLM 换算用户时区。
 export function parseTaskTime(input: string, timeZone: string, now = new Date()): string {
   validateTimeZone(timeZone);
-  const text = input.trim().replace(/\s+/g, '');
+  const text = input.trim().replace(/\s+/g, '').replace(/之后$/u, '后').replace(/^过(.+?)(?:后)?$/u, '$1后')
+    .replace(/^明早/u, '明天早上').replace(/^(凌晨|早上|上午|中午|下午|晚上)/u, '今天$1');
   const instant = Temporal.Instant.from(now.toISOString());
   let result: Temporal.Instant;
   try {
@@ -76,4 +77,19 @@ export function parseTaskTime(input: string, timeZone: string, now = new Date())
   }
   if (Temporal.Instant.compare(result, instant) <= 0) throw new Error('执行时间必须晚于当前时间');
   return new Date(Number(result.epochMilliseconds)).toISOString();
+}
+
+// 仅用于筛选已有任务；“明天早上”不能作为新任务的精确执行时间。
+export function taskTimeRange(input: string, timeZone: string, now = new Date()): [string, string] {
+  const text = input.replace(/\s+/gu, '').replace(/^明早/u, '明天早上');
+  const match = /^(今天|明天|后天)(早上|上午|下午|晚上)?$/u.exec(text);
+  if (!match) {
+    const time = parseTaskTime(input, timeZone, now);
+    return [time, new Date(Date.parse(time) + 1000).toISOString()];
+  }
+  const date = Temporal.Instant.from(now.toISOString()).toZonedDateTimeISO(timeZone).toPlainDate()
+    .add({ days: { 今天: 0, 明天: 1, 后天: 2 }[match[1]!]! });
+  const [start, end] = ({ 早上: [6, 12], 上午: [6, 12], 下午: [12, 18], 晚上: [18, 24] }[match[2] ?? ''] ?? [0, 24]) as [number, number];
+  const at = (hour: number) => date.toPlainDateTime().add({ hours: hour }).toZonedDateTime(timeZone, { disambiguation: 'reject' }).toInstant().toString();
+  return [new Date(at(start)).toISOString(), new Date(at(end)).toISOString()];
 }

@@ -1,3 +1,4 @@
+import { intentReply, sseText } from './helpers/intent-stub.js';
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
 import { once } from 'node:events';
@@ -60,6 +61,8 @@ test('真实 Pi SDK + 本地模拟 API：工具白名单、任务创建、Sessio
     for await (const chunk of req) body += String(chunk);
     const payload = JSON.parse(body) as Payload;
     requests.push(payload);
+    const intent = intentReply(payload);
+    if (intent !== undefined) { res.writeHead(200, { 'Content-Type': 'text/event-stream' }); res.end(sseText(intent)); return; }
     if (httpError) {
       res.writeHead(500, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ error: { message: 'simulated provider failure' } }));
@@ -97,11 +100,11 @@ test('真实 Pi SDK + 本地模拟 API：工具白名单、任务创建、Sessio
   };
   try {
     const chat = await execute('chat', '明天上午9点提醒我问候');
-    assert.equal(chat.result.text, '模拟结果');
+    assert.match(chat.result.text, /已创建提醒/);
     assert.equal(tasks.list().length, 1);
     assert.equal(tasks.list()[0]!.dueAt, '2026-10-21T01:00:00.000Z');
     assert.deepEqual(requests[0]!.tools?.map((tool) => tool.function.name).sort(), ['cancel_task', 'create_task', 'list_tasks']);
-    assert.equal(store.modelCalls(chat.run.id).length, 2);
+    assert.equal(store.modelCalls(chat.run.id).length, 3);
     assert.equal(store.modelCalls(chat.run.id)[0]!.inputTokens, 21);
     assert.equal(store.modelCalls(chat.run.id)[0]!.cost, null);
     const events = store.events(chat.run.id);

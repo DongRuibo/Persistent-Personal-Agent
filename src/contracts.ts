@@ -94,3 +94,11 @@ export interface MemoryService {
   update(id: string, content: string, expectedVersion: number): MemoryRecord;
   forget(id: string, expectedVersion: number): void;
 }
+
+// 只由宿主验证后在异步请求上下文中传递；不是模型可填写的工具参数。
+export type WriteOperation =
+  | { tool: 'create_task'; args: { instruction: string; when: string } }
+  | { tool: 'cancel_task'; args: { id: string } }
+  | { tool: 'memory_remember'; args: MemoryInput }
+  | { tool: 'memory_update'; args: { id: string; content: string; expectedVersion: number } }
+  | { tool: 'memory_forget'; args: { id: string; expectedVersion: number } };
