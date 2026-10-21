@@ -76,6 +76,13 @@ test('真实 Pi + 模拟模型：隔离解析无 Memory/历史/工具、参数�
     const second = tasks.create('开会', '明天上午10点');
     assert.match((await execute(cancel)).reply.text, /多个.*目标/);
     await executor.close(); executor = await createPiExecutor(config, tasks, 'natural-test', memory);
+    const correctSelection = plans['第二个'];
+    for (const selector of [{ keywords: [], reference: 'choice', position: 1 }, { keywords: [], reference: 'latest' }]) {
+      plans['第二个'] = { action: 'cancel_task', mode: 'request', evidence: '第二个', selector };
+      assert.match((await execute('第二个')).reply.text, /序号|引用|选择/);
+      assert.equal(tasks.get(first.id).status, 'pending'); assert.equal(tasks.get(second.id).status, 'pending');
+    }
+    plans['第二个'] = correctSelection;
     assert.match((await execute('第二个')).reply.text, /已取消/);
     assert.equal(tasks.get(first.id).status, 'cancelled'); assert.equal(tasks.get(second.id).status, 'pending');
     const before = classifierCalls;

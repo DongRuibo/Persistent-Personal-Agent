@@ -44,6 +44,31 @@ function matches(text: string, term: string): boolean {
 }
 const ttl = 5 * 60_000;
 
+// 只校验可确定的选择标记，不代替自然语言意图解析；引号里的标题/示例不授予引用能力。
+function referenceFromMessage(message: string): { reference: 'choice' | 'last' | 'latest'; position?: number } | 'ambiguous' | undefined {
+  const text = message.normalize('NFKC').replace(/\s+/gu, '').replace(/「[^」]*」|『[^』]*』|“[^”]*”|‘[^’]*’|"[^"]*"|'[^']*'|`[^`]*`/gu, ' ');
+  const positions = [...text.matchAll(/第([0-9零〇一二两三四五六七八九十百]+)(?:个|项|条|号)|([0-9零〇一二两三四五六七八九十百]+)号/gu)].map((match) => {
+    const value = match[1] ?? match[2]!;
+    if (/^\d+$/u.test(value)) return Number(value);
+    if (value === '一百') return 100;
+    const digits = '零一二三四五六七八九';
+    if (value === '两') return 2;
+    if (/^[一二三四五六七八九]$/u.test(value)) return digits.indexOf(value);
+    if (/^[一二三四五六七八九]?十[一二三四五六七八九]?$/u.test(value)) {
+      const [tens, units] = value.split('十');
+      return (tens ? digits.indexOf(tens) : 1) * 10 + (units ? digits.indexOf(units) : 0);
+    }
+    return NaN;
+  });
+  if (positions.length) {
+    if (/倒数|从后/u.test(text) || positions.some((value) => !Number.isInteger(value) || value < 1 || value > 100) || new Set(positions).size !== 1) return 'ambiguous';
+    return { reference: 'choice', position: positions[0]! };
+  }
+  if (/最新|最近(?:一次)?(?:创建|新建|设置|保存)|最后(?:一次|一个|一条)?(?:创建|新建|设置|保存)/u.test(text)) return { reference: 'latest' };
+  if (/刚才|刚刚|刚(?:创建|新建|设置|设|保存)|上一(?:个|条|次)|上次/u.test(text)) return { reference: 'last' };
+  return undefined;
+}
+
 // 唯一能将隔离解析结果变为本轮能力的宿主边界；主 Agent/Memory 无法写入该状态。
 export class OperationGuard {
   private readonly context = new AsyncLocalStorage<Frame>();
@@ -121,7 +146,7 @@ export class OperationGuard {
 
   private async resolve(frame: Frame): Promise<WriteOperation | string> {
     const { request, references } = frame;
-    const now = this.tasks.now().getTime();
+    let now = this.tasks.now().getTime();
     const pending = references.confirmation;
     if (pending && pending.expires > now && /^(?:确认|同意|就这样|好的，就这样)[。！!]?$/u.test(request.prompt.trim())) {
       this.validateCurrent(pending.operation);
@@ -129,9 +154,13 @@ export class OperationGuard {
     }
     delete this.state.confirmation;
     if (pending) this.saveState(this.state);
-    const choices = references.choices?.expires && references.choices.expires > now ? references.choices : undefined;
-    const confirming = pending && pending.expires > now ? pending : undefined;
+    let choices = references.choices?.expires && references.choices.expires > now ? references.choices : undefined;
+    let confirming = pending && pending.expires > now ? pending : undefined;
     const raw = await this.interpret(request.prompt, { tool: choices?.tool ?? confirming?.operation.tool, count: choices?.ids.length, confirmation: confirming ? true : undefined }, request);
+    // 模型解析可能较慢，选择或确认权限必须在解析完成后仍有效。
+    now = this.tasks.now().getTime();
+    if (choices && choices.expires <= now) choices = undefined;
+    if (confirming && confirming.expires <= now) confirming = undefined;
     if (!Value.Check(intentSchema, raw)) throw new Error('意图解析格式无效，本轮没有执行写操作');
     const intent = raw as Intent;
     if (intent.mode === 'uncertain') return '我还不能确定你希望执行什么操作，请补充要处理的提醒或记忆；本轮没有修改。';
@@ -160,6 +189,10 @@ export class OperationGuard {
     const selector = intent.selector;
     if (!selector) return '请说明要操作哪条提醒或记忆。';
     if (selector.keywords.some((term) => !request.prompt.includes(term)) || selector.when && !request.prompt.includes(selector.when)) throw new Error('目标筛选依据不来自当前用户消息，未执行');
+    const reference = referenceFromMessage(request.prompt);
+    if (reference === 'ambiguous' || (selector.reference && selector.reference !== reference?.reference) ||
+      (reference?.reference === 'choice' && (selector.reference !== 'choice' || selector.position !== reference.position)) ||
+      (selector.position !== undefined && selector.reference !== 'choice')) return '选择的序号或引用与当前消息不一致，或无法唯一确定。请重新说明要选第几个或哪条记录；本轮没有操作。';
     const taskOperation = intent.action === 'cancel_task';
     const all: (Task | MemoryRecord)[] = taskOperation ? this.tasks.visibleTasks() : this.memory?.listForHost() ?? [];
     let records = all;

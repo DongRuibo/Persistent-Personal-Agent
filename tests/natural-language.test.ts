@@ -116,9 +116,122 @@ test('查询编号由宿主显示，不能继承不存在/过期选项；跨用�
     env.tasks.create('开会', '明天上午11点');
     env.plan('取消开会提醒', { action: 'cancel_task', selector: { keywords: ['开会'] } });
     await env.run('取消开会提醒', 'cancel_task'); env.advance(6);
-    env.plan('第二个', { action: 'cancel_task', selector: { keywords: [], reference: 'choice', position: 99 } });
+    env.plan('第二个', { action: 'cancel_task', selector: { keywords: [], reference: 'choice', position: 2 } });
     assert.match((await env.run('第二个', 'cancel_task')).text, /没有找到/);
     assert.equal(env.tasks.get(second.id).status, 'pending');
+  } finally { env.close(); }
+});
+
+test('宿主核对当前序号：解析器错号、漏掉编号、改用最新、引用文本或不确定选择均不写入', async () => {
+  const env = setup();
+  try {
+    const first = env.tasks.create('带伞', '明天上午8点');
+    const second = env.tasks.create('开会', '明天上午9点');
+    await env.guard.withRequest(request('查看提醒'), async () => { env.guard.taskList(); return { text: '' }; });
+    for (const [message, selector] of [
+      ['第二个', { keywords: [], reference: 'choice', position: 1 }],
+      ['取消2号', { keywords: [], reference: 'choice', position: 1 }],
+      ['第十二个', { keywords: [], reference: 'choice', position: 2 }],
+      ['第二个', { keywords: [], reference: 'latest' }],
+      ['取消第二个带伞提醒', { keywords: ['带伞'] }],
+      ['第一个还是第二个', { keywords: [], reference: 'choice', position: 1 }],
+      ['倒数第二个', { keywords: [], reference: 'choice', position: 2 }],
+      ['第0个', { keywords: [], reference: 'choice', position: 1 }],
+      ['第一百零一个', { keywords: [], reference: 'choice', position: 1 }],
+      ['你好', { keywords: [], reference: 'choice', position: 1 }],
+      ['取消“第二个”这个提醒', { keywords: [], reference: 'choice', position: 2 }],
+      ['取消第“二”个', { keywords: [], reference: 'choice', position: 2 }],
+    ] as const) {
+      env.plan(message, { action: 'cancel_task', selector: { ...selector, keywords: [...selector.keywords] } });
+      assert.match((await env.run(message, 'cancel_task')).text, /序号|引用|选择/);
+      assert.equal(env.tasks.get(first.id).status, 'pending', message);
+      assert.equal(env.tasks.get(second.id).status, 'pending', message);
+    }
+  } finally { env.close(); }
+});
+
+test('常见中文、阿拉伯及全角序号与解析器一致时只操作宿主显示的对应项', async () => {
+  for (const [message, position] of [['第二个', 2], ['取消2号', 2], ['取消第１项', 1], ['第十条', 10], ['十二号', 12], ['第二十个', 20], ['第一百项', 100]] as const) {
+    const env = setup();
+    try {
+      for (let index = 0; index < position; index++) env.tasks.create(`虚构提醒${index + 1}`, '明天上午8点');
+      let ids: string[] = [];
+      await env.guard.withRequest(request('查看提醒'), async () => { ids = env.guard.taskList().map((task) => task.id); return { text: '' }; });
+      env.plan(message, { action: 'cancel_task', selector: { keywords: [], reference: 'choice', position } });
+      await env.run(message, 'cancel_task');
+      for (const [index, id] of ids.entries()) assert.equal(env.tasks.get(id).status, index + 1 === position ? 'cancelled' : 'pending', message);
+    } finally { env.close(); }
+  }
+});
+
+test('Memory 更新和删除也核对宿主序号，错号不能改变正文、版本或索引', async () => {
+  for (const tool of ['memory_update', 'memory_forget'] as const) {
+    const env = setup();
+    try {
+      for (const content of ['我偏好简洁的开发解释', '我偏好中文的开发解释']) {
+        env.memory.withRequest(request(`记住：${content}`), () => env.memory.remember({ kind: 'semantic', key: content.includes('简洁') ? 'test.concise' : 'test.language', content }));
+      }
+      const before = env.memory.listForHost();
+      const fact = '我偏好更简短的开发解释';
+      const message = tool === 'memory_update' ? `把开发解释偏好改成${fact}` : '忘掉我的开发解释偏好';
+      const body = tool === 'memory_update' ? { body: fact, bodyEvidence: fact } : {};
+      env.plan(message, { action: tool, ...body, selector: { keywords: ['开发解释'] } });
+      assert.match((await env.run(message, tool)).text, /多个.*目标/);
+      const selection = tool === 'memory_update' ? `把第二个改成${fact}` : '第二个';
+      env.plan(selection, { action: tool, ...body, selector: { keywords: [], reference: 'choice', position: 1 } });
+      assert.match((await env.run(selection, tool)).text, /序号|引用|选择/);
+      for (const record of before) assert.deepEqual(env.memory.get(record.id), record);
+      env.plan(selection, { action: tool, ...body, selector: { keywords: [], reference: 'choice', position: 2 } });
+      await env.run(selection, tool);
+      assert.deepEqual(env.memory.get(before[0]!.id), before[0]);
+      if (tool === 'memory_update') {
+        assert.equal(env.memory.get(before[1]!.id).content, fact);
+        assert.equal(env.memory.get(before[1]!.id).version, before[1]!.version + 1);
+      } else assert.ok(!env.memory.listForHost().some((record) => record.id === before[1]!.id));
+    } finally { env.close(); }
+  }
+});
+
+test('刚才与最新必须有当前消息依据且不能互换，历史引用过期不操作', async () => {
+  const env = setup();
+  try {
+    const earlier = env.tasks.create('开会', '明天上午8点');
+    const latest = env.tasks.create('开会', '明天上午9点');
+    await env.guard.withRequest(request('查看之前的提醒'), async () => { env.guard.taskList(earlier.id); return { text: '' }; });
+    for (const [message, reference] of [['刚才那个提醒不用了', 'latest'], ['取消最新创建的那个提醒', 'last'], ['取消开会提醒', 'latest'], ['取消开会提醒', 'last'], ['取消“最新”这个提醒', 'latest']] as const) {
+      env.plan(message, { action: 'cancel_task', selector: { keywords: [], reference } });
+      assert.match((await env.run(message, 'cancel_task')).text, /序号|引用|选择/);
+      assert.equal(env.tasks.get(earlier.id).status, 'pending'); assert.equal(env.tasks.get(latest.id).status, 'pending');
+    }
+    const recent = '取消最新创建的那个提醒';
+    env.plan(recent, { action: 'cancel_task', selector: { keywords: [], reference: 'latest' } });
+    await env.run(recent, 'cancel_task');
+    assert.equal(env.tasks.get(latest.id).status, 'cancelled'); assert.equal(env.tasks.get(earlier.id).status, 'pending');
+    env.advance(6); env.reopen();
+    env.plan('刚才那个提醒不用了', { action: 'cancel_task', selector: { keywords: [], reference: 'last' } });
+    assert.match((await env.run('刚才那个提醒不用了', 'cancel_task')).text, /没有找到/);
+    assert.equal(env.tasks.get(earlier.id).status, 'pending');
+    const delayed = new OperationGuard(env.tasks, env.memory, async () => {
+      env.advance(0.1);
+      return { action: 'cancel_task', mode: 'request', evidence: '第二个', selector: { keywords: [], reference: 'choice', position: 2 } };
+    }, { tasks: [latest.id, earlier.id], taskViewExpires: env.tasks.now().getTime() + 1000 });
+    const expiredDuringParse = await delayed.withRequest(request('第二个'), async () => {
+      await delayed.perform('cancel_task', {}, (operation, req) => env.tasks.withRequest(req, () => env.tasks.cancelFromAgent(operation.args.id), operation));
+      return { text: '' };
+    });
+    assert.match(expiredDuringParse.text, /没有找到/);
+    assert.equal(env.tasks.get(earlier.id).status, 'pending', '解析等待期间过期的历史编号不得执行');
+    const confirmation = '可以，按刚才展示的内容保存吧';
+    const delayedConfirmation = new OperationGuard(env.tasks, env.memory, async () => {
+      env.advance(0.1);
+      return { action: 'memory_remember', mode: 'request', evidence: confirmation, confirmation: true };
+    }, { confirmation: { operation: { tool: 'memory_remember', args: { kind: 'semantic', key: 'test.expired', content: '虚构偏好' } }, expires: env.tasks.now().getTime() + 1000 } });
+    const expiredConfirmation = await delayedConfirmation.withRequest(request(confirmation), async () => {
+      await delayedConfirmation.perform('memory_remember', {}, () => assert.fail('解析期间过期的确认不得执行'));
+      return { text: '' };
+    });
+    assert.match(expiredConfirmation.text, /没有对应/);
+    assert.deepEqual(env.memory.listForHost(), []);
   } finally { env.close(); }
 });
 
