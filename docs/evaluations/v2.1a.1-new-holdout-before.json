@@ -1,0 +1,1193 @@
+{
+  "mode": "offline-lexical",
+  "fixtureVersion": 1,
+  "budgetBytes": 2048,
+  "memoryCount": 16,
+  "summary": {
+    "answerable": 18,
+    "top1": 0.8333333333333334,
+    "recall5": 1,
+    "mrr": 0.8888888888888888,
+    "negativeCount": 6,
+    "insufficientEvidenceCorrect": 4,
+    "supportedCorrect": 6,
+    "strictExpectedKeyContextPrecision": 0.5,
+    "latencyP50Ms": 2.711833000000013,
+    "latencyP95Ms": 3.660792000000015
+  },
+  "groups": {
+    "literal": {
+      "count": 4,
+      "top1": 3,
+      "recall5": 4,
+      "contextHit": 3
+    },
+    "mixed": {
+      "count": 2,
+      "top1": 1,
+      "recall5": 2,
+      "contextHit": 1
+    },
+    "field": {
+      "count": 4,
+      "top1": 4,
+      "recall5": 4,
+      "contextHit": 4
+    },
+    "entity": {
+      "count": 2,
+      "top1": 1,
+      "recall5": 2,
+      "contextHit": 1
+    },
+    "time": {
+      "count": 3,
+      "top1": 3,
+      "recall5": 3,
+      "contextHit": 3
+    },
+    "paraphrase": {
+      "count": 2,
+      "top1": 2,
+      "recall5": 2,
+      "contextHit": 2
+    },
+    "procedural": {
+      "count": 1,
+      "top1": 1,
+      "recall5": 1,
+      "contextHit": 1
+    },
+    "negative": {
+      "count": 6,
+      "top1": 0,
+      "recall5": 0,
+      "contextHit": 0
+    }
+  },
+  "cases": [
+    {
+      "group": "literal",
+      "query": "周宁的电话费用是多少？",
+      "expectedKey": "zhouning.phone",
+      "retrievedKeys": [
+        "zhouning.phone",
+        "helix.price",
+        "zhouning.contact"
+      ],
+      "top1": true,
+      "recall5": true,
+      "reciprocalRank": 1,
+      "evidence": "supported",
+      "evidenceCorrect": true,
+      "contextHit": true,
+      "contextKeys": [
+        "zhouning.phone",
+        "helix.price"
+      ],
+      "contextBytes": 638,
+      "latencyMs": 6.8786249999999995
+    },
+    {
+      "group": "literal",
+      "query": "沈禾喜欢哪种联系方法？",
+      "expectedKey": "shenhe.contact",
+      "retrievedKeys": [
+        "log.archive",
+        "service.rollback",
+        "shenhe.contact",
+        "zhouning.contact",
+        "shenhe.food"
+      ],
+      "top1": false,
+      "recall5": true,
+      "reciprocalRank": 0.3333333333333333,
+      "evidence": "supported",
+      "evidenceCorrect": false,
+      "contextHit": false,
+      "contextKeys": [
+        "log.archive",
+        "service.rollback"
+      ],
+      "contextBytes": 727,
+      "latencyMs": 3.446916999999985
+    },
+    {
+      "group": "literal",
+      "query": "Mosaic 的数据库是什么？",
+      "expectedKey": "mosaic.database",
+      "retrievedKeys": [
+        "mosaic.database",
+        "mosaic.languages",
+        "mosaic.port",
+        "mosaic.cancel",
+        "mosaic.pass"
+      ],
+      "top1": true,
+      "recall5": true,
+      "reciprocalRank": 1,
+      "evidence": "supported",
+      "evidenceCorrect": true,
+      "contextHit": true,
+      "contextKeys": [
+        "mosaic.database"
+      ],
+      "contextBytes": 475,
+      "latencyMs": 2.912834000000032
+    },
+    {
+      "group": "literal",
+      "query": "服务回滚的方法是什么？",
+      "expectedKey": "service.rollback",
+      "retrievedKeys": [
+        "service.rollback",
+        "log.archive"
+      ],
+      "top1": true,
+      "recall5": true,
+      "reciprocalRank": 1,
+      "evidence": "supported",
+      "evidenceCorrect": true,
+      "contextHit": true,
+      "contextKeys": [
+        "service.rollback",
+        "log.archive"
+      ],
+      "contextBytes": 727,
+      "latencyMs": 3.1467499999999973
+    },
+    {
+      "group": "mixed",
+      "query": "Mosaic UI language 是什么？",
+      "expectedKey": "mosaic.languages",
+      "retrievedKeys": [
+        "mosaic.cancel",
+        "mosaic.database",
+        "mosaic.languages",
+        "mosaic.pass",
+        "mosaic.port"
+      ],
+      "top1": false,
+      "recall5": true,
+      "reciprocalRank": 0.3333333333333333,
+      "evidence": "insufficient",
+      "evidenceCorrect": false,
+      "contextHit": false,
+      "contextKeys": [
+        "mosaic.cancel",
+        "mosaic.database"
+      ],
+      "contextBytes": 648,
+      "latencyMs": 2.4691250000000196
+    },
+    {
+      "group": "mixed",
+      "query": "Helix programming language 是什么？",
+      "expectedKey": "helix.languages",
+      "retrievedKeys": [
+        "helix.languages",
+        "helix.price",
+        "helix.release"
+      ],
+      "top1": true,
+      "recall5": true,
+      "reciprocalRank": 1,
+      "evidence": "insufficient",
+      "evidenceCorrect": false,
+      "contextHit": true,
+      "contextKeys": [
+        "helix.languages",
+        "helix.price"
+      ],
+      "contextBytes": 666,
+      "latencyMs": 2.283208000000002
+    },
+    {
+      "group": "field",
+      "query": "Mosaic 界面语言和开发语言分别是什么？",
+      "expectedKey": "mosaic.languages",
+      "retrievedKeys": [
+        "mosaic.languages",
+        "mosaic.cancel",
+        "mosaic.database",
+        "mosaic.pass",
+        "mosaic.port"
+      ],
+      "top1": true,
+      "recall5": true,
+      "reciprocalRank": 1,
+      "evidence": "insufficient",
+      "evidenceCorrect": false,
+      "contextHit": true,
+      "contextKeys": [
+        "mosaic.languages",
+        "mosaic.cancel"
+      ],
+      "contextBytes": 678,
+      "latencyMs": 2.4182910000000106
+    },
+    {
+      "group": "field",
+      "query": "我偏好的回答语言是什么？",
+      "expectedKey": "user.reply",
+      "retrievedKeys": [
+        "user.reply",
+        "helix.languages",
+        "mosaic.languages"
+      ],
+      "top1": true,
+      "recall5": true,
+      "reciprocalRank": 1,
+      "evidence": "insufficient",
+      "evidenceCorrect": false,
+      "contextHit": true,
+      "contextKeys": [
+        "user.reply",
+        "helix.languages"
+      ],
+      "contextBytes": 651,
+      "latencyMs": 2.796625000000006
+    },
+    {
+      "group": "field",
+      "query": "我的编辑器字号是多少？",
+      "expectedKey": "user.font",
+      "retrievedKeys": [
+        "user.font"
+      ],
+      "top1": true,
+      "recall5": true,
+      "reciprocalRank": 1,
+      "evidence": "uncertain",
+      "evidenceCorrect": false,
+      "contextHit": true,
+      "contextKeys": [
+        "user.font"
+      ],
+      "contextBytes": 460,
+      "latencyMs": 2.711833000000013
+    },
+    {
+      "group": "field",
+      "query": "Mosaic 的监听端口是多少？",
+      "expectedKey": "mosaic.port",
+      "retrievedKeys": [
+        "mosaic.port",
+        "mosaic.cancel",
+        "mosaic.database",
+        "mosaic.languages",
+        "mosaic.pass"
+      ],
+      "top1": true,
+      "recall5": true,
+      "reciprocalRank": 1,
+      "evidence": "uncertain",
+      "evidenceCorrect": false,
+      "contextHit": true,
+      "contextKeys": [
+        "mosaic.port",
+        "mosaic.cancel"
+      ],
+      "contextBytes": 637,
+      "latencyMs": 2.615709000000038
+    },
+    {
+      "group": "entity",
+      "query": "周宁的联系方式，不是沈禾",
+      "expectedKey": "zhouning.contact",
+      "retrievedKeys": [
+        "shenhe.contact",
+        "zhouning.phone",
+        "zhouning.contact"
+      ],
+      "top1": false,
+      "recall5": true,
+      "reciprocalRank": 0.3333333333333333,
+      "evidence": "uncertain",
+      "evidenceCorrect": false,
+      "contextHit": false,
+      "contextKeys": [
+        "shenhe.contact",
+        "zhouning.phone"
+      ],
+      "contextBytes": 624,
+      "latencyMs": 2.72950000000003
+    },
+    {
+      "group": "entity",
+      "query": "Helix 的套餐费用，不要周宁的电话费用",
+      "expectedKey": "helix.price",
+      "retrievedKeys": [
+        "helix.price",
+        "helix.languages",
+        "helix.release"
+      ],
+      "top1": true,
+      "recall5": true,
+      "reciprocalRank": 1,
+      "evidence": "supported",
+      "evidenceCorrect": true,
+      "contextHit": true,
+      "contextKeys": [
+        "helix.price"
+      ],
+      "contextBytes": 474,
+      "latencyMs": 2.2583329999999933
+    },
+    {
+      "group": "time",
+      "query": "7月14日 Mosaic 验收结果，别用13日的记录",
+      "expectedKey": "mosaic.pass",
+      "retrievedKeys": [
+        "mosaic.pass"
+      ],
+      "top1": true,
+      "recall5": true,
+      "reciprocalRank": 1,
+      "evidence": "supported",
+      "evidenceCorrect": true,
+      "contextHit": true,
+      "contextKeys": [
+        "mosaic.pass"
+      ],
+      "contextBytes": 475,
+      "latencyMs": 2.3362919999999576
+    },
+    {
+      "group": "time",
+      "query": "2026-07-13 Mosaic 验收发生了什么？",
+      "expectedKey": "mosaic.cancel",
+      "retrievedKeys": [
+        "mosaic.cancel"
+      ],
+      "top1": true,
+      "recall5": true,
+      "reciprocalRank": 1,
+      "evidence": "supported",
+      "evidenceCorrect": true,
+      "contextHit": true,
+      "contextKeys": [
+        "mosaic.cancel"
+      ],
+      "contextBytes": 477,
+      "latencyMs": 2.651374999999973
+    },
+    {
+      "group": "time",
+      "query": "Helix 下一次正式发布日期是什么？",
+      "expectedKey": "helix.release",
+      "retrievedKeys": [
+        "helix.release",
+        "helix.languages",
+        "helix.price"
+      ],
+      "top1": true,
+      "recall5": true,
+      "reciprocalRank": 1,
+      "evidence": "insufficient",
+      "evidenceCorrect": false,
+      "contextHit": true,
+      "contextKeys": [
+        "helix.release",
+        "helix.languages"
+      ],
+      "contextBytes": 672,
+      "latencyMs": 2.3646659999999997
+    },
+    {
+      "group": "paraphrase",
+      "query": "周宁每月要花多少电话费？",
+      "expectedKey": "zhouning.phone",
+      "retrievedKeys": [
+        "zhouning.phone",
+        "shenhe.food",
+        "zhouning.contact"
+      ],
+      "top1": true,
+      "recall5": true,
+      "reciprocalRank": 1,
+      "evidence": "uncertain",
+      "evidenceCorrect": false,
+      "contextHit": true,
+      "contextKeys": [
+        "zhouning.phone",
+        "shenhe.food"
+      ],
+      "contextBytes": 627,
+      "latencyMs": 2.947833000000003
+    },
+    {
+      "group": "paraphrase",
+      "query": "Mosaic 给用户看的界面使用什么语言？",
+      "expectedKey": "mosaic.languages",
+      "retrievedKeys": [
+        "mosaic.languages",
+        "mosaic.database",
+        "mosaic.cancel",
+        "mosaic.pass",
+        "mosaic.port"
+      ],
+      "top1": true,
+      "recall5": true,
+      "reciprocalRank": 1,
+      "evidence": "insufficient",
+      "evidenceCorrect": false,
+      "contextHit": true,
+      "contextKeys": [
+        "mosaic.languages",
+        "mosaic.database"
+      ],
+      "contextBytes": 676,
+      "latencyMs": 2.640207999999973
+    },
+    {
+      "group": "procedural",
+      "query": "日志归档应该先做什么？",
+      "expectedKey": "log.archive",
+      "retrievedKeys": [
+        "log.archive"
+      ],
+      "top1": true,
+      "recall5": true,
+      "reciprocalRank": 1,
+      "evidence": "uncertain",
+      "evidenceCorrect": false,
+      "contextHit": true,
+      "contextKeys": [
+        "log.archive"
+      ],
+      "contextBytes": 510,
+      "latencyMs": 2.8880419999999845
+    },
+    {
+      "group": "negative",
+      "query": "沈禾的电话费用是多少？",
+      "expectedKey": null,
+      "retrievedKeys": [
+        "zhouning.phone",
+        "helix.price",
+        "shenhe.food",
+        "shenhe.contact"
+      ],
+      "top1": false,
+      "recall5": false,
+      "reciprocalRank": 0,
+      "evidence": "supported",
+      "evidenceCorrect": false,
+      "contextHit": false,
+      "contextKeys": [
+        "zhouning.phone",
+        "helix.price",
+        "shenhe.food"
+      ],
+      "contextBytes": 794,
+      "latencyMs": 2.34212500000001
+    },
+    {
+      "group": "negative",
+      "query": "Mosaic 下一次正式发布日期是什么？",
+      "expectedKey": null,
+      "retrievedKeys": [
+        "mosaic.cancel",
+        "mosaic.database",
+        "mosaic.languages",
+        "mosaic.pass",
+        "mosaic.port"
+      ],
+      "top1": false,
+      "recall5": false,
+      "reciprocalRank": 0,
+      "evidence": "insufficient",
+      "evidenceCorrect": true,
+      "contextHit": false,
+      "contextKeys": [
+        "mosaic.cancel",
+        "mosaic.database"
+      ],
+      "contextBytes": 648,
+      "latencyMs": 2.621290999999985
+    },
+    {
+      "group": "negative",
+      "query": "周宁喜欢喝哪种咖啡？",
+      "expectedKey": null,
+      "retrievedKeys": [
+        "zhouning.contact",
+        "shenhe.contact",
+        "zhouning.phone"
+      ],
+      "top1": false,
+      "recall5": false,
+      "reciprocalRank": 0,
+      "evidence": "insufficient",
+      "evidenceCorrect": true,
+      "contextHit": false,
+      "contextKeys": [
+        "zhouning.contact",
+        "shenhe.contact"
+      ],
+      "contextBytes": 618,
+      "latencyMs": 2.8586669999999685
+    },
+    {
+      "group": "negative",
+      "query": "岑安的联系方式是什么？",
+      "expectedKey": null,
+      "retrievedKeys": [
+        "shenhe.contact"
+      ],
+      "top1": false,
+      "recall5": false,
+      "reciprocalRank": 0,
+      "evidence": "uncertain",
+      "evidenceCorrect": true,
+      "contextHit": false,
+      "contextKeys": [
+        "shenhe.contact"
+      ],
+      "contextBytes": 460,
+      "latencyMs": 2.763584000000037
+    },
+    {
+      "group": "negative",
+      "query": "Helix 的每月电话费用是多少？",
+      "expectedKey": null,
+      "retrievedKeys": [
+        "helix.price",
+        "helix.languages",
+        "helix.release"
+      ],
+      "top1": false,
+      "recall5": false,
+      "reciprocalRank": 0,
+      "evidence": "supported",
+      "evidenceCorrect": false,
+      "contextHit": false,
+      "contextKeys": [
+        "helix.price"
+      ],
+      "contextBytes": 474,
+      "latencyMs": 2.3978329999999914
+    },
+    {
+      "group": "negative",
+      "query": "我的编辑器配色主题是什么？",
+      "expectedKey": null,
+      "retrievedKeys": [
+        "user.font"
+      ],
+      "top1": false,
+      "recall5": false,
+      "reciprocalRank": 0,
+      "evidence": "insufficient",
+      "evidenceCorrect": true,
+      "contextHit": false,
+      "contextKeys": [
+        "user.font"
+      ],
+      "contextBytes": 463,
+      "latencyMs": 3.660792000000015
+    }
+  ],
+  "holdout": {
+    "fixtureVersion": 1,
+    "budgetBytes": 2048,
+    "memoryCount": 16,
+    "summary": {
+      "answerable": 18,
+      "top1": 0.8333333333333334,
+      "recall5": 1,
+      "mrr": 0.8888888888888888,
+      "negativeCount": 6,
+      "insufficientEvidenceCorrect": 4,
+      "supportedCorrect": 6,
+      "strictExpectedKeyContextPrecision": 0.5,
+      "latencyP50Ms": 3.192666000000031,
+      "latencyP95Ms": 4.035583999999972
+    },
+    "groups": {
+      "literal": {
+        "count": 4,
+        "top1": 3,
+        "recall5": 4,
+        "contextHit": 3
+      },
+      "mixed": {
+        "count": 2,
+        "top1": 1,
+        "recall5": 2,
+        "contextHit": 1
+      },
+      "field": {
+        "count": 4,
+        "top1": 4,
+        "recall5": 4,
+        "contextHit": 4
+      },
+      "entity": {
+        "count": 2,
+        "top1": 1,
+        "recall5": 2,
+        "contextHit": 1
+      },
+      "time": {
+        "count": 3,
+        "top1": 3,
+        "recall5": 3,
+        "contextHit": 3
+      },
+      "paraphrase": {
+        "count": 2,
+        "top1": 2,
+        "recall5": 2,
+        "contextHit": 2
+      },
+      "procedural": {
+        "count": 1,
+        "top1": 1,
+        "recall5": 1,
+        "contextHit": 1
+      },
+      "negative": {
+        "count": 6,
+        "top1": 0,
+        "recall5": 0,
+        "contextHit": 0
+      }
+    },
+    "cases": [
+      {
+        "group": "literal",
+        "query": "周宁的电话费用是多少？",
+        "expectedKey": "zhouning.phone",
+        "retrievedKeys": [
+          "zhouning.phone",
+          "helix.price",
+          "zhouning.contact"
+        ],
+        "top1": true,
+        "recall5": true,
+        "reciprocalRank": 1,
+        "evidence": "supported",
+        "evidenceCorrect": true,
+        "contextHit": true,
+        "contextKeys": [
+          "zhouning.phone",
+          "helix.price"
+        ],
+        "contextBytes": 638,
+        "latencyMs": 4.525500000000079
+      },
+      {
+        "group": "literal",
+        "query": "沈禾喜欢哪种联系方法？",
+        "expectedKey": "shenhe.contact",
+        "retrievedKeys": [
+          "log.archive",
+          "service.rollback",
+          "shenhe.contact",
+          "zhouning.contact",
+          "shenhe.food"
+        ],
+        "top1": false,
+        "recall5": true,
+        "reciprocalRank": 0.3333333333333333,
+        "evidence": "supported",
+        "evidenceCorrect": false,
+        "contextHit": false,
+        "contextKeys": [
+          "log.archive",
+          "service.rollback"
+        ],
+        "contextBytes": 727,
+        "latencyMs": 4.035583999999972
+      },
+      {
+        "group": "literal",
+        "query": "Mosaic 的数据库是什么？",
+        "expectedKey": "mosaic.database",
+        "retrievedKeys": [
+          "mosaic.database",
+          "mosaic.languages",
+          "mosaic.port",
+          "mosaic.cancel",
+          "mosaic.pass"
+        ],
+        "top1": true,
+        "recall5": true,
+        "reciprocalRank": 1,
+        "evidence": "supported",
+        "evidenceCorrect": true,
+        "contextHit": true,
+        "contextKeys": [
+          "mosaic.database"
+        ],
+        "contextBytes": 475,
+        "latencyMs": 3.236750000000029
+      },
+      {
+        "group": "literal",
+        "query": "服务回滚的方法是什么？",
+        "expectedKey": "service.rollback",
+        "retrievedKeys": [
+          "service.rollback",
+          "log.archive"
+        ],
+        "top1": true,
+        "recall5": true,
+        "reciprocalRank": 1,
+        "evidence": "supported",
+        "evidenceCorrect": true,
+        "contextHit": true,
+        "contextKeys": [
+          "service.rollback",
+          "log.archive"
+        ],
+        "contextBytes": 727,
+        "latencyMs": 3.861666000000014
+      },
+      {
+        "group": "mixed",
+        "query": "Mosaic UI language 是什么？",
+        "expectedKey": "mosaic.languages",
+        "retrievedKeys": [
+          "mosaic.cancel",
+          "mosaic.database",
+          "mosaic.languages",
+          "mosaic.pass",
+          "mosaic.port"
+        ],
+        "top1": false,
+        "recall5": true,
+        "reciprocalRank": 0.3333333333333333,
+        "evidence": "insufficient",
+        "evidenceCorrect": false,
+        "contextHit": false,
+        "contextKeys": [
+          "mosaic.cancel",
+          "mosaic.database"
+        ],
+        "contextBytes": 648,
+        "latencyMs": 3.479750000000081
+      },
+      {
+        "group": "mixed",
+        "query": "Helix programming language 是什么？",
+        "expectedKey": "helix.languages",
+        "retrievedKeys": [
+          "helix.languages",
+          "helix.price",
+          "helix.release"
+        ],
+        "top1": true,
+        "recall5": true,
+        "reciprocalRank": 1,
+        "evidence": "insufficient",
+        "evidenceCorrect": false,
+        "contextHit": true,
+        "contextKeys": [
+          "helix.languages",
+          "helix.price"
+        ],
+        "contextBytes": 666,
+        "latencyMs": 3.5008329999999432
+      },
+      {
+        "group": "field",
+        "query": "Mosaic 界面语言和开发语言分别是什么？",
+        "expectedKey": "mosaic.languages",
+        "retrievedKeys": [
+          "mosaic.languages",
+          "mosaic.cancel",
+          "mosaic.database",
+          "mosaic.pass",
+          "mosaic.port"
+        ],
+        "top1": true,
+        "recall5": true,
+        "reciprocalRank": 1,
+        "evidence": "insufficient",
+        "evidenceCorrect": false,
+        "contextHit": true,
+        "contextKeys": [
+          "mosaic.languages",
+          "mosaic.cancel"
+        ],
+        "contextBytes": 678,
+        "latencyMs": 3.2659580000000688
+      },
+      {
+        "group": "field",
+        "query": "我偏好的回答语言是什么？",
+        "expectedKey": "user.reply",
+        "retrievedKeys": [
+          "user.reply",
+          "helix.languages",
+          "mosaic.languages"
+        ],
+        "top1": true,
+        "recall5": true,
+        "reciprocalRank": 1,
+        "evidence": "insufficient",
+        "evidenceCorrect": false,
+        "contextHit": true,
+        "contextKeys": [
+          "user.reply",
+          "helix.languages"
+        ],
+        "contextBytes": 651,
+        "latencyMs": 3.878084000000058
+      },
+      {
+        "group": "field",
+        "query": "我的编辑器字号是多少？",
+        "expectedKey": "user.font",
+        "retrievedKeys": [
+          "user.font"
+        ],
+        "top1": true,
+        "recall5": true,
+        "reciprocalRank": 1,
+        "evidence": "uncertain",
+        "evidenceCorrect": false,
+        "contextHit": true,
+        "contextKeys": [
+          "user.font"
+        ],
+        "contextBytes": 460,
+        "latencyMs": 2.7870830000000524
+      },
+      {
+        "group": "field",
+        "query": "Mosaic 的监听端口是多少？",
+        "expectedKey": "mosaic.port",
+        "retrievedKeys": [
+          "mosaic.port",
+          "mosaic.cancel",
+          "mosaic.database",
+          "mosaic.languages",
+          "mosaic.pass"
+        ],
+        "top1": true,
+        "recall5": true,
+        "reciprocalRank": 1,
+        "evidence": "uncertain",
+        "evidenceCorrect": false,
+        "contextHit": true,
+        "contextKeys": [
+          "mosaic.port",
+          "mosaic.cancel"
+        ],
+        "contextBytes": 637,
+        "latencyMs": 2.8749160000000984
+      },
+      {
+        "group": "entity",
+        "query": "周宁的联系方式，不是沈禾",
+        "expectedKey": "zhouning.contact",
+        "retrievedKeys": [
+          "shenhe.contact",
+          "zhouning.phone",
+          "zhouning.contact"
+        ],
+        "top1": false,
+        "recall5": true,
+        "reciprocalRank": 0.3333333333333333,
+        "evidence": "uncertain",
+        "evidenceCorrect": false,
+        "contextHit": false,
+        "contextKeys": [
+          "shenhe.contact",
+          "zhouning.phone"
+        ],
+        "contextBytes": 624,
+        "latencyMs": 3.2706249999999955
+      },
+      {
+        "group": "entity",
+        "query": "Helix 的套餐费用，不要周宁的电话费用",
+        "expectedKey": "helix.price",
+        "retrievedKeys": [
+          "helix.price",
+          "helix.languages",
+          "helix.release"
+        ],
+        "top1": true,
+        "recall5": true,
+        "reciprocalRank": 1,
+        "evidence": "supported",
+        "evidenceCorrect": true,
+        "contextHit": true,
+        "contextKeys": [
+          "helix.price"
+        ],
+        "contextBytes": 474,
+        "latencyMs": 2.470959000000107
+      },
+      {
+        "group": "time",
+        "query": "7月14日 Mosaic 验收结果，别用13日的记录",
+        "expectedKey": "mosaic.pass",
+        "retrievedKeys": [
+          "mosaic.pass"
+        ],
+        "top1": true,
+        "recall5": true,
+        "reciprocalRank": 1,
+        "evidence": "supported",
+        "evidenceCorrect": true,
+        "contextHit": true,
+        "contextKeys": [
+          "mosaic.pass"
+        ],
+        "contextBytes": 475,
+        "latencyMs": 3.1452500000000327
+      },
+      {
+        "group": "time",
+        "query": "2026-07-13 Mosaic 验收发生了什么？",
+        "expectedKey": "mosaic.cancel",
+        "retrievedKeys": [
+          "mosaic.cancel"
+        ],
+        "top1": true,
+        "recall5": true,
+        "reciprocalRank": 1,
+        "evidence": "supported",
+        "evidenceCorrect": true,
+        "contextHit": true,
+        "contextKeys": [
+          "mosaic.cancel"
+        ],
+        "contextBytes": 477,
+        "latencyMs": 2.8047500000000127
+      },
+      {
+        "group": "time",
+        "query": "Helix 下一次正式发布日期是什么？",
+        "expectedKey": "helix.release",
+        "retrievedKeys": [
+          "helix.release",
+          "helix.languages",
+          "helix.price"
+        ],
+        "top1": true,
+        "recall5": true,
+        "reciprocalRank": 1,
+        "evidence": "insufficient",
+        "evidenceCorrect": false,
+        "contextHit": true,
+        "contextKeys": [
+          "helix.release",
+          "helix.languages"
+        ],
+        "contextBytes": 672,
+        "latencyMs": 2.764458999999988
+      },
+      {
+        "group": "paraphrase",
+        "query": "周宁每月要花多少电话费？",
+        "expectedKey": "zhouning.phone",
+        "retrievedKeys": [
+          "zhouning.phone",
+          "shenhe.food",
+          "zhouning.contact"
+        ],
+        "top1": true,
+        "recall5": true,
+        "reciprocalRank": 1,
+        "evidence": "uncertain",
+        "evidenceCorrect": false,
+        "contextHit": true,
+        "contextKeys": [
+          "zhouning.phone",
+          "shenhe.food"
+        ],
+        "contextBytes": 627,
+        "latencyMs": 3.0570000000000164
+      },
+      {
+        "group": "paraphrase",
+        "query": "Mosaic 给用户看的界面使用什么语言？",
+        "expectedKey": "mosaic.languages",
+        "retrievedKeys": [
+          "mosaic.languages",
+          "mosaic.database",
+          "mosaic.cancel",
+          "mosaic.pass",
+          "mosaic.port"
+        ],
+        "top1": true,
+        "recall5": true,
+        "reciprocalRank": 1,
+        "evidence": "insufficient",
+        "evidenceCorrect": false,
+        "contextHit": true,
+        "contextKeys": [
+          "mosaic.languages",
+          "mosaic.database"
+        ],
+        "contextBytes": 676,
+        "latencyMs": 3.0075420000000577
+      },
+      {
+        "group": "procedural",
+        "query": "日志归档应该先做什么？",
+        "expectedKey": "log.archive",
+        "retrievedKeys": [
+          "log.archive"
+        ],
+        "top1": true,
+        "recall5": true,
+        "reciprocalRank": 1,
+        "evidence": "uncertain",
+        "evidenceCorrect": false,
+        "contextHit": true,
+        "contextKeys": [
+          "log.archive"
+        ],
+        "contextBytes": 510,
+        "latencyMs": 3.4547079999999823
+      },
+      {
+        "group": "negative",
+        "query": "沈禾的电话费用是多少？",
+        "expectedKey": null,
+        "retrievedKeys": [
+          "zhouning.phone",
+          "helix.price",
+          "shenhe.food",
+          "shenhe.contact"
+        ],
+        "top1": false,
+        "recall5": false,
+        "reciprocalRank": 0,
+        "evidence": "supported",
+        "evidenceCorrect": false,
+        "contextHit": false,
+        "contextKeys": [
+          "zhouning.phone",
+          "helix.price",
+          "shenhe.food"
+        ],
+        "contextBytes": 794,
+        "latencyMs": 2.8260420000000295
+      },
+      {
+        "group": "negative",
+        "query": "Mosaic 下一次正式发布日期是什么？",
+        "expectedKey": null,
+        "retrievedKeys": [
+          "mosaic.cancel",
+          "mosaic.database",
+          "mosaic.languages",
+          "mosaic.pass",
+          "mosaic.port"
+        ],
+        "top1": false,
+        "recall5": false,
+        "reciprocalRank": 0,
+        "evidence": "insufficient",
+        "evidenceCorrect": true,
+        "contextHit": false,
+        "contextKeys": [
+          "mosaic.cancel",
+          "mosaic.database"
+        ],
+        "contextBytes": 648,
+        "latencyMs": 2.7214590000000953
+      },
+      {
+        "group": "negative",
+        "query": "周宁喜欢喝哪种咖啡？",
+        "expectedKey": null,
+        "retrievedKeys": [
+          "zhouning.contact",
+          "shenhe.contact",
+          "zhouning.phone"
+        ],
+        "top1": false,
+        "recall5": false,
+        "reciprocalRank": 0,
+        "evidence": "insufficient",
+        "evidenceCorrect": true,
+        "contextHit": false,
+        "contextKeys": [
+          "zhouning.contact",
+          "shenhe.contact"
+        ],
+        "contextBytes": 618,
+        "latencyMs": 3.2393749999999955
+      },
+      {
+        "group": "negative",
+        "query": "岑安的联系方式是什么？",
+        "expectedKey": null,
+        "retrievedKeys": [
+          "shenhe.contact"
+        ],
+        "top1": false,
+        "recall5": false,
+        "reciprocalRank": 0,
+        "evidence": "uncertain",
+        "evidenceCorrect": true,
+        "contextHit": false,
+        "contextKeys": [
+          "shenhe.contact"
+        ],
+        "contextBytes": 460,
+        "latencyMs": 3.192666000000031
+      },
+      {
+        "group": "negative",
+        "query": "Helix 的每月电话费用是多少？",
+        "expectedKey": null,
+        "retrievedKeys": [
+          "helix.price",
+          "helix.languages",
+          "helix.release"
+        ],
+        "top1": false,
+        "recall5": false,
+        "reciprocalRank": 0,
+        "evidence": "supported",
+        "evidenceCorrect": false,
+        "contextHit": false,
+        "contextKeys": [
+          "helix.price"
+        ],
+        "contextBytes": 474,
+        "latencyMs": 3.0626250000000255
+      },
+      {
+        "group": "negative",
+        "query": "我的编辑器配色主题是什么？",
+        "expectedKey": null,
+        "retrievedKeys": [
+          "user.font"
+        ],
+        "top1": false,
+        "recall5": false,
+        "reciprocalRank": 0,
+        "evidence": "insufficient",
+        "evidenceCorrect": true,
+        "contextHit": false,
+        "contextKeys": [
+          "user.font"
+        ],
+        "contextBytes": 463,
+        "latencyMs": 2.8555840000000217
+      }
+    ]
+  },
+  "usage": {
+    "calls": 0,
+    "failures": 0,
+    "inputTokens": 0,
+    "outputTokens": 0,
+    "cacheReadTokens": 0,
+    "elapsedMs": 0
+  },
+  "rewrites": {},
+  "note": "证据状态是字段启发式，不是生成答案/真实飞书验收；Context precision只计唯一预期key，相关但不含答案的记录会被保守计为非命中。"
+}

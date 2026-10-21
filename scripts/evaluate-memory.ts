@@ -47,7 +47,7 @@ async function evaluate(filename: string) {
   const request = (prompt: string): ExecutionRequest => ({ prompt, scope: 'chat', signal: new AbortController().signal, observer: { event() {}, modelCall() {} } });
   try {
     for (const item of fixture.memories) { memory.withRequest(request(`记住：${item.content}`), () => memory.remember(item)); await delay(2); }
-    const cases: (Sample & { retrievedKeys: string[]; top1: boolean; recall5: boolean; reciprocalRank: number; evidence: string; evidenceCorrect: boolean; contextHit: boolean; contextKeys: (string | undefined)[]; contextBytes: number; latencyMs: number })[] = [];
+    const cases: (Sample & { retrievedKeys: string[]; supportKeys: string[]; top1: boolean; recall5: boolean; reciprocalRank: number; evidence: string; evidenceCorrect: boolean; contextHit: boolean; contextKeys: (string | undefined)[]; contextBytes: number; latencyMs: number })[] = [];
     for (const sample of fixture.queries) {
       const started = performance.now();
       const result = await memory.withRequest(request(sample.query), async () => {
@@ -59,7 +59,7 @@ async function evaluate(filename: string) {
       const keys = result.found.records.map(record => record.key);
       const rank = sample.expectedKey === null ? 0 : keys.indexOf(sample.expectedKey) + 1;
       const expected = result.found.records.find(record => record.key === sample.expectedKey);
-      cases.push({ ...sample, retrievedKeys: keys, top1: (keys[0] ?? null) === sample.expectedKey,
+      cases.push({ ...sample, retrievedKeys: keys, supportKeys: result.found.records.filter(record => result.found.supportIds.includes(record.id)).map(record => record.key), top1: (keys[0] ?? null) === sample.expectedKey,
         recall5: sample.expectedKey === null ? keys.length === 0 : rank > 0,
         reciprocalRank: rank ? 1 / rank : 0, evidence: result.found.evidence,
         evidenceCorrect: sample.expectedKey === null ? result.found.evidence !== 'supported' : result.found.evidence === 'supported' && keys[0] === sample.expectedKey,
@@ -70,11 +70,18 @@ async function evaluate(filename: string) {
     const answerable = cases.filter(c => c.expectedKey !== null); const negative = cases.filter(c => c.expectedKey === null);
     const latency = cases.map(c => c.latencyMs).sort((a, b) => a - b);
     const contextCount = answerable.reduce((sum, c) => sum + c.contextKeys.length, 0);
+    const supportedClaims = cases.reduce((sum, c) => sum + c.supportKeys.length, 0);
+    const correctSupportedClaims = cases.reduce((sum, c) => sum + c.supportKeys.filter(key => key === c.expectedKey).length, 0);
     const summary = { answerable: answerable.length, top1: answerable.filter(c => c.top1).length / answerable.length,
       recall5: answerable.filter(c => c.recall5).length / answerable.length,
       mrr: answerable.reduce((sum, c) => sum + c.reciprocalRank, 0) / answerable.length,
       negativeCount: negative.length, insufficientEvidenceCorrect: negative.filter(c => c.evidenceCorrect).length,
       supportedCorrect: answerable.filter(c => c.evidenceCorrect).length,
+      falseSupportedNoAnswer: negative.filter(c => c.evidence === 'supported').length,
+      supportedClaims, correctSupportedClaims,
+      supportedRecordPrecision: supportedClaims ? correctSupportedClaims / supportedClaims : null,
+      contextHitRate: answerable.filter(c => c.contextHit).length / answerable.length,
+      contextBytesMax: Math.max(...cases.map(c => c.contextBytes)),
       strictExpectedKeyContextPrecision: contextCount ? answerable.filter(c => c.contextHit).length / contextCount : 0,
       latencyP50Ms: latency[Math.floor(latency.length / 2)], latencyP95Ms: latency[Math.floor(latency.length * 0.95)] };
     const groups = Object.fromEntries([...new Set(cases.map(c => c.group))].map(group => {
@@ -86,5 +93,7 @@ async function evaluate(filename: string) {
 }
 const original = await evaluate('memory-retrieval-eval.json');
 const holdout = await evaluate('memory-retrieval-holdout.json');
+// 新留出默认只走离线路径；不能因扩展评测而扩大旧的40题收费调用范围。
+const evidenceHoldout = !live && !replay ? await evaluate('memory-evidence-holdout.json') : undefined;
 console.log(JSON.stringify({ mode: live ? 'live-query-rewrite-only' : replay ? 'replay-recorded-query-rewrites' : 'offline-lexical', ...original, holdout,
-  usage, rewrites, note: '证据状态是字段启发式，不是生成答案/真实飞书验收；Context precision只计唯一预期key，相关但不含答案的记录会被保守计为非命中。' }, null, 2));
+  evidenceHoldout, usage, rewrites, note: 'supported记录精度按预期key计，不证明最终生成；Context Hit与Top5召回分开统计。回放只使用已保存改写，未记录的当前低置信度问题回退，不发新请求。' }, null, 2));

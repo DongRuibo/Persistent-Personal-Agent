@@ -1,0 +1,21 @@
+{
+  "src/memory-retriever.ts": "0f794fb4d440bed0690a780cb095d887380bf33780ba9eb14b20e0e4607f6919",
+  "src/memory-service.ts": "df9b81f3e7c991b54202ff414a8adbaa81cb85086cb9e1a8f5687ffed85f8aab",
+  "tests/fixtures/memory-evidence-holdout.json": "f333908a776a1b9cd4186e5066829fed34150780646226b00bfd5f192a328dda",
+  "discipline": "新增24题由本项目作者定义，非外部盲测。初版规则后冻结，不修改预期答案；保留Mosaic给用户看的界面漏召回。",
+  "postFreezeChanges": [
+    {
+      "change": "独立安全回归发现界面颜色问题和界面暗色主题正文被误认为语言；问题须含语言字段，正文须显式声明界面语言或使用语/文类语法，不能仅凭界面使用某物。未据新留出失败调参。",
+      "evaluationEffect": "冻结的64题候选/证据/Context结果不变"
+    },
+    {
+      "change": "性能测量暴露宽泛查询反复构造正则与分词；单次请求预编译姓名规则、预分词查询，不缓存正文、不改变匹配语义。",
+      "evaluationEffect": "冻结的64题候选/证据/Context结果不变"
+    }
+  ],
+  "finalHashes": {
+    "src/memory-retriever.ts": "729d37bc273e1ec130fd779aeac12c6da91ccd20751a18ae759f82e49173de1e",
+    "src/memory-service.ts": "df9b81f3e7c991b54202ff414a8adbaa81cb85086cb9e1a8f5687ffed85f8aab",
+    "tests/fixtures/memory-evidence-holdout.json": "f333908a776a1b9cd4186e5066829fed34150780646226b00bfd5f192a328dda"
+  }
+}

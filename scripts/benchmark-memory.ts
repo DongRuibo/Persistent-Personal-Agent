@@ -28,8 +28,12 @@ for (const count of [100, 1000]) {
     assert.equal(memory.search(`Project${count - 1} 数据库是什么？`)[0]?.key, `project${count - 1}.database`, '性能测量必须同时验证召回正确');
     const search = measure(() => memory.search(`Project${count - 1} 数据库是什么？`));
     const context = measure(() => memory.withRequest({ prompt: `Project${count - 1} 数据库是什么？`, scope: 'task', signal: new AbortController().signal, observer: { event() {}, modelCall() {} } }, () => memory.buildContext(2048)));
+    const broadQuery = '有哪些项目使用数据库保存数据？';
+    assert.equal(memory.search(broadQuery).length, 5, '宽泛查询必须仍返回候选');
+    const broadSearch = measure(() => memory.search(broadQuery));
+    const broadContext = measure(() => memory.withRequest({ prompt: broadQuery, scope: 'task', signal: new AbortController().signal, observer: { event() {}, modelCall() {} } }, () => memory.buildContext(2048)));
     const after = process.memoryUsage(); const used = process.cpuUsage(cpu);
-    results.push({ count, coldMs, search, context, cpuMs: (used.user + used.system) / 1000,
+    results.push({ count, coldMs, search, context, broadSearch, broadContext, cpuMs: (used.user + used.system) / 1000,
       rssDeltaMiB: (after.rss - before.rss) / 1048576, heapDeltaMiB: (after.heapUsed - before.heapUsed) / 1048576,
       rssMiB: after.rss / 1048576, maxRssKiB: process.resourceUsage().maxRSS });
   } finally { memory.close(); rmSync(root, { recursive: true, force: true }); }

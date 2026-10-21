@@ -1,0 +1,200 @@
+{
+  "baselineCommit": "087888c32c1fcc2255e496ce1d9edd5f31e2c647",
+  "sourceState": "uncommitted-v2.1a.1",
+  "sourceHashes": {
+    "src/pi-executor.ts": "35baae318197178925e816ed41074a44db3db3bfffd67b02cb599609d07c142a",
+    "src/memory-retriever.ts": "729d37bc273e1ec130fd779aeac12c6da91ccd20751a18ae759f82e49173de1e",
+    "src/memory-service.ts": "df9b81f3e7c991b54202ff414a8adbaa81cb85086cb9e1a8f5687ffed85f8aab",
+    "scripts/check-memory-generation.ts": "e033089eec9472e2d043ee6da7501744924c8780e11b6ed69e6704a43f99f9d0",
+    "tests/fixtures/memory-retrieval-holdout.json": "96c50d46205a869f18a737d0659f57b088a47762241ba5a85d6a15e07fc14663",
+    "package-lock.json": "583c37d94e5e5e23e8090c588e16f1d2768988bd1f6bd691ba4412f0b8b5d6c5"
+  },
+  "rawFile": "v2.1a.1-live-generation.json",
+  "rawSha256": "fc3f84fa0c9bcf91634e6c077417fc86aea1f37ae8a6e3f7a2bbbb5f7730f242",
+  "reviewMethod": "逐条人工核对最终回答和实际模型请求Context，再对照完整虚构Memory快照；结构/ID/version/字节/只读不变量另做离线断言。不由被测模型给自己打分。",
+  "startedAt": "2026-10-21T07:12:35.803Z",
+  "completedAt": "2026-10-21T07:14:28.102Z",
+  "wallMs": 112299.0,
+  "coreCorrect": 8,
+  "fullAnswerSupported": 7,
+  "count": 8,
+  "inventedFeeOrFutureDate": 0,
+  "unsupportedExistenceClaims": 1,
+  "networkCalls": 11,
+  "generationCalls": 8,
+  "rewriteCalls": 3,
+  "rewriteSucceeded": 0,
+  "rewriteFallbacks": 3,
+  "rewriteSkipped": 1,
+  "inputTokensReported": 4885,
+  "outputTokensReported": 312,
+  "cacheReadTokensReported": 0,
+  "priceSource": "https://www.siliconflow.cn/pricing",
+  "priceCheckedDate": "2026-10-21",
+  "inputCNYPerMillion": 2,
+  "outputCNYPerMillion": 8,
+  "estimatedReportedUsageCNY": 0.012266,
+  "reservedCNY": 0.33197599999999994,
+  "budgetCNY": 1,
+  "costCaveat": "仅按已报告token高峰价估算，不是账单；3次改写中断可能有未报告用量，其中2次SDK报告0/0，不能解释为免费。请求体字节+512与输出上限预留约0.332元，属于保守预算估算而非扣费证明。",
+  "latencyMs": {
+    "False": {
+      "mean": 7059.779614500001,
+      "min": 1254.9510410000003,
+      "max": 13900.918792
+    },
+    "True": {
+      "mean": 20982.57533325,
+      "min": 1405.0644170000014,
+      "max": 42409.72683299999
+    }
+  },
+  "contextBytesMax": 1537,
+  "memoryUnchanged": true,
+  "tasksCreated": 0,
+  "paidRetries": 0,
+  "cases": [
+    {
+      "outcomeIndex": 1,
+      "question": "阿青每个月电话费用多少钱？",
+      "rewriteEnabled": false,
+      "coreAnswerCorrect": true,
+      "fullAnswerSupported": true,
+      "review": "明确表示没有阿青费用记录，只把电话沟通作为参考；未借用Quartz99元。",
+      "contextKeys": [
+        "aqing.contact"
+      ],
+      "contextBytes": 510,
+      "evidence": "insufficient",
+      "rewriteFallback": false,
+      "elapsedMs": 1254.9510410000003
+    },
+    {
+      "outcomeIndex": 2,
+      "question": "Nacre 下一次正式发布日期是什么？",
+      "rewriteEnabled": false,
+      "coreAnswerCorrect": true,
+      "fullAnswerSupported": true,
+      "review": "明确区分历史9月2日取消/9月3日发布与未知的下一次发布日期，没有编造未来日期。",
+      "contextKeys": [
+        "nacre.cancel",
+        "nacre.release",
+        "nacre.check",
+        "nacre.language",
+        "nacre.storage"
+      ],
+      "contextBytes": 1498,
+      "evidence": "insufficient",
+      "rewriteFallback": false,
+      "elapsedMs": 6518.139458
+    },
+    {
+      "outcomeIndex": 3,
+      "question": "阿青喜欢哪种联系方法，不是阿白？",
+      "rewriteEnabled": false,
+      "coreAnswerCorrect": true,
+      "fullAnswerSupported": false,
+      "review": "阿青偏好电话沟通这一主答案正确，但额外声称阿白没有记录；完整虚构库实际有abai.contact（邮件）。本轮被排除不等于库中不存在。",
+      "contextKeys": [
+        "aqing.contact"
+      ],
+      "contextBytes": 518,
+      "evidence": "supported",
+      "rewriteFallback": false,
+      "elapsedMs": 13900.918792
+    },
+    {
+      "outcomeIndex": 4,
+      "question": "Nacre 的界面语言是什么？",
+      "rewriteEnabled": false,
+      "coreAnswerCorrect": true,
+      "fullAnswerSupported": true,
+      "review": "正确回答界面日语，并把Kotlin清楚标为开发语言，未混淆字段。",
+      "contextKeys": [
+        "nacre.language",
+        "nacre.cancel",
+        "nacre.check",
+        "nacre.release",
+        "nacre.storage"
+      ],
+      "contextBytes": 1511,
+      "evidence": "supported",
+      "rewriteFallback": false,
+      "elapsedMs": 6565.109167000002
+    },
+    {
+      "outcomeIndex": 5,
+      "question": "阿青每个月电话费用多少钱？",
+      "rewriteEnabled": true,
+      "coreAnswerCorrect": true,
+      "fullAnswerSupported": true,
+      "review": "改写超时回退后仍明确费用未知，不给具体数字。",
+      "contextKeys": [
+        "aqing.contact"
+      ],
+      "contextBytes": 549,
+      "evidence": "insufficient",
+      "rewriteFallback": true,
+      "elapsedMs": 42409.72683299999
+    },
+    {
+      "outcomeIndex": 6,
+      "question": "Nacre 下一次正式发布日期是什么？",
+      "rewriteEnabled": true,
+      "coreAnswerCorrect": true,
+      "fullAnswerSupported": true,
+      "review": "改写超时回退后仍明确下一次日期未知，历史日期不被当作未来计划。",
+      "contextKeys": [
+        "nacre.cancel",
+        "nacre.release",
+        "nacre.check",
+        "nacre.language",
+        "nacre.storage"
+      ],
+      "contextBytes": 1537,
+      "evidence": "insufficient",
+      "rewriteFallback": true,
+      "elapsedMs": 6553.594125000003
+    },
+    {
+      "outcomeIndex": 7,
+      "question": "阿青喜欢哪种联系方法，不是阿白？",
+      "rewriteEnabled": true,
+      "coreAnswerCorrect": true,
+      "fullAnswerSupported": true,
+      "review": "改写超时回退后只回答阿青电话沟通，没有对被排除对象作额外存在性断言。",
+      "contextKeys": [
+        "aqing.contact"
+      ],
+      "contextBytes": 557,
+      "evidence": "supported",
+      "rewriteFallback": true,
+      "elapsedMs": 33561.915958
+    },
+    {
+      "outcomeIndex": 8,
+      "question": "Nacre 的界面语言是什么？",
+      "rewriteEnabled": true,
+      "coreAnswerCorrect": true,
+      "fullAnswerSupported": true,
+      "review": "已有置信度足够，未触发改写；正确回答日语，不以Kotlin作界面语言。",
+      "contextKeys": [
+        "nacre.language",
+        "nacre.cancel",
+        "nacre.check",
+        "nacre.release",
+        "nacre.storage"
+      ],
+      "contextBytes": 1511,
+      "evidence": "supported",
+      "rewriteFallback": false,
+      "elapsedMs": 1405.0644170000014
+    }
+  ],
+  "limits": [
+    "没有成功查询改写后的真实生成；开启组3次均回退，1题跳过。",
+    "只覆盖独立task scope、无工具、无历史的真实Pi生成；不是飞书或交互工具端到端验收。",
+    "4问各一次不代表稳定成功率或普遍无幻觉；不追加剩余请求。",
+    "未开发自动记忆形成，不改正式.env或业务数据。"
+  ]
+}

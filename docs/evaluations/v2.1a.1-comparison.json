@@ -1,0 +1,2978 @@
+{
+  "baselineCommit": "087888c32c1fcc2255e496ce1d9edd5f31e2c647",
+  "apiCalls": 0,
+  "method": "基线源文件由git show提取到临时目录，用同一新版指标脚本执行；原始开工快照另外保留。回放只消费旧轮次的改写，按各版原有needsRewrite门控；新触发但未记录时回退词法。supported精度仅按预期key，不等于值级或生成准确性。",
+  "runs": [
+    {
+      "mode": "lexical",
+      "datasets": [
+        {
+          "name": "原16题",
+          "before": {
+            "answerable": 12,
+            "top1": 0.75,
+            "recall5": 0.75,
+            "mrr": 0.75,
+            "negativeCount": 4,
+            "insufficientEvidenceCorrect": 4,
+            "supportedCorrect": 9,
+            "falseSupportedNoAnswer": 0,
+            "supportedClaims": 9,
+            "correctSupportedClaims": 9,
+            "supportedRecordPrecision": 1,
+            "contextHitRate": 0.75,
+            "contextBytesMax": 700,
+            "strictExpectedKeyContextPrecision": 1,
+            "latencyP50Ms": 2.3275420000000224,
+            "latencyP95Ms": 4.970457999999979
+          },
+          "after": {
+            "answerable": 12,
+            "top1": 0.75,
+            "recall5": 0.75,
+            "mrr": 0.75,
+            "negativeCount": 4,
+            "insufficientEvidenceCorrect": 4,
+            "supportedCorrect": 9,
+            "falseSupportedNoAnswer": 0,
+            "supportedClaims": 9,
+            "correctSupportedClaims": 9,
+            "supportedRecordPrecision": 1,
+            "contextHitRate": 0.75,
+            "contextBytesMax": 1051,
+            "strictExpectedKeyContextPrecision": 0.6,
+            "latencyP50Ms": 1.8715420000000051,
+            "latencyP95Ms": 5.7161669999999845
+          },
+          "changedCases": [
+            {
+              "query": "Atlas 的任务数据存入哪里？",
+              "expectedKey": "atlas.database",
+              "before": {
+                "retrievedKeys": [
+                  "atlas.database",
+                  "atlas.backup",
+                  "atlas.language"
+                ],
+                "supportKeys": [
+                  "atlas.database"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "atlas.database"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "atlas.database",
+                  "atlas.backup",
+                  "atlas.language"
+                ],
+                "supportKeys": [
+                  "atlas.database"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "atlas.database",
+                  "atlas.backup",
+                  "atlas.language"
+                ]
+              }
+            },
+            {
+              "query": "排查飞书连接告警的方法是什么？",
+              "expectedKey": "feishu.troubleshooting",
+              "before": {
+                "retrievedKeys": [
+                  "feishu.troubleshooting",
+                  "feishu.acceptance",
+                  "feishu.outage"
+                ],
+                "supportKeys": [
+                  "feishu.troubleshooting"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "feishu.troubleshooting"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "feishu.troubleshooting"
+                ],
+                "supportKeys": [
+                  "feishu.troubleshooting"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "feishu.troubleshooting"
+                ]
+              }
+            },
+            {
+              "query": "Atlas 把待办存在哪儿？",
+              "expectedKey": "atlas.database",
+              "before": {
+                "retrievedKeys": [
+                  "atlas.database",
+                  "atlas.backup",
+                  "atlas.language"
+                ],
+                "supportKeys": [
+                  "atlas.database"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "atlas.database"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "atlas.database",
+                  "atlas.backup",
+                  "atlas.language"
+                ],
+                "supportKeys": [
+                  "atlas.database"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "atlas.database",
+                  "atlas.backup",
+                  "atlas.language"
+                ]
+              }
+            },
+            {
+              "query": "Atlas 数据库架构是什么？",
+              "expectedKey": "atlas.database",
+              "before": {
+                "retrievedKeys": [
+                  "atlas.database",
+                  "atlas.backup",
+                  "atlas.language"
+                ],
+                "supportKeys": [
+                  "atlas.database"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "atlas.database"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "atlas.database",
+                  "atlas.backup",
+                  "atlas.language"
+                ],
+                "supportKeys": [
+                  "atlas.database"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "atlas.database",
+                  "atlas.backup",
+                  "atlas.language"
+                ]
+              }
+            },
+            {
+              "query": "Atlas 下一次发布的确切日期",
+              "expectedKey": null,
+              "before": {
+                "retrievedKeys": [
+                  "atlas.backup",
+                  "atlas.database",
+                  "atlas.language"
+                ],
+                "supportKeys": [],
+                "evidence": "insufficient",
+                "contextKeys": [
+                  "atlas.backup",
+                  "atlas.database"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "atlas.backup",
+                  "atlas.database",
+                  "atlas.language"
+                ],
+                "supportKeys": [],
+                "evidence": "insufficient",
+                "contextKeys": [
+                  "atlas.backup",
+                  "atlas.database",
+                  "atlas.language"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "旧独立24题",
+          "before": {
+            "answerable": 19,
+            "top1": 0.7894736842105263,
+            "recall5": 0.8947368421052632,
+            "mrr": 0.8333333333333333,
+            "negativeCount": 5,
+            "insufficientEvidenceCorrect": 5,
+            "supportedCorrect": 9,
+            "falseSupportedNoAnswer": 0,
+            "supportedClaims": 10,
+            "correctSupportedClaims": 9,
+            "supportedRecordPrecision": 0.9,
+            "contextHitRate": 0.7894736842105263,
+            "contextBytesMax": 695,
+            "strictExpectedKeyContextPrecision": 0.7142857142857143,
+            "latencyP50Ms": 2.7322079999999573,
+            "latencyP95Ms": 3.252667000000031
+          },
+          "after": {
+            "answerable": 19,
+            "top1": 0.8947368421052632,
+            "recall5": 0.8947368421052632,
+            "mrr": 0.8947368421052632,
+            "negativeCount": 5,
+            "insufficientEvidenceCorrect": 5,
+            "supportedCorrect": 10,
+            "falseSupportedNoAnswer": 0,
+            "supportedClaims": 10,
+            "correctSupportedClaims": 10,
+            "supportedRecordPrecision": 1,
+            "contextHitRate": 0.8947368421052632,
+            "contextBytesMax": 1511,
+            "strictExpectedKeyContextPrecision": 0.4473684210526316,
+            "latencyP50Ms": 1.9382499999999823,
+            "latencyP95Ms": 2.2854580000000055
+          },
+          "changedCases": [
+            {
+              "query": "Nacre 使用什么数据库？",
+              "expectedKey": "nacre.storage",
+              "before": {
+                "retrievedKeys": [
+                  "nacre.storage",
+                  "nacre.language",
+                  "nacre.check",
+                  "nacre.cancel",
+                  "nacre.release"
+                ],
+                "supportKeys": [
+                  "nacre.storage"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "nacre.storage"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "nacre.storage",
+                  "nacre.language",
+                  "nacre.check",
+                  "nacre.cancel",
+                  "nacre.release"
+                ],
+                "supportKeys": [
+                  "nacre.storage"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "nacre.storage",
+                  "nacre.language",
+                  "nacre.check",
+                  "nacre.cancel",
+                  "nacre.release"
+                ]
+              }
+            },
+            {
+              "query": "Quartz 套餐的费用是多少？",
+              "expectedKey": "quartz.price",
+              "before": {
+                "retrievedKeys": [
+                  "quartz.price",
+                  "quartz.review",
+                  "quartz.storage"
+                ],
+                "supportKeys": [
+                  "quartz.price"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "quartz.price"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "quartz.price",
+                  "quartz.review",
+                  "quartz.storage"
+                ],
+                "supportKeys": [
+                  "quartz.price"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "quartz.price",
+                  "quartz.review",
+                  "quartz.storage"
+                ]
+              }
+            },
+            {
+              "query": "设备恢复的方法是什么？",
+              "expectedKey": "device.restore",
+              "before": {
+                "retrievedKeys": [
+                  "device.restore"
+                ],
+                "supportKeys": [
+                  "device.restore"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "device.restore"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "device.restore"
+                ],
+                "supportKeys": [],
+                "evidence": "uncertain",
+                "contextKeys": [
+                  "device.restore"
+                ]
+              }
+            },
+            {
+              "query": "Nacre 的 database 用哪个产品？",
+              "expectedKey": "nacre.storage",
+              "before": {
+                "retrievedKeys": [
+                  "nacre.storage",
+                  "nacre.check",
+                  "nacre.language",
+                  "nacre.cancel",
+                  "nacre.release"
+                ],
+                "supportKeys": [
+                  "nacre.storage"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "nacre.storage"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "nacre.storage",
+                  "nacre.check",
+                  "nacre.language",
+                  "nacre.cancel",
+                  "nacre.release"
+                ],
+                "supportKeys": [
+                  "nacre.storage"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "nacre.storage",
+                  "nacre.check",
+                  "nacre.language",
+                  "nacre.cancel",
+                  "nacre.release"
+                ]
+              }
+            },
+            {
+              "query": "Nacre UI language 是什么？",
+              "expectedKey": "nacre.language",
+              "before": {
+                "retrievedKeys": [
+                  "nacre.cancel",
+                  "nacre.check",
+                  "nacre.language",
+                  "nacre.release",
+                  "nacre.storage"
+                ],
+                "supportKeys": [],
+                "evidence": "insufficient",
+                "contextKeys": [
+                  "nacre.cancel",
+                  "nacre.check"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "nacre.language",
+                  "nacre.cancel",
+                  "nacre.check",
+                  "nacre.release",
+                  "nacre.storage"
+                ],
+                "supportKeys": [
+                  "nacre.language"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "nacre.language",
+                  "nacre.cancel",
+                  "nacre.check",
+                  "nacre.release",
+                  "nacre.storage"
+                ]
+              }
+            },
+            {
+              "query": "Quartz 数据库是什么，不要 Nacre 的方案",
+              "expectedKey": "quartz.storage",
+              "before": {
+                "retrievedKeys": [
+                  "quartz.storage",
+                  "quartz.price",
+                  "quartz.review"
+                ],
+                "supportKeys": [
+                  "quartz.storage"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "quartz.storage"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "quartz.storage",
+                  "quartz.price",
+                  "quartz.review"
+                ],
+                "supportKeys": [
+                  "quartz.storage"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "quartz.storage",
+                  "quartz.price",
+                  "quartz.review"
+                ]
+              }
+            },
+            {
+              "query": "阿青喜欢哪种联系方法，不是阿白？",
+              "expectedKey": "aqing.contact",
+              "before": {
+                "retrievedKeys": [
+                  "device.restore",
+                  "aqing.contact",
+                  "abai.contact"
+                ],
+                "supportKeys": [
+                  "device.restore"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "device.restore"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "aqing.contact"
+                ],
+                "supportKeys": [
+                  "aqing.contact"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "aqing.contact"
+                ]
+              }
+            },
+            {
+              "query": "阿白喜欢什么沟通方式？",
+              "expectedKey": "abai.contact",
+              "before": {
+                "retrievedKeys": [
+                  "abai.contact",
+                  "aqing.contact"
+                ],
+                "supportKeys": [],
+                "evidence": "uncertain",
+                "contextKeys": [
+                  "abai.contact",
+                  "aqing.contact"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "abai.contact"
+                ],
+                "supportKeys": [
+                  "abai.contact"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "abai.contact"
+                ]
+              }
+            },
+            {
+              "query": "Nacre 的测试命令，不是 Quartz 的费用",
+              "expectedKey": "nacre.check",
+              "before": {
+                "retrievedKeys": [
+                  "nacre.check",
+                  "nacre.cancel",
+                  "nacre.language",
+                  "nacre.release",
+                  "nacre.storage"
+                ],
+                "supportKeys": [],
+                "evidence": "uncertain",
+                "contextKeys": [
+                  "nacre.check",
+                  "nacre.cancel"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "nacre.check",
+                  "nacre.cancel",
+                  "nacre.language",
+                  "nacre.release",
+                  "nacre.storage"
+                ],
+                "supportKeys": [],
+                "evidence": "uncertain",
+                "contextKeys": [
+                  "nacre.check",
+                  "nacre.cancel",
+                  "nacre.language",
+                  "nacre.release",
+                  "nacre.storage"
+                ]
+              }
+            },
+            {
+              "query": "无线网络断连的排查步骤是什么？",
+              "expectedKey": "wireless.check",
+              "before": {
+                "retrievedKeys": [
+                  "wireless.check"
+                ],
+                "supportKeys": [
+                  "wireless.check"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "wireless.check"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "wireless.check"
+                ],
+                "supportKeys": [],
+                "evidence": "uncertain",
+                "contextKeys": [
+                  "wireless.check"
+                ]
+              }
+            },
+            {
+              "query": "Nacre 下一次正式发布的确切日期是什么？",
+              "expectedKey": null,
+              "before": {
+                "retrievedKeys": [
+                  "nacre.cancel",
+                  "nacre.release",
+                  "nacre.check",
+                  "nacre.language",
+                  "nacre.storage"
+                ],
+                "supportKeys": [],
+                "evidence": "insufficient",
+                "contextKeys": [
+                  "nacre.cancel",
+                  "nacre.release"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "nacre.cancel",
+                  "nacre.release",
+                  "nacre.check",
+                  "nacre.language",
+                  "nacre.storage"
+                ],
+                "supportKeys": [],
+                "evidence": "insufficient",
+                "contextKeys": [
+                  "nacre.cancel",
+                  "nacre.release",
+                  "nacre.check",
+                  "nacre.language",
+                  "nacre.storage"
+                ]
+              }
+            },
+            {
+              "query": "Quartz 的登录密码是什么？",
+              "expectedKey": null,
+              "before": {
+                "retrievedKeys": [
+                  "quartz.price",
+                  "quartz.review",
+                  "quartz.storage"
+                ],
+                "supportKeys": [],
+                "evidence": "insufficient",
+                "contextKeys": [
+                  "quartz.price",
+                  "quartz.review"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "quartz.price",
+                  "quartz.review",
+                  "quartz.storage"
+                ],
+                "supportKeys": [],
+                "evidence": "insufficient",
+                "contextKeys": [
+                  "quartz.price",
+                  "quartz.review",
+                  "quartz.storage"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "新独立24题",
+          "before": {
+            "answerable": 18,
+            "top1": 0.8333333333333334,
+            "recall5": 1,
+            "mrr": 0.8888888888888888,
+            "negativeCount": 6,
+            "insufficientEvidenceCorrect": 4,
+            "supportedCorrect": 6,
+            "falseSupportedNoAnswer": 2,
+            "supportedClaims": 14,
+            "correctSupportedClaims": 6,
+            "supportedRecordPrecision": 0.42857142857142855,
+            "contextHitRate": 0.8333333333333334,
+            "contextBytesMax": 794,
+            "strictExpectedKeyContextPrecision": 0.5,
+            "latencyP50Ms": 2.347291999999925,
+            "latencyP95Ms": 3.0109999999999673
+          },
+          "after": {
+            "answerable": 18,
+            "top1": 0.9444444444444444,
+            "recall5": 0.9444444444444444,
+            "mrr": 0.9444444444444444,
+            "negativeCount": 6,
+            "insufficientEvidenceCorrect": 6,
+            "supportedCorrect": 14,
+            "falseSupportedNoAnswer": 0,
+            "supportedClaims": 14,
+            "correctSupportedClaims": 14,
+            "supportedRecordPrecision": 1,
+            "contextHitRate": 0.9444444444444444,
+            "contextBytesMax": 1476,
+            "strictExpectedKeyContextPrecision": 0.3953488372093023,
+            "latencyP50Ms": 2.0578749999999673,
+            "latencyP95Ms": 3.043875000000014
+          },
+          "changedCases": [
+            {
+              "query": "周宁的电话费用是多少？",
+              "expectedKey": "zhouning.phone",
+              "before": {
+                "retrievedKeys": [
+                  "zhouning.phone",
+                  "helix.price",
+                  "zhouning.contact"
+                ],
+                "supportKeys": [
+                  "zhouning.phone",
+                  "helix.price"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "zhouning.phone",
+                  "helix.price"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "zhouning.phone",
+                  "zhouning.contact"
+                ],
+                "supportKeys": [
+                  "zhouning.phone"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "zhouning.phone",
+                  "zhouning.contact"
+                ]
+              }
+            },
+            {
+              "query": "沈禾喜欢哪种联系方法？",
+              "expectedKey": "shenhe.contact",
+              "before": {
+                "retrievedKeys": [
+                  "log.archive",
+                  "service.rollback",
+                  "shenhe.contact",
+                  "zhouning.contact",
+                  "shenhe.food"
+                ],
+                "supportKeys": [
+                  "log.archive",
+                  "service.rollback"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "log.archive",
+                  "service.rollback"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "shenhe.contact",
+                  "shenhe.food"
+                ],
+                "supportKeys": [
+                  "shenhe.contact"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "shenhe.contact",
+                  "shenhe.food"
+                ]
+              }
+            },
+            {
+              "query": "Mosaic 的数据库是什么？",
+              "expectedKey": "mosaic.database",
+              "before": {
+                "retrievedKeys": [
+                  "mosaic.database",
+                  "mosaic.languages",
+                  "mosaic.port",
+                  "mosaic.cancel",
+                  "mosaic.pass"
+                ],
+                "supportKeys": [
+                  "mosaic.database"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "mosaic.database"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "mosaic.database",
+                  "mosaic.languages",
+                  "mosaic.port",
+                  "mosaic.cancel",
+                  "mosaic.pass"
+                ],
+                "supportKeys": [
+                  "mosaic.database"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "mosaic.database",
+                  "mosaic.languages",
+                  "mosaic.port",
+                  "mosaic.cancel",
+                  "mosaic.pass"
+                ]
+              }
+            },
+            {
+              "query": "服务回滚的方法是什么？",
+              "expectedKey": "service.rollback",
+              "before": {
+                "retrievedKeys": [
+                  "service.rollback",
+                  "log.archive"
+                ],
+                "supportKeys": [
+                  "service.rollback",
+                  "log.archive"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "service.rollback",
+                  "log.archive"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "service.rollback"
+                ],
+                "supportKeys": [],
+                "evidence": "uncertain",
+                "contextKeys": [
+                  "service.rollback"
+                ]
+              }
+            },
+            {
+              "query": "Mosaic UI language 是什么？",
+              "expectedKey": "mosaic.languages",
+              "before": {
+                "retrievedKeys": [
+                  "mosaic.cancel",
+                  "mosaic.database",
+                  "mosaic.languages",
+                  "mosaic.pass",
+                  "mosaic.port"
+                ],
+                "supportKeys": [],
+                "evidence": "insufficient",
+                "contextKeys": [
+                  "mosaic.cancel",
+                  "mosaic.database"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "mosaic.languages",
+                  "mosaic.cancel",
+                  "mosaic.database",
+                  "mosaic.pass",
+                  "mosaic.port"
+                ],
+                "supportKeys": [
+                  "mosaic.languages"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "mosaic.languages",
+                  "mosaic.cancel",
+                  "mosaic.database",
+                  "mosaic.pass",
+                  "mosaic.port"
+                ]
+              }
+            },
+            {
+              "query": "Helix programming language 是什么？",
+              "expectedKey": "helix.languages",
+              "before": {
+                "retrievedKeys": [
+                  "helix.languages",
+                  "helix.price",
+                  "helix.release"
+                ],
+                "supportKeys": [],
+                "evidence": "insufficient",
+                "contextKeys": [
+                  "helix.languages",
+                  "helix.price"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "helix.languages",
+                  "helix.price",
+                  "helix.release"
+                ],
+                "supportKeys": [
+                  "helix.languages"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "helix.languages",
+                  "helix.price",
+                  "helix.release"
+                ]
+              }
+            },
+            {
+              "query": "Mosaic 界面语言和开发语言分别是什么？",
+              "expectedKey": "mosaic.languages",
+              "before": {
+                "retrievedKeys": [
+                  "mosaic.languages",
+                  "mosaic.cancel",
+                  "mosaic.database",
+                  "mosaic.pass",
+                  "mosaic.port"
+                ],
+                "supportKeys": [],
+                "evidence": "insufficient",
+                "contextKeys": [
+                  "mosaic.languages",
+                  "mosaic.cancel"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "mosaic.languages",
+                  "mosaic.cancel",
+                  "mosaic.database",
+                  "mosaic.pass",
+                  "mosaic.port"
+                ],
+                "supportKeys": [
+                  "mosaic.languages"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "mosaic.languages",
+                  "mosaic.cancel",
+                  "mosaic.database",
+                  "mosaic.pass",
+                  "mosaic.port"
+                ]
+              }
+            },
+            {
+              "query": "我偏好的回答语言是什么？",
+              "expectedKey": "user.reply",
+              "before": {
+                "retrievedKeys": [
+                  "user.reply",
+                  "helix.languages",
+                  "mosaic.languages"
+                ],
+                "supportKeys": [],
+                "evidence": "insufficient",
+                "contextKeys": [
+                  "user.reply",
+                  "helix.languages"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "user.reply"
+                ],
+                "supportKeys": [
+                  "user.reply"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "user.reply"
+                ]
+              }
+            },
+            {
+              "query": "Mosaic 的监听端口是多少？",
+              "expectedKey": "mosaic.port",
+              "before": {
+                "retrievedKeys": [
+                  "mosaic.port",
+                  "mosaic.cancel",
+                  "mosaic.database",
+                  "mosaic.languages",
+                  "mosaic.pass"
+                ],
+                "supportKeys": [],
+                "evidence": "uncertain",
+                "contextKeys": [
+                  "mosaic.port",
+                  "mosaic.cancel"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "mosaic.port",
+                  "mosaic.cancel",
+                  "mosaic.database",
+                  "mosaic.languages",
+                  "mosaic.pass"
+                ],
+                "supportKeys": [],
+                "evidence": "uncertain",
+                "contextKeys": [
+                  "mosaic.port",
+                  "mosaic.cancel",
+                  "mosaic.database",
+                  "mosaic.languages",
+                  "mosaic.pass"
+                ]
+              }
+            },
+            {
+              "query": "周宁的联系方式，不是沈禾",
+              "expectedKey": "zhouning.contact",
+              "before": {
+                "retrievedKeys": [
+                  "shenhe.contact",
+                  "zhouning.phone",
+                  "zhouning.contact"
+                ],
+                "supportKeys": [],
+                "evidence": "uncertain",
+                "contextKeys": [
+                  "shenhe.contact",
+                  "zhouning.phone"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "zhouning.contact",
+                  "zhouning.phone"
+                ],
+                "supportKeys": [
+                  "zhouning.contact"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "zhouning.contact",
+                  "zhouning.phone"
+                ]
+              }
+            },
+            {
+              "query": "Helix 的套餐费用，不要周宁的电话费用",
+              "expectedKey": "helix.price",
+              "before": {
+                "retrievedKeys": [
+                  "helix.price",
+                  "helix.languages",
+                  "helix.release"
+                ],
+                "supportKeys": [
+                  "helix.price"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "helix.price"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "helix.price",
+                  "helix.languages",
+                  "helix.release"
+                ],
+                "supportKeys": [
+                  "helix.price"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "helix.price",
+                  "helix.languages",
+                  "helix.release"
+                ]
+              }
+            },
+            {
+              "query": "Helix 下一次正式发布日期是什么？",
+              "expectedKey": "helix.release",
+              "before": {
+                "retrievedKeys": [
+                  "helix.release",
+                  "helix.languages",
+                  "helix.price"
+                ],
+                "supportKeys": [],
+                "evidence": "insufficient",
+                "contextKeys": [
+                  "helix.release",
+                  "helix.languages"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "helix.release",
+                  "helix.languages",
+                  "helix.price"
+                ],
+                "supportKeys": [
+                  "helix.release"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "helix.release",
+                  "helix.languages",
+                  "helix.price"
+                ]
+              }
+            },
+            {
+              "query": "周宁每月要花多少电话费？",
+              "expectedKey": "zhouning.phone",
+              "before": {
+                "retrievedKeys": [
+                  "zhouning.phone",
+                  "shenhe.food",
+                  "zhouning.contact"
+                ],
+                "supportKeys": [],
+                "evidence": "uncertain",
+                "contextKeys": [
+                  "zhouning.phone",
+                  "shenhe.food"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "zhouning.phone",
+                  "zhouning.contact"
+                ],
+                "supportKeys": [
+                  "zhouning.phone"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "zhouning.phone",
+                  "zhouning.contact"
+                ]
+              }
+            },
+            {
+              "query": "Mosaic 给用户看的界面使用什么语言？",
+              "expectedKey": "mosaic.languages",
+              "before": {
+                "retrievedKeys": [
+                  "mosaic.languages",
+                  "mosaic.database",
+                  "mosaic.cancel",
+                  "mosaic.pass",
+                  "mosaic.port"
+                ],
+                "supportKeys": [],
+                "evidence": "insufficient",
+                "contextKeys": [
+                  "mosaic.languages",
+                  "mosaic.database"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [],
+                "supportKeys": [],
+                "evidence": "none",
+                "contextKeys": []
+              }
+            },
+            {
+              "query": "日志归档应该先做什么？",
+              "expectedKey": "log.archive",
+              "before": {
+                "retrievedKeys": [
+                  "log.archive"
+                ],
+                "supportKeys": [],
+                "evidence": "uncertain",
+                "contextKeys": [
+                  "log.archive"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "log.archive"
+                ],
+                "supportKeys": [
+                  "log.archive"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "log.archive"
+                ]
+              }
+            },
+            {
+              "query": "沈禾的电话费用是多少？",
+              "expectedKey": null,
+              "before": {
+                "retrievedKeys": [
+                  "zhouning.phone",
+                  "helix.price",
+                  "shenhe.food",
+                  "shenhe.contact"
+                ],
+                "supportKeys": [
+                  "zhouning.phone",
+                  "helix.price",
+                  "shenhe.food"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "zhouning.phone",
+                  "helix.price",
+                  "shenhe.food"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "shenhe.food",
+                  "shenhe.contact"
+                ],
+                "supportKeys": [],
+                "evidence": "insufficient",
+                "contextKeys": [
+                  "shenhe.food",
+                  "shenhe.contact"
+                ]
+              }
+            },
+            {
+              "query": "Mosaic 下一次正式发布日期是什么？",
+              "expectedKey": null,
+              "before": {
+                "retrievedKeys": [
+                  "mosaic.cancel",
+                  "mosaic.database",
+                  "mosaic.languages",
+                  "mosaic.pass",
+                  "mosaic.port"
+                ],
+                "supportKeys": [],
+                "evidence": "insufficient",
+                "contextKeys": [
+                  "mosaic.cancel",
+                  "mosaic.database"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "mosaic.cancel",
+                  "mosaic.database",
+                  "mosaic.languages",
+                  "mosaic.pass",
+                  "mosaic.port"
+                ],
+                "supportKeys": [],
+                "evidence": "insufficient",
+                "contextKeys": [
+                  "mosaic.cancel",
+                  "mosaic.database",
+                  "mosaic.languages",
+                  "mosaic.pass",
+                  "mosaic.port"
+                ]
+              }
+            },
+            {
+              "query": "周宁喜欢喝哪种咖啡？",
+              "expectedKey": null,
+              "before": {
+                "retrievedKeys": [
+                  "zhouning.contact",
+                  "shenhe.contact",
+                  "zhouning.phone"
+                ],
+                "supportKeys": [],
+                "evidence": "insufficient",
+                "contextKeys": [
+                  "zhouning.contact",
+                  "shenhe.contact"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "zhouning.contact",
+                  "zhouning.phone"
+                ],
+                "supportKeys": [],
+                "evidence": "insufficient",
+                "contextKeys": [
+                  "zhouning.contact",
+                  "zhouning.phone"
+                ]
+              }
+            },
+            {
+              "query": "岑安的联系方式是什么？",
+              "expectedKey": null,
+              "before": {
+                "retrievedKeys": [
+                  "shenhe.contact"
+                ],
+                "supportKeys": [],
+                "evidence": "uncertain",
+                "contextKeys": [
+                  "shenhe.contact"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [],
+                "supportKeys": [],
+                "evidence": "none",
+                "contextKeys": []
+              }
+            },
+            {
+              "query": "Helix 的每月电话费用是多少？",
+              "expectedKey": null,
+              "before": {
+                "retrievedKeys": [
+                  "helix.price",
+                  "helix.languages",
+                  "helix.release"
+                ],
+                "supportKeys": [
+                  "helix.price"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "helix.price"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "helix.price",
+                  "helix.languages",
+                  "helix.release"
+                ],
+                "supportKeys": [],
+                "evidence": "insufficient",
+                "contextKeys": [
+                  "helix.price",
+                  "helix.languages",
+                  "helix.release"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "replay1",
+      "datasets": [
+        {
+          "name": "原16题",
+          "before": {
+            "answerable": 12,
+            "top1": 0.9166666666666666,
+            "recall5": 1,
+            "mrr": 0.9583333333333334,
+            "negativeCount": 4,
+            "insufficientEvidenceCorrect": 4,
+            "supportedCorrect": 11,
+            "falseSupportedNoAnswer": 0,
+            "supportedClaims": 13,
+            "correctSupportedClaims": 12,
+            "supportedRecordPrecision": 0.9230769230769231,
+            "contextHitRate": 1,
+            "contextBytesMax": 776,
+            "strictExpectedKeyContextPrecision": 0.9230769230769231,
+            "latencyP50Ms": 2.8409999999999798,
+            "latencyP95Ms": 7.453249999999997
+          },
+          "after": {
+            "answerable": 12,
+            "top1": 0.9166666666666666,
+            "recall5": 1,
+            "mrr": 0.9583333333333334,
+            "negativeCount": 4,
+            "insufficientEvidenceCorrect": 4,
+            "supportedCorrect": 11,
+            "falseSupportedNoAnswer": 0,
+            "supportedClaims": 11,
+            "correctSupportedClaims": 11,
+            "supportedRecordPrecision": 1,
+            "contextHitRate": 1,
+            "contextBytesMax": 1051,
+            "strictExpectedKeyContextPrecision": 0.6,
+            "latencyP50Ms": 2.9499580000000094,
+            "latencyP95Ms": 6.702833000000027
+          },
+          "changedCases": [
+            {
+              "query": "Atlas 的任务数据存入哪里？",
+              "expectedKey": "atlas.database",
+              "before": {
+                "retrievedKeys": [
+                  "atlas.database",
+                  "atlas.backup",
+                  "atlas.language"
+                ],
+                "supportKeys": [
+                  "atlas.database"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "atlas.database"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "atlas.database",
+                  "atlas.backup",
+                  "atlas.language"
+                ],
+                "supportKeys": [
+                  "atlas.database"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "atlas.database",
+                  "atlas.backup",
+                  "atlas.language"
+                ]
+              }
+            },
+            {
+              "query": "排查飞书连接告警的方法是什么？",
+              "expectedKey": "feishu.troubleshooting",
+              "before": {
+                "retrievedKeys": [
+                  "feishu.troubleshooting",
+                  "feishu.acceptance",
+                  "feishu.outage"
+                ],
+                "supportKeys": [
+                  "feishu.troubleshooting"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "feishu.troubleshooting"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "feishu.troubleshooting"
+                ],
+                "supportKeys": [
+                  "feishu.troubleshooting"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "feishu.troubleshooting"
+                ]
+              }
+            },
+            {
+              "query": "平时我更愿意读哪种文字？",
+              "expectedKey": "user.language",
+              "before": {
+                "retrievedKeys": [
+                  "user.language",
+                  "user.drink"
+                ],
+                "supportKeys": [
+                  "user.language"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "user.language"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "user.language",
+                  "user.drink"
+                ],
+                "supportKeys": [
+                  "user.language"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "user.language",
+                  "user.drink"
+                ]
+              }
+            },
+            {
+              "query": "Atlas 把待办存在哪儿？",
+              "expectedKey": "atlas.database",
+              "before": {
+                "retrievedKeys": [
+                  "atlas.database",
+                  "atlas.backup",
+                  "atlas.language"
+                ],
+                "supportKeys": [
+                  "atlas.database"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "atlas.database"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "atlas.database",
+                  "atlas.backup",
+                  "atlas.language"
+                ],
+                "supportKeys": [
+                  "atlas.database"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "atlas.database",
+                  "atlas.backup",
+                  "atlas.language"
+                ]
+              }
+            },
+            {
+              "query": "机器人断线了，该从哪儿着手定位？",
+              "expectedKey": "feishu.troubleshooting",
+              "before": {
+                "retrievedKeys": [
+                  "database.backup",
+                  "feishu.troubleshooting"
+                ],
+                "supportKeys": [
+                  "database.backup",
+                  "feishu.troubleshooting"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "database.backup",
+                  "feishu.troubleshooting"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "database.backup",
+                  "feishu.troubleshooting"
+                ],
+                "supportKeys": [],
+                "evidence": "uncertain",
+                "contextKeys": [
+                  "database.backup",
+                  "feishu.troubleshooting"
+                ]
+              }
+            },
+            {
+              "query": "Atlas 数据库架构是什么？",
+              "expectedKey": "atlas.database",
+              "before": {
+                "retrievedKeys": [
+                  "atlas.database",
+                  "atlas.backup",
+                  "atlas.language"
+                ],
+                "supportKeys": [
+                  "atlas.database"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "atlas.database"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "atlas.database",
+                  "atlas.backup",
+                  "atlas.language"
+                ],
+                "supportKeys": [
+                  "atlas.database"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "atlas.database",
+                  "atlas.backup",
+                  "atlas.language"
+                ]
+              }
+            },
+            {
+              "query": "Atlas 下一次发布的确切日期",
+              "expectedKey": null,
+              "before": {
+                "retrievedKeys": [
+                  "atlas.backup",
+                  "atlas.database",
+                  "atlas.language"
+                ],
+                "supportKeys": [],
+                "evidence": "insufficient",
+                "contextKeys": [
+                  "atlas.backup",
+                  "atlas.database"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "atlas.backup",
+                  "atlas.database",
+                  "atlas.language"
+                ],
+                "supportKeys": [],
+                "evidence": "insufficient",
+                "contextKeys": [
+                  "atlas.backup",
+                  "atlas.database",
+                  "atlas.language"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "旧独立24题",
+          "before": {
+            "answerable": 19,
+            "top1": 0.8947368421052632,
+            "recall5": 1,
+            "mrr": 0.9385964912280703,
+            "negativeCount": 5,
+            "insufficientEvidenceCorrect": 4,
+            "supportedCorrect": 10,
+            "falseSupportedNoAnswer": 1,
+            "supportedClaims": 13,
+            "correctSupportedClaims": 10,
+            "supportedRecordPrecision": 0.7692307692307693,
+            "contextHitRate": 0.9473684210526315,
+            "contextBytesMax": 709,
+            "strictExpectedKeyContextPrecision": 0.6923076923076923,
+            "latencyP50Ms": 3.2104160000000093,
+            "latencyP95Ms": 4.385499999999979
+          },
+          "after": {
+            "answerable": 19,
+            "top1": 0.9473684210526315,
+            "recall5": 1,
+            "mrr": 0.9736842105263158,
+            "negativeCount": 5,
+            "insufficientEvidenceCorrect": 5,
+            "supportedCorrect": 10,
+            "falseSupportedNoAnswer": 0,
+            "supportedClaims": 10,
+            "correctSupportedClaims": 10,
+            "supportedRecordPrecision": 1,
+            "contextHitRate": 1,
+            "contextBytesMax": 1511,
+            "strictExpectedKeyContextPrecision": 0.4418604651162791,
+            "latencyP50Ms": 3.036875000000009,
+            "latencyP95Ms": 4.3056250000000205
+          },
+          "changedCases": [
+            {
+              "query": "Nacre 使用什么数据库？",
+              "expectedKey": "nacre.storage",
+              "before": {
+                "retrievedKeys": [
+                  "nacre.storage",
+                  "nacre.language",
+                  "nacre.check",
+                  "nacre.cancel",
+                  "nacre.release"
+                ],
+                "supportKeys": [
+                  "nacre.storage"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "nacre.storage"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "nacre.storage",
+                  "nacre.language",
+                  "nacre.check",
+                  "nacre.cancel",
+                  "nacre.release"
+                ],
+                "supportKeys": [
+                  "nacre.storage"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "nacre.storage",
+                  "nacre.language",
+                  "nacre.check",
+                  "nacre.cancel",
+                  "nacre.release"
+                ]
+              }
+            },
+            {
+              "query": "Quartz 套餐的费用是多少？",
+              "expectedKey": "quartz.price",
+              "before": {
+                "retrievedKeys": [
+                  "quartz.price",
+                  "quartz.review",
+                  "quartz.storage"
+                ],
+                "supportKeys": [
+                  "quartz.price"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "quartz.price"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "quartz.price",
+                  "quartz.review",
+                  "quartz.storage"
+                ],
+                "supportKeys": [
+                  "quartz.price"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "quartz.price",
+                  "quartz.review",
+                  "quartz.storage"
+                ]
+              }
+            },
+            {
+              "query": "设备恢复的方法是什么？",
+              "expectedKey": "device.restore",
+              "before": {
+                "retrievedKeys": [
+                  "device.restore"
+                ],
+                "supportKeys": [
+                  "device.restore"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "device.restore"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "device.restore"
+                ],
+                "supportKeys": [],
+                "evidence": "uncertain",
+                "contextKeys": [
+                  "device.restore"
+                ]
+              }
+            },
+            {
+              "query": "整理讨论记录时，你应该先写决定还是待办？",
+              "expectedKey": "user.minutes",
+              "before": {
+                "retrievedKeys": [
+                  "user.focus",
+                  "user.minutes"
+                ],
+                "supportKeys": [],
+                "evidence": "uncertain",
+                "contextKeys": [
+                  "user.focus",
+                  "user.minutes"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "user.focus",
+                  "user.minutes"
+                ],
+                "supportKeys": [],
+                "evidence": "insufficient",
+                "contextKeys": [
+                  "user.focus",
+                  "user.minutes"
+                ]
+              }
+            },
+            {
+              "query": "Wi-Fi老掉线，先从哪里检查？",
+              "expectedKey": "wireless.check",
+              "before": {
+                "retrievedKeys": [
+                  "wireless.check"
+                ],
+                "supportKeys": [
+                  "wireless.check"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "wireless.check"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "wireless.check"
+                ],
+                "supportKeys": [],
+                "evidence": "uncertain",
+                "contextKeys": [
+                  "wireless.check"
+                ]
+              }
+            },
+            {
+              "query": "Nacre 的 database 用哪个产品？",
+              "expectedKey": "nacre.storage",
+              "before": {
+                "retrievedKeys": [
+                  "nacre.storage",
+                  "nacre.language",
+                  "nacre.check",
+                  "nacre.cancel",
+                  "nacre.release"
+                ],
+                "supportKeys": [
+                  "nacre.storage"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "nacre.storage"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "nacre.storage",
+                  "nacre.language",
+                  "nacre.check",
+                  "nacre.cancel",
+                  "nacre.release"
+                ],
+                "supportKeys": [
+                  "nacre.storage"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "nacre.storage",
+                  "nacre.language",
+                  "nacre.check",
+                  "nacre.cancel",
+                  "nacre.release"
+                ]
+              }
+            },
+            {
+              "query": "Nacre UI language 是什么？",
+              "expectedKey": "nacre.language",
+              "before": {
+                "retrievedKeys": [
+                  "nacre.language",
+                  "nacre.cancel",
+                  "nacre.check",
+                  "nacre.release",
+                  "nacre.storage"
+                ],
+                "supportKeys": [],
+                "evidence": "insufficient",
+                "contextKeys": [
+                  "nacre.language",
+                  "nacre.cancel"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "nacre.language",
+                  "nacre.cancel",
+                  "nacre.check",
+                  "nacre.release",
+                  "nacre.storage"
+                ],
+                "supportKeys": [
+                  "nacre.language"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "nacre.language",
+                  "nacre.cancel",
+                  "nacre.check",
+                  "nacre.release",
+                  "nacre.storage"
+                ]
+              }
+            },
+            {
+              "query": "Quartz 数据库是什么，不要 Nacre 的方案",
+              "expectedKey": "quartz.storage",
+              "before": {
+                "retrievedKeys": [
+                  "quartz.storage",
+                  "quartz.price",
+                  "quartz.review"
+                ],
+                "supportKeys": [
+                  "quartz.storage"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "quartz.storage"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "quartz.storage",
+                  "quartz.price",
+                  "quartz.review"
+                ],
+                "supportKeys": [
+                  "quartz.storage"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "quartz.storage",
+                  "quartz.price",
+                  "quartz.review"
+                ]
+              }
+            },
+            {
+              "query": "阿青喜欢哪种联系方法，不是阿白？",
+              "expectedKey": "aqing.contact",
+              "before": {
+                "retrievedKeys": [
+                  "device.restore",
+                  "user.minutes",
+                  "aqing.contact",
+                  "abai.contact"
+                ],
+                "supportKeys": [
+                  "device.restore",
+                  "user.minutes"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "device.restore",
+                  "user.minutes"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "aqing.contact"
+                ],
+                "supportKeys": [
+                  "aqing.contact"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "aqing.contact"
+                ]
+              }
+            },
+            {
+              "query": "阿白喜欢什么沟通方式？",
+              "expectedKey": "abai.contact",
+              "before": {
+                "retrievedKeys": [
+                  "abai.contact",
+                  "aqing.contact",
+                  "user.minutes"
+                ],
+                "supportKeys": [],
+                "evidence": "uncertain",
+                "contextKeys": [
+                  "abai.contact",
+                  "aqing.contact"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "abai.contact"
+                ],
+                "supportKeys": [
+                  "abai.contact"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "abai.contact"
+                ]
+              }
+            },
+            {
+              "query": "Nacre 的测试命令，不是 Quartz 的费用",
+              "expectedKey": "nacre.check",
+              "before": {
+                "retrievedKeys": [
+                  "nacre.check",
+                  "nacre.cancel",
+                  "nacre.language",
+                  "nacre.release",
+                  "nacre.storage"
+                ],
+                "supportKeys": [],
+                "evidence": "uncertain",
+                "contextKeys": [
+                  "nacre.check",
+                  "nacre.cancel"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "nacre.check",
+                  "nacre.cancel",
+                  "nacre.language",
+                  "nacre.release",
+                  "nacre.storage"
+                ],
+                "supportKeys": [],
+                "evidence": "uncertain",
+                "contextKeys": [
+                  "nacre.check",
+                  "nacre.cancel",
+                  "nacre.language",
+                  "nacre.release",
+                  "nacre.storage"
+                ]
+              }
+            },
+            {
+              "query": "设备恢复出厂设置之前先做什么？",
+              "expectedKey": "device.restore",
+              "before": {
+                "retrievedKeys": [
+                  "device.restore",
+                  "nacre.storage",
+                  "quartz.storage"
+                ],
+                "supportKeys": [],
+                "evidence": "uncertain",
+                "contextKeys": [
+                  "device.restore",
+                  "nacre.storage"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "device.restore",
+                  "nacre.storage",
+                  "quartz.storage"
+                ],
+                "supportKeys": [],
+                "evidence": "uncertain",
+                "contextKeys": [
+                  "device.restore",
+                  "nacre.storage",
+                  "quartz.storage"
+                ]
+              }
+            },
+            {
+              "query": "无线网络断连的排查步骤是什么？",
+              "expectedKey": "wireless.check",
+              "before": {
+                "retrievedKeys": [
+                  "wireless.check"
+                ],
+                "supportKeys": [
+                  "wireless.check"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "wireless.check"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "wireless.check"
+                ],
+                "supportKeys": [],
+                "evidence": "uncertain",
+                "contextKeys": [
+                  "wireless.check"
+                ]
+              }
+            },
+            {
+              "query": "Nacre 下一次正式发布的确切日期是什么？",
+              "expectedKey": null,
+              "before": {
+                "retrievedKeys": [
+                  "nacre.cancel",
+                  "nacre.release",
+                  "nacre.check",
+                  "nacre.language",
+                  "nacre.storage"
+                ],
+                "supportKeys": [],
+                "evidence": "insufficient",
+                "contextKeys": [
+                  "nacre.cancel",
+                  "nacre.release"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "nacre.cancel",
+                  "nacre.release",
+                  "nacre.check",
+                  "nacre.language",
+                  "nacre.storage"
+                ],
+                "supportKeys": [],
+                "evidence": "insufficient",
+                "contextKeys": [
+                  "nacre.cancel",
+                  "nacre.release",
+                  "nacre.check",
+                  "nacre.language",
+                  "nacre.storage"
+                ]
+              }
+            },
+            {
+              "query": "Quartz 的登录密码是什么？",
+              "expectedKey": null,
+              "before": {
+                "retrievedKeys": [
+                  "quartz.price",
+                  "quartz.review",
+                  "quartz.storage"
+                ],
+                "supportKeys": [],
+                "evidence": "insufficient",
+                "contextKeys": [
+                  "quartz.price",
+                  "quartz.review"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "quartz.price",
+                  "quartz.review",
+                  "quartz.storage"
+                ],
+                "supportKeys": [],
+                "evidence": "insufficient",
+                "contextKeys": [
+                  "quartz.price",
+                  "quartz.review",
+                  "quartz.storage"
+                ]
+              }
+            },
+            {
+              "query": "阿青每个月电话费用多少钱？",
+              "expectedKey": null,
+              "before": {
+                "retrievedKeys": [
+                  "quartz.price",
+                  "aqing.contact"
+                ],
+                "supportKeys": [
+                  "quartz.price"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "quartz.price"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "aqing.contact"
+                ],
+                "supportKeys": [],
+                "evidence": "insufficient",
+                "contextKeys": [
+                  "aqing.contact"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "replay2",
+      "datasets": [
+        {
+          "name": "原16题",
+          "before": {
+            "answerable": 12,
+            "top1": 1,
+            "recall5": 1,
+            "mrr": 1,
+            "negativeCount": 4,
+            "insufficientEvidenceCorrect": 4,
+            "supportedCorrect": 11,
+            "falseSupportedNoAnswer": 0,
+            "supportedClaims": 11,
+            "correctSupportedClaims": 11,
+            "supportedRecordPrecision": 1,
+            "contextHitRate": 1,
+            "contextBytesMax": 700,
+            "strictExpectedKeyContextPrecision": 1,
+            "latencyP50Ms": 2.9020830000000046,
+            "latencyP95Ms": 6.685374999999993
+          },
+          "after": {
+            "answerable": 12,
+            "top1": 1,
+            "recall5": 1,
+            "mrr": 1,
+            "negativeCount": 4,
+            "insufficientEvidenceCorrect": 4,
+            "supportedCorrect": 11,
+            "falseSupportedNoAnswer": 0,
+            "supportedClaims": 11,
+            "correctSupportedClaims": 11,
+            "supportedRecordPrecision": 1,
+            "contextHitRate": 1,
+            "contextBytesMax": 1051,
+            "strictExpectedKeyContextPrecision": 0.631578947368421,
+            "latencyP50Ms": 2.990333000000021,
+            "latencyP95Ms": 7.2418329999999855
+          },
+          "changedCases": [
+            {
+              "query": "Atlas 的任务数据存入哪里？",
+              "expectedKey": "atlas.database",
+              "before": {
+                "retrievedKeys": [
+                  "atlas.database",
+                  "atlas.backup",
+                  "atlas.language"
+                ],
+                "supportKeys": [
+                  "atlas.database"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "atlas.database"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "atlas.database",
+                  "atlas.backup",
+                  "atlas.language"
+                ],
+                "supportKeys": [
+                  "atlas.database"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "atlas.database",
+                  "atlas.backup",
+                  "atlas.language"
+                ]
+              }
+            },
+            {
+              "query": "排查飞书连接告警的方法是什么？",
+              "expectedKey": "feishu.troubleshooting",
+              "before": {
+                "retrievedKeys": [
+                  "feishu.troubleshooting",
+                  "feishu.acceptance",
+                  "feishu.outage"
+                ],
+                "supportKeys": [
+                  "feishu.troubleshooting"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "feishu.troubleshooting"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "feishu.troubleshooting"
+                ],
+                "supportKeys": [
+                  "feishu.troubleshooting"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "feishu.troubleshooting"
+                ]
+              }
+            },
+            {
+              "query": "平时我更愿意读哪种文字？",
+              "expectedKey": "user.language",
+              "before": {
+                "retrievedKeys": [
+                  "user.language",
+                  "user.drink"
+                ],
+                "supportKeys": [
+                  "user.language"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "user.language"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "user.language",
+                  "user.drink"
+                ],
+                "supportKeys": [
+                  "user.language"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "user.language",
+                  "user.drink"
+                ]
+              }
+            },
+            {
+              "query": "Atlas 把待办存在哪儿？",
+              "expectedKey": "atlas.database",
+              "before": {
+                "retrievedKeys": [
+                  "atlas.database",
+                  "atlas.backup",
+                  "atlas.language"
+                ],
+                "supportKeys": [
+                  "atlas.database"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "atlas.database"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "atlas.database",
+                  "atlas.backup",
+                  "atlas.language"
+                ],
+                "supportKeys": [
+                  "atlas.database"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "atlas.database",
+                  "atlas.backup",
+                  "atlas.language"
+                ]
+              }
+            },
+            {
+              "query": "Atlas 数据库架构是什么？",
+              "expectedKey": "atlas.database",
+              "before": {
+                "retrievedKeys": [
+                  "atlas.database",
+                  "atlas.backup",
+                  "atlas.language"
+                ],
+                "supportKeys": [
+                  "atlas.database"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "atlas.database"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "atlas.database",
+                  "atlas.backup",
+                  "atlas.language"
+                ],
+                "supportKeys": [
+                  "atlas.database"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "atlas.database",
+                  "atlas.backup",
+                  "atlas.language"
+                ]
+              }
+            },
+            {
+              "query": "Atlas 下一次发布的确切日期",
+              "expectedKey": null,
+              "before": {
+                "retrievedKeys": [
+                  "atlas.backup",
+                  "atlas.database",
+                  "atlas.language"
+                ],
+                "supportKeys": [],
+                "evidence": "insufficient",
+                "contextKeys": [
+                  "atlas.backup",
+                  "atlas.database"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "atlas.backup",
+                  "atlas.database",
+                  "atlas.language"
+                ],
+                "supportKeys": [],
+                "evidence": "insufficient",
+                "contextKeys": [
+                  "atlas.backup",
+                  "atlas.database",
+                  "atlas.language"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "旧独立24题",
+          "before": {
+            "answerable": 19,
+            "top1": 0.8947368421052632,
+            "recall5": 1,
+            "mrr": 0.9385964912280703,
+            "negativeCount": 5,
+            "insufficientEvidenceCorrect": 4,
+            "supportedCorrect": 10,
+            "falseSupportedNoAnswer": 1,
+            "supportedClaims": 13,
+            "correctSupportedClaims": 10,
+            "supportedRecordPrecision": 0.7692307692307693,
+            "contextHitRate": 0.9473684210526315,
+            "contextBytesMax": 709,
+            "strictExpectedKeyContextPrecision": 0.6923076923076923,
+            "latencyP50Ms": 3.3353329999999914,
+            "latencyP95Ms": 4.302958999999987
+          },
+          "after": {
+            "answerable": 19,
+            "top1": 0.9473684210526315,
+            "recall5": 1,
+            "mrr": 0.9736842105263158,
+            "negativeCount": 5,
+            "insufficientEvidenceCorrect": 5,
+            "supportedCorrect": 10,
+            "falseSupportedNoAnswer": 0,
+            "supportedClaims": 10,
+            "correctSupportedClaims": 10,
+            "supportedRecordPrecision": 1,
+            "contextHitRate": 1,
+            "contextBytesMax": 1511,
+            "strictExpectedKeyContextPrecision": 0.4418604651162791,
+            "latencyP50Ms": 2.9664579999999887,
+            "latencyP95Ms": 3.9921249999999873
+          },
+          "changedCases": [
+            {
+              "query": "Nacre 使用什么数据库？",
+              "expectedKey": "nacre.storage",
+              "before": {
+                "retrievedKeys": [
+                  "nacre.storage",
+                  "nacre.language",
+                  "nacre.check",
+                  "nacre.cancel",
+                  "nacre.release"
+                ],
+                "supportKeys": [
+                  "nacre.storage"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "nacre.storage"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "nacre.storage",
+                  "nacre.language",
+                  "nacre.check",
+                  "nacre.cancel",
+                  "nacre.release"
+                ],
+                "supportKeys": [
+                  "nacre.storage"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "nacre.storage",
+                  "nacre.language",
+                  "nacre.check",
+                  "nacre.cancel",
+                  "nacre.release"
+                ]
+              }
+            },
+            {
+              "query": "Quartz 套餐的费用是多少？",
+              "expectedKey": "quartz.price",
+              "before": {
+                "retrievedKeys": [
+                  "quartz.price",
+                  "quartz.review",
+                  "quartz.storage"
+                ],
+                "supportKeys": [
+                  "quartz.price"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "quartz.price"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "quartz.price",
+                  "quartz.review",
+                  "quartz.storage"
+                ],
+                "supportKeys": [
+                  "quartz.price"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "quartz.price",
+                  "quartz.review",
+                  "quartz.storage"
+                ]
+              }
+            },
+            {
+              "query": "设备恢复的方法是什么？",
+              "expectedKey": "device.restore",
+              "before": {
+                "retrievedKeys": [
+                  "device.restore"
+                ],
+                "supportKeys": [
+                  "device.restore"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "device.restore"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "device.restore"
+                ],
+                "supportKeys": [],
+                "evidence": "uncertain",
+                "contextKeys": [
+                  "device.restore"
+                ]
+              }
+            },
+            {
+              "query": "整理讨论记录时，你应该先写决定还是待办？",
+              "expectedKey": "user.minutes",
+              "before": {
+                "retrievedKeys": [
+                  "user.focus",
+                  "user.minutes"
+                ],
+                "supportKeys": [],
+                "evidence": "uncertain",
+                "contextKeys": [
+                  "user.focus",
+                  "user.minutes"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "user.focus",
+                  "user.minutes"
+                ],
+                "supportKeys": [],
+                "evidence": "insufficient",
+                "contextKeys": [
+                  "user.focus",
+                  "user.minutes"
+                ]
+              }
+            },
+            {
+              "query": "Wi-Fi老掉线，先从哪里检查？",
+              "expectedKey": "wireless.check",
+              "before": {
+                "retrievedKeys": [
+                  "wireless.check"
+                ],
+                "supportKeys": [
+                  "wireless.check"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "wireless.check"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "wireless.check"
+                ],
+                "supportKeys": [],
+                "evidence": "uncertain",
+                "contextKeys": [
+                  "wireless.check"
+                ]
+              }
+            },
+            {
+              "query": "Nacre 的 database 用哪个产品？",
+              "expectedKey": "nacre.storage",
+              "before": {
+                "retrievedKeys": [
+                  "nacre.storage",
+                  "nacre.language",
+                  "nacre.check",
+                  "nacre.cancel",
+                  "nacre.release"
+                ],
+                "supportKeys": [
+                  "nacre.storage"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "nacre.storage"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "nacre.storage",
+                  "nacre.language",
+                  "nacre.check",
+                  "nacre.cancel",
+                  "nacre.release"
+                ],
+                "supportKeys": [
+                  "nacre.storage"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "nacre.storage",
+                  "nacre.language",
+                  "nacre.check",
+                  "nacre.cancel",
+                  "nacre.release"
+                ]
+              }
+            },
+            {
+              "query": "Nacre UI language 是什么？",
+              "expectedKey": "nacre.language",
+              "before": {
+                "retrievedKeys": [
+                  "nacre.language",
+                  "nacre.cancel",
+                  "nacre.check",
+                  "nacre.release",
+                  "nacre.storage"
+                ],
+                "supportKeys": [],
+                "evidence": "insufficient",
+                "contextKeys": [
+                  "nacre.language",
+                  "nacre.cancel"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "nacre.language",
+                  "nacre.cancel",
+                  "nacre.check",
+                  "nacre.release",
+                  "nacre.storage"
+                ],
+                "supportKeys": [
+                  "nacre.language"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "nacre.language",
+                  "nacre.cancel",
+                  "nacre.check",
+                  "nacre.release",
+                  "nacre.storage"
+                ]
+              }
+            },
+            {
+              "query": "Quartz 数据库是什么，不要 Nacre 的方案",
+              "expectedKey": "quartz.storage",
+              "before": {
+                "retrievedKeys": [
+                  "quartz.storage",
+                  "quartz.price",
+                  "quartz.review"
+                ],
+                "supportKeys": [
+                  "quartz.storage"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "quartz.storage"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "quartz.storage",
+                  "quartz.price",
+                  "quartz.review"
+                ],
+                "supportKeys": [
+                  "quartz.storage"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "quartz.storage",
+                  "quartz.price",
+                  "quartz.review"
+                ]
+              }
+            },
+            {
+              "query": "阿青喜欢哪种联系方法，不是阿白？",
+              "expectedKey": "aqing.contact",
+              "before": {
+                "retrievedKeys": [
+                  "device.restore",
+                  "user.minutes",
+                  "aqing.contact",
+                  "abai.contact"
+                ],
+                "supportKeys": [
+                  "device.restore",
+                  "user.minutes"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "device.restore",
+                  "user.minutes"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "aqing.contact"
+                ],
+                "supportKeys": [
+                  "aqing.contact"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "aqing.contact"
+                ]
+              }
+            },
+            {
+              "query": "阿白喜欢什么沟通方式？",
+              "expectedKey": "abai.contact",
+              "before": {
+                "retrievedKeys": [
+                  "abai.contact",
+                  "aqing.contact",
+                  "user.minutes"
+                ],
+                "supportKeys": [],
+                "evidence": "uncertain",
+                "contextKeys": [
+                  "abai.contact",
+                  "aqing.contact"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "abai.contact"
+                ],
+                "supportKeys": [
+                  "abai.contact"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "abai.contact"
+                ]
+              }
+            },
+            {
+              "query": "Nacre 的测试命令，不是 Quartz 的费用",
+              "expectedKey": "nacre.check",
+              "before": {
+                "retrievedKeys": [
+                  "nacre.check",
+                  "nacre.cancel",
+                  "nacre.language",
+                  "nacre.release",
+                  "nacre.storage"
+                ],
+                "supportKeys": [],
+                "evidence": "uncertain",
+                "contextKeys": [
+                  "nacre.check",
+                  "nacre.cancel"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "nacre.check",
+                  "nacre.cancel",
+                  "nacre.language",
+                  "nacre.release",
+                  "nacre.storage"
+                ],
+                "supportKeys": [],
+                "evidence": "uncertain",
+                "contextKeys": [
+                  "nacre.check",
+                  "nacre.cancel",
+                  "nacre.language",
+                  "nacre.release",
+                  "nacre.storage"
+                ]
+              }
+            },
+            {
+              "query": "设备恢复出厂设置之前先做什么？",
+              "expectedKey": "device.restore",
+              "before": {
+                "retrievedKeys": [
+                  "device.restore",
+                  "nacre.storage",
+                  "quartz.storage"
+                ],
+                "supportKeys": [],
+                "evidence": "uncertain",
+                "contextKeys": [
+                  "device.restore",
+                  "nacre.storage"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "device.restore",
+                  "nacre.storage",
+                  "quartz.storage"
+                ],
+                "supportKeys": [],
+                "evidence": "uncertain",
+                "contextKeys": [
+                  "device.restore",
+                  "nacre.storage",
+                  "quartz.storage"
+                ]
+              }
+            },
+            {
+              "query": "无线网络断连的排查步骤是什么？",
+              "expectedKey": "wireless.check",
+              "before": {
+                "retrievedKeys": [
+                  "wireless.check"
+                ],
+                "supportKeys": [
+                  "wireless.check"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "wireless.check"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "wireless.check"
+                ],
+                "supportKeys": [],
+                "evidence": "uncertain",
+                "contextKeys": [
+                  "wireless.check"
+                ]
+              }
+            },
+            {
+              "query": "Nacre 下一次正式发布的确切日期是什么？",
+              "expectedKey": null,
+              "before": {
+                "retrievedKeys": [
+                  "nacre.cancel",
+                  "nacre.release",
+                  "nacre.check",
+                  "nacre.language",
+                  "nacre.storage"
+                ],
+                "supportKeys": [],
+                "evidence": "insufficient",
+                "contextKeys": [
+                  "nacre.cancel",
+                  "nacre.release"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "nacre.cancel",
+                  "nacre.release",
+                  "nacre.check",
+                  "nacre.language",
+                  "nacre.storage"
+                ],
+                "supportKeys": [],
+                "evidence": "insufficient",
+                "contextKeys": [
+                  "nacre.cancel",
+                  "nacre.release",
+                  "nacre.check",
+                  "nacre.language",
+                  "nacre.storage"
+                ]
+              }
+            },
+            {
+              "query": "Quartz 的登录密码是什么？",
+              "expectedKey": null,
+              "before": {
+                "retrievedKeys": [
+                  "quartz.price",
+                  "quartz.review",
+                  "quartz.storage"
+                ],
+                "supportKeys": [],
+                "evidence": "insufficient",
+                "contextKeys": [
+                  "quartz.price",
+                  "quartz.review"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "quartz.price",
+                  "quartz.review",
+                  "quartz.storage"
+                ],
+                "supportKeys": [],
+                "evidence": "insufficient",
+                "contextKeys": [
+                  "quartz.price",
+                  "quartz.review",
+                  "quartz.storage"
+                ]
+              }
+            },
+            {
+              "query": "阿青每个月电话费用多少钱？",
+              "expectedKey": null,
+              "before": {
+                "retrievedKeys": [
+                  "quartz.price",
+                  "aqing.contact"
+                ],
+                "supportKeys": [
+                  "quartz.price"
+                ],
+                "evidence": "supported",
+                "contextKeys": [
+                  "quartz.price"
+                ]
+              },
+              "after": {
+                "retrievedKeys": [
+                  "aqing.contact"
+                ],
+                "supportKeys": [],
+                "evidence": "insufficient",
+                "contextKeys": [
+                  "aqing.contact"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

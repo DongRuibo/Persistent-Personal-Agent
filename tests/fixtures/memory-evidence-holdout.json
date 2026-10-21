@@ -1,0 +1,208 @@
+{
+  "version": 1,
+  "purpose": "Fictional author-defined holdout with new subjects/values/fields, frozen after initial evidence implementation; not external blind data. Expectations must not be changed.",
+  "memories": [
+    {
+      "kind": "semantic",
+      "key": "zhouning.contact",
+      "content": "周宁喜欢视频沟通。"
+    },
+    {
+      "kind": "semantic",
+      "key": "shenhe.contact",
+      "content": "沈禾喜欢短信联系。"
+    },
+    {
+      "kind": "semantic",
+      "key": "zhouning.phone",
+      "content": "周宁的电话费用为每月45元。"
+    },
+    {
+      "kind": "semantic",
+      "key": "shenhe.food",
+      "content": "沈禾的餐费为每月900元。"
+    },
+    {
+      "kind": "semantic",
+      "key": "user.reply",
+      "content": "用户偏好用德语回答。"
+    },
+    {
+      "kind": "semantic",
+      "key": "user.font",
+      "content": "用户的编辑器字号为16。"
+    },
+    {
+      "kind": "project",
+      "key": "mosaic.languages",
+      "content": "Mosaic 项目的界面语言为西班牙语，开发语言为 Elixir。"
+    },
+    {
+      "kind": "project",
+      "key": "helix.languages",
+      "content": "Helix 项目的界面语言为韩语，开发语言为 Scala。"
+    },
+    {
+      "kind": "project",
+      "key": "mosaic.database",
+      "content": "Mosaic 项目的数据库使用 CouchDB。"
+    },
+    {
+      "kind": "project",
+      "key": "helix.price",
+      "content": "Helix 项目的套餐费用为每年720元。"
+    },
+    {
+      "kind": "project",
+      "key": "mosaic.port",
+      "content": "Mosaic 项目的监听端口为7319。"
+    },
+    {
+      "kind": "episodic",
+      "key": "mosaic.pass",
+      "content": "2026年7月14日 Mosaic 项目验收通过。"
+    },
+    {
+      "kind": "episodic",
+      "key": "mosaic.cancel",
+      "content": "2026年7月13日 Mosaic 项目验收取消。"
+    },
+    {
+      "kind": "project",
+      "key": "helix.release",
+      "content": "Helix 项目计划于2030年12月20日发布v2。"
+    },
+    {
+      "kind": "procedural",
+      "key": "service.rollback",
+      "content": "服务回滚方法：先核对版本，再切换旧版本，最后检查健康状态。"
+    },
+    {
+      "kind": "procedural",
+      "key": "log.archive",
+      "content": "日志归档方法：先关闭写入，再压缩文件，最后校验大小。"
+    }
+  ],
+  "queries": [
+    {
+      "group": "literal",
+      "query": "周宁的电话费用是多少？",
+      "expectedKey": "zhouning.phone"
+    },
+    {
+      "group": "literal",
+      "query": "沈禾喜欢哪种联系方法？",
+      "expectedKey": "shenhe.contact"
+    },
+    {
+      "group": "literal",
+      "query": "Mosaic 的数据库是什么？",
+      "expectedKey": "mosaic.database"
+    },
+    {
+      "group": "literal",
+      "query": "服务回滚的方法是什么？",
+      "expectedKey": "service.rollback"
+    },
+    {
+      "group": "mixed",
+      "query": "Mosaic UI language 是什么？",
+      "expectedKey": "mosaic.languages"
+    },
+    {
+      "group": "mixed",
+      "query": "Helix programming language 是什么？",
+      "expectedKey": "helix.languages"
+    },
+    {
+      "group": "field",
+      "query": "Mosaic 界面语言和开发语言分别是什么？",
+      "expectedKey": "mosaic.languages"
+    },
+    {
+      "group": "field",
+      "query": "我偏好的回答语言是什么？",
+      "expectedKey": "user.reply"
+    },
+    {
+      "group": "field",
+      "query": "我的编辑器字号是多少？",
+      "expectedKey": "user.font"
+    },
+    {
+      "group": "field",
+      "query": "Mosaic 的监听端口是多少？",
+      "expectedKey": "mosaic.port"
+    },
+    {
+      "group": "entity",
+      "query": "周宁的联系方式，不是沈禾",
+      "expectedKey": "zhouning.contact"
+    },
+    {
+      "group": "entity",
+      "query": "Helix 的套餐费用，不要周宁的电话费用",
+      "expectedKey": "helix.price"
+    },
+    {
+      "group": "time",
+      "query": "7月14日 Mosaic 验收结果，别用13日的记录",
+      "expectedKey": "mosaic.pass"
+    },
+    {
+      "group": "time",
+      "query": "2026-07-13 Mosaic 验收发生了什么？",
+      "expectedKey": "mosaic.cancel"
+    },
+    {
+      "group": "time",
+      "query": "Helix 下一次正式发布日期是什么？",
+      "expectedKey": "helix.release"
+    },
+    {
+      "group": "paraphrase",
+      "query": "周宁每月要花多少电话费？",
+      "expectedKey": "zhouning.phone"
+    },
+    {
+      "group": "paraphrase",
+      "query": "Mosaic 给用户看的界面使用什么语言？",
+      "expectedKey": "mosaic.languages"
+    },
+    {
+      "group": "procedural",
+      "query": "日志归档应该先做什么？",
+      "expectedKey": "log.archive"
+    },
+    {
+      "group": "negative",
+      "query": "沈禾的电话费用是多少？",
+      "expectedKey": null
+    },
+    {
+      "group": "negative",
+      "query": "Mosaic 下一次正式发布日期是什么？",
+      "expectedKey": null
+    },
+    {
+      "group": "negative",
+      "query": "周宁喜欢喝哪种咖啡？",
+      "expectedKey": null
+    },
+    {
+      "group": "negative",
+      "query": "岑安的联系方式是什么？",
+      "expectedKey": null
+    },
+    {
+      "group": "negative",
+      "query": "Helix 的每月电话费用是多少？",
+      "expectedKey": null
+    },
+    {
+      "group": "negative",
+      "query": "我的编辑器配色主题是什么？",
+      "expectedKey": null
+    }
+  ]
+}

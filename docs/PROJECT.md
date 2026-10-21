@@ -47,7 +47,7 @@ Pi SDK 使用公开 API，不 Fork、不修改内部源码和 Agent Loop。宿�
 | [src/operation-guard.ts](../src/operation-guard.ts) | 当前意图与操作提议分离、宿主候选筛选、澄清/确认引用、一次性权限及操作审计 |
 | [src/task-tools.ts](../src/task-tools.ts) | Pi 工具适配：创建、查询、取消任务，调用 Task Service |
 | [src/memory-service.ts](../src/memory-service.ts) | 四类 Memory CRUD、来源/版本/Hash、原子文件提交、索引修复、关键词检索和有预算的临时 Context |
-| [src/memory-retriever.ts](../src/memory-retriever.ts) | 纯只读检索、实体/日期/排除约束、IDF/类型/字段排序、证据线索及有界查询改写协议 |
+| [src/memory-retriever.ts](../src/memory-retriever.ts) | 纯只读检索、原问题主体/日期/排除约束、IDF/类型/字段排序、同主体子句证明与候选/证据分离、有界改写协议 |
 | [src/memory-tools.ts](../src/memory-tools.ts) | 五项受控 Pi 工具，只返回操作收据，正文由 Context 临时提供 |
 | [src/task-service.ts](../src/task-service.ts) | 任务内容与时间校验、查询和 pending 取消规则 |
 | [src/sqlite-store.ts](../src/sqlite-store.ts) | SQLite 表、原子领取、执行状态、日志、恢复与投递记录 |
@@ -114,11 +114,12 @@ Pi SDK 使用公开 API，不 Fork、不修改内部源码和 Agent Loop。宿�
 
 V2.1 第一阶段保留上述数据边界，仅优化只读 Retriever：
 
-- 候选相关性与证据状态分开：none=无候选，insufficient=相关但缺已识别字段，uncertain=不能确定所问字段，supported=存在字段线索。标签不是语义证明，生成必须核对完整正文、主体、时间，不能据“相关”或历史编答案。Context优先字段支持项，否则保留少量相关资料，仍有严格预算；超长片段不能当完整证据。
-- 可选 `MEMORY_QUERY_REWRITE=true`，默认false；低置信度时使用当前配置模型，通过同一公开异步context Hook调用 ModelRuntime.completeSimple。只处理当前原始问题，最多3个短改写、每轮一次、512输出token、5秒，无工具/历史/Memory正文。宿主实体/日期约束不被改写替换；失败回退词法并记录降级，不能借此绕过文件校验或授予写操作。
+- V2.1a.1 将候选相关性、事实归属、证据充分性分开：none=无相关候选，insufficient=相关但缺所问事实，uncertain=字段/归属无法可靠判断，supported=限定规则在同一合法主体子句找到所问字段/日期证据。中文称呼、英文项目与用户自身从子句发现，不硬编码具体人名/项目/语言值；UI/开发语言、电话费/泛价格分开，未知属性保守处理，多主体比较分别覆盖。不是通用NER或语义证明，复杂主客体/否定仍可能漏召回或判断错误。
+- `records`是Top5，`relatedIds`是排序后的相关项，`evidenceById`记录逐条状态及主体/字段/引句，`supportIds`只表示Top5内的证据项。Context依次选择支持项、其余Top5、合规工具选中项，去重且最多5条；不再以supportIds独占过滤。每项包含证据元数据，截断引句不能继续算可见证明；整体覆盖不足降为uncertain。保留相关参考使Context命中改善，也增加非答案片段，预算不变。
+- 可选 `MEMORY_QUERY_REWRITE=true`，默认false；低置信度时使用当前配置模型，通过同一公开异步context Hook调用 ModelRuntime.completeSimple。只处理当前原始问题，最多3个短改写、每轮一次、512输出token、5秒，无工具/历史/Memory正文。V2.1a.1中主体、字段、类型、日期和排除条件都取原问题，改写仅作低权重召回词项；失败回退词法并记录降级，不能借此绕过文件校验或授予写操作。
 - 改写计划只在本轮异步上下文保留，不跨轮缓存正文。ID选择在每次context都重新解析当前Markdown/索引，因此更新/删除不能从陈旧对象复活。Task与Memory的写权限验证代码不变；后台依然独立Session和只读检索。
-- 每轮 `memory_rewrite` 记录状态/额外延迟，模型用量由同Run观察器记录。`memory_context`继续仅记录ID/kind/version、字节预算及证据/降级状态，不记录查询或正文。费用仍以供应商账单为准。
-- 100/1000条虚构数据测量显示索引扫描为毫秒到约50ms级。本次只去掉单次buildContext重复校验，保留每次磁盘Hash与索引事务故障检测，不引入跨轮缓存或文件监听。测试与证据边界见[检索报告](evaluations/v2.1-retrieval-review.md)。
+- 每轮 `memory_rewrite` 记录状态/额外延迟，模型用量由同Run观察器记录。`memory_context`分别记录候选/支持项/实际注入ID及版本、字节预算、检索与实际证据/降级状态，不记录查询、引句或正文。费用仍以供应商账单为准。
+- 保留每次磁盘Hash与索引事务故障检测，不引入跨轮缓存或文件监听。1000条虚构数据定向Context约52ms，宽泛约167ms（旧版约63ms）；主体交叉检查最坏仍有二次比较，仅预编译本轮规则和查询分词减少重复开销。历史[检索报告](evaluations/v2.1-retrieval-review.md)及[V2.1a.1证据报告](evaluations/v2.1a.1-evidence-review.md)保留性能退步、留出失败与生成侧待验收边界。
 
 Memory 是低信任知识而非权限来源。历史用户/助手文字仍由 Pi 保存，无法保证模型永不引用旧事实；当前版本由检索 Context 指明。验收必须用**全新空 Session + 同一 Memory**排除历史混淆，并结合 Run 的 `memory_context` 事件（仅 ID/kind/version、字节预算，不含正文）核对命中，不能仅凭“我记得”下结论。
 
@@ -133,6 +134,7 @@ Memory 是低信任知识而非权限来源。历史用户/助手文字仍由 Pi
 | V2.0 长期 Memory | 四类统一服务、显式写入、关键词检索、可重建索引、低信任临时 Context、新 Session 命中 | 已实现；实际自动化结果及待真实飞书验收见 STATE |
 | V2.0.2 自然交互 | 隔离意图解析、宿主候选/确认与一次性执行，不要求用户命令格式 | 当前实现及真实/模拟边界见 STATE |
 | V2.0 授权与固定验收 | 原文/目标绑定、Task 宿主门、四类/后台/停服备份恢复、同义及干扰检索基线 | 已实现；模拟与真实证据见 STATE |
-| V2.1 第一阶段 Retriever | 词法约束、排序/证据、可选只读查询改写、独立留出与性能评测 | 已实现待审查；真实改写两轮同义3/4与4/4，仍有主体/字段错误；完整生成与飞书未验收，未开启自动写入 |
+| V2.1 第一阶段 Retriever | 词法约束、排序/证据、可选只读查询改写、独立留出与性能评测 | V2.1a已实现；历史真实改写两轮同义3/4与4/4，主体/字段风险促成本次修复 |
+| V2.1a.1 证据与Context | 原问题约束、同主体子句证明、支持与相关项分离、截断降级、冻结新留出 | 94项自动化通过；4问只读真实生成主答案8/8、整段7/8，3次改写超时回退；成功改写后的生成/新版飞书待验收，新留出仍有1题漏召回，改写默认关闭 |
 
 本阶段不做自动提取、Embedding、向量库、Observer、自主 Skill、周期任务、WebUI、复杂框架或 VPS。架构或范围调整先说明并取得确认，再同步本文及 STATE。

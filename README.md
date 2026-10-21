@@ -2,7 +2,7 @@
 
 单用户、单进程 TypeScript 服务，复用原版 Pi Coding Agent SDK 的 Agent Loop。提供终端/飞书私聊、一次性任务、SQLite 持久化和独立后台调度。V1 的真实手机私聊、主动提醒及 pending 任务重启恢复已验收；V1.2 新增 Pi 原生交互 Session 持久化，自动化已验证，用户已实测真实飞书重启后能够接上此前对话。目前在 Mac 本地运行，暂不部署 VPS。
 
-V2.0 增加四类统一长期 Memory（SQLite 索引 + 可读 Markdown），只保存用户明确要求记住的信息，支持在新 Session 中检索。没有自动聊天提取、Embedding、Observer 或 Skill 执行。V2.0 已有真实飞书 Project Memory 核心验收，证据见 STATE；本次 V2.1 第一阶段只优化 Retriever，未自动提取记忆，真实查询改写已用虚构问题完成两轮隔离验收；完整模型回答和手机检索仍未验收。
+V2.0 增加四类统一长期 Memory（SQLite 索引 + 可读 Markdown），只保存用户明确要求记住的信息，支持在新 Session 中检索。没有自动聊天提取、Embedding、Observer 或 Skill 执行。V2.0 已有真实飞书 Project Memory 核心验收，证据见 STATE；本次 V2.1a.1 修复 Retriever 的主体/字段证据及 Context 选择。4问×两轮只读真实生成已验收：主答案8/8，整段7/8有证据；有1条额外断言错误、3次改写超时回退，新版手机与成功改写后的生成仍待验证。
 
 ## 环境与安装
 
@@ -205,18 +205,20 @@ PROFILE 和知识文件在首次写入对应类型时创建。四类共用 `memo
 
 ### V2.1 第一阶段：检索质量与可选查询改写
 
-默认使用词项 IDF、中文二元字串、实体/日期/排除约束和字段线索排序。`search` 返回最多5条候选；Context优先选择具有所问字段的记录，没有充分线索时保留少量相关资料并标记 `none / insufficient / uncertain / supported`。**supported只是字段启发式，不是事实正确或答案充分的保证**；回答仍须核对正文的对象、字段和时间，未记录时说不知道。
+默认使用词项 IDF、中文二元字串、实体/日期/排除约束和字段线索排序。`search` 返回最多5条候选；V2.1a.1 将相关性与主体/字段/日期的子句证据分开，区分界面语言/开发语言、电话费/泛价格。`none`=无相关候选，`insufficient`=相关但缺所问事实，`uncertain`=字段或归属不确定，`supported`=限定规则发现同一主体的对应字段证据。**这是有界启发式，不能证明任意问题可回答**；未知字段保守处理，回答仍须核对原文，未记录时说不知道。
+
+Context先装入Top5中的证据项，再装入其余相关候选及合规工具选中项；不再因一个supported标签丢弃其他相关项。最多5条、同一UTF-8字节预算；证明引句被截断时降级。每次读取当前版本，不缓存旧正文，不写入持久Session。会保留更多参考噪声，不能把Context非空当成有答案。
 
 对于无共同词的问题，可选择在本机 `.env` 中设置 `MEMORY_QUERY_REWRITE=true`。默认 `false`，本次没有修改你的 `.env`。启用后复用当前模型：每轮低置信度最多一次查询改写，输入只有当前问题，没有历史、Memory正文或工具；上限512输出token、5秒、无重试。失败记录 `memory_rewrite` 的 `lexical_fallback`，回退词法；有相关正文时Context也提示降级。文件/索引故障仍中止，不因改写失败跳过校验。实体、日期等约束继续取原始问题，改写不会产生写权限。
 
 ```sh
-# 默认纯离线：原16题 + 独立24题，临时虚构目录，无API
+# 默认纯离线：原16题 + 旧独立24题 + 新证据留出24题，无API
 npm run eval:memory
 # 100/1000条虚构数据性能；包括磁盘校验与索引事务
 node --import tsx scripts/benchmark-memory.ts
 ```
 
-[完整报告及逐题结果](docs/evaluations/v2.1-retrieval-review.md)保留旧基线、开发集、最终留出及失败样本。当前词法版：原题有答案Top1 5/12→9/12，最终留出14/19→15/19；同义组仅1/4，**未达到3/4目标**。无答案证据标签正确不等于真实模型已拒答。当前存在中文人名/联系方法误排、UI语言等字段不足，不能将小样本当作普遍可靠语义检索。
+[V2.1历史报告](docs/evaluations/v2.1-retrieval-review.md)与[本次逐题证据报告](docs/evaluations/v2.1a.1-evidence-review.md)保留新旧结果和失败样本。相对087888c，本次词法：原题Top1仍9/12、原词4/4；旧独立集Top1/Context命中15/19→17/19；新24题Top1/Context命中15/18→17/18，但Recall@5从18/18降至17/18（Mosaic句中“用户”被误当主体）。新集无答案误supported为2/6→0/6；词法同义组仍仅1/4。未知关系、复杂主客体及通用同义召回尚未解决，证据标签不等于真实生成拒答。
 
 收费语义验收必须先获得用户授权，再显式执行：
 
@@ -226,7 +228,9 @@ node --env-file-if-exists=.env --import tsx scripts/evaluate-memory.ts --live --
 
 它只向当前模型发送固定虚构问题，最多40次改写，不打开正式数据或发送飞书；输出保留额外调用次数、Token、耗时和失败。用户授权后已用当前硅基流动模型完成两轮：共44次请求，43次成功、1次回退；输入4671/输出1253 token，失败用量未知。完整记录见[真实改写验收](docs/evaluations/v2.1-live-rewrite-acceptance.json)。带 `--replay=<已保存的评测JSON路径>` 可离线回放已记录的改写；回放不是新的真实模型测试。Run中的改写用量通过 `model_calls` 记录，兼容Provider费用为null；`memory_rewrite`事件记录延迟，不记录正文/凭据，供应商未报告时0 token不等于零计费。
 
-手机最小复测：保存非敏感虚构事实，停服后换全新 `SESSION_DIR` 并保持同一Memory；用同义问法查询，再问另一个项目和未记录的发布日期，核对 `memory_context` 的ID/version/evidence与预算。更新、删除后再换新Session，确认当前值和不命中；不要在问题中带答案。真实改写把旧同义Top1从词法版1/4提升到两轮3/4、4/4，最终留出Top1均为17/19、Recall@5均19/19。但“阿青电话费用”两轮误匹配到Quartz套餐价格并误标supported，留出无答案判断从词法版5/5降到4/5；因此建议继续默认关闭，先审查主体/字段风险。以上是查询改写与本地检索结果，不是实际生成拒答或手机验收。
+两轮历史改写曾把“阿青电话费用”误匹配到Quartz价格并标supported。V2.1a.1离线回放已不再出现此误标，旧独立集正确Context从18/19提高至19/19。之后另获授权完成[4问真实生成](docs/evaluations/v2.1a.1-evidence-review.md#真实生成验收2026-10-21)：11/12请求，主答案8/8、整段7/8；1条把“本轮排除阿白”说成“阿白没有记录”，3次改写均超时回退。成功改写后的生成仍未验证，**继续保持 `MEMORY_QUERY_REWRITE=false`**。本轮已结束，不自动用剩余额度重试；`scripts/check-memory-generation.ts` 无 `--allow-paid` 拒绝运行，未来新的收费轮次仍须另行授权。
+
+手机最小复测：在专用测试目录保存非敏感联系人/项目事实，停服后换全新 `SESSION_DIR` 并保持同一测试Memory；分别问联系方式、费用、UI/开发语言和未记录的发布日期，核对 `memory_context` 的候选/支持项/实际注入ID、version、evidence与预算。更新、删除后再换新Session确认当前值与不命中，不要在问题中带答案或清空正式目录。完整步骤和未验收边界见本次报告。
 
 固定集成验收见 [memory-acceptance.test.ts](tests/memory-acceptance.test.ts)：四类飞书入口 CRUD/去重/白名单、全新 Session、后台只读及停服复制三份存储后恢复到新目录。使用真实 SDK 与存储、模拟模型/飞书发送；手机端自然语言使用效果与实际手机送达仍需复测。备份必须在所有写入者停服后一起进行；恢复演练不覆盖热备份、突然断电、磁盘损坏或 Linux VPS。
 
