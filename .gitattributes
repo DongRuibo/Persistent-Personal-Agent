@@ -1,0 +1,5 @@
+# 验收证据按原字节保存，避免 Windows 检出换行转换破坏审计 Hash。
+tests/fixtures/memory-formation-live.json -text
+docs/evaluations/v2.1b-formation-live.json -text
+docs/evaluations/v2.1b-formation-live-review.json -text
+docs/evaluations/v2.1b-formation-live.redacted-original.txt -text

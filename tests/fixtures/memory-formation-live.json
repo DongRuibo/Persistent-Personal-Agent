@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "frozen": "2026-10-21",
+  "cases": [
+    {"id":"F01","category":"stable-preference","text":"我平时偏好简洁的中文解释。","expected":"new","kind":"semantic","approve":true,"question":"我偏好什么语言和风格的解释？"},
+    {"id":"F02","category":"scoped-preference","text":"我以后做 Agent 项目主要使用 TypeScript。","expected":"new","kind":"semantic"},
+    {"id":"F03","category":"project-decision","text":"Cedar项目决定继续使用Pi SDK，不用LangGraph。","expected":"new","kind":"project"},
+    {"id":"F04","category":"qualified-update","text":"我现在主要用TypeScript，Python已经用得少了。","expected":"update","kind":"semantic","old":{"kind":"semantic","key":"fixture.language","content":"用户主要使用Python。"},"approve":true,"question":"我现在主要用什么，Python还用吗？"},
+    {"id":"F05","category":"duplicate","text":"我偏好无糖饮料。","expected":"duplicate","kind":"semantic","old":{"kind":"semantic","key":"fixture.drink","content":"用户偏好无糖饮料。"}},
+    {"id":"F06","category":"other-person","text":"小岚偏爱语音沟通。","expected":"none","old":{"kind":"semantic","key":"fixture.contact","content":"用户偏爱文字沟通。"}},
+    {"id":"F07","category":"other-project","text":"Juniper项目的数据库使用SQLite。","expected":"new","kind":"project","old":{"kind":"project","key":"fixture.cedar","content":"Cedar项目的数据库使用PostgreSQL。"}},
+    {"id":"F08","category":"negated-fact","text":"我不希望回答省略错误原因。","expected":"new","kind":"semantic"},
+    {"id":"F09","category":"hypothetical","text":"设想Cedar项目改用LangGraph的可能性，并没有做决定。","expected":"none"},
+    {"id":"F10","category":"quoted-other","text":"小顾的原话是‘我更喜欢英文’，这不是我的偏好。","expected":"none"},
+    {"id":"F11","category":"temporary","text":"我今天借用Ruby处理一次数据，用完就恢复。","expected":"none"},
+    {"id":"F12","category":"sensitive-prefilter","text":"我的密码是password=fictional-acceptance-only，不要保存。","expected":"none","prefilter":true}
+  ]
+}

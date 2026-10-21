@@ -2,11 +2,11 @@
 
 单用户、单进程 TypeScript 服务，复用原版 Pi Coding Agent SDK 的 Agent Loop。提供终端/飞书私聊、一次性任务、SQLite 持久化和独立后台调度。V1 的真实手机私聊、主动提醒及 pending 任务重启恢复已验收；V1.2 新增 Pi 原生交互 Session 持久化，自动化已验证，用户已实测真实飞书重启后能够接上此前对话。目前在 Mac 本地运行，暂不部署 VPS。
 
-V2.0 增加四类统一长期 Memory（SQLite 索引 + 可读 Markdown），支持在新 Session 中检索。V2.1b 增加默认关闭的后台 Semantic/Project 候选发现，必须由用户逐条批准才保存；没有自动保存、Embedding、Observer 或 Skill 执行。历史真实飞书与生成验收保留在 STATE，不能作为本次候选形成的真实验收。V2.1b 当前仅通过模拟模型和离线机制测试。
+V2.0 增加四类统一长期 Memory（SQLite 索引 + 可读 Markdown），支持在新 Session 中检索。V2.1b 增加默认关闭的后台 Semantic/Project 候选发现，必须由用户逐条批准才保存；没有自动保存、Embedding、Observer 或 Skill 执行。历史真实飞书与生成验收保留在 STATE。2026-10-21 完成一轮隔离真实 Formation 验收：13次请求，6条值得保留的事实中宿主保留4条；两条合法提议被校验误拒绝，尚未达到质量目标，继续默认关闭。失败原文、一次批准更新及新 Session 回答见[真实验收报告](docs/evaluations/v2.1b-formation-live-review.md)。
 
 ## V2.1b 候选形成（默认关闭）
 
-本轮没有修改正式 `.env`，也没有启动真实形成。审查后如决定试用，请先备份并使用独立的 `DATABASE_PATH`、`SESSION_DIR`、`MEMORY_DIR`，再在本机配置：
+正式 Formation 未开启；隔离验收仅使用临时虚构数据。审查并修复已发现的问题后如决定试用，请先备份并使用独立的 `DATABASE_PATH`、`SESSION_DIR`、`MEMORY_DIR`，再在本机配置：
 
 ```dotenv
 MEMORY_FORMATION_ENABLED=true
@@ -32,7 +32,7 @@ MEMORY_FORMATION_OUTPUT_CNY_PER_MILLION=20
 
 候选7天过期，运行中清理正文/引文/旧值，停服期间在下次开启时清理。最小 Hash/状态保留用于抑制重复；SQLite空闲页、WAL、Run、Session及备份不保证擦除。Memory任意变化使尚未审批的旧候选失效，这是保守取舍。提取中崩溃不重试；批准前标 applying，重启只核对匹配落盘结果，无法确认则 blocked，需人工查状态，不盲重放。
 
-数据默认在项目私有数据目录，Git已忽略。Mac/Linux沿用0700/0600；Windows chmod 不代表 ACL 隔离，需用当前账户的私有目录并自行核对访问权限。本轮未验证 Windows ACL，也未做真实手机/收费语义验收。验证命令：`npm run typecheck`、`npm run build`、`npm test`、`npm run eval:memory`、`npm run eval:formation`。详细边界和结果见 [设计与实现](docs/designs/v2.1b-memory-formation.md)及[离线报告](docs/evaluations/v2.1b-formation-review.md)。
+数据默认在项目私有数据目录，Git已忽略。Mac/Linux沿用0700/0600；Windows chmod 不代表 ACL 隔离，需用当前账户的私有目录并自行核对访问权限。本轮未验证 Windows ACL 或真实手机 Formation；收费语义小样本与模拟机制结果分别记录。验证命令：`npm run typecheck`、`npm run build`、`npm test`、`npm run eval:memory`、`npm run eval:formation`。详细边界和结果见 [设计与实现](docs/designs/v2.1b-memory-formation.md)、[离线报告](docs/evaluations/v2.1b-formation-review.md)及[真实验收](docs/evaluations/v2.1b-formation-live-review.md)。验收原始报告已落盘，收费脚本拒绝覆盖或再次消费本轮额度；离线复核使用 `node --import tsx scripts/review-formation-live.ts`，不联网。
 
 ## 环境与安装
 
