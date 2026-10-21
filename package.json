@@ -11,7 +11,8 @@
     "start": "node --env-file-if-exists=.env dist/main.js",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
     "build": "tsc",
-    "test": "node --import tsx --test tests/*.test.ts"
+    "test": "node --import tsx --test tests/*.test.ts",
+    "eval:memory": "node --import tsx scripts/evaluate-memory.ts"
   },
   "dependencies": {
     "@earendil-works/pi-ai": "1.3.0",

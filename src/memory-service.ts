@@ -17,10 +17,26 @@ interface RequestContext { request: ExecutionRequest; intent?: Intent; selected:
 // 保守的宿主授权门：普通对话、引用中的命令、后台任务均不能写入。
 export function memoryIntent(text: string): Intent | undefined {
   const input = text.trim().replace(/^(?:请帮我|帮我|请)/u, '');
-  if (/^(?:记住|记一下|保存长期记忆)[：:，,\s\p{L}\p{N}]/u.test(input)) return 'remember';
-  if (/^(?:更新记忆|修改记忆)[：:，,\s\p{L}\p{N}]/u.test(input)) return 'update';
-  if (/^(?:忘记|删除记忆)[：:，,\s\p{L}\p{N}]/u.test(input)) return 'forget';
+  if (/[？?]$/u.test(input)) return undefined;
+  if (/^(?:记住|记一下|保存长期记忆)[：:]/u.test(input)) return 'remember';
+  if (/^(?:更新记忆|修改记忆)[：:]/u.test(input)) return 'update';
+  if (/^(?:忘记|删除记忆)[：:]/u.test(input)) return 'forget';
   return undefined;
+}
+
+// 元数据必须独占一行。正文逐字保存，模型不能用“概括”替换用户事实。
+function command(text: string): { content: string; kind?: string; key?: string; id?: string } {
+  const lines = text.trim().replace(/^(?:请帮我|帮我|请)/u, '').replace(/^[^：:]+[：:]/u, '').split('\n');
+  const fields: { kind?: string; key?: string; id?: string } = {};
+  const body: string[] = [];
+  for (const line of lines) {
+    const match = /^(kind|key|id)\s*[=：:]\s*([^\s]+)\s*$/u.exec(line.trim());
+    if (!match) { body.push(line); continue; }
+    const name = match[1] as keyof typeof fields;
+    if (fields[name]) throw new Error('Memory 指定字段不能重复');
+    fields[name] = match[2]!;
+  }
+  return { ...fields, content: body.join('\n').trim() };
 }
 
 function privatePath(path: string, directory: boolean): void {
@@ -88,6 +104,16 @@ export class FileMemoryService implements MemoryService {
     }
     const source = context.request.source;
     return { type: 'user_explicit', channel: source?.channel ?? 'host', reference: source?.reference ?? hash(context.request.prompt) };
+  }
+
+  private authorizeRecord(intent: Intent, record: Pick<MemoryRecord, 'id' | 'key' | 'kind'> | MemoryInput, content?: string, all: MemoryRecord[] = []): void {
+    const input = command(this.context.getStore()!.request.prompt);
+    if ((input.kind && input.kind !== record.kind) || (input.key && input.key !== record.key) ||
+      (input.id && (!('id' in record) || input.id !== record.id))) throw new Error('Memory 操作必须匹配用户本轮指定的 kind/key/id');
+    if (intent !== 'remember' && !input.key && !input.id) throw new Error('更新或删除 Memory 必须由用户本轮指定 key=… 或 id=…，不能从历史猜测');
+    if (intent !== 'remember' && !input.id && !input.kind && all.filter((item) => item.key === input.key).length !== 1) throw new Error('Memory key 不唯一，请指定 kind=… 或完整 id=…');
+    if (content !== undefined && content.trim() !== input.content) throw new Error('Memory 正文必须与命令原文逐字一致；请用“记住：正文”或“更新记忆：完整新正文”，元数据另起一行');
+    if (intent === 'forget' && input.content) throw new Error('删除命令只接受用户指定的 key=… 或 id=…，元数据独占一行');
   }
 
   private validateContent(content: string): string {
@@ -204,6 +230,7 @@ export class FileMemoryService implements MemoryService {
     if (!/^[\p{L}\p{N}_.:-]{1,100}$/u.test(key)) throw new Error('Memory key 仅支持中英文、数字、点、下划线、冒号及连字符，最多100字符');
     this.validateContent(key);
     const content = this.validateContent(input.content);
+    this.authorizeRecord('remember', { ...input, key }, content);
     const all = this.all();
     const current = all.find((item) => item.kind === input.kind && item.key === key);
     if (current && current.hash !== hash(normalize(content))) throw new Error('同类型事实键已有不同内容，请让用户明确“更新记忆：”并使用当前版本');
@@ -221,6 +248,7 @@ export class FileMemoryService implements MemoryService {
     const current = all.find((item) => item.id === id);
     if (!current || current.version !== expectedVersion) throw new Error('Memory 不存在或版本已变化；请重新读取');
     const value = this.validateContent(content);
+    this.authorizeRecord('update', current, value, all);
     if (current.hash === hash(normalize(value))) return current;
     if (all.some((item) => item.id !== id && item.hash === hash(normalize(value)))) throw new Error('正文与另一条 Memory 重复，请更新原条目');
     const record = { ...current, content: value, source, hash: hash(normalize(value)), version: current.version + 1, updatedAt: new Date().toISOString() };
@@ -233,6 +261,7 @@ export class FileMemoryService implements MemoryService {
     const all = this.all();
     const current = all.find((item) => item.id === id);
     if (!current || current.version !== expectedVersion) throw new Error('Memory 不存在或版本已变化；请重新读取');
+    this.authorizeRecord('forget', current, undefined, all);
     if (current.kind === 'semantic') this.atomicWrite(this.path(current), all.filter((item) => item.kind === 'semantic' && item.id !== id));
     else unlinkSync(this.path(current));
     this.repair();

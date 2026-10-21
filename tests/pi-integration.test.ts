@@ -68,7 +68,7 @@ test('真实 Pi SDK + 本地模拟 API：工具白名单、任务创建、Sessio
     res.writeHead(200, { 'Content-Type': 'text/event-stream' });
     const user = JSON.stringify(payload.messages.filter((message) => message.role === 'user').at(-1)?.content);
     const lastUser = payload.messages.findLastIndex((message) => message.role === 'user');
-    const callTool = user.includes('CHAT_CREATE_MARKER') && !payload.messages.slice(lastUser + 1).some((message) => message.role === 'tool');
+    const callTool = user.includes('明天上午9点提醒我问候') && !payload.messages.slice(lastUser + 1).some((message) => message.role === 'tool');
     const chunk = (delta: unknown, finish: string | null, usage?: unknown) => {
       res.write(`data: ${JSON.stringify({ id: 'mock-completion', object: 'chat.completion.chunk', created: 1, model: 'local-stub', choices: [{ index: 0, delta, finish_reason: finish }], ...(usage ? { usage } : {}) })}\n\n`);
     };
@@ -96,7 +96,7 @@ test('真实 Pi SDK + 本地模拟 API：工具白名单、任务创建、Sessio
     return { run, result: await executor.execute(request) };
   };
   try {
-    const chat = await execute('chat', 'CHAT_CREATE_MARKER 请明天上午9点问候我');
+    const chat = await execute('chat', '明天上午9点提醒我问候');
     assert.equal(chat.result.text, '模拟结果');
     assert.equal(tasks.list().length, 1);
     assert.equal(tasks.list()[0]!.dueAt, '2026-10-21T01:00:00.000Z');
@@ -111,10 +111,10 @@ test('真实 Pi SDK + 本地模拟 API：工具白名单、任务创建、Sessio
     assert.equal(task.result.text, '模拟结果');
     const background = requests.at(-1)!;
     assert.equal(background.tools?.length ?? 0, 0);
-    assert.ok(!JSON.stringify(background.messages).includes('CHAT_CREATE_MARKER'));
+    assert.ok(!JSON.stringify(background.messages).includes('明天上午9点提醒我问候'));
     await execute('chat', 'CHAT_SECOND_MARKER');
     const continued = requests.at(-1)!;
-    assert.ok(JSON.stringify(continued.messages).includes('CHAT_CREATE_MARKER'));
+    assert.ok(JSON.stringify(continued.messages).includes('明天上午9点提醒我问候'));
     assert.ok(!JSON.stringify(continued.messages).includes('TASK_PRIVATE_MARKER'));
     // 真实飞书事件 Dispatcher → Channel → 真实 Pi 工具调用，模型 HTTP 和飞书发送均模拟。
     tasks.cancel(tasks.list()[0]!.id);
@@ -132,7 +132,7 @@ test('真实 Pi SDK + 本地模拟 API：工具白名单、任务创建、Sessio
       for (const eventId of ['event-one', 'event-redelivered']) {
         await dispatcher.invoke({ schema: '2.0', header: { event_id: eventId, event_type: 'im.message.receive_v1' }, event: {
           sender: { sender_type: 'user', sender_id: { open_id: 'ou_owner' } },
-          message: { message_id: 'persistent-feishu-message', chat_id: 'oc_private', chat_type: 'p2p', message_type: 'text', content: JSON.stringify({ text: 'CHAT_CREATE_MARKER 明天上午9点提醒我喝水' }) },
+          message: { message_id: 'persistent-feishu-message', chat_id: 'oc_private', chat_type: 'p2p', message_type: 'text', content: JSON.stringify({ text: '明天上午9点提醒我问候' }) },
         } }, { needCheck: false });
       }
       await feishu.drain();

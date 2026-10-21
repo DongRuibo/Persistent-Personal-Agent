@@ -29,8 +29,8 @@ test('真实 Pi Session 文件：飞书上下文恢复、目标和去重跨重�
     requests.push(payload);
     const lastUser = payload.messages.findLastIndex((message) => message.role === 'user');
     const user = JSON.stringify(payload.messages[lastUser]?.content);
-    const callTool = user.includes('CREATE_ONCE_MARKER') && !payload.messages.slice(lastUser + 1).some((message) => message.role === 'tool');
-    const text = user.includes('生成后台提醒') ? 'SCHEDULER_ONLY_RESULT_MARKER'
+    const callTool = user.includes('1分钟后提醒我生成后台提醒') && !payload.messages.slice(lastUser + 1).some((message) => message.role === 'tool');
+    const text = !payload.tools?.length && user.includes('生成后台提醒') ? 'SCHEDULER_ONLY_RESULT_MARKER'
       : JSON.stringify(payload.messages).includes('PROJECT_PERSIST_MARKER') ? '你正在开发基于 Pi 的 Personal Agent' : '没有项目上下文';
     res.writeHead(200, { 'Content-Type': 'text/event-stream' });
     for (const choice of [
@@ -71,7 +71,7 @@ test('真实 Pi Session 文件：飞书上下文恢复、目标和去重跨重�
     await receive('project', 'PROJECT_PERSIST_MARKER 我正在开发一个基于 Pi 的 Personal Agent');
     await receive('question', '我刚才说我在开发什么？');
     assert.equal(sent.at(-1)?.text, '你正在开发基于 Pi 的 Personal Agent');
-    await receive('create', 'CREATE_ONCE_MARKER 创建一分钟后提醒');
+    await receive('create', '1分钟后提醒我生成后台提醒');
     assert.equal(tasks.list().length, 1);
     const task = tasks.list()[0]!;
     assert.equal(task.target.channel, 'feishu');

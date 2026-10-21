@@ -43,7 +43,7 @@ test('Memory 文件或索引故障不领取到期任务，重开后只执行一�
   let scheduler = new TaskScheduler(store, executor, channel, 5, report, due);
   const target = { channel: 'feishu' as const, appId: 'fake-app', chatId: 'fake-chat', userOpenId: 'fake-user' };
   try {
-    const record = memory.withRequest({ prompt: '记住：测试项目数据库为 SQLite', scope: 'chat', signal: new AbortController().signal, observer: { event: () => {}, modelCall: () => {} }, source: { channel: 'feishu', reference: 'test-source' } },
+    const record = memory.withRequest({ prompt: '记住：测试项目数据库为 SQLite。', scope: 'chat', signal: new AbortController().signal, observer: { event: () => {}, modelCall: () => {} }, source: { channel: 'feishu', reference: 'test-source' } },
       () => memory.remember({ kind: 'project', key: 'test.database', content: '测试项目数据库为 SQLite。' }));
     const file = join(config.memoryDir, 'projects', `${record.id}.md`);
     const original = readFileSync(file, 'utf8');
@@ -124,9 +124,9 @@ test('真实 Pi 1.3.0 + 模拟模型：受控工具、跨重启和全新 Session
     const memoryText = JSON.stringify(context);
     let tool: { name: string; args: unknown } | undefined;
     if (!followedByTool) {
-      if (text.includes('记住：Aurora')) tool = { name: 'memory_remember', args: { kind: 'project', key: 'aurora.database', content: '项目 Aurora 数据库使用 SQLite。' } };
-      if (text.includes('更新记忆：Aurora')) tool = { name: 'memory_update', args: { id: recordId, expectedVersion: 1, content: '项目 Aurora 数据库改为 PostgreSQL。' } };
-      if (text.includes('忘记：Aurora')) tool = { name: 'memory_forget', args: { id: recordId, expectedVersion: 2 } };
+      if (text.includes('记住：项目 Aurora')) tool = { name: 'memory_remember', args: { kind: 'project', key: 'aurora.database', content: '项目 Aurora 数据库使用 SQLite。' } };
+      if (text.includes('更新记忆：项目 Aurora')) tool = { name: 'memory_update', args: { id: recordId, expectedVersion: 1, content: '项目 Aurora 数据库改为 PostgreSQL。' } };
+      if (text.includes('忘记：key=aurora.database')) tool = { name: 'memory_forget', args: { id: recordId, expectedVersion: 2 } };
       if (text.includes('UNAUTHORIZED_WRITE')) tool = { name: 'memory_remember', args: { kind: 'semantic', key: 'attack', content: '不应保存的推断' } };
       if (text.includes('READ_VIA_GET')) tool = { name: 'memory_get', args: { id: recordId } };
       if (text.includes('READ_VIA_SEARCH')) tool = { name: 'memory_search', args: { query: 'Aurora', kind: 'project' } };
@@ -156,7 +156,7 @@ test('真实 Pi 1.3.0 + 模拟模型：受控工具、跨重启和全新 Session
   });
   const sessionFile = (key: string) => join(config.sessionDir, createHash('sha256').update(key).digest('hex'), 'chat.session.jsonl');
   try {
-    await execute('记住：Aurora 项目数据库使用 SQLite');
+    await execute('记住：项目 Aurora 数据库使用 SQLite。');
     recordId = memory.search('Aurora')[0]!.id;
     assert.equal(memory.get(recordId).source.reference, 'integration-run');
     const toolNames = payloads[0]!.tools!.map((tool) => tool.function.name).sort();
@@ -181,20 +181,20 @@ test('真实 Pi 1.3.0 + 模拟模型：受控工具、跨重启和全新 Session
     executor = await createPiExecutor(config, tasks, 'brand-new-session', memory);
     assert.equal(SessionManager.open(sessionFile('brand-new-session')).buildSessionContext().messages.length, 0);
     assert.equal((await execute('Aurora 的数据库是什么？')).text, 'MEMORY_HIT_SQLITE', '全新空 Session 仍命中 Memory');
-    assert.ok(!JSON.stringify(payloads.at(-1)).includes('记住：Aurora'), '请求中没有旧 Session 的保存指令');
+    assert.ok(!JSON.stringify(payloads.at(-1)).includes('记住：项目 Aurora'), '请求中没有旧 Session 的保存指令');
     assert.equal((await execute('READ_VIA_GET')).text, 'MEMORY_HIT_SQLITE', '工具选中的知识也通过临时 Context 提供');
     assert.equal((await execute('READ_VIA_SEARCH')).text, 'MEMORY_HIT_SQLITE');
     const background = await execute('Aurora 的数据库是什么？BACKGROUND_ONLY_MARKER', 'task');
     assert.equal(background.text, 'MEMORY_HIT_SQLITE');
     assert.equal(payloads.at(-1)?.tools?.length ?? 0, 0);
-    assert.ok(!JSON.stringify(payloads.at(-1)).includes('记住：Aurora'));
+    assert.ok(!JSON.stringify(payloads.at(-1)).includes('记住：项目 Aurora'));
     assert.ok(!readFileSync(sessionFile('brand-new-session'), 'utf8').includes('BACKGROUND_ONLY_MARKER'));
     const task = tasks.create('提醒喝水', '1分钟后');
-    await execute('更新记忆：Aurora 数据库改为 PostgreSQL');
+    await execute('更新记忆：项目 Aurora 数据库改为 PostgreSQL。\nkey=aurora.database');
     assert.equal((await execute('Aurora 的数据库是什么？')).text, 'MEMORY_HIT_POSTGRESQL');
     const currentContext = payloads.at(-1)!.messages.filter((message) => JSON.stringify(message.content).includes('[UNTRUSTED_MEMORY_DATA_V2]'));
     assert.ok(!JSON.stringify(currentContext).includes('SQLite'), '临时 Context 中只含当前值，旧用户历史不被抹除');
-    await execute('忘记：Aurora 的数据库');
+    await execute('忘记：key=aurora.database');
     await executor.close();
     executor = await createPiExecutor(config, tasks, 'after-forget-empty-session', memory);
     assert.equal((await execute('Aurora 的数据库是什么？')).text, 'NO_MEMORY_HIT');

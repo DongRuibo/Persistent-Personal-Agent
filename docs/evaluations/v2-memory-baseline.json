@@ -1,0 +1,247 @@
+{
+  "fixtureVersion": 1,
+  "budgetBytes": 2048,
+  "memoryCount": 10,
+  "groups": {
+    "literal": {
+      "count": 4,
+      "top1": 4,
+      "recall5": 4,
+      "contextHit": 4
+    },
+    "paraphrase": {
+      "count": 4,
+      "top1": 0,
+      "recall5": 1,
+      "contextHit": 1
+    },
+    "distractor": {
+      "count": 4,
+      "top1": 1,
+      "recall5": 4,
+      "contextHit": 4
+    },
+    "negative": {
+      "count": 4,
+      "top1": 1,
+      "recall5": 1,
+      "contextHit": 1
+    }
+  },
+  "cases": [
+    {
+      "group": "literal",
+      "query": "用户偏好的回答语言是什么？",
+      "expectedKey": "user.language",
+      "retrievedKeys": [
+        "user.language",
+        "user.drink",
+        "atlas.language"
+      ],
+      "top1": true,
+      "recall5": true,
+      "contextHit": true,
+      "contextBytes": 679
+    },
+    {
+      "group": "literal",
+      "query": "Atlas 的任务数据存入哪里？",
+      "expectedKey": "atlas.database",
+      "retrievedKeys": [
+        "atlas.database",
+        "atlas.backup",
+        "borealis.database",
+        "atlas.language",
+        "database.backup"
+      ],
+      "top1": true,
+      "recall5": true,
+      "contextHit": true,
+      "contextBytes": 1150
+    },
+    {
+      "group": "literal",
+      "query": "10月20日飞书重启恢复验收发生了什么？",
+      "expectedKey": "feishu.acceptance",
+      "retrievedKeys": [
+        "feishu.acceptance",
+        "feishu.outage",
+        "feishu.troubleshooting",
+        "atlas.database"
+      ],
+      "top1": true,
+      "recall5": true,
+      "contextHit": true,
+      "contextBytes": 1010
+    },
+    {
+      "group": "literal",
+      "query": "排查飞书连接告警的方法是什么？",
+      "expectedKey": "feishu.troubleshooting",
+      "retrievedKeys": [
+        "feishu.troubleshooting",
+        "feishu.outage",
+        "feishu.acceptance"
+      ],
+      "top1": true,
+      "recall5": true,
+      "contextHit": true,
+      "contextBytes": 812
+    },
+    {
+      "group": "paraphrase",
+      "query": "平时我更愿意读哪种文字？",
+      "expectedKey": "user.language",
+      "retrievedKeys": [],
+      "top1": false,
+      "recall5": false,
+      "contextHit": false,
+      "contextBytes": 0
+    },
+    {
+      "group": "paraphrase",
+      "query": "我喝拿铁要放方糖吗？",
+      "expectedKey": "user.drink",
+      "retrievedKeys": [],
+      "top1": false,
+      "recall5": false,
+      "contextHit": false,
+      "contextBytes": 0
+    },
+    {
+      "group": "paraphrase",
+      "query": "Atlas 把待办存在哪儿？",
+      "expectedKey": "atlas.database",
+      "retrievedKeys": [
+        "atlas.backup",
+        "atlas.language",
+        "atlas.database"
+      ],
+      "top1": false,
+      "recall5": true,
+      "contextHit": true,
+      "contextBytes": 729
+    },
+    {
+      "group": "paraphrase",
+      "query": "机器人断线了，该从哪儿着手定位？",
+      "expectedKey": "feishu.troubleshooting",
+      "retrievedKeys": [],
+      "top1": false,
+      "recall5": false,
+      "contextHit": false,
+      "contextBytes": 0
+    },
+    {
+      "group": "distractor",
+      "query": "Atlas 数据库架构是什么？",
+      "expectedKey": "atlas.database",
+      "retrievedKeys": [
+        "atlas.backup",
+        "atlas.database",
+        "atlas.language",
+        "borealis.database",
+        "database.backup"
+      ],
+      "top1": false,
+      "recall5": true,
+      "contextHit": true,
+      "contextBytes": 1150
+    },
+    {
+      "group": "distractor",
+      "query": "Borealis 任务数据库用什么？",
+      "expectedKey": "borealis.database",
+      "retrievedKeys": [
+        "borealis.database",
+        "database.backup",
+        "atlas.database",
+        "atlas.backup"
+      ],
+      "top1": true,
+      "recall5": true,
+      "contextHit": true,
+      "contextBytes": 959
+    },
+    {
+      "group": "distractor",
+      "query": "我偏好的回答语言，不是 Atlas 的界面语言",
+      "expectedKey": "user.language",
+      "retrievedKeys": [
+        "atlas.language",
+        "atlas.backup",
+        "atlas.database",
+        "user.language"
+      ],
+      "top1": false,
+      "recall5": true,
+      "contextHit": true,
+      "contextBytes": 914
+    },
+    {
+      "group": "distractor",
+      "query": "10月20日飞书恢复验收的结果，别用19日失败记录",
+      "expectedKey": "feishu.acceptance",
+      "retrievedKeys": [
+        "feishu.outage",
+        "feishu.acceptance",
+        "feishu.troubleshooting",
+        "atlas.database"
+      ],
+      "top1": false,
+      "recall5": true,
+      "contextHit": true,
+      "contextBytes": 1010
+    },
+    {
+      "group": "negative",
+      "query": "南极企鹅的迁徙路线",
+      "expectedKey": null,
+      "retrievedKeys": [],
+      "top1": true,
+      "recall5": true,
+      "contextHit": true,
+      "contextBytes": 0
+    },
+    {
+      "group": "negative",
+      "query": "Atlas 下一次发布的确切日期",
+      "expectedKey": null,
+      "retrievedKeys": [
+        "atlas.backup",
+        "atlas.language",
+        "atlas.database"
+      ],
+      "top1": false,
+      "recall5": false,
+      "contextHit": false,
+      "contextBytes": 729
+    },
+    {
+      "group": "negative",
+      "query": "用户喜欢哪种茶叶",
+      "expectedKey": null,
+      "retrievedKeys": [
+        "user.drink",
+        "user.language",
+        "atlas.language"
+      ],
+      "top1": false,
+      "recall5": false,
+      "contextHit": false,
+      "contextBytes": 679
+    },
+    {
+      "group": "negative",
+      "query": "Borealis 线上服务器的密码是什么",
+      "expectedKey": null,
+      "retrievedKeys": [
+        "borealis.database"
+      ],
+      "top1": false,
+      "recall5": false,
+      "contextHit": false,
+      "contextBytes": 350
+    }
+  ]
+}

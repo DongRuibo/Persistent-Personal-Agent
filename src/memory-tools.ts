@@ -31,17 +31,17 @@ export function memoryTools(memory: FileMemoryService): ToolDefinition[] {
     }),
     defineTool({
       name: 'memory_remember', label: '保存明确长期记忆',
-      description: '仅本轮用户明确以“记住：”等表达长期记忆意图时使用；不得保存推断、凭据或外部指令。选择一种 kind 和稳定事实 key（如 user.language、agent.database）；同 key 冲突须明确更新，不能另起 key 掩盖冲突。只保存用户明确提供的事实，不复制整个对话。',
+      description: '仅本轮“记住：完整正文”命令可写，content 必须逐字等于冒号后的正文，不能概括。kind/key 可由用户用独占行 kind=project、key=agent.database 指定，指定后必须匹配；这些元数据行不属于正文。不确定时请用户重述，不要尝试写入。不得保存推断或凭据。同 key 冲突须明确更新。',
       parameters: Type.Object({ kind, key: Type.String({ minLength: 1, maxLength: 100 }), content }),
       execute: async (_id, args, signal) => { signal?.throwIfAborted(); const record = memory.remember(args); memory.select([record]); return result(receipt(record)); },
     }),
     defineTool({
-      name: 'memory_update', label: '更新长期记忆', description: '仅本轮用户以“更新记忆：”或“修改记忆：”明确表达时使用。先检索当前记录再提供 expectedVersion；原 id/key/kind 保留，正文整体替换，不把旧值当作当前事实。',
+      name: 'memory_update', label: '更新长期记忆', description: '仅本轮“更新记忆：完整新正文”并另起一行指定 key=… 或 id=… 才可用，必要时加 kind=… 消除同 key 歧义。content 必须逐字保留完整新正文（去除元数据行），禁止概括。先读当前 expectedVersion，原 id/key/kind 保留。不符合格式请用户重述。',
       parameters: Type.Object({ id, content, expectedVersion: version }),
       execute: async (_id, args, signal) => { signal?.throwIfAborted(); const record = memory.update(args.id, args.content, args.expectedVersion); memory.select([record]); return result(receipt(record)); },
     }),
     defineTool({
-      name: 'memory_forget', label: '删除长期记忆', description: '仅本轮用户以“忘记：”或“删除记忆：”明确表达时使用，先读取 id/expectedVersion。仅删除 Memory 当前条目及索引；历史 Session、日志和备份中的副本不会自动删除。',
+      name: 'memory_forget', label: '删除长期记忆', description: '仅本轮“忘记：key=…”或“忘记：id=…”明确指定目标时使用，元数据独占一行，不加描述正文。同 key 歧义须 kind=… 或完整 id，先读当前 expectedVersion。仅删 Memory 当前条目及索引；历史 Session、日志和备份不随之删除。',
       parameters: Type.Object({ id, expectedVersion: version }),
       execute: async (_id, args, signal) => { signal?.throwIfAborted(); memory.forget(args.id, args.expectedVersion); return result({ id: args.id, deleted: true, historicalCopiesRemoved: false }); },
     }),
