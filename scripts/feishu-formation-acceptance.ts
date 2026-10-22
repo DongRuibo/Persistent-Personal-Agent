@@ -6,13 +6,13 @@ import { createInterface } from 'node:readline';
 import { readConfig, readFeishuConfig, redactor } from '../src/config.js';
 
 interface Attempt { at: string; bytes: number; outputLimit: number; reservedMicroCny: number; status?: number }
-interface Ledger { version: 1; identity: string; requestLimit?: 40 | 48; attempts: Attempt[] }
+interface Ledger { version: 1; identity: string; requestLimit?: 32 | 40 | 48; attempts: Attempt[] }
 
 // 本轮手机验收专用：全进程、跨重启累计预留；未知用量和失败请求不退额度。
 export class FeishuAcceptanceBudget {
-  get requestLimit(): 40 | 48 { return this.ledger.requestLimit ?? 40; }
+  get requestLimit(): 32 | 40 | 48 { return this.ledger.requestLimit ?? 40; }
   constructor(readonly ledger: Ledger) {
-    if (ledger.version !== 1 || ![40, 48].includes(this.requestLimit) || !Array.isArray(ledger.attempts) || ledger.attempts.length > this.requestLimit ||
+    if (ledger.version !== 1 || ![32, 40, 48].includes(this.requestLimit) || !Array.isArray(ledger.attempts) || ledger.attempts.length > this.requestLimit ||
       ledger.attempts.some(a => !Number.isSafeInteger(a.reservedMicroCny) || a.reservedMicroCny < 1) || this.reservedMicroCny > 2_000_000) {
       throw new Error('验收预算账本无效，拒绝启动');
     }
@@ -32,23 +32,42 @@ export class FeishuAcceptanceBudget {
   }
 }
 
+export function recordAcceptanceResponse(response: Response, file: string, redact: (text: string) => string): Response {
+  if (!response.body) return response;
+  const chunks: Uint8Array[] = []; let size = 0;
+  const stream = response.body.pipeThrough(new TransformStream<Uint8Array, Uint8Array>({
+    transform(chunk, controller) {
+      size += chunk.byteLength;
+      if (size > 262144) throw new Error('验收原始响应超出记录上限，停止验收');
+      chunks.push(chunk);
+      // SDK读到结束标记后可能取消流，不依赖flush；每块保存累计快照以保留已收到的原输出。
+      fs.writeFileSync(file, redact(Buffer.concat(chunks).toString('utf8')), { flag: chunks.length === 1 ? 'wx' : 'w', mode: 0o600 });
+      controller.enqueue(chunk);
+    },
+  }));
+  return new Response(stream, { status: response.status, statusText: response.statusText, headers: response.headers });
+}
+
 async function start(): Promise<void> {
   const args = process.argv.slice(2);
-  if (args.some(a => !['--resume', '--fresh-session', '--extend-to-48'].includes(a)) ||
+  const finalRound = args.includes('--v2.1b.4');
+  if (finalRound && args.includes('--extend-to-48')) throw new Error('V2.1b.4仅授权32次，不能复用旧轮扩额');
+  if (args.some(a => !['--resume', '--fresh-session', '--extend-to-48', '--v2.1b.4'].includes(a)) ||
     (args.includes('--fresh-session') || args.includes('--extend-to-48')) && !args.includes('--resume')) throw new Error('新会话或已授权的48次扩额必须使用 --resume 保留累计账本');
   const config = readConfig(), feishu = readFeishuConfig();
   if (config.formation?.enabled || !config.apiKey || config.baseUrl !== 'https://api.siliconflow.cn/v1' || config.model !== 'deepseek-ai/DeepSeek-V4.1-Flash') throw new Error('需要正式Formation关闭及本轮已授权的硅基流动配置');
   process.umask(0o077);
-  const root = resolve('data/acceptance/formation-feishu-20261022');
+  const root = resolve(finalRound ? 'data/acceptance/formation-feishu-v2.1b.4-20261022' : 'data/acceptance/formation-feishu-20261022');
   const budgetFile = join(root, 'budget.json');
-  const identity = createHash('sha256').update(JSON.stringify([config.model, feishu.appId, feishu.allowedOpenId])).digest('hex');
+  const identity = createHash('sha256').update(JSON.stringify([config.model, feishu.appId, feishu.allowedOpenId, ...(finalRound ? ['v2.1b.4'] : [])])).digest('hex');
   if (!args.includes('--resume') && fs.existsSync(root)) throw new Error('本轮目录已存在；只能 --resume 累计额度，不能重置账本');
   if (args.includes('--resume') && !fs.existsSync(budgetFile)) throw new Error('续测缺少账本，拒绝创建新额度');
   fs.mkdirSync(root, { recursive: true, mode: 0o700 });
   const lock = join(root, 'acceptance.lock');
   fs.closeSync(fs.openSync(lock, 'wx', 0o600));
   process.once('exit', () => fs.rmSync(lock, { force: true }));
-  const ledger: Ledger = args.includes('--resume') ? JSON.parse(fs.readFileSync(budgetFile, 'utf8')) : { version: 1, identity, attempts: [] };
+  const ledger: Ledger = args.includes('--resume') ? JSON.parse(fs.readFileSync(budgetFile, 'utf8')) : { version: 1, identity, ...(finalRound ? { requestLimit: 32 as const } : {}), attempts: [] };
+  if (finalRound && ledger.requestLimit !== 32) throw new Error('V2.1b.4账本必须保持32次，不能复用其他轮额度');
   // 仅在用户明确批准本轮48次上限后使用此标记；费用仍2元，已有请求绝不重置。
   if (args.includes('--extend-to-48')) ledger.requestLimit = 48;
   // 修正尚未联网验收的示例身份不会增加额度；一旦发出模型请求则固定身份。
@@ -75,6 +94,12 @@ async function start(): Promise<void> {
       console.log(`验收模型请求 ${ledger.attempts.length}/${budget.requestLimit}；累计保守预留 ${(budget.reservedMicroCny / 1e6).toFixed(6)}/2元`);
       const response = await fetchOriginal(input, { ...init, redirect: 'error' });
       attempt.status = response.status; persist();
+      if (finalRound && response.body) {
+        // 只在隔离虚构数据验收保存供应商原始输出，以区分真实错误提议和正常分支；不存请求头/凭据。
+        const sequence = ledger.attempts.indexOf(attempt) + 1;
+        const file = join(root, `response-${String(sequence).padStart(2, '0')}.txt`);
+        return recordAcceptanceResponse(response, file, redactor(config.apiKey!, feishu.appSecret));
+      }
       return response;
     } catch (error) {
       // 预算/配置失败关闭测试服务；网络失败同样保留预留，不隐式补测。

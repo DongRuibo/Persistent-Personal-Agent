@@ -1,0 +1,336 @@
+{
+  "stage": "V2.1b.4",
+  "date": "2026-10-22",
+  "timezone": "Asia/Shanghai",
+  "baseline": "2d31648233b04d7281a275b3e07bdf3ef61a9eea",
+  "mode": "real-feishu-real-model-isolated-fictional-memory",
+  "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+  "queryRewrite": false,
+  "limits": {
+    "requests": 32,
+    "reservedCny": 2
+  },
+  "actual": {
+    "requests": 24,
+    "http200": 24,
+    "modelCallRows": 24,
+    "formationCalls": 3,
+    "reservedCny": 0.977334,
+    "actualBilledCny": null,
+    "tokens": {
+      "inputTokens": 10061,
+      "outputTokens": 1080,
+      "cacheReadTokens": 36096,
+      "cacheWriteTokens": 0
+    },
+    "phoneRuns": 10,
+    "runDurationsMs": [
+      2162,
+      2877,
+      1834,
+      1505,
+      2422,
+      2930,
+      1662,
+      2660,
+      2672,
+      1760
+    ]
+  },
+  "results": {
+    "ordinaryStatementNoAutoWrite": "passed",
+    "displayAndNaturalReject": "passed",
+    "newProjectApprovalIsolation": "passed",
+    "h02MissingNegationAndWrongScopeRecovery": "passed",
+    "explicitApprovalBeforeWrite": "passed",
+    "freshSessionRetrieval": "passed",
+    "mainModelMissingRejectToolBranch": "not-observed",
+    "h01WrongProjectTargetBranch": "not-observed"
+  },
+  "final": {
+    "seedCount": 2,
+    "approvedNewMemories": 2,
+    "memoryCount": 4,
+    "taskCount": 0,
+    "candidates": {
+      "applied": 2,
+      "rejected": 1
+    },
+    "seedRecordsUnchanged": true,
+    "markdownIndexConsistent": true,
+    "unapprovedWrites": 0,
+    "formalEnvUnchanged": true,
+    "oldBudgetUnchanged": true,
+    "processStopped": true,
+    "acceptanceLockRemoved": true
+  },
+  "approved": [
+    {
+      "candidateId": "55455a21-5699-410d-a992-6a25734df944",
+      "sourceRunId": "ce25953f-8f42-4369-a5c3-0105c80da41a",
+      "approvalRunId": "78038e62-fe2a-4880-ba29-932e4a0dcb4f",
+      "memoryId": "8fa20c67-e679-4608-9cab-d8fd545e54e4",
+      "version": 1,
+      "draft": "Baryl项目界面使用西班牙语，开发语言为 Rust"
+    },
+    {
+      "candidateId": "1cee6e02-08a7-43c1-91f3-04653fd276e6",
+      "sourceRunId": "128ecea5-505c-4c23-bb61-9a285949b922",
+      "approvalRunId": "cbce531d-4ce3-4cff-add8-2093fc907fdf",
+      "memoryId": "bdc8609f-0fbd-43af-bd1c-0faa5ae4cc6b",
+      "version": 1,
+      "draft": "我以后做移动端项目不使用 Ruby，只在数据脚本中使用 Ruby"
+    }
+  ],
+  "h02": {
+    "rawProposal": {
+      "sourceRunId": "128ecea5-505c-4c23-bb61-9a285949b922",
+      "quote": "我以后做移动端项目不使用 Ruby，只在数据脚本中使用 Ruby",
+      "kind": "semantic",
+      "mode": "asserted",
+      "durable": true,
+      "subject": "用户",
+      "property": "做移动端项目使用Ruby",
+      "value": "不使用",
+      "content": "用户以后做移动端项目不使用 Ruby，只在数据脚本中使用 Ruby",
+      "targetId": "e6983724-da17-4255-a00e-88249941c6e3"
+    },
+    "rawResponseSha256": "a8a9651e393d4d58dfa415185cf76fa0f55e01208605686015a8679a1dfded94",
+    "events": [
+      {
+        "runId": "128ecea5-505c-4c23-bb61-9a285949b922",
+        "type": "formation_property_recovered",
+        "details": {
+          "sourceRunId": "128ecea5-505c-4c23-bb61-9a285949b922"
+        }
+      },
+      {
+        "runId": "128ecea5-505c-4c23-bb61-9a285949b922",
+        "type": "formation_target_ignored",
+        "details": {
+          "sourceRunId": "128ecea5-505c-4c23-bb61-9a285949b922",
+          "matchingTargets": 0
+        }
+      }
+    ]
+  },
+  "freshSession": {
+    "before": {
+      "at": "2026-10-22T01:49:38.183Z",
+      "messageCount": 0,
+      "userMessages": 0,
+      "assistantMessages": 0,
+      "totalEntries": 3,
+      "requests": 23
+    },
+    "after": {
+      "userMessages": 1,
+      "assistantMessages": 1,
+      "persistedMemoryContextBlocks": 0,
+      "fixedSystemInstructionMentionsMarker": true
+    },
+    "runId": "55bc7f18-a374-4efd-a0cf-7d161c5496af",
+    "question": "[当前用户时间：2026-10-22T09:50:00.29876405+08:00[Asia/Shanghai]]\n我做移动端项目会使用 Ruby 吗？数据脚本呢",
+    "context": [
+      {
+        "hits": [
+          {
+            "id": "bdc8609f-0fbd-43af-bd1c-0faa5ae4cc6b",
+            "kind": "semantic",
+            "version": 1
+          },
+          {
+            "id": "e6983724-da17-4255-a00e-88249941c6e3",
+            "kind": "semantic",
+            "version": 1
+          }
+        ],
+        "bytes": 878,
+        "budget": 2048,
+        "evidence": "uncertain",
+        "retrievalEvidence": "uncertain",
+        "candidates": [
+          "bdc8609f-0fbd-43af-bd1c-0faa5ae4cc6b",
+          "e6983724-da17-4255-a00e-88249941c6e3"
+        ],
+        "supported": [],
+        "rewriteFallback": false
+      }
+    ],
+    "answer": "根据我保存的记录：\n\n- **移动端项目**：不使用 Ruby，只在数据脚本中使用 Ruby。\n- **数据脚本**：会使用 Ruby。\n\n另外还有一条记录说“做服务端项目使用 Ruby”，这跟你问的移动端、数据脚本不是同一场景，所以不影响上面的结论。",
+    "phoneConfirmedCorrect": true
+  },
+  "checks": {
+    "typecheck": 0,
+    "build": 0,
+    "windows": {
+      "total": 139,
+      "passed": 136,
+      "failed": 0,
+      "skipped": 3,
+      "durationMs": 12503.1106
+    },
+    "focusedBudgetAudit": {
+      "passed": 6,
+      "failed": 0
+    },
+    "linuxThisRound": "not-rerun; prior V2.1b.3 137/137 evidence preserved",
+    "frozenEvaluations": "not rerun in this acceptance-only batch; fixtures and production source unchanged"
+  },
+  "artifacts": {
+    "rawResponses": [
+      {
+        "file": "response-03.txt",
+        "sha256": "ec50a5901e70f16e22da2ed0986e0e63ccd8302b9f2333cf6177ebab05b9f1bd"
+      },
+      {
+        "file": "response-04.txt",
+        "sha256": "31cc8506fa0008af3cebbb1c0514c3304077452f5d2f449ae4dfa8d6676f5637"
+      },
+      {
+        "file": "response-05.txt",
+        "sha256": "4f3c1d420a6217cb9ab9d4b0d40adeb813dbe25241781395206b1a0818d4ae53"
+      },
+      {
+        "file": "response-06.txt",
+        "sha256": "e307824b1f893e128e2917d2e9fbe1168f0eeaf1780937f71749f20101e6383c"
+      },
+      {
+        "file": "response-07.txt",
+        "sha256": "d570256be960aa13b94b34281ae5740a266ef16726ea5156ffdfea97e61fbfcf"
+      },
+      {
+        "file": "response-08.txt",
+        "sha256": "af869e4e5572ad4e1cc932809b3454cd2ceed31aac8f41369ad1ddfad1f4c9c1"
+      },
+      {
+        "file": "response-09.txt",
+        "sha256": "fdb4c8900f21650957e6b9d70f60bdcc4850f29b166cc310e6dc92bece69fa2a"
+      },
+      {
+        "file": "response-10.txt",
+        "sha256": "a3a7b3ae8d304dd2110464204d9910c75d6077963f89df782180586f50372718"
+      },
+      {
+        "file": "response-11.txt",
+        "sha256": "498caf68782c656e33a152ab70a2dca8eb1bd0401b43f20a9791d3dff6e52f4c"
+      },
+      {
+        "file": "response-12.txt",
+        "sha256": "1c0a696d9bac6bdd8449a120817c2291a7ae9c420b0295874dada7f3523d57c1"
+      },
+      {
+        "file": "response-13.txt",
+        "sha256": "b122a2a01a4895d3ecc4f5e25a3afacd90df78ae18e10c9a76bf6a8945999a50"
+      },
+      {
+        "file": "response-14.txt",
+        "sha256": "9158f62a9f80cc72f28cb22c6ab794386794b3f708038b610704b2f388fa10de"
+      },
+      {
+        "file": "response-15.txt",
+        "sha256": "9de0713000c4801a0e1fc775f4635634fe6dbaae4b92256e668360942271310a"
+      },
+      {
+        "file": "response-16.txt",
+        "sha256": "5961fab89cf03a094d153375ddc86cc410cba84b72de9fe0ad09f585c9d07afd"
+      },
+      {
+        "file": "response-17.txt",
+        "sha256": "a8a9651e393d4d58dfa415185cf76fa0f55e01208605686015a8679a1dfded94"
+      },
+      {
+        "file": "response-18.txt",
+        "sha256": "23128624a1e701043b0b037ff927bfa508b86f714bd184b96506cbcf7d488759"
+      },
+      {
+        "file": "response-19.txt",
+        "sha256": "27ac1bed89e09230f2b528b4e8f1e98fba5e423aa57f99c8474df3ed8e15f98f"
+      },
+      {
+        "file": "response-20.txt",
+        "sha256": "5b98c7b0f2f1a36035a28ffdf70b2b521fa0df449e0d8c4d14d37683f354c9c3"
+      },
+      {
+        "file": "response-21.txt",
+        "sha256": "c2134b2b16f9b1bc5f013c1d299d794455f68775ea1cbd7ffc30ee41717979e9"
+      },
+      {
+        "file": "response-22.txt",
+        "sha256": "5435e6390d2dbccda96b32602e2886ca64882fd3ea9213826208399ab9a17c1d"
+      },
+      {
+        "file": "response-23.txt",
+        "sha256": "725076a91b53508d0d7ff510d6ade4c60887d060daa62c16d1c6147628d5b1bb"
+      },
+      {
+        "file": "response-24.txt",
+        "sha256": "aafa11c3f1d34bc1597a8bd9a63ad2df3aaae9b3acc42974e0ba08bb5dcde226"
+      }
+    ],
+    "rawResponseMissing": [
+      1,
+      2
+    ],
+    "snapshots": [
+      {
+        "file": "snapshot-00-ready.json",
+        "sha256": "e94265cf920056d79a6d8e31783bbe286708b053ef1e8d024e16e28a420c33aa"
+      },
+      {
+        "file": "snapshot-01-statement.json",
+        "sha256": "8c7f481d197fb70c03156c41c7d6e479f523f5581d9d1d3b22b2e25083675cf5"
+      },
+      {
+        "file": "snapshot-02-list.json",
+        "sha256": "109cc59e4505c64a282176d3e2b7cbc8161f19e3ff95373e363e82d528038ba1"
+      },
+      {
+        "file": "snapshot-03-rejection.json",
+        "sha256": "a76c6c27aee516f80b6953d3dbcc5712b22d32b88c5488de502a0a45d3ea9cd7"
+      },
+      {
+        "file": "snapshot-04-beryl-statement.json",
+        "sha256": "cbc78f5d724931a8f13065bcd8c256daebd62fb1443971469b2570a1c9b7fc7c"
+      },
+      {
+        "file": "snapshot-05-beryl-list.json",
+        "sha256": "b0b26b81f44be23d0d1840d4673ab5a514eb07f53a96ab3509fdab41172b36bd"
+      },
+      {
+        "file": "snapshot-06-beryl-approved.json",
+        "sha256": "1a65b3d77396a836d93f8327f4efc6931de3791d03f48e645a8d542cda6ebef0"
+      },
+      {
+        "file": "snapshot-07-negative-statement.json",
+        "sha256": "7b3c4287f9528e6c5100af7f5d5d80d55e6c350e1fd3c9cf3dea4d24fc0c1b62"
+      },
+      {
+        "file": "snapshot-08-negative-list.json",
+        "sha256": "cde653f2feca77e4563bf4bd780bccda93158381d410c6eb1b6b6873490a717d"
+      },
+      {
+        "file": "snapshot-09-negative-approved.json",
+        "sha256": "dd91bee501266e9de1ee702ec19eaabf3731a71b79dea7a8008bdc608126092d"
+      },
+      {
+        "file": "snapshot-10-fresh-answer.json",
+        "sha256": "b26d58ac3608b741d51b2c00ebfd315c4e30f04fdfecf4d77a91dec91f3f80f4"
+      },
+      {
+        "file": "snapshot-11-stopped.json",
+        "sha256": "64a028017eae5fe49915b539e1d2faf718e32db5225cf6b44d5cc41c8bf020c2"
+      }
+    ],
+    "windowsLogSha256": "622908cca2f82384d3da7e3f73f792c7facefeab8573bb5da910cc161d11b9e4"
+  },
+  "limitations": [
+    "仅一轮十条手机消息，不代表长期质量100%；未新增生产代码修复。",
+    "拒绝时主模型主动调工具；H01未给跨项目错误target，两个分支本轮未观察到。H02漏否定及错误服务端target真实出现且宿主恢复。",
+    "实际项目名Baryl不同于计划Beryl，按真实来源保留。",
+    "前两次原始流未落盘；Run/用量/候选保留，从第3请求起有原始响应。",
+    "预算为峰时上界保守预留；供应商账单未查询，模型cost字段null。",
+    "Retriever该轮evidence=uncertain，生成回答经人工核对正确，不能改称supported。",
+    "正式Formation仍关闭，未读正式用户历史，未验证VPS或长时运行。"
+  ]
+}
