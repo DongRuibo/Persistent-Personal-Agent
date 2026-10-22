@@ -14,6 +14,9 @@ import { FeishuChannel } from './feishu-channel.js';
 import { FeishuSdkTransport } from './feishu-transport.js';
 import { FileMemoryService } from './memory-service.js';
 import { FormationService } from './formation-service.js';
+import { BackgroundLane } from './background-lane.js';
+import { GoalRunner } from './goal-runner.js';
+import { GoalService } from './goal-service.js';
 
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
@@ -42,6 +45,8 @@ async function main(): Promise<void> {
   let store: SqliteStore | undefined;
   let executor: Awaited<ReturnType<typeof createPiExecutor>> | undefined;
   let scheduler: TaskScheduler | undefined;
+  let goalRunner: GoalRunner | undefined;
+  const lane = new BackgroundLane();
   let memory: FileMemoryService | undefined;
   let formation: FormationService | undefined;
   let releaseMemory: (() => Promise<void>) | undefined;
@@ -61,18 +66,28 @@ async function main(): Promise<void> {
     memory = new FileMemoryService(config.memoryDir, [config.apiKey, process.env.FEISHU_APP_SECRET ?? '']);
     const chatKey = feishuConfig ? JSON.stringify(['feishu', feishuConfig.appId, feishuConfig.allowedOpenId]) : 'console';
     if (config.formation?.enabled) formation = new FormationService({ ...config.formation, owner: createHash('sha256').update(chatKey).digest('hex') }, store, { listForHost: () => memory!.listForHost() }, [config.apiKey, process.env.FEISHU_APP_SECRET ?? '']);
-    executor = await createPiExecutor(config, tasks, chatKey, memory, formation);
+    const goals = new GoalService(store, tasks, id => goalRunner?.interrupt(id));
+    executor = await createPiExecutor(config, tasks, chatKey, memory, formation, lane, goals);
     if (shutdown.signal.aborted) return;
     const recovered = store.recoverInterrupted(new Date().toISOString());
+    const otherGoals = store.goals.readyForHost().filter(goal => goal.ownerId !== 'local-user' || (feishuConfig
+      ? goal.target.channel !== 'feishu' || goal.target.appId !== feishuConfig.appId || goal.target.userOpenId !== feishuConfig.allowedOpenId
+      : goal.target.channel !== 'console'));
+    if (otherGoals.length) console.error(`有${otherGoals.length}个其他身份或渠道的Goal等待原绑定启动；本进程不会领取或改发。`);
     const consoleChannel = new ConsoleChannel(redact);
     if (feishuConfig) {
       const transport = new FeishuSdkTransport(feishuConfig, reportError, () => { process.exitCode = 1; stop(); });
-      feishu = new FeishuChannel(feishuConfig, transport, executor, tasks, store, redact, reportError, formation);
+      feishu = new FeishuChannel(feishuConfig, transport, executor, tasks, store, redact, reportError, formation, lane);
       await feishu.start();
     }
     if (shutdown.signal.aborted) return;
-    scheduler = new TaskScheduler(store, executor, new ChannelRouter(consoleChannel, feishu), config.pollIntervalMs, reportError);
+    const channels = new ChannelRouter(consoleChannel, feishu);
+    scheduler = new TaskScheduler(store, executor, channels, config.pollIntervalMs, reportError, () => new Date(), lane);
+    goalRunner = new GoalRunner(store, executor, channels, lane, { ownerId: 'local-user', pollIntervalMs: config.pollIntervalMs,
+      accepts: target => feishuConfig ? target.channel === 'feishu' && target.appId === feishuConfig.appId && target.userOpenId === feishuConfig.allowedOpenId : target.channel === 'console',
+      reportError, fatal: () => { process.exitCode = 1; stop(); }, delivered: (goal, runId) => goals.displayed(goal, runId) });
     scheduler.start();
+    goalRunner.start();
     formation?.start();
     console.log(`Personal Agent 已启动；用户时区=${config.timeZone}；中断记录=${recovered}；模式=${feishu ? 'feishu' : args.includes('--daemon') ? 'daemon' : 'console'}`);
     if (args.includes('--daemon') || feishu) {
@@ -85,7 +100,7 @@ async function main(): Promise<void> {
     // 先中断并等待执行，再关闭存储；避免日志写入已关闭的数据库。
     try {
       await formation?.stop();
-      await Promise.all([scheduler?.stop(), feishu?.stop()]);
+      await Promise.all([scheduler?.stop(), goalRunner?.stop(), feishu?.stop()]);
       await executor?.close();
     } finally {
       store?.close();

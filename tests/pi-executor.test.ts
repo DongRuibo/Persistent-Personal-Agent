@@ -87,10 +87,14 @@ test('交互复用一个 Session，每次后台任务使用新 Session 并 dispo
     await executor.execute(request('task'));
     await executor.execute(request('task'));
     await executor.execute(request('chat'));
-    assert.deepEqual(created.map((item) => item.scope), ['chat', 'task', 'task']);
+    await executor.execute({ ...request(), scope: 'goal' });
+    await executor.execute({ ...request(), scope: 'goal' });
+    assert.deepEqual(created.map((item) => item.scope), ['chat', 'task', 'task', 'goal', 'goal']);
     assert.equal(created[0]!.session.disposed, false);
     assert.equal(created[1]!.session.disposed, true);
     assert.equal(created[2]!.session.disposed, true);
+    assert.equal(created[3]!.session.disposed, true);
+    assert.equal(created[4]!.session.disposed, true);
   } finally { await executor.close(); }
   assert.equal(created[0]!.session.disposed, true);
 });

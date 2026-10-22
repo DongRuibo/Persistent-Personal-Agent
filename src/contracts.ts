@@ -8,6 +8,7 @@ export type MessageTarget = { channel: 'console' } | {
 export interface OutboundMessage {
   text: string;
   taskId?: string;
+  goalId?: string;
   runId?: string;
   target?: MessageTarget;
 }
@@ -54,7 +55,9 @@ export interface ExecutionObserver {
 
 export interface ExecutionRequest {
   prompt: string;
-  scope: 'chat' | 'task';
+  scope: 'chat' | 'task' | 'goal';
+  // Goal 的检索词由宿主独立构造，不把整个进度快照当检索问题。
+  memoryQuery?: string;
   signal: AbortSignal;
   observer: ExecutionObserver;
   source?: { channel: 'console' | 'feishu'; reference: string };

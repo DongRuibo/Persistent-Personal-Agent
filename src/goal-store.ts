@@ -108,6 +108,24 @@ export class GoalStore {
     return this.goal(row);
   }
 
+  list(actor: GoalActor): Goal[] {
+    return this.db.prepare('SELECT * FROM goals WHERE ownerId=? AND accessKey=? ORDER BY createdAt DESC,rowid DESC LIMIT 101')
+      .all(actor.ownerId, binding(actor)).map(row => this.goal(row));
+  }
+
+  // 仅供可信 Runner 扫描；领取仍须验证绑定、版本和一次授权。
+  readyForHost(): Goal[] {
+    return this.db.prepare("SELECT * FROM goals WHERE status='ready' ORDER BY updatedAt,id").all().map(row => this.goal(row));
+  }
+
+  executionForHost(runId: string): GoalExecution {
+    const row = this.db.prepare('SELECT * FROM goal_executions WHERE runId=?').get(runId);
+    if (!row) throw new Error('Goal Execution 不存在');
+    const execution = this.execution(row);
+    if (hash(execution.input) !== execution.inputHash || execution.checkpoint && hash(execution.checkpoint) !== execution.checkpointHash) throw new Error('Goal Execution Hash 不一致');
+    return execution;
+  }
+
   private plan(goal: Goal): GoalPlan {
     const row = this.db.prepare('SELECT * FROM goal_plans WHERE goalId=? AND revision=?').get(goal.id, goal.planRevision);
     if (!row) throw new Error('Goal Plan 不一致');
@@ -323,6 +341,19 @@ export class GoalStore {
       this.db.prepare(`UPDATE goals SET planRevision=?,currentStepId=?,pendingActionJson=NULL,status=?,readyInputJson=?,
         blockedReason=NULL,revision=revision+1,updatedAt=? WHERE id=?`).run(draft.revision, next, executeNext ? 'ready' : 'waiting_user', ready, now, id);
       return this.receipt(this.get(command.actor, id), command.sourceRunId, 'approve_plan', now);
+    });
+  }
+
+  proposePlan(command: GoalCommand, id: string, proposed: NonNullable<GoalResult['proposedPlan']>, now: string): Goal {
+    return this.tx.transaction(() => {
+      const goal = this.command(command, id, now);
+      if (['completed', 'cancelled'].includes(goal.status) || goal.controlRequested === 'cancel' || goal.blockedReason === 'invariant_violation') throw new Error('当前 Goal 不能调整计划');
+      const draft = this.draft(goal, command.sourceRunId, proposed);
+      // 调整先撤销未领取授权；运行中先登记暂停，迟到结果不能成为进度。
+      this.db.prepare(`UPDATE goals SET pendingActionJson=?,readyInputJson=NULL,status=?,controlRequested=?,
+        revision=revision+1,updatedAt=? WHERE id=?`).run(JSON.stringify(draft), goal.status === 'running' ? 'running' : 'waiting_user',
+          goal.status === 'running' ? 'pause' : null, now, id);
+      return this.receipt(this.get(command.actor, id), command.sourceRunId, 'revise_plan', now);
     });
   }
 

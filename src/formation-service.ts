@@ -74,7 +74,7 @@ export class FormationService {
   enqueue(source: FormationSource): void {
     if (!this.options.enabled || source.owner !== this.options.owner || sensitive(source.text, this.secrets) || excludedSource(source.text)) return;
     // 明确记忆操作已经提交时不再自动建议；不从历史输出反推事实。
-    if (this.store.events(source.runId).some(event => event.type === 'formation_review' || event.type === 'operation_committed' && event.details?.includes('memory_'))) return;
+    if (this.store.events(source.runId).some(event => event.type === 'formation_review' || event.type === 'goal_review' || event.type === 'goal_control' || event.type === 'goal_claimed' || event.type === 'operation_committed' && event.details?.includes('memory_'))) return;
     if (Buffer.byteLength(source.text) > 1400) { this.store.event(source.runId, 'formation_skipped', '原话超出窗口预算'); return; }
     this.store.formation.enqueue(source, memoryDigest(this.memory.listForHost()));
     this.store.event(source.runId, 'formation_queued');

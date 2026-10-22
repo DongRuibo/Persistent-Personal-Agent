@@ -9,10 +9,12 @@ import type { FileMemoryService } from './memory-service.js';
 import { parseTaskTime, taskTimeRange } from './time.js';
 import type { FormationService } from './formation-service.js';
 import type { CandidateView } from './formation-types.js';
+import type { GoalService, GoalDisplay, GoalAction } from './goal-service.js';
+import type { Goal } from './goal-types.js';
 
 const text = Type.String({ maxLength: 12000 });
 export const intentSchema = Type.Object({
-  action: Type.Union([Type.Literal('none'), Type.Literal('create_task'), Type.Literal('cancel_task'), Type.Literal('memory_remember'), Type.Literal('memory_update'), Type.Literal('memory_forget'), Type.Literal('memory_review')]),
+  action: Type.Union([Type.Literal('none'), Type.Literal('create_task'), Type.Literal('cancel_task'), Type.Literal('memory_remember'), Type.Literal('memory_update'), Type.Literal('memory_forget'), Type.Literal('memory_review'), Type.Literal('goal_manage')]),
   mode: Type.Union([Type.Literal('request'), Type.Literal('query'), Type.Literal('negated'), Type.Literal('hypothetical'), Type.Literal('quoted'), Type.Literal('uncertain')]),
   evidence: text,
   confirmation: Type.Optional(Type.Boolean()),
@@ -20,6 +22,10 @@ export const intentSchema = Type.Object({
   kind: Type.Optional(Type.Union([Type.Literal('semantic'), Type.Literal('project'), Type.Literal('episodic'), Type.Literal('procedural')])),
   key: Type.Optional(Type.String({ maxLength: 100 })),
   review: Type.Optional(Type.Union([Type.Literal('list'), Type.Literal('approve'), Type.Literal('reject'), Type.Literal('reject_view'), Type.Literal('edit'), Type.Literal('clarify')])),
+  goalAction: Type.Optional(Type.Union(['create', 'list', 'view', 'continue', 'pause', 'cancel', 'approve_plan', 'revise_plan', 'complete'].map(value => Type.Literal(value)))),
+  executeNext: Type.Optional(Type.Boolean()), regenerate: Type.Optional(Type.Boolean()),
+  revisionMode: Type.Optional(Type.Union([Type.Literal('prepend'), Type.Literal('replace')])),
+  planSteps: Type.Optional(Type.Array(Type.Object({ title: text, instruction: text, deliverable: text, doneWhen: text }, { additionalProperties: false }), { minItems: 1, maxItems: 12 })),
   selector: Type.Optional(Type.Object({
     keywords: Type.Array(Type.String({ minLength: 1, maxLength: 100 }), { maxItems: 8 }),
     when: Type.Optional(text), reference: Type.Optional(Type.Union([Type.Literal('latest'), Type.Literal('last'), Type.Literal('choice')])),
@@ -34,9 +40,10 @@ export interface DialogueReferences {
   taskViewExpires?: number; lastTaskExpires?: number; lastMemoryExpires?: number;
   choices?: Choices; confirmation?: { operation: WriteOperation; expires: number };
   candidateReview?: CandidateView;
+  goalView?: GoalDisplay;
 }
 interface Frame { request: ExecutionRequest; references: DialogueReferences; plan?: Promise<WriteOperation | string>; used: boolean; answer?: string }
-export type Interpret = (message: string, pending: { tool?: Tool | 'memory_review'; count?: number; confirmation?: boolean }, request: ExecutionRequest) => Promise<unknown>;
+export type Interpret = (message: string, pending: { tool?: Tool | 'memory_review' | 'goal_manage'; count?: number; confirmation?: boolean; goalAction?: GoalAction }, request: ExecutionRequest) => Promise<unknown>;
 const normalize = (value: string) => value.normalize('NFKC').toLowerCase().replace(/\s+/gu, '');
 const segmenter = new Intl.Segmenter('zh', { granularity: 'word' });
 function matches(text: string, term: string): boolean {
@@ -139,6 +146,7 @@ export class OperationGuard {
   // 查询的显示顺序由宿主固定，防止模型重排后“第二个”对应了错误任务。
   taskList(id?: string, when?: string, keywords: string[] = [], pendingOnly = false): Task[] {
     const frame = this.frame();
+    delete this.state.goalView;
     delete this.state.candidateReview;
     const visible = this.tasks.visibleTasks();
     if ((when && !frame.request.prompt.includes(when)) || keywords.some((term) => !frame.request.prompt.includes(term))) throw new Error('查询条件必须来自当前用户消息');
@@ -156,12 +164,112 @@ export class OperationGuard {
 
   private local(time: string): string { return new Date(time).toLocaleString('zh-CN', { timeZone: this.tasks.timeZone, hour12: false }); }
 
+  async manageGoals(goals: GoalService, signal?: AbortSignal): Promise<unknown> {
+    const frame = this.frame();
+    if (frame.used || frame.plan) throw new Error('本轮操作已经消费，不能同时控制Goal和Task/Memory');
+    frame.used = true; frame.plan = Promise.resolve('goal_manage');
+    if (signal) frame.request = { ...frame.request, signal: AbortSignal.any([frame.request.signal, signal]) };
+    const request = frame.request;
+    request.observer.event('goal_review');
+    const priorReceipt = goals.receipt(request);
+    const show = (records: Goal[], action?: GoalAction, prefix = '') => {
+      if (!request.source) throw new Error('Goal显示需要可信来源Run');
+      const text = records.length === 1 ? goals.render(records[0]!.id) : records.length
+        ? records.map((goal, index) => `${index + 1}. ${goal.objective}；${goal.status}；版本${goal.revision}`).join('\n') : '当前没有匹配的长期目标。';
+      this.state.goalView = { items: records.map(goal => ({ id: goal.id, revision: goal.revision, draftHash: goal.pendingAction?.hash })),
+        expires: this.tasks.now().getTime() + ttl, displayRunId: request.source.reference, action, details: records.length === 1 };
+      delete this.state.choices; delete this.state.confirmation; delete this.state.candidateReview;
+      this.saveState(this.state); frame.answer = prefix + text;
+      return { status: 'displayed', count: records.length };
+    };
+    if (priorReceipt) return show([priorReceipt], undefined, '此请求已有控制收据，以下为当前状态：\n');
+    const display = frame.references.goalView;
+    const shortConfirm = /^(?:确认|同意|就这样|好的，就这样)[。！!]?$/u.test(request.prompt.trim());
+    let raw: unknown;
+    if (shortConfirm && display?.items.length === 1 && display.items[0]?.draftHash) {
+      raw = { action: 'goal_manage', goalAction: 'approve_plan', mode: 'request', evidence: request.prompt,
+        selector: { keywords: [] } };
+    } else raw = await this.interpret(request.prompt, { tool: 'goal_manage', count: display?.items.length,
+      confirmation: display?.items.length === 1 && !!display.items[0]?.draftHash, goalAction: display?.action }, request);
+    request.signal.throwIfAborted();
+    if (!Value.Check(intentSchema, raw)) throw new Error('Goal意图格式无效');
+    const intent = raw as Intent, action = intent.goalAction as GoalAction | undefined;
+    if (intent.action !== 'goal_manage' || !action || !intent.evidence.trim() || !request.prompt.includes(intent.evidence)) throw new Error('没有当前Goal操作意图');
+    const query = action === 'list' || action === 'view';
+    if (query ? !['query', 'request'].includes(intent.mode) : intent.mode !== 'request') throw new Error('否定、假设、引用或不确定消息不能控制Goal');
+    const message = request.prompt.normalize('NFKC');
+    const activeText = message.replace(/「[^」]*」|『[^』]*』|“[^”]*”|‘[^’]*’|"[^"]*"|'[^']*'|`[^`]*`/gu, ' ');
+    if (!query && /如果|假设|假如|要是|他说|她说|引用|不要|不用|无需|先不|别|[?？]/u.test(action === 'cancel' ? activeText.replace('不用做了', '') : activeText)) throw new Error('当前请求没有明确执行授权');
+    if (action === 'create') {
+      if (!/(?:创建|新建|建立|保存).{0,15}(?:长期目标|长期任务|学习计划)|(?:帮我|和我|跟我).{0,8}(?:逐步|持续|分阶段)|(?:长期目标|长期任务).{0,8}(?:创建|建立)/u.test(activeText)
+        || /自动|定时|每[天周月]|无人/u.test(activeText)) { frame.answer = '请明确是否保存为可手动继续的长期目标；每次只执行一段，暂不支持自动或定时推进。'; return { status: 'clarification' }; }
+      const created = goals.apply(request, action);
+      request.observer.event('operation_committed', JSON.stringify({ tool: 'goal_manage', id: created.id }));
+      return show([created], undefined, '已创建并排队，最多执行一个初始化片段。\n');
+    }
+    const selector = intent.selector ?? { keywords: [] };
+    if (selector.when || selector.keywords.some(term => !request.prompt.includes(term))) throw new Error('目标筛选条件必须来自当前原话；Goal没有时间筛选');
+    const reference = referenceFromMessage(request.prompt);
+    if (reference === 'ambiguous' || selector.reference && selector.reference !== reference?.reference
+      || reference?.reference === 'choice' && (selector.reference !== 'choice' || selector.position !== reference.position)
+      || selector.position !== undefined && selector.reference !== 'choice') {
+      frame.answer = '序号或引用与原话不一致，请重新查看并选择目标。'; return { status: 'clarification' };
+    }
+    let records = goals.list();
+    if (records.length > 100) { frame.answer = '目标较多，请先归档或使用更具体的范围；本轮未操作。'; return { status: 'clarification' }; }
+    const hasFilters = selector.keywords.length > 0;
+    if (selector.reference === 'choice' || shortConfirm || selector.reference === 'last' && !hasFilters) {
+      if (!display) { frame.answer = '没有有效目标清单，请先查看进度。'; return { status: 'clarification' }; }
+      goals.validateDisplay(display);
+      const item = selector.reference === 'choice' ? display.items[(selector.position ?? 0) - 1] : display.items.length === 1 ? display.items[0] : undefined;
+      records = records.filter(goal => goal.id === item?.id);
+    }
+    records = records.filter(goal => selector.keywords.every(term => matches(goal.objective, term)));
+    if (selector.reference === 'latest') records = records.slice(0, 1);
+    if (!query && !selector.reference && !hasFilters && !shortConfirm) {
+      if (display?.items.length === 1) { goals.validateDisplay(display); records = records.filter(goal => goal.id === display.items[0]!.id); }
+      else return show(records, action, '请明确要操作的目标或选择清单编号；本轮未操作。\n');
+    }
+    if (query) return show(records);
+    if (records.length !== 1) return show(records, action, records.length > 1 ? '有多个可能目标，请选择第几个；本轮未操作。\n' : '未找到目标；本轮未操作。\n');
+    const goal = records[0]!;
+    const verbs: Partial<Record<GoalAction, RegExp>> = { continue: /继续|接着|推进|重新生成/u, pause: /暂停|先停|停一下/u,
+      cancel: /取消|终止|放弃|不用做了/u, complete: /(?:确认|确定).{0,25}(?:完成|达成)/u, revise_plan: /调整|改成|改为|先补|增加|新增|替换|重排/u };
+    if (verbs[action] && !verbs[action]!.test(activeText) && !(reference && display?.action === action)) throw new Error('原话中没有对应操作依据');
+    const options: Parameters<GoalService['apply']>[3] = {};
+    if (action === 'approve_plan' || action === 'complete') {
+      if (!display?.details || !display.items.some(item => item.id === goal.id)) return show([goal], action, '请先核对下面当前内容，再明确确认。\n');
+      goals.validateDisplay(display, true);
+      if (action === 'approve_plan' && !shortConfirm && !/批准|同意|按.{0,12}计划/u.test(activeText)) throw new Error('继续不能代替计划批准');
+      options.executeNext = !shortConfirm && /继续|执行.{0,3}(?:一段|一步|下一)/u.test(activeText);
+      if (intent.executeNext && !options.executeNext) throw new Error('模型不能扩大为批准并执行');
+    }
+    if (action === 'continue') {
+      options.regenerate = /重新生成|重新执行.{0,4}(?:文本|片段)/u.test(activeText);
+      if (intent.regenerate && !options.regenerate) throw new Error('重新生成必须明确授权');
+    }
+    if (action === 'revise_plan') {
+      const evidence = intent.bodyEvidence?.trim();
+      if (!evidence || !request.prompt.includes(evidence)) throw new Error('计划调整必须保留本轮原文');
+      if (intent.revisionMode === 'prepend' && /先补|增加|新增/u.test(activeText)) options.prepend = evidence;
+      else if (intent.revisionMode === 'replace' && intent.planSteps?.length) {
+        if (intent.planSteps.some(step => Object.values(step).some(value => !evidence.includes(value) || !value.trim()))) throw new Error('完整计划字段须逐字来自当前用户输入，不允许模型扩写');
+        options.steps = intent.planSteps;
+      } else { frame.answer = '可说“先补某项内容”，或给出完整的新步骤、说明、产物和验收条件；调整只生成待批准草稿。'; return { status: 'clarification' }; }
+    }
+    request.observer.event('operation_authorized', JSON.stringify({ tool: 'goal_manage', action, id: goal.id, revision: goal.revision }));
+    const updated = goals.apply(request, action, goal, options);
+    request.observer.event('operation_committed', JSON.stringify({ tool: 'goal_manage', action, id: updated.id, revision: updated.revision }));
+    return show([updated], undefined, '控制已保存。\n');
+  }
+
   async reviewCandidates(formation: FormationService, signal?: AbortSignal): Promise<unknown> {
     const frame = this.frame();
     if (signal) frame.request = { ...frame.request, signal: AbortSignal.any([frame.request.signal, signal]) };
     if (frame.used || frame.plan) throw new Error('本轮操作已经消费或正在解析；不能同时批准候选和执行其他写入');
     // 先占用同一个 Frame，防止并发工具在等待隔离解析时另获授权。
     frame.used = true; frame.plan = Promise.resolve('candidate_review');
+    delete this.state.goalView;
     const request = frame.request, view = frame.references.candidateReview;
     const raw = (view && candidateRejection(request.prompt)) ?? await this.interpret(request.prompt, { tool: 'memory_review', count: view?.items.length, confirmation: view?.confirm }, request);
     request.signal.throwIfAborted();
@@ -226,6 +334,7 @@ export class OperationGuard {
     // 工具参数只是提议。实际执行只使用宿主从隔离解析和真实存储核对过的值。
     void proposed;
     frame.used = true;
+    delete this.state.goalView;
     delete this.state.candidateReview;
     frame.request.observer.event('operation_authorized', JSON.stringify({ tool, id: 'id' in operation.args ? operation.args.id : undefined }));
     this.validateCurrent(operation);
@@ -262,6 +371,7 @@ export class OperationGuard {
     if (confirming && confirming.expires <= now) confirming = undefined;
     if (!Value.Check(intentSchema, raw)) throw new Error('意图解析格式无效，本轮没有执行写操作');
     const intent = raw as Intent;
+    if (intent.action === 'goal_manage') return '请通过长期目标工具操作；没有执行Task或Memory写入。';
     if (intent.action === 'memory_review') return '请通过候选审查工具查看并审批；没有执行其他写操作。';
     if (intent.mode === 'uncertain') return '我还不能确定你希望执行什么操作，请补充要处理的提醒或记忆；本轮没有修改。';
     if (intent.mode !== 'request' || intent.action === 'none' || !intent.evidence.trim() || !request.prompt.includes(intent.evidence)) throw new Error('当前消息没有明确的写入授权，未执行');

@@ -42,7 +42,7 @@ API Key 只从环境变量读取，仓库仅放脱敏样例。准确依赖版本
 | Task / Run | SQLite 保存指令、下次执行时间、渠道接收目标、状态、执行结果与日志，跨进程重启保留 |
 | Pi Session | 短期对话上下文；交互使用 Pi JSONL 文件跨重启恢复，每个后台任务使用独立内存 Session 并释放；不是长期记忆 |
 | Memory Service | 跨 Session 的四类长期知识；Markdown 为事实源，独立 SQLite 为索引，不负责任务状态或完整聊天历史 |
-| Goal（V3.0 Batch 1） | 同应用库的四表持久目标/计划/步骤/执行；Checkpoint 嵌入已提交 Execution。当前仅存储接口，Runner 和自然语言控制尚未接入；不以 Memory 或 Session 代替真实进度 |
+| Goal（V3.0） | 同应用库四表持久目标/不可变计划/稳定步骤/执行；Checkpoint 嵌入已提交 Execution。独立Runner每次授权最多推进一段，随后等待；不以Memory或Session代替进度 |
 | Channel | Console 与 FeishuChannel，使用包含目标的统一消息接口；任务引擎不绑定 SDK 或具体渠道 |
 
 Pi SDK 使用公开 API，不 Fork、不修改内部源码和 Agent Loop。宿主负责业务状态、权限和投递策略；单用户、单进程、串行后台任务，不引入微服务或工作流框架。
@@ -63,6 +63,8 @@ Pi SDK 使用公开 API，不 Fork、不修改内部源码和 Agent Loop。宿�
 | [src/task-service.ts](../src/task-service.ts) | 任务内容与时间校验、查询和 pending 取消规则 |
 | [src/sqlite-store.ts](../src/sqlite-store.ts) | SQLite 表、原子领取、执行状态、日志、恢复与投递记录 |
 | [src/goal-types.ts](../src/goal-types.ts)、[src/goal-store.ts](../src/goal-store.ts) | Goal 最小类型、同连接事务、一次授权领取、版本计划、Checkpoint、控制收据与保守恢复；没有模型/渠道依赖 |
+| [src/goal-runner.ts](../src/goal-runner.ts)、[src/background-lane.ts](../src/background-lane.ts) | 有界快照与结果校验、独立片段、提交异常重读和停止、结果通知；与Task共享后台门，旧到期Task优先 |
+| [src/goal-service.ts](../src/goal-service.ts)、[src/goal-tools.ts](../src/goal-tools.ts) | 可信渠道绑定与Goal控制；无参数goal_manage适配，复用Guard同一Frame、已投递清单、版本和计划Hash |
 | [src/time.ts](../src/time.ts) | 有界中文时间与 ISO 时间解析，明确处理时区和 DST 歧义 |
 | [src/scheduler.ts](../src/scheduler.ts) | 独立扫描循环、串行执行、先提交结果再调用 Channel |
 | [src/console-channel.ts](../src/console-channel.ts) | 终端对话与命令、控制台消息输出；daemon 不启动输入循环 |
@@ -154,9 +156,15 @@ Memory 是低信任知识而非权限来源。历史用户/助手文字仍由 Pi
 | V2.1b.1 合法候选校验 | 完整来源归属及原兼容路径，property/范围/目标权限保留 | 已修复，历史输出离线回放12/12、6/6；121项测试118通过/3平台跳过；2026-10-22用户授权发布main，未做新收费或手机验收 |
 | V2.1b.2 真实复验 | 虚构数据8提取+2审批+2新Session生成及独立手机验收 | 原12请求宿主预期6/8，H01/H02仍失败；另行手机46/48请求完成核心机制链路，修复后误写提议被拦截，批准/明确拒绝/编辑确认/新Session检索均有库和Run证据。普通拒绝措辞仍有漏执行；Linux131全过、Windows128通过/3跳过。见[修复](evaluations/v2.1b.2-memory-consent-fix.md)与[手机报告](evaluations/v2.1b.2-platform-feishu-review.md)，不启用正式Formation |
 | V2.1b.3 三项定点修复 | 拒绝补执行、目标提示与否定属性恢复 | 保存输出8/8离线回放、Pi模拟集成及冻结12/60窗回归；不调用收费API或开启正式Formation，真实语义/手机复测仍单独列项 |
-| V3.0 Batch 1 目标存储 | 四表、不可变 Plan/Checkpoint、原子领取/提交/控制/恢复 | 核心决策已批准，本地实现与自动化验证；仅宿主存储接口，尚无 Runner/用户入口，结果见 STATE |
+| V3.0 Batch 1–4 长期目标MVP | 四表、不可变Plan/Checkpoint、独立Pi片段、受控自然语言控制、恢复与故障回归 | 本地隔离自动化已接通，待审查；真实模型/手机Batch5尚未执行，结果见STATE |
 
-V3.0 已确认采用“持久 Goal + 多次短生命周期 text_only Pi 片段”，每次用户明确创建/继续最多推进一段，之后等待用户。Checkpoint 放在 committed Execution；状态由宿主管理，Pi 保持原样。运行中的 pause/cancel 先持久化，崩溃恢复以 cancel、pause、普通中断阻塞的优先级落点；不自动重试。Task/Run 唯一约束、Memory 写入授权、Session 持久化及现有工具入口不变。完整事务与后续规划见[设计](designs/v3-persistent-goals.md)，只有 Batch 1 已实施，其余批次仍需授权。
+V3.0 采用“持久Goal + 多次短生命周期text_only Pi片段”，已在既定四表模型上实现Batch2–4。每次明确创建/继续最多推进一段；计划批准默认只接受计划，明确“并继续”才同时授予一次执行。当前原话、目标归属、固定清单、成功投递、五分钟有效期、revision和草稿Hash由同一个OperationGuard核对，模型参数不能选目标或状态；短确认不扩大权限。Goal查询也经一次隔离意图解析，普通聊天不额外路由。
+
+后台Goal与旧Task共用进程内执行门：旧到期Task优先，Goal在无前台排队时领取；已运行片段不抢占，慢Goal可能延迟新到期提醒。每段新建无工具内存Pi Session，Memory只读且不改写查询；投影14 KiB + Memory至多2 KiB，输出至多4096 Token。完整目标/反馈/计划/摘要超限阻塞，长成果明确标记摘录并保留数据库原文，不保证任意长历史都能放入模型。
+
+Checkpoint位于committed Execution，与Run/Step/Goal同事务提交；异常先重读，无法核对则停止新领取并停服，不请求模型补交。运行中pause/cancel先持久化、再abort；恢复以cancel、pause、普通中断阻塞的优先级落点。通知无Outbox，不保证送达；查询可重展示，不重跑成果。失败仅在明确重新生成文本时新建尝试；uncertain无强制重试入口。
+
+计划增补或完整替换仅形成待批准草稿；已完成步骤和旧成果保留。运行中调整先暂停，停止后恢复审批；不原地改变目标原文，换目标新建Goal。Task/Run一次性唯一约束、Memory写入授权及Session隔离保留；Goal控制聊天和执行不进入Formation。原版Pi源码、node_modules、权限框架和依赖均未修改。完整[设计](designs/v3-persistent-goals.md)、[自动化证据](evaluations/v3-mvp-validation.md)和[待授权真实验收](evaluations/v3-live-acceptance-plan.md)明确区分机制通过与真实语义未验收。
 
 本阶段不做未经批准的自动保存、另外两类自动提取、Embedding、向量库、Observer、自主 Skill、周期任务、WebUI、复杂框架或 VPS。架构或范围调整先说明并取得确认，再同步本文及 STATE。
 

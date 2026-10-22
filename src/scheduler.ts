@@ -2,6 +2,7 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { ExecutionInterrupted } from './contracts.js';
 import type { AgentExecutor, Channel, Scheduler } from './contracts.js';
 import { SqliteStore } from './sqlite-store.js';
+import { BackgroundLane } from './background-lane.js';
 
 export class TaskScheduler implements Scheduler {
   private readonly shutdown = new AbortController();
@@ -16,6 +17,7 @@ export class TaskScheduler implements Scheduler {
     private readonly pollIntervalMs: number,
     private readonly reportError: (error: unknown) => void,
     private readonly clock = () => new Date(),
+    private readonly lane = new BackgroundLane(),
   ) {}
 
   start(): void {
@@ -33,6 +35,8 @@ export class TaskScheduler implements Scheduler {
 
   async tick(): Promise<void> {
     if (this.busy || this.shutdown.signal.aborted) return;
+    const release = this.lane.acquire();
+    if (!release) return;
     this.busy = true;
     try {
       if (!this.store.hasDueTasks(this.clock().toISOString())) return;
@@ -75,6 +79,7 @@ export class TaskScheduler implements Scheduler {
       }
     } finally {
       this.busy = false;
+      release();
     }
   }
 

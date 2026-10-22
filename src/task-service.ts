@@ -18,6 +18,7 @@ export class TaskService {
   }
 
   now(): Date { return this.clock(); }
+  currentTarget(): MessageTarget { return this.targets.getStore() ?? { channel: 'console' }; }
   visibleTasks(): Task[] { return this.store.tasksForTarget(this.targets.getStore() ?? { channel: 'console' }); }
 
   private userCommand(): { input: string; context: { request: ExecutionRequest; used: boolean; permission?: WriteOperation | null } } {

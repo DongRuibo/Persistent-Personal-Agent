@@ -6,6 +6,7 @@ import type { FeishuTransport } from './feishu-transport.js';
 import { SqliteStore } from './sqlite-store.js';
 import { TaskService } from './task-service.js';
 import type { FormationService } from './formation-service.js';
+import type { BackgroundLane } from './background-lane.js';
 
 type FeishuTarget = Extract<MessageTarget, { channel: 'feishu' }>;
 interface IncomingEvent {
@@ -41,6 +42,7 @@ export class FeishuChannel implements Channel {
     private readonly redact: (value: unknown) => string,
     private readonly reportError: (error: unknown) => void,
     private readonly formation?: FormationService,
+    private readonly lane?: BackgroundLane,
   ) {}
 
   async start(): Promise<void> { await this.transport.start((event) => this.receive(event)); }
@@ -63,7 +65,8 @@ export class FeishuChannel implements Channel {
     if (!run) return;
     const target: FeishuTarget = { channel: 'feishu', appId: this.config.appId, chatId: message.chat_id, userOpenId: this.config.allowedOpenId };
     const releaseFormation = this.formation?.foreground();
-    this.work = this.work.then(() => this.process(text, target, run.id)).catch((error: unknown) => this.reportError(this.redact(error))).finally(() => releaseFormation?.());
+    const releaseForeground = this.lane?.foreground();
+    this.work = this.work.then(() => this.process(text, target, run.id)).catch((error: unknown) => this.reportError(this.redact(error))).finally(() => { releaseFormation?.(); releaseForeground?.(); });
   }
 
   private async process(text: string, target: FeishuTarget, runId: string): Promise<void> {

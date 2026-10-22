@@ -1,4 +1,4 @@
-# Personal Agent：长期 Memory、Retriever 与候选形成
+# Personal Agent：长期目标、Memory 与一次性任务
 
 单用户、单进程 TypeScript 服务，复用原版 Pi Coding Agent SDK 的 Agent Loop。提供终端/飞书私聊、一次性任务、SQLite 持久化和独立后台调度。V1 的真实手机私聊、主动提醒及 pending 任务重启恢复已验收；V1.2 新增 Pi 原生交互 Session 持久化，自动化已验证，用户已实测真实飞书重启后能够接上此前对话。目前在 Mac 本地运行，暂不部署 VPS。
 
@@ -12,13 +12,21 @@ V2.1b.2 已按授权完成12次隔离真实复验：原六窗6/6，新两窗0/2�
 
 V2.1b.3 按授权定点修复上述三个问题：有成功显示的候选时，宿主为“第一条先不保存”等有界拒绝补执行；H01明确新项目丢弃错误旧目标，仅建议新增；H02只有能够从当前原文唯一核对的否定漏字才恢复完整属性。批准/版本/来源校验保留，未批准仍不保存。相同真实提取输出离线回放6/8→8/8；主模型漏工具由真实Pi＋模拟模型验证，不是新的收费模型或手机验收。复核命令：`node --import tsx scripts/replay-formation-revalidation.ts`；[修复与回归说明](docs/evaluations/v2.1b.3-formation-fixes.md)保留原始失败、前后对比和适用限制。正式Formation继续关闭。
 
-## V3.0 Batch 1：长期目标存储（审查中）
+## V3.0：可手动继续的长期目标（本地待审查）
 
-已实现 Goal/Plan/Step/Execution 四表及事务接口，Checkpoint 与 Run 的成功状态原子提交，旧 Task 的一次性约束保留。数据库文件仍使用 `DATABASE_PATH`，打开库时只增量建表；本轮只对虚构临时数据库做了验证。没有新增配置或依赖，没有启动正式 Agent，也没有修改 `.env`。
+Batch 1–4 已接通 Goal/Plan/Step/Execution、独立 GoalRunner、受控自然语言入口与自动化生命周期。每次明确创建或继续最多执行一个纯文本片段，Checkpoint 与 Run、步骤、目标状态同一 SQLite 事务提交，随后等待用户。旧 Task 仍是一次性提醒；Goal 不使用 Memory 或聊天历史保存进度。没有新增依赖或 `.env` 参数；本轮没有启动正式用户服务、收费调用或真实手机验收。
 
-当前仅可由内部宿主代码调用 `store.goals`，**尚无用户 Goal 命令、模型工具或 GoalRunner**，飞书说“继续长期目标”还不会触发这套存储。计划批准默认只保存计划；显式授权执行时一次最多领取一段。中断不自动重试，运行中取消/暂停先登记，完成停止或重启对账后才进入终态；投递失败不重新执行。
+审查后先使用**全新隔离路径**运行，不能复用正式数据库、Memory 或 Session。在终端当前进程设置 `DATABASE_PATH`、`MEMORY_DIR`、`SESSION_DIR`（PowerShell：`$env:DATABASE_PATH='E:/AgentWork/acceptance/v3-local/agent.db'`，另外两项分别指向同一新目录内的 `memory`、`sessions`），保持 `MEMORY_FORMATION_ENABLED=false`。运行 `npm run build`，再用 `npm start` 或 `npm start -- --feishu`；模型和飞书凭据只在本机配置。启动实际连接模型即可能计费，须另行批准；自动测试无需Key，均使用模拟模型。
 
-数据模型、状态映射、事务接口、恢复优先级及 Batch 2 建议见[设计与 Batch 1 说明](docs/designs/v3-persistent-goals.md)。专项回归：`node --import tsx --test tests/goal-store.test.ts tests/task-service.test.ts tests/scheduler.test.ts`；全量结果及平台跳过项见 [STATE](docs/STATE.md)。本阶段没有真实 Goal 模型或手机验收。
+可用话术：“帮我逐步准备 Agent 面试”“查看长期目标进度”“批准这个计划并继续一段”“继续之前的面试准备任务”“暂停那个学习计划”“取消面试目标”“确认面试目标已完成”。不需要UUID；同类目标多个时选宿主清单编号。等待中的学习反馈请连同“继续一段”明确提交，避免把普通聊天误作推进授权。
+
+“确认”只批准已经成功显示且五分钟内仍有效的计划，**不执行**；“批准并继续一段”才产生一次执行授权。计划可说“面试计划先补 Agent Loop”，或给出完整的新步骤、说明、产物和验收条件；宿主先展示草稿，再批准。旧计划和成果保留。运行中调整先登记暂停并中止旧片段，停止后先继续恢复审批界面，再批准新草稿。改变整个目标范围请创建新Goal，当前不原地改写objective。
+
+暂停/取消运行中的目标先显示“正在停止”，SDK结束后才落 paused/cancelled；迟到结果不能推进。模型失败/中断进入 blocked，不自动重试；核实后可明确“重新生成面试任务这一段”，可能再次计费。uncertain/invariant_violation必须人工核对，不能强行继续。查看进度只读取已提交成果，通知失败不重新执行；查看仍通过交互模型路由，可能有主模型及隔离意图解析消耗，没有后台推进请求。
+
+Goal输入快照最多14 KiB，加Memory最多2 KiB；目标/反馈、计划和摘要/问题超预算先阻塞，不悄悄截断条件。较长成果只提供明确标记的摘录及原Checkpoint引用，完整正文仍在数据库。每段临时Pi Session、零工具、输出最多4096 Token、沿用执行超时；不支持Shell、Browser、MCP、定时/Observer/自主连续推进或可靠通知Outbox。
+
+专项回归：`node --import tsx --test tests/goal-*.test.ts`。只读核对隔离库：`node --import tsx scripts/audit-goals.ts E:/AgentWork/acceptance/v3-local/agent.db`；不建表、不修复、不输出正文。完整[设计](docs/designs/v3-persistent-goals.md)、[自动化证据](docs/evaluations/v3-mvp-validation.md)、[Batch 5手机验收方案](docs/evaluations/v3-live-acceptance-plan.md)及最新[STATE](docs/STATE.md)分别记录实现和未验证范围。
 
 ## V2.1b 候选形成（默认关闭）
 

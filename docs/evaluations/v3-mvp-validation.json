@@ -1,0 +1,509 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-10-22T15:36:09.086Z",
+  "timezone": "Asia/Shanghai",
+  "scope": "V3.0 Batch 2-4 MVP automated validation; Batch5 preparation only",
+  "workspace": "E:/AgentWork/MacImport-20261021/projects/MacHome/code/Persistent Personal Agent",
+  "git": {
+    "initialHead": "51bc736366733060e91625c881248dce268ceb9c",
+    "initialTrackingMain": "51bc736366733060e91625c881248dce268ceb9c",
+    "initialLiveRemoteMain": "51bc736366733060e91625c881248dce268ceb9c",
+    "finalHead": "65dcabb9886d4f6ccbef48f562d7120b776fcf19",
+    "finalTrackingMain": "65dcabb9886d4f6ccbef48f562d7120b776fcf19",
+    "finalLiveRemoteMain": null,
+    "finalRemoteQuery": {
+      "attempts": 2,
+      "result": "SSL_ERROR_SYSCALL"
+    },
+    "concurrentBatch1Commit": "65dcabb9886d4f6ccbef48f562d7120b776fcf19",
+    "commitsCreatedByThisRun": [],
+    "pushedByThisRun": false,
+    "initialDirtyFiles": [
+      "README.md",
+      "docs/PROJECT.md",
+      "docs/STATE.md",
+      "src/sqlite-store.ts",
+      "HANDOFF.md",
+      "docs/designs/v3-persistent-goals.md",
+      "src/goal-store.ts",
+      "src/goal-types.ts",
+      "tests/goal-store.test.ts"
+    ],
+    "preservedHandoffSha256": "ae6feb3c57368cce9669920d04740555a6d0406f39cc10d53394723b3631c998",
+    "initialDirtyBackup": "C:/Users/Dongr/AppData/Local/Temp/personal-agent-v3-baseline-54518afe-72ef-4511-9d80-5a7c80feecde",
+    "snapshotPhase": "end of code development, before later release authorization"
+  },
+  "phaseGates": [
+    {
+      "phase": "Batch1 audit",
+      "relatedTestsPassed": 40
+    },
+    {
+      "phase": "Batch2",
+      "relatedTestsPassed": 49,
+      "typecheckExitCode": 0,
+      "buildExitCode": 0
+    },
+    {
+      "phase": "Batch3",
+      "tests": 185,
+      "pass": 182,
+      "fail": 0,
+      "skipped": 3,
+      "typecheckExitCode": 0,
+      "buildExitCode": 0
+    },
+    {
+      "phase": "Batch4",
+      "evidence": "finalPlatformResults below"
+    }
+  ],
+  "finalPlatformResults": {
+    "windows": {
+      "node": "24.19.0",
+      "commands": [
+        {
+          "command": "npm run typecheck",
+          "exitCode": 0,
+          "log": "windows-typecheck.log"
+        },
+        {
+          "command": "npm run build",
+          "exitCode": 0,
+          "log": "windows-build.log"
+        },
+        {
+          "command": "npm test",
+          "exitCode": 0,
+          "log": "windows-test.log",
+          "tests": 191,
+          "pass": 188,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 3,
+          "todo": 0,
+          "duration_ms": 15895.6617
+        },
+        {
+          "command": "npm run eval:memory",
+          "exitCode": 0,
+          "log": "windows-eval-memory.log"
+        },
+        {
+          "command": "npm run eval:formation -- --output=<isolated-file>",
+          "exitCode": 0,
+          "log": "windows-eval-formation.log"
+        }
+      ],
+      "memory": {
+        "mode": "offline-lexical",
+        "sets": {
+          "original": {
+            "answerable": 12,
+            "top1": 0.75,
+            "recall5": 0.75,
+            "mrr": 0.75,
+            "negativeCount": 4,
+            "insufficientEvidenceCorrect": 4,
+            "supportedCorrect": 9,
+            "falseSupportedNoAnswer": 0,
+            "supportedClaims": 9,
+            "correctSupportedClaims": 9,
+            "supportedRecordPrecision": 1,
+            "contextHitRate": 0.75,
+            "contextBytesMax": 1153,
+            "strictExpectedKeyContextPrecision": 0.6,
+            "latencyP50Ms": 22.54570000000001,
+            "latencyP95Ms": 27.072299999999984
+          },
+          "holdout": {
+            "answerable": 19,
+            "top1": 0.8947368421052632,
+            "recall5": 0.8947368421052632,
+            "mrr": 0.8947368421052632,
+            "negativeCount": 5,
+            "insufficientEvidenceCorrect": 5,
+            "supportedCorrect": 9,
+            "falseSupportedNoAnswer": 0,
+            "supportedClaims": 9,
+            "correctSupportedClaims": 9,
+            "supportedRecordPrecision": 1,
+            "contextHitRate": 0.8947368421052632,
+            "contextBytesMax": 1613,
+            "strictExpectedKeyContextPrecision": 0.4473684210526316,
+            "latencyP50Ms": 22.954700000000003,
+            "latencyP95Ms": 27.928899999999885
+          },
+          "evidenceHoldout": {
+            "answerable": 18,
+            "top1": 0.9444444444444444,
+            "recall5": 0.9444444444444444,
+            "mrr": 0.9444444444444444,
+            "negativeCount": 6,
+            "insufficientEvidenceCorrect": 6,
+            "supportedCorrect": 14,
+            "falseSupportedNoAnswer": 0,
+            "supportedClaims": 14,
+            "correctSupportedClaims": 14,
+            "supportedRecordPrecision": 1,
+            "contextHitRate": 0.9444444444444444,
+            "contextBytesMax": 1578,
+            "strictExpectedKeyContextPrecision": 0.3953488372093023,
+            "latencyP50Ms": 23.85689999999977,
+            "latencyP95Ms": 28.776600000000144
+          }
+        },
+        "usage": {
+          "calls": 0,
+          "failures": 0,
+          "inputTokens": 0,
+          "outputTokens": 0,
+          "cacheReadTokens": 0,
+          "elapsedMs": 0
+        }
+      },
+      "formation": {
+        "mode": "offline-scripted-proposals",
+        "fixtureSha256": "49749896d5b524c12cbe45c37c5d075fc65349f499909a8256f6fe7c322335cf",
+        "development": {
+          "windows": 30,
+          "passed": 30,
+          "validationPrecision": 1,
+          "fixtureRecall": 1,
+          "falseCandidateCount": 0,
+          "kindCorrect": 11,
+          "unauthorizedWrites": 0,
+          "calls": 20
+        },
+        "holdout": {
+          "windows": 30,
+          "passed": 30,
+          "validationPrecision": 1,
+          "fixtureRecall": 1,
+          "falseCandidateCount": 0,
+          "kindCorrect": 11,
+          "unauthorizedWrites": 0,
+          "calls": 20
+        },
+        "actualApiRequests": 0,
+        "actualTokens": 0,
+        "actualCostCny": 0
+      }
+    },
+    "linux": {
+      "node": "24.19.0",
+      "commands": [
+        {
+          "command": "npm run typecheck",
+          "exitCode": 0,
+          "log": "linux-typecheck.log"
+        },
+        {
+          "command": "npm run build",
+          "exitCode": 0,
+          "log": "linux-build.log"
+        },
+        {
+          "command": "npm test",
+          "exitCode": 0,
+          "log": "linux-test.log",
+          "tests": 191,
+          "pass": 191,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 38413.87504
+        },
+        {
+          "command": "npm run eval:memory",
+          "exitCode": 0,
+          "log": "linux-eval-memory.log"
+        },
+        {
+          "command": "npm run eval:formation -- --output=<isolated-file>",
+          "exitCode": 0,
+          "log": "linux-eval-formation.log"
+        }
+      ],
+      "memory": {
+        "mode": "offline-lexical",
+        "sets": {
+          "original": {
+            "answerable": 12,
+            "top1": 0.75,
+            "recall5": 0.75,
+            "mrr": 0.75,
+            "negativeCount": 4,
+            "insufficientEvidenceCorrect": 4,
+            "supportedCorrect": 9,
+            "falseSupportedNoAnswer": 0,
+            "supportedClaims": 9,
+            "correctSupportedClaims": 9,
+            "supportedRecordPrecision": 1,
+            "contextHitRate": 0.75,
+            "contextBytesMax": 1153,
+            "strictExpectedKeyContextPrecision": 0.6,
+            "latencyP50Ms": 62.0602600000002,
+            "latencyP95Ms": 68.362213
+          },
+          "holdout": {
+            "answerable": 19,
+            "top1": 0.8947368421052632,
+            "recall5": 0.8947368421052632,
+            "mrr": 0.8947368421052632,
+            "negativeCount": 5,
+            "insufficientEvidenceCorrect": 5,
+            "supportedCorrect": 9,
+            "falseSupportedNoAnswer": 0,
+            "supportedClaims": 9,
+            "correctSupportedClaims": 9,
+            "supportedRecordPrecision": 1,
+            "contextHitRate": 0.8947368421052632,
+            "contextBytesMax": 1613,
+            "strictExpectedKeyContextPrecision": 0.4473684210526316,
+            "latencyP50Ms": 57.35560600000008,
+            "latencyP95Ms": 64.20265299999983
+          },
+          "evidenceHoldout": {
+            "answerable": 18,
+            "top1": 0.9444444444444444,
+            "recall5": 0.9444444444444444,
+            "mrr": 0.9444444444444444,
+            "negativeCount": 6,
+            "insufficientEvidenceCorrect": 6,
+            "supportedCorrect": 14,
+            "falseSupportedNoAnswer": 0,
+            "supportedClaims": 14,
+            "correctSupportedClaims": 14,
+            "supportedRecordPrecision": 1,
+            "contextHitRate": 0.9444444444444444,
+            "contextBytesMax": 1578,
+            "strictExpectedKeyContextPrecision": 0.3953488372093023,
+            "latencyP50Ms": 53.82626000000073,
+            "latencyP95Ms": 64.04713999999967
+          }
+        },
+        "usage": {
+          "calls": 0,
+          "failures": 0,
+          "inputTokens": 0,
+          "outputTokens": 0,
+          "cacheReadTokens": 0,
+          "elapsedMs": 0
+        }
+      },
+      "formation": {
+        "mode": "offline-scripted-proposals",
+        "fixtureSha256": "49749896d5b524c12cbe45c37c5d075fc65349f499909a8256f6fe7c322335cf",
+        "development": {
+          "windows": 30,
+          "passed": 30,
+          "validationPrecision": 1,
+          "fixtureRecall": 1,
+          "falseCandidateCount": 0,
+          "kindCorrect": 11,
+          "unauthorizedWrites": 0,
+          "calls": 20
+        },
+        "holdout": {
+          "windows": 30,
+          "passed": 30,
+          "validationPrecision": 1,
+          "fixtureRecall": 1,
+          "falseCandidateCount": 0,
+          "kindCorrect": 11,
+          "unauthorizedWrites": 0,
+          "calls": 20
+        },
+        "actualApiRequests": 0,
+        "actualTokens": 0,
+        "actualCostCny": 0
+      }
+    }
+  },
+  "linuxEnvironment": {
+    "image": "node:24.19.0-bookworm-slim",
+    "container": "personal-agent-v3-20261022",
+    "networksDuringFinalValidation": {},
+    "sourceMatch": {
+      "filesCompared": 90,
+      "mismatches": []
+    },
+    "dependencies": "offline cache installation with identical package-lock; no dependency changes",
+    "notNativeMacOrVps": true,
+    "containerStoppedAtHandoff": true
+  },
+  "limitations": {
+    "paidApiRequests": 0,
+    "paidTokens": 0,
+    "paidCostCny": 0,
+    "realGoalModelValidated": false,
+    "realGoalPhoneValidated": false,
+    "windowsSkipped": [
+      "POSIX private permission bits",
+      "symlink privilege unavailable",
+      "POSIX SIGTERM graceful shutdown"
+    ],
+    "nativeMacValidated": false,
+    "windowsAclValidated": false,
+    "longDurationValidated": false,
+    "notificationOutbox": false,
+    "autonomousContinuation": false
+  },
+  "batch5": {
+    "state": "prepared, not approved or executed",
+    "proposedHttpRequests": 48,
+    "proposedReservedCny": 5,
+    "approvedHttpRequests": 0,
+    "approvedCny": 0,
+    "plan": "docs/evaluations/v3-live-acceptance-plan.md"
+  },
+  "environmentFailures": [
+    {
+      "stage": "Linux setup and first test attempt",
+      "description": "Online npm ci network timeout; offline installation/test overlapped previous installer before exit, causing missing modules. Orchestration error preserved; after old installer exited, offline clean install and all final checks passed.",
+      "preservedLogs": [
+        "linux-eval-formation-attempt-1.log",
+        "linux-eval-memory-attempt-1.log",
+        "linux-test-attempt-1.log"
+      ]
+    }
+  ],
+  "evidenceRoot": "E:/AgentWork/validation/personal-agent-v3-20261022",
+  "artifactSha256": {
+    "linux-build.log": "fdc16e80a5b96fbee30cf5babf5c8d35e7435b7643f31a1b1a46499536d16d92",
+    "linux-eval-formation-attempt-1.log": "1d4c45cd8c3f34433cfc5616bef6764822801dfdab58aa353471f5bb0cce099d",
+    "linux-eval-formation.json": "b6111a865da5c2661f56d3b3d413889ffdde4650ae9f26da9fba080b4601e542",
+    "linux-eval-formation.log": "a0ad9fe2304c063a081c428c5ed5070997328cf0e5c58d5f9c4a5d413e8bd2aa",
+    "linux-eval-memory-attempt-1.log": "ecfeb6bc909679cd082fdb185cfcf98c8fec74b00e919f615340bbbd871d1e8a",
+    "linux-eval-memory.log": "8fc544131843b25f0b173a8c4a5fd1ef130969994f6397f63efb49e9cbdf44c4",
+    "linux-test-attempt-1.log": "383ef2533bc3804ce00720e284ea9e39688dfb6d61712b1a5ba277087f9bf10e",
+    "linux-test.log": "cf5fb14eaddb332957155d2a48124a6bb379412e87b54142879126922e61697d",
+    "linux-typecheck.log": "699652f8619ee52da14fb0d84af7969b326299e4b49f523e93030f3cde58fc08",
+    "windows-build.log": "fdc16e80a5b96fbee30cf5babf5c8d35e7435b7643f31a1b1a46499536d16d92",
+    "windows-eval-formation-final.json": "7cd3172fae6eaad8c5267662e33e89a340a270771b3955c0785fd8197a47a259",
+    "windows-eval-formation.log": "7c25e161f388401e6a364a913fda5a274b6bc6386953c14c83ed4cd718c65761",
+    "windows-eval-memory.log": "964377ff426f319379f0b1a814ed2ef2177b1e48e953a9765c0bca61059ecc35",
+    "windows-test.log": "de51b383e7fb3a3ab3438123c159bc61b923e794d740b2c23505b2e16e390223",
+    "windows-typecheck.log": "699652f8619ee52da14fb0d84af7969b326299e4b49f523e93030f3cde58fc08"
+  },
+  "sourceAndFixtureSha256": {
+    "package-lock.json": "583c37d94e5e5e23e8090c588e16f1d2768988bd1f6bd691ba4412f0b8b5d6c5",
+    "package.json": "804f0b5cff2d6deca0a73ed95b396704e66ffdea5072c6d84506694d61b061a6",
+    "scripts/audit-goals.ts": "21bed0690bd55f62becca985ce985a33647ed61cff928491e08e8c0e2df3a0dc",
+    "scripts/benchmark-memory.ts": "d661c0479c69ec96328a6c32e67e5b54b3ea276f224df60ae73971d63fb2720b",
+    "scripts/check-formation-live.ts": "1a24f46394f1db1295a0fc669bd3bd9f8a1fcb2fca9f1bc925a3e7854dbe0c69",
+    "scripts/check-memory-generation.ts": "e033089eec9472e2d043ee6da7501744924c8780e11b6ed69e6704a43f99f9d0",
+    "scripts/evaluate-formation.ts": "44db1933a1e64ea5f5c4621930f44a7f123ddc0d1ddd5e4c85aa466d6cca6281",
+    "scripts/evaluate-memory.ts": "91ebc4524e9cc35844e2f972169a3e3d6c0ce54586032c561fc562cdbb6cdef0",
+    "scripts/feishu-formation-acceptance.ts": "ca20ddb99ae62025ade4dd24d340ba1804e020bc98ed43960068fa3b48a544b8",
+    "scripts/formation-live-budget.ts": "2071dde3145d6b3505831fa3ffc45daa5bc69e801abe40d66dcd5430c1b41b7c",
+    "scripts/goal-feishu-acceptance.ts": "85d8d23f004a7e3af751bb606cee3c9a10d58c1faa20500de4deb8806b4277de",
+    "scripts/replay-formation-live.ts": "cbb5f7171df34adbde2983819715fe8d3a203a39b296adadad3419c4abe22a78",
+    "scripts/replay-formation-revalidation.ts": "e0053588d98e42263b7cc5392813d878ab62a2980ddedabef16fda88da2d93d6",
+    "scripts/review-formation-live.ts": "9963a6ef108c90625db711bfbd3ef2a52891d482607d59ecb5dc1fb242d0695f",
+    "scripts/review-formation-revalidation.ts": "92acced0c4e8e1fef9fdc827fa13ce6174f4a2d3628a153fcbac5caf7f7bcd64",
+    "src/background-lane.ts": "4b5a14d6996a4dcb6e0d7ca34611c9b612d5b16a3ee8c96e29d42ee3d0467256",
+    "src/channel-router.ts": "1fd03cb9900563978db1f4ead2e569f4a8393f0a25a25258303eca8f118f77e1",
+    "src/config.ts": "d2a51f8945f6b1abca4bb39fcdcdef31efc5de1837c6caf9943c2fecf275e210",
+    "src/console-channel.ts": "44f5a85c3da3668fba592d15ca821fc9647bb478b791bf0b616585915c6098d6",
+    "src/contracts.ts": "dfa58b74227b5d0b768dbc531a5dda96074d3b55a90857965d66459a38cd93cc",
+    "src/feishu-channel.ts": "cc810afdd4474fb1362b93d9bd744f3e00f9cc6842796a8f78d27ff9a0b4dec4",
+    "src/feishu-transport.ts": "6817a40ae71876fb455571be108f7964126d0af2eed165d04a7d94ba8f2653b4",
+    "src/formation-service.ts": "5a7e198d234a4fbf18d3400cd796accf51d138d76625305bab2099c87999187a",
+    "src/formation-store.ts": "96a254c58de44ab637ccf10ca8886eba49d2e01c8e65a8ad0521739ba78302b3",
+    "src/formation-types.ts": "14a31928772be2ce01ca60c8b34c66555792f1d8d58e5e528653ca842a7e16a3",
+    "src/goal-runner.ts": "9c82ddd978d0af41f359a326dcf8dbcee9f06be6a27466c2ebcb3d7eca31e00d",
+    "src/goal-service.ts": "1d2a1d2546910127ed8f88eab0d6f4c9cbe142d31bc40b828a44c3b9d0d44a4b",
+    "src/goal-store.ts": "bb1854d1e20125b9a31525e0a0b9966f8b1311697e564e514b0779d64df81908",
+    "src/goal-tools.ts": "fca2d16ca582152e82f5146e5427b77291b15dceb5d57d4276d6872fc110a592",
+    "src/goal-types.ts": "4d7f67d8048c0b56f2d851e7e3c7f46fca542dfc450dba9cc6175e47dcaea400",
+    "src/main.ts": "32ef4d3e77da59ae28d31c44c45f683ef2eea5a394441e4eff0c1e0ab653008e",
+    "src/memory-retriever.ts": "ffa2cad1b2254b25510e463992998e69e8dc57d7f3a847dd0752744756d072f3",
+    "src/memory-service.ts": "65b4d1c35838661bb491c293c0abe5c1e27e607aa28b507728a3d21504cc6b0f",
+    "src/memory-tools.ts": "b27df66bf0ef4d333c4a822a4cdf78f1e73a946567187023a6ef343abf2efc62",
+    "src/operation-guard.ts": "271daacdbe75857e20d66817bcadf85c70eb7b6c4340c5b227685da822e6e3f3",
+    "src/pi-executor.ts": "664e668ff14cc387d10b1050ee9a07a3b9edff6bbcdb4dfd3b028fbb7e67b67c",
+    "src/scheduler.ts": "1fa103748d5977eeeb51a28c1608f2355b5e463b95f8aa6a5997f5196751edce",
+    "src/sqlite-store.ts": "6470b06d2d3a3a4972dcd7e68ad538965e035a61369f43c7e626c22c8e8ef9cd",
+    "src/task-service.ts": "59854b71ed5ddfff1a1a3384a11e3878dac85b0b85ce9be90f6aee4878733e74",
+    "src/task-tools.ts": "9a1f8710563df587ca2f02385111edf8b86d120d7b8a1170cb73170095493bf9",
+    "src/time.ts": "733f13be44ae782caca141f0646c7c95137bd325232ca1fd9615830d7b303365",
+    "tests/authorization.test.ts": "fa3ce12fd3df73a65a76612857b18d11a421db19b8cd86a45235f033bdb6c908",
+    "tests/config.test.ts": "b6def490f1fe3b5513ade4465dcb0fec8888380c9b68ac85a839289aa53662fb",
+    "tests/feishu-channel.test.ts": "9f1138e928ba12114ce2c5e7346bf62031e42b6c425b3a7f16e90ad8eff0ad9f",
+    "tests/feishu-formation-acceptance.test.ts": "afb2b35ac8ef0c11bba1c65284f3f5ebd2860e5a3337ba6d8c9f435262dad8d6",
+    "tests/feishu-transport.test.ts": "35328ac420e00026461614f9dcf510d5b2bfa3e6373a543e7d7e7fae997fb5b8",
+    "tests/fixtures/memory-eval.json": "461074ccd3ce16657e37b5fdc9dac240d0cad8edc4a342c0f3f3aaf17c3c0483",
+    "tests/fixtures/memory-evidence-holdout.json": "f333908a776a1b9cd4186e5066829fed34150780646226b00bfd5f192a328dda",
+    "tests/fixtures/memory-formation-live.json": "1821183adcb908dd69e57d8785525671f37401c07f9a343ace1544e83dbe1403",
+    "tests/fixtures/memory-formation-revalidation.json": "fd98f8b9060ba7624801c5385d8550a07653c82cad23c8201026191960b9c105",
+    "tests/fixtures/memory-formation-windows.json": "49749896d5b524c12cbe45c37c5d075fc65349f499909a8256f6fe7c322335cf",
+    "tests/fixtures/memory-retrieval-development.json": "fbd84aa46803a2e1d1e70144f85780ec0e63c08bbac39377a0fff3f6ba774ca6",
+    "tests/fixtures/memory-retrieval-eval.json": "9f1f110f675695517bd9508656dd0c90083a34899ec9942e67c759632ec1fc7e",
+    "tests/fixtures/memory-retrieval-holdout.json": "96c50d46205a869f18a737d0659f57b088a47762241ba5a85d6a15e07fc14663",
+    "tests/formation-evaluation.test.ts": "03621bc6501f3a9a87eb41c6e17cab3f231429de4389ef7fde1f55c5acb47f41",
+    "tests/formation-fixes.test.ts": "7ff47e44364400f5ad23720e64163e019b74992cb47b1de55ca2bc812f5a17cb",
+    "tests/formation-integration.test.ts": "fba788c4a251262f81cfb4a35994dc119aad3766dc896be72ff89253edc7462e",
+    "tests/formation-live-budget.test.ts": "0ab53fbcd41dc029713082c5b686e1fa73d4510a499b0f7bedf74adac2818f38",
+    "tests/formation-replay.test.ts": "f309158948a83ce47c98d6662a43bb47c7101169ba976115a0dd12119a49c343",
+    "tests/formation.test.ts": "7a5b5f3e6f6fa89f286672146cca677a2815e9ee6bf7a36fe738951eb6fea78e",
+    "tests/goal-audit.test.ts": "156a3d383ae0486b9372c4a58aa842064e3b7137be306c3f612a678633c1c19f",
+    "tests/goal-budget.test.ts": "6ef53f5a88b4a1ef968d9b599d8507f27a64e67003c71c45bdab0207a4a5b6d0",
+    "tests/goal-control.test.ts": "825b67a45f94350b6119d929289b9fae615bfb240c017ebb869129101f745c00",
+    "tests/goal-integration.test.ts": "ef441e99da1cea3c459db8acc58fa42502259664925cf13577d17960c8a2f166",
+    "tests/goal-process.test.ts": "30f58e6b3b7cbefc8e24bdf891c52943e707264567239d598a000936bf38665f",
+    "tests/goal-runner.test.ts": "b4b2c159efbb902ec1ca26fc5705adf9f87ec109603e27b19334e3d47cee6cfd",
+    "tests/goal-store.test.ts": "34bb3d9cba17ceae9090ef6aaa53f6a92fefcb4e9de306bf9db5110a431c8a98",
+    "tests/helpers/formation.ts": "e340741f33894bf3e53a168dc7bc1a50bc00830c3422290ac791f936e0979096",
+    "tests/helpers/intent-stub.ts": "56f4d77f9247431ad683bec5c3e75a272ed0397011d763b196847ac52e2019cb",
+    "tests/memory-acceptance.test.ts": "1f04d920d1e78c30f43b00068a9fedfc79e62eb26e61666fd4bc191e6a9bb215",
+    "tests/memory-closeout.test.ts": "8a6700a583d28c3f1349ab129b871e46066201dcf30e9976c0a4772b2f9bb0ac",
+    "tests/memory-evaluation.test.ts": "df9b44f10f12f9df60a6ce74ef31b49b952f1bfc35dc76b7b424e7a97806b801",
+    "tests/memory-evidence-integration.test.ts": "ef92b57ba240f26158df261422f6a8150ae6810036fd400d5c772ca97eb6b6e5",
+    "tests/memory-evidence.test.ts": "970b2205ddd312d472265b7eba89d0577c74e13f3d8e96dd6eb1042d9e6470e1",
+    "tests/memory-generation-budget.test.ts": "b0f6d9f09de501fa5316588339f54ffd88707bf3feba0ffb8826920866e5d2f3",
+    "tests/memory-integration.test.ts": "ee00d7102fa34fc2c05feaeb0072f5d48c8dbb5c9f5ddfdefba4a400703de9ad",
+    "tests/memory-retriever-integration.test.ts": "7f75a7fa2c4905985ea7e706e2d95c46e126252cb791e28e623d39cce8fa29eb",
+    "tests/memory-retriever.test.ts": "18cdb887707ab89d34570f4998589c197c4164e90cb1731d8d551af22981f8dd",
+    "tests/memory-service.test.ts": "065acc8e2a7f21dcac50a7d1c174c5c9d130a3d5ea5927ee13ed347e78af233d",
+    "tests/natural-language-integration.test.ts": "612134abc12a203d26554de13fe5eaf5525e4b9a02c1a1354e35451c3eebe977",
+    "tests/natural-language.test.ts": "c9840e971d351f3b7d7e1a29b4a75dccbbed0f4e8f26b2686b18e6f674912576",
+    "tests/pi-executor.test.ts": "b080e77b93725a2c729e929c58c567fa85e8112a797106e2e0022263e46b3f6d",
+    "tests/pi-integration.test.ts": "046ecf42fed492e2635ed13221e91b46a21eb48be44d2b698c17816e025c0a64",
+    "tests/scheduler.test.ts": "5f484a8a105f3dbd889b8e59aca6669a22ca9f4051d1ce8babb5c7099336249b",
+    "tests/service.test.ts": "d17486695fc50fa80bdb154ddf7127c5f974bc89aa8a874e45bcf1ed8ac28cfc",
+    "tests/session-persistence.test.ts": "4305d28c21b154a3079650c0cfa8d1624ffc43223c797704f634b5592d18ccd3",
+    "tests/task-service.test.ts": "967d8d29a93cca684b62a33ecc18fcb12048c9dc3e9f31974d68546f0c5938d2",
+    "tests/time.test.ts": "31b3ce87e3603c093e481b8baba946ce75c429aed6c86a0cea90b7b2c47d58be",
+    "tsconfig.json": "f0852a9fdac08a3c14f7c9bf31533ad4da5dff9fff3d0c336680aedba604b781",
+    "tsconfig.test.json": "c62b377ed9917850947ba83c2a64ff6b6c7f2e042079766a8469ce36f954ab00"
+  },
+  "documentationSha256": {
+    "AGENTS.md": "08de5e9877fcd28ec5a969c13e0290d6402ee049b4d39efd032e0b2d2aeb69f8",
+    "README.md": "b63ab6a2ab17aeb01d19ff232be5f79cbc05e89779bcde95f16adb84e9fd2c6a",
+    "docs/PROJECT.md": "069dd476ee67b5e937b4992f9c51bdcfe409fdb213d6425e58d12316c3406e96",
+    "docs/STATE.md": "cd60f967b56ee4c549aa55ef1824ef9f7c06f946bc751cf2101d2cc636e076a0",
+    "docs/designs/v3-persistent-goals.md": "d54c06a9c4718c405c35da0327445e9cf080f8eda2ed7d67beb080a21dd3266b",
+    "docs/evaluations/v3-mvp-validation.md": "0928d07833335db520338c99f8531cbd8b3137a7a9aa4ff2cb4259bd41546e33",
+    "docs/evaluations/v3-live-acceptance-plan.md": "10f30e10ea6a7180dab4553a49488d57825041bd77a89d2a4ab2d03f13ceb15f"
+  },
+  "documentationChecks": {
+    "utf8Files": 97,
+    "localLinks": 229,
+    "missingLinks": 0,
+    "hashMismatches": 0,
+    "gitDiffCheckExitCode": 0
+  },
+  "releasePreparation": {
+    "authorizedByUser": true,
+    "target": "origin/main",
+    "baseHead": "65dcabb9886d4f6ccbef48f562d7120b776fcf19",
+    "liveRemoteMainBeforeCommit": "65dcabb9886d4f6ccbef48f562d7120b776fcf19",
+    "sourceFilesRechecked": 90,
+    "sourceHashMismatches": 0,
+    "implementationChangedSinceTests": false,
+    "notes": "This is the pre-commit release snapshot. The resulting commit and successful push are verified separately against GitHub main."
+  }
+}

@@ -4,10 +4,11 @@
 
 ## 当前阶段与进行中事项
 
-- 用户已批准V3.0三项核心决策并授权 **Batch 1 存储与事务**；实现待审查，[设计](designs/v3-persistent-goals.md)补齐控制崩溃优先级、bootstrap/计划批准、outcome映射及数据库重展示语义。开发基线为 `51bc736366733060e91625c881248dce268ceb9c`；2026-10-22用户另行明确授权将本批代码、测试和文档提交并推送main供审查。原未跟踪HANDOFF.md原样保留且不纳入本次提交，Batch 2不属于本次发布范围。
-- 已实现Goal/不可变Plan/Step/Execution四表，Checkpoint嵌入committed Execution；同连接原子创建、一次授权领取、结果/Checkpoint提交、计划批准、暂停/取消/完成、保守恢复与只读收据/进度。旧Task/Run唯一约束和状态枚举不改，正式存储及.env未触碰，无新依赖。尚无GoalRunner/Goal工具/用户入口，不能把本批当成飞书长期任务已可用。
-- 本轮Node24.19.0、Windows：typecheck/build成功；全量171项，168通过/0失败/3原有平台跳过（14.65秒），其中Goal专项32项全过。旧Task/调度、鉴权、去重、Session、Memory/Formation模拟集成继续通过；离线Memory64题与Formation60窗指标不退。付费API请求、Token和费用均0，无真实Goal模型/飞书验收，本轮未跑Mac/Linux。
-- 一次当前用户请求只产生一份ready授权；领取后不得重用。cancel优先于pause，已落盘控制在崩溃恢复后分别到cancelled/paused，无控制到blocked，不自动重试。Checkpoint/控制已提交后即使聊天或通知失败，也只读重展示，不再执行。语义授权仍须未来Service/Guard完成；当前存储API仅供可信宿主内部调用，不接受模型直接操作。
+- 用户连续授权的 **V3.0 Batch 2–4代码开发及自动化验收已完成，待审查**；保留四表、Task/Memory语义及原版Pi SDK。[完整报告](evaluations/v3-mvp-validation.md)列出修改、阶段验收和限制。开发开始时HEAD/远端main为 `51bc736366733060e91625c881248dce268ceb9c`；期间另一操作按用户单独授权提交Batch1为 `65dcabb9886d4f6ccbef48f562d7120b776fcf19`。用户后续已明确授权将Batch2–4代码、测试及文档提交推送GitHub main供审查；发布前实际远端main与本地HEAD均为65dcabb，开发收尾时的SSL查询失败已在本次HTTP/1.1查询恢复。原未跟踪HANDOFF.md原样保留且不纳入提交，提交标识以Git历史为准。
+- GoalRunner已接入独立临时无工具Pi Session、只读Memory、有界输入/结构化结果、Checkpoint原子提交、abort和保守恢复；与Task共享后台互斥，前台消息优先。OperationGuard同一操作帧支持自然语言创建/查询/继续/暂停/取消/计划确认与调整/完成确认，多目标固定编号澄清，权限绑定当前原话、身份、版本和成功显示的完整视图。
+- Node24.19.0最终验证：Windows191项，188通过/0失败/3原有平台跳过（15.90秒）；断网Linux容器191通过/0失败/0跳过（38.41秒）。两平台typecheck/build、eval:memory、eval:formation均退出0，固定64题和60窗指标不退。付费API请求/Token/费用均0；无真实Goal模型或手机验收，不改正式.env/数据/依赖。
+- 一次明确授权最多一段；已提交Checkpoint不自动重做。仅批准不执行，短确认不能扩大为继续；运行中暂停/取消先持久化再abort，迟到结果不能覆盖控制。提交异常先重读已落盘结果，无法核实时停止新领取；崩溃遗留运行无控制到blocked，不自动重试。view可从SQLite恢复展示，但异常uncertain仍须人工核对。
+- Batch5仅准备[真实模型与手机验收方案](evaluations/v3-live-acceptance-plan.md)、隔离启动器及只读SQLite核对器；建议48个模型HTTP请求/5元保守预留，尚未批准或执行。需另行批准预算、端点/模型/当前费率、本人机器人投递与新隔离目录后才启动。
 - V2.1b.4已在 `51bc736` 提交推送五个验收文件，生产源码仍为 `2d31648233b04d7281a275b3e07bdf3ef61a9eea`。32次/2元授权内实际24请求、保守预留0.977334元；10个手机Run成功投递，核心候选→拒绝/批准→空Session检索通过。新轮专用目录/身份、32次账本及原始响应留存；正式Formation仍false，测试进程已停，旧46次账本和失败现场保留。
 - 独立目录 `data/acceptance/formation-feishu-v2.1b.4-20261022` 的两条虚构种子仅为夹具，不算手机审批。普通陈述先候选、自然拒绝实际rejected；Baryl项目及H02完整否定草稿显示后明确批准才各新增v1，Memory4、Task0、未批准写入0、旧种子未覆盖。H02真实漏“不”及错误服务端ID被宿主恢复/隔离；主模型漏拒绝工具及H01跨项目错误提示未出现，不冒充实测。
 - 空Session首问前用户/助手消息0；实际命中已批准H02 semantic/v1及原服务端记录，Context878/2048字节、evidence=uncertain；回答正确区分移动端不使用Ruby、数据脚本使用Ruby，用户手机确认。新JSONL仅本轮问答和固定系统说明，动态Memory数据块未追加。原始响应/候选/审批Run/ID/version/Markdown及Hash均核对，见[验收记录](evaluations/v2.1b.4-feishu-acceptance.md)和[机器证据](evaluations/v2.1b.4-feishu-acceptance.json)。
@@ -31,13 +32,13 @@
 - V2.0 四类 Memory 共用服务与 SQLite 索引：Semantic PROFILE、Project projects、Episodic episodes、Procedural procedures。仅明确记忆意图可写；规范化正文去重、稳定 key 冲突拒绝、版本检查、来源关联 Run、Hash 校验；不自动保存推断或提取全部对话。
 - Memory 正文原子替换，索引可重建，启动和读取前修复；目录/文件0700/0600，宿主独占 Memory 锁，拒绝符号链接和凭据。通过 Pi 1.3.0 公开内联扩展和 context 返回本轮投影，工具只留收据，不把注入正文反复追加 Session；Context 异常公开 abort 并报错。
 - Formation只在明确开启的测试进程发现待审批候选，没有未经批准的自动保存；未新增依赖、Embedding/向量库、Observer、Skill、周期任务、WebUI、Outbox、外部队列或 VPS 配置。
-- V3.0 Batch 1仅存储：四表、版本/指针/同连接事务、一次授权、控制优先恢复和只读重展示；没有Goal执行器或用户操作工具。
+- V3.0长期Goal完整隔离闭环：四表/版本CAS/不可变Plan与Checkpoint、独立有界执行、自然语言控制、多目标澄清、计划调整、用户完成确认、等待与重启恢复；真实Pi SDK+SQLite+模拟模型/飞书传输及真实main子进程已验证。没有定时、自主推进或外部执行工具。
 
 ## 最近关键修改（最多5项）
 
 | 日期 | 修改及位置 |
 | --- | --- |
-| 2026-10-22 | V3.0 Batch 1：补齐[事务设计](designs/v3-persistent-goals.md)，新增goal-types/store与32项存储回归；SqliteStore仅提取Run事务内部方法并协调恢复，保留旧Task约束；171项168通过/3平台跳过，用户授权提交推送供审查 |
+| 2026-10-22 | V3.0 Batch 2–4：GoalRunner/Pi、共享后台互斥、Service/Guard自然语言控制与完整集成；Windows188/191通过、3平台跳过，Linux191全过；两个eval均通过。[证据](evaluations/v3-mvp-validation.md)及[待批准手机方案](evaluations/v3-live-acceptance-plan.md)已准备，无收费/正式数据操作；用户后续授权提交推送main供审查 |
 | 2026-10-22 | V2.1b.4真实手机核心链路通过：24请求/保守预留0.977334元，H02真实错误恢复、批准及空Session命中，已停服；139项136通过/3平台跳过 |
 | 2026-10-22 | 手机误写后保存意图定点修复；同类真实提议被拦截，46/48请求后停服，保留失败现场 |
 | 2026-10-22 | V2.1b.3有界拒绝补执行复用既有显示/身份/TTL/序号检查，不增加模型请求；Pi模拟漏工具场景真实变rejected |
@@ -45,7 +46,16 @@
 
 ## 验证记录与证据边界
 
-### V3.0 Batch 1 存储与事务（2026-10-22，提交审查）
+### V3.0 Batch 2–4 MVP（2026-10-22，代码开发验收快照）
+
+- 先复核Batch1四表、Run关联、CAS、原子Checkpoint、Plan v0/v1和控制恢复，存储/Task专项40项通过；Batch2的49项相关测试及typecheck/build通过后推进Batch3，Batch3全量185项182通过/3平台跳过后进入Batch4。最终增加故障与集成用例，不改冻结评测预期。
+- [完整报告](evaluations/v3-mvp-validation.md)与[机器证据](evaluations/v3-mvp-validation.json)包含逐文件范围、命令、结果和Hash。真实SQLite/原版Pi SDK/本机模拟HTTP模型验证创建→计划→批准→片段→Checkpoint→等待→关库重启/空Session→继续→用户确认完成；真实main子进程三次启动验证ready恢复、waiting不请求及已完成片段不重放。飞书传输是模拟，不能当手机或真实模型成功。
+- 故障覆盖暂停/取消与忽略abort的迟到结果竞争、重复请求/消息、非法计划/结构化输出、Memory失败/上下文错误、HTTP失败/截断/模型工具调用、失败显式重新生成、事务提交失败重读/停机、目标归属/版本/显示TTL/单操作互斥。新增通知回调竞争回归：权限只能引用实际发出的版本，不能在await投递后读新版本冒充显示过。
+- Windows191项188通过/0失败/3跳过，Linux191通过/0失败/0跳过；两边typecheck/build、两个eval均退出0。Windows跳过仍为POSIX私有权限位、符号链接权限及POSIX SIGTERM；Linux均实际通过，未验原生Mac、Windows ACL或VPS。64题三集Top1/Recall@5/MRR/Context命中9/12、17/19、17/18；无答案误supported为0/4、0/5、0/6；最大Context1153/1613/1578字节；Formation开发/留出各30/30、误候选0、未经批准写入0；额外真实模型请求0。
+- 日志保留于 `E:/AgentWork/validation/personal-agent-v3-20261022`。Linux首轮在线npm ci遇网络超时，随后本轮编排未等旧安装器退出便并行离线安装/测试，造成模块缺失；失败日志保留。确认旧安装器结束后，用lock一致的缓存离线安装，断网复跑全部通过。未将环境失败或历史通过替换为当前证据。
+- 现阶段完整闭环仅在隔离自动化中成立；收费API/Token/费用0，无正式数据操作。自然语言仍可能漏工具/误解析，未做真实语义质量与手机送达、长时间运行验证。通知无Outbox；已提交成果不会因通知失败重跑，通知可能丢失。
+
+### V3.0 Batch 1 存储与事务（2026-10-22，历史阶段，提交65dcabb）
 
 - 生产改动仅 [goal-types.ts](../src/goal-types.ts)、[goal-store.ts](../src/goal-store.ts) 和 [sqlite-store.ts](../src/sqlite-store.ts)。不改Pi、OperationGuard、TaskService、Scheduler、渠道、Memory权限、Session或依赖。`SqliteStore.goals`共用原连接；原Run内部写入方法不自行BEGIN，Goal结果与进度必须同事务结束，普通finishRun拒绝单独结束Goal Run。
 - [32项Goal专项](../tests/goal-store.test.ts)用虚构临时库和本地子进程：创建/领取/审批/Checkpoint/控制/共享恢复故障整体回滚；两项延迟外键直到COMMIT才失败；两个进程竞争只有一个领取；取消和结果的两种固定顺序以及真实跨进程竞争；子进程直接退出后普通中断blocked、pause→paused、cancel→cancelled；恢复幂等、没有新授权不再执行。
@@ -412,6 +422,8 @@ V1 原有自动化证据：39项测试使用模拟模型/飞书服务和虚拟�
 
 ## 已知问题与限制
 
+- V3.0 Batch2–4已通过两平台自动化，但真实模型、手机Goal、原生Mac/Windows ACL及长期运行未验。自然语言是受限中文匹配加隔离解析，主模型可能漏工具，复杂表达需澄清；普通反馈需明确“继续”才执行。目标原义不变，换目标需新建；超预算原文/计划/摘要会阻塞，artifact仅允许显式标记节选，完整成果仍在SQLite。view暂无历史分页，uncertain需人工核对；没有可靠通知Outbox、定时或自主推进。
+
 - V2.1b.3针对已知三项有离线红绿证据和Pi模拟回归，新真实模型/手机复测尚未执行。拒绝补执行是有界短句路径，不覆盖所有自然语言；否定恢复只接受能在原文逐字证明的一次遗漏，复杂歧义仍保守拒绝/澄清。正式Formation保持关闭。
 
 - V2.1b.1的F01/F02修复已在V2.1b.2单轮真实复验通过，但新项目错误target及范围否定property暴露额外失败：原六窗6/6、新两窗0/2。宿主保持安全拦截，产品形成质量仍有缺口；模型重复/第三人称错目标也仍存在，默认关闭，不外推为总体精度达标。
@@ -443,10 +455,10 @@ V1 原有自动化证据：39项测试使用模拟模型/飞书服务和虚拟�
 
 ## 下一步与需要提供的信息
 
-1. 审查[Batch1设计与接口](designs/v3-persistent-goals.md)、GoalStore/类型/测试及SqliteStore增量；核心决策已批准，本地实现已验证，但完整V3.0尚未完成。未经新授权不提交推送、不继续Batch2。
-2. Batch2建议先接有界GoalRunner及独立无工具Pi片段，保持Memory只读、一次授权最多一段；联通AbortController、检查提交异常重读/停机和退出顺序，以模拟模型验证后再接自然语言Goal Service/Guard。时间/Observer/外部能力/Outbox仍不在授权范围。
-3. V2.1b.4[手机验收](evaluations/v2.1b.4-feishu-acceptance.md)与[机器证据](evaluations/v2.1b.4-feishu-acceptance.json)仍供审查；普通拒绝、项目隔离、H02恢复、空Session读取已实测，漏工具补执行和H01错误目标分支未自然出现，不盲目重复收费。正式Formation继续关闭，任何新收费验收另行授权。
-4. 本批Windows171项168通过/3跳过，历史Linux137通过仍分开记录；Windows ACL、原生Mac和本批Linux、更多语义与长期稳定性未验。两个账本、原误写与失败现场不删，不开发Observer、Skills、自动保存、Outbox或VPS。
+1. 审查[完整V3.0实现/证据](evaluations/v3-mvp-validation.md)、[设计](designs/v3-persistent-goals.md)及本次授权发布的diff；本轮代码开发完成，无需再逐Batch下指令。用户已授权提交推送main供审查，不把自动化模拟当真实模型验收；其他开发或收费仍按原边界。
+2. 若同意开展[Batch5手机方案](evaluations/v3-live-acceptance-plan.md)，需另行批准请求/费用上限、模型/端点及核对后的当前费率、本人机器人投递和新的E盘隔离目录；先停正式进程。凭据仅在本机配置，不贴聊天，不复用旧额度或清理原失败现场。
+3. V2.1b.4[手机验收](evaluations/v2.1b.4-feishu-acceptance.md)与[机器证据](evaluations/v2.1b.4-feishu-acceptance.json)继续保留；漏工具补执行和H01错误目标分支未自然出现，不盲目重复收费。正式Formation继续关闭，两个账本、原误写与失败现场不删。
+4. Windows当前188通过/3平台跳过，Linux当前191全过；原生Mac、Windows ACL、复杂语义和长期稳定性仍待验。本次发布前90份源码/脚本/测试/夹具及构建配置Hash与已验证版本完全一致，发布只补授权状态和证据说明，不重复收费或修改实现。不扩展Observer、Skills、Computer Use、自动保存、Outbox或VPS。
 
 ## V2.0.2 关键文件（主体及本轮修复）
 

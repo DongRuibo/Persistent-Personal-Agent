@@ -67,7 +67,7 @@ export interface GoalResult {
   proposedPlan?: { steps: GoalStepProposal[]; changeReason: string };
 }
 export interface GoalControlReceipt {
-  goalId: string; action: 'create' | 'continue' | 'approve_plan' | 'pause' | 'cancel' | 'complete';
+  goalId: string; action: 'create' | 'continue' | 'approve_plan' | 'revise_plan' | 'pause' | 'cancel' | 'complete';
   revision: number; sourceRunId: string;
 }
 export interface GoalView {
