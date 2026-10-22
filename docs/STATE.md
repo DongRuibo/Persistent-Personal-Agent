@@ -1,18 +1,15 @@
 # Personal Agent 当前状态与交接
 
-更新日期：2026-10-22（Asia/Shanghai）。此文件是当前快照；稳定架构见 [PROJECT.md](PROJECT.md)，开发规则见 [AGENTS.md](../AGENTS.md)，运行方法见 [README.md](../README.md)。
+更新日期：2026-10-23（Asia/Shanghai）。此文件是当前快照；稳定架构见 [PROJECT.md](PROJECT.md)，开发规则见 [AGENTS.md](../AGENTS.md)，运行方法见 [README.md](../README.md)。
 
 ## 当前阶段与进行中事项
 
-- 用户连续授权的 **V3.0 Batch 2–4代码开发及自动化验收已完成，待审查**；保留四表、Task/Memory语义及原版Pi SDK。[完整报告](evaluations/v3-mvp-validation.md)列出修改、阶段验收和限制。开发开始时HEAD/远端main为 `51bc736366733060e91625c881248dce268ceb9c`；期间另一操作按用户单独授权提交Batch1为 `65dcabb9886d4f6ccbef48f562d7120b776fcf19`。用户后续已明确授权将Batch2–4代码、测试及文档提交推送GitHub main供审查；发布前实际远端main与本地HEAD均为65dcabb，开发收尾时的SSL查询失败已在本次HTTP/1.1查询恢复。原未跟踪HANDOFF.md原样保留且不纳入提交，提交标识以Git历史为准。
-- GoalRunner已接入独立临时无工具Pi Session、只读Memory、有界输入/结构化结果、Checkpoint原子提交、abort和保守恢复；与Task共享后台互斥，前台消息优先。OperationGuard同一操作帧支持自然语言创建/查询/继续/暂停/取消/计划确认与调整/完成确认，多目标固定编号澄清，权限绑定当前原话、身份、版本和成功显示的完整视图。
-- Node24.19.0最终验证：Windows191项，188通过/0失败/3原有平台跳过（15.90秒）；断网Linux容器191通过/0失败/0跳过（38.41秒）。两平台typecheck/build、eval:memory、eval:formation均退出0，固定64题和60窗指标不退。付费API请求/Token/费用均0；无真实Goal模型或手机验收，不改正式.env/数据/依赖。
-- 一次明确授权最多一段；已提交Checkpoint不自动重做。仅批准不执行，短确认不能扩大为继续；运行中暂停/取消先持久化再abort，迟到结果不能覆盖控制。提交异常先重读已落盘结果，无法核实时停止新领取；崩溃遗留运行无控制到blocked，不自动重试。view可从SQLite恢复展示，但异常uncertain仍须人工核对。
-- Batch5仅准备[真实模型与手机验收方案](evaluations/v3-live-acceptance-plan.md)、隔离启动器及只读SQLite核对器；建议48个模型HTTP请求/5元保守预留，尚未批准或执行。需另行批准预算、端点/模型/当前费率、本人机器人投递与新隔离目录后才启动。
-- V2.1b.4已在 `51bc736` 提交推送五个验收文件，生产源码仍为 `2d31648233b04d7281a275b3e07bdf3ef61a9eea`。32次/2元授权内实际24请求、保守预留0.977334元；10个手机Run成功投递，核心候选→拒绝/批准→空Session检索通过。新轮专用目录/身份、32次账本及原始响应留存；正式Formation仍false，测试进程已停，旧46次账本和失败现场保留。
-- 独立目录 `data/acceptance/formation-feishu-v2.1b.4-20261022` 的两条虚构种子仅为夹具，不算手机审批。普通陈述先候选、自然拒绝实际rejected；Baryl项目及H02完整否定草稿显示后明确批准才各新增v1，Memory4、Task0、未批准写入0、旧种子未覆盖。H02真实漏“不”及错误服务端ID被宿主恢复/隔离；主模型漏拒绝工具及H01跨项目错误提示未出现，不冒充实测。
-- 空Session首问前用户/助手消息0；实际命中已批准H02 semantic/v1及原服务端记录，Context878/2048字节、evidence=uncertain；回答正确区分移动端不使用Ruby、数据脚本使用Ruby，用户手机确认。新JSONL仅本轮问答和固定系统说明，动态Memory数据块未追加。原始响应/候选/审批Run/ID/version/Markdown及Hash均核对，见[验收记录](evaluations/v2.1b.4-feishu-acceptance.md)和[机器证据](evaluations/v2.1b.4-feishu-acceptance.json)。
-- V2.1b.4历史typecheck/build退出0；Windows139项136通过/0失败/3平台跳过（12.50秒），验收脚本6专项全过。24行模型用量：未缓存输入10061、缓存36096、输出1080 Token，cost字段null，预留不是实际账单。正式.env及旧46次账本Hash未变。前2原始流未落盘，已只修测试记录器并增加回归，从第3请求起有22份原始响应；上一批Linux137全过和离线8/8为历史证据，不宣称所有故障分支真实覆盖。
+- V3.0 Batch1–4已发布main `74704bda3deb05f5bbd64d498ab2ce66fa63fbc9`。本次新增GOAL_ENABLED默认false、真实验收发现的定点修复与测试/文档；用户后续明确授权，将本轮22文件随本提交交付GitHub main供审查。原HANDOFF.md、正式.env Hash未变，正式数据未访问。四表、Task/Memory、原版Pi和权限边界不变。
+- 用户授权48模型HTTP请求/5元预留，后因手机不便改为电脑测试。真实模型Console核心闭环已通过：保存Goal/计划→批准→片段Checkpoint→等待→正常重启→只继续未完成步骤→明确确认completed；失败保持旧进度，只有显式重新生成才再执行。**Batch5不是全项通过**，原始M01等失败及未覆盖项保留，见[报告](evaluations/v3-batch5-acceptance.md)和[机器证据](evaluations/v3-batch5-acceptance.json)。
+- 累计48/48请求，均HTTP200，保守预留2.337244/5元，非账单；model_calls48条，未缓存输入41234/缓存80896/输出7500 Token，含截断时部分观测，cost均null。已达请求上限，不因费用余额继续，不新开账本。测试已停、锁释放，db/WAL/SHM/原始响应及失败留在 `E:/AgentWork/acceptance/v3-goals-20261023`。
+- 真实库：面试Goal completed/revision21/Planv1，7次执行4 committed/2 failed/1 interrupted；学习Goal waiting_user/revision2/Planv0、1 committed，有3步待批草稿。后者“一项安排”扩成3步、真实暂停指代失败，未改库冒充修复。Task0、Memory Markdown0、候选0，外键/完整性/Goal审计均正常。未连接飞书或手机，本轮取消/计划调整/多活动目标澄清等仍无真实证据。
+- 定点修复：创建产物约束不否定授权；解析器分离目标指认与反馈，区分继续/替换；新步骤省略ID、结果四字段必填；Goal SSE记录4MiB且Formation默认不变。最后“那个计划”只绑定有效唯一完整视图、具名条件取交集，离线回放先失败后通过，过期/未投递/旧版本/多目标/跨渠道仍拒绝；**最后一项尚未收费复验**，模型计划粒度偏差未修，不声称语义稳定。
+- 最终Node24.19.0、Pi1.3.0：Windows198项195通过/0失败/3平台跳过（17.35秒），断网Linux198全过/0跳过（26.18秒）；两平台typecheck/build及两个eval均退出0，92份源码/测试/Fixture/配置Hash相同。日志见报告，历史超时/EEXIST/路径错误保留。维持Goal/Formation默认关闭，交付审查；后续若补真实暂停、其他控制或手机，需另行决定并批准新预算，不自动开发V3.1/新权限。
 
 ## 已完成功能
 
@@ -38,13 +35,19 @@
 
 | 日期 | 修改及位置 |
 | --- | --- |
+| 2026-10-23 | GOAL_ENABLED默认关闭；电脑核心闭环经真实模型通过，48请求/2.337244元预留后停服；计划粒度及暂停失败保留，暂停仅离线修复，最终198项及两平台检查通过；[报告](evaluations/v3-batch5-acceptance.md)不记全项通过；用户随后授权提交推送main |
 | 2026-10-22 | V3.0 Batch 2–4：GoalRunner/Pi、共享后台互斥、Service/Guard自然语言控制与完整集成；Windows188/191通过、3平台跳过，Linux191全过；两个eval均通过。[证据](evaluations/v3-mvp-validation.md)及[待批准手机方案](evaluations/v3-live-acceptance-plan.md)已准备，无收费/正式数据操作；用户后续授权提交推送main供审查 |
 | 2026-10-22 | V2.1b.4真实手机核心链路通过：24请求/保守预留0.977334元，H02真实错误恢复、批准及空Session命中，已停服；139项136通过/3平台跳过 |
 | 2026-10-22 | 手机误写后保存意图定点修复；同类真实提议被拦截，46/48请求后停服，保留失败现场 |
 | 2026-10-22 | V2.1b.3有界拒绝补执行复用既有显示/身份/TTL/序号检查，不增加模型请求；Pi模拟漏工具场景真实变rejected |
-| 2026-10-22 | H01/H02同原输出回放6/8→8/8；明确新项目只建议新增，否定属性逐字恢复，冻结预期和旧目标不改 |
 
 ## 验证记录与证据边界
+
+### V3.0 Batch5开关与电脑真实验收（2026-10-23，核心通过、完整清单未通过）
+
+- 本轮48请求/5元授权已用48请求、预留2.337244元。用户改为电脑测试，未做飞书/手机复测。正式.env及原HANDOFF.md未变；测试正常停服、锁释放，不追加收费。验收完成后用户另行授权提交推送本轮代码、测试及文档，不包含正式数据或原HANDOFF.md。
+- 原M01宿主误拒绝、错误意图/筛选、256KiB记录截断、模型自编Step ID、结果缺必填字段均保留。修复/显式再生成后完成计划v1、两题分别提交、等待/正常重启/未完成步骤接续、用户明确完成确认。重启34请求不变，旧执行Hash与最后有效Checkpoint逐项核对；最后确认无新Execution。
+- 新学习安排期望一项却生成3步；暂停那个学习计划真实失败，库仍waiting_user。最后指代修复只通过原话/原解析离线回放及完整回归，不冒充收费复验。真实取消、调整、多活动目标、运行中竞争与新Goal飞书通知未覆盖。详细字段、原始日志Hash、失败前后及测试结果见[报告](evaluations/v3-batch5-acceptance.md)/[JSON](evaluations/v3-batch5-acceptance.json)。
 
 ### V3.0 Batch 2–4 MVP（2026-10-22，代码开发验收快照）
 

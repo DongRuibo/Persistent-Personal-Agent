@@ -36,6 +36,13 @@ test('错误日志不保留配置的 Key 或 Bearer 认证', () => {
   assert.equal(redact('api_key=example-value'), 'api_key=<REDACTED>');
 });
 
+test('Goal默认关闭，只有显式true开启；拒绝空值和不明确的开关值', () => {
+  assert.equal(readConfig({}).goalEnabled, false);
+  assert.equal(readConfig({ GOAL_ENABLED: 'false' }).goalEnabled, false);
+  assert.equal(readConfig({ GOAL_ENABLED: 'true' }).goalEnabled, true);
+  for (const value of ['', 'TRUE', '1', 'yes']) assert.throws(() => readConfig({ GOAL_ENABLED: value }), /GOAL_ENABLED/);
+});
+
 test('飞书配置只在启用时校验，用户白名单必须显式设置；多凭据一起脱敏', () => {
   assert.doesNotThrow(() => readConfig({}));
   assert.throws(() => readFeishuConfig({}), /FEISHU_APP_ID/);

@@ -70,6 +70,85 @@ test('多目标必须澄清；独立序号检查、旧版本、过期/未投递�
   } finally { f.close(); }
 });
 
+test('真实M01回放：产物不得虚构/假设的完整约束子句不否定创建意图；禁止执行和混合指令仍拦截', async () => {
+  const f = fixture();
+  try {
+    const prompts = ['帮我逐步准备松柏面试验收，只有虚构经历。计划最多两步，每次只推进一段；不要替我假设已经掌握知识。',
+      '帮我逐步准备技术面试，不要虚构我的经历。'];
+    for (const prompt of prompts) {
+      await f.execute(prompt, { goalAction: 'create', executeNext: true, selector: { keywords: ['面试'] } });
+      assert.ok(f.goals.list().some(goal => goal.objective === prompt), '完整约束原话持久化，不删掉否定');
+    }
+    for (const prompt of ['帮我逐步准备面试，不要创建长期目标', '如果帮我逐步准备面试，不要虚构我的经历。',
+      '帮我逐步准备面试，不要虚构我的经历然后偷偷创建目标', '帮我逐步准备面试，不用执行']) {
+      await f.execute(prompt, { goalAction: 'create' }).catch(() => {});
+      assert.equal(f.goals.list().length, 2);
+    }
+  } finally { f.close(); }
+});
+
+test('真实补充说明回放：伪造last引用或把新反馈当筛选词不会领取；正确具名继续保留完整反馈', async () => {
+  const f = fixture();
+  try {
+    const goal = await f.create('松柏面试验收');
+    const claimed = f.store.goals.claim(f.goals.actor(), goal.id, goal.revision, start)!;
+    f.store.goals.commit(claimed.run.id, { ...result, stepOutcome: 'partial', proposedPlan: undefined }, start);
+    const prompt = '继续松柏面试验收任务这一段。补充说明：这是Agent开发岗位的虚构面试练习，我是求职者；希望练习Agent Loop和Checkpoint，各一道题。请先给出最多两步的待批准计划。';
+    const before = f.goals.get(goal.id);
+    const rawSelector = { keywords: ['松柏面试验收任务', 'Agent开发岗位', '虚构面试练习', '求职者', 'Agent Loop', 'Checkpoint'], reference: 'last' };
+    assert.match((await f.execute(prompt, { goalAction: 'continue', executeNext: true, selector: rawSelector })).text, /引用与原话不一致/);
+    assert.deepEqual(f.goals.get(goal.id), before);
+    assert.match((await f.execute(prompt, { goalAction: 'continue', selector: { keywords: rawSelector.keywords } })).text, /未找到目标/);
+    assert.deepEqual(f.goals.get(goal.id), before);
+    // 真实第二次解析误判为replace并扩写步骤；不能凭模型的计划覆盖当前目标。
+    await assert.rejects(f.execute(prompt, { goalAction: 'revise_plan', revisionMode: 'replace',
+      selector: { keywords: ['松柏', '面试', '验收'] }, planSteps: [{ title: '练习 Agent Loop',
+        instruction: '以Agent开发岗位虚构面试为背景，由面试官出一道关于Agent Loop的题，求职者作答后给出反馈。',
+        deliverable: 'Agent Loop 练习题及作答与反馈记录', doneWhen: '完成一道 Agent Loop 题并收到反馈' }] }), /操作依据/);
+    assert.deepEqual(f.goals.get(goal.id), before);
+    await f.execute(prompt, { goalAction: 'continue', selector: { keywords: ['松柏', '面试', '验收'] } });
+    const next = f.store.goals.claim(f.goals.actor(), goal.id, f.goals.get(goal.id).revision, start)!;
+    assert.equal(next.execution.input.authorization.text, prompt);
+    assert.equal(next.execution.input.previousCheckpoint?.executionRunId, claimed.run.id);
+    assert.equal(f.store.goals.view(f.goals.actor(), goal.id).executions.length, 2);
+  } finally { f.close(); }
+});
+
+test('真实暂停47回放：那个绑定唯一有效完整视图，具名与指代取交集；多目标/旧清单/引用不授权', async () => {
+  const f = fixture();
+  const raw = { goalAction: 'pause', selector: { keywords: ['学习计划'], reference: 'last' } };
+  try {
+    const first = f.bootstrap(await f.create('青杉学习计划')); await f.view('青杉');
+    await f.execute('暂停那个学习计划', raw);
+    assert.equal(f.goals.get(first.id).status, 'paused');
+    assert.equal(f.store.goals.view(f.goals.actor(), first.id).executions.length, 1);
+    const second = await f.create('云杉学习计划');
+    const firstBefore = f.goals.get(first.id), secondBefore = f.goals.get(second.id);
+    await f.view('学习计划');
+    assert.match((await f.execute('暂停那个学习计划', raw)).text, /唯一/);
+    assert.deepEqual(f.goals.get(first.id), firstBefore); assert.deepEqual(f.goals.get(second.id), secondBefore);
+    await f.view('云杉');
+    assert.match((await f.execute('暂停刚才的青杉学习计划', { goalAction: 'pause', selector: { keywords: ['青杉'], reference: 'last' } })).text, /未找到目标/);
+    assert.deepEqual(f.goals.get(first.id), firstBefore); assert.deepEqual(f.goals.get(second.id), secondBefore);
+    await f.view('云杉'); f.state.goalView!.action = 'pause';
+    await assert.rejects(f.execute('查看那个学习计划', raw), /操作依据/);
+    await assert.rejects(f.execute('查看刚才的云杉学习计划', { goalAction: 'pause', selector: { keywords: ['云杉'], reference: 'last' } }), /操作依据/);
+    await assert.rejects(f.execute('查看第一个', { goalAction: 'pause', selector: { keywords: [], reference: 'choice', position: 1 } }), /操作依据/);
+    assert.deepEqual(f.goals.get(second.id), secondBefore);
+    await f.view('云杉'); f.advance();
+    await assert.rejects(f.execute('暂停那个学习计划', raw), /过期/);
+    await f.execute('查看云杉学习计划', { goalAction: 'view', mode: 'query', selector: { keywords: ['云杉'] } }, false);
+    await assert.rejects(f.execute('暂停那个学习计划', raw), /投递/);
+    await f.view('云杉');
+    assert.match((await f.execute('暂停“那个学习计划”', raw)).text, /引用与原话不一致/);
+    await assert.rejects(f.execute('暂停那个学习计划', raw, true,
+      { channel: 'feishu', appId: 'fake-app', chatId: 'fake-chat', userOpenId: 'ou_fake' }), /无权/);
+    f.store.goals.control({ actor: f.goals.actor(), sourceRunId: f.store.beginRun(null, start).id,
+      expectedRevision: secondBefore.revision, text: '暂停' }, second.id, 'pause', start);
+    await assert.rejects(f.execute('暂停那个学习计划', raw), /版本/);
+  } finally { f.close(); }
+});
+
 test('计划必须成功显示并绑定Hash/版本；短确认只批准，不被模型扩大为执行；继续不能跳过审批', async () => {
   const f = fixture();
   try {

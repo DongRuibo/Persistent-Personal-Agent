@@ -199,7 +199,9 @@ export class OperationGuard {
     if (query ? !['query', 'request'].includes(intent.mode) : intent.mode !== 'request') throw new Error('否定、假设、引用或不确定消息不能控制Goal');
     const message = request.prompt.normalize('NFKC');
     const activeText = message.replace(/「[^」]*」|『[^』]*』|“[^”]*”|‘[^’]*’|"[^"]*"|'[^']*'|`[^`]*`/gu, ' ');
-    if (!query && /如果|假设|假如|要是|他说|她说|引用|不要|不用|无需|先不|别|[?？]/u.test(action === 'cancel' ? activeText.replace('不用做了', '') : activeText)) throw new Error('当前请求没有明确执行授权');
+    // 仅创建时区分完整的产物真实性约束与操作否定；原话仍完整保存，混合或未知子句不放行。
+    const authorizationText = action === 'create' ? activeText.replace(/(?:^|[。；;，,])\s*不要(?:替我|擅自)?(?:假设(?:我)?(?:已经|已)?掌握(?:相关)?(?:知识|技能)|虚构(?:任何|我的)?(?:经历|事实|能力))(?=[。；;，,]|$)/gu, ' ') : activeText;
+    if (!query && /如果|假设|假如|要是|他说|她说|引用|不要|不用|无需|先不|别|[?？]/u.test(action === 'cancel' ? authorizationText.replace('不用做了', '') : authorizationText)) throw new Error('当前请求没有明确执行授权');
     if (action === 'create') {
       if (!/(?:创建|新建|建立|保存).{0,15}(?:长期目标|长期任务|学习计划)|(?:帮我|和我|跟我).{0,8}(?:逐步|持续|分阶段)|(?:长期目标|长期任务).{0,8}(?:创建|建立)/u.test(activeText)
         || /自动|定时|每[天周月]|无人/u.test(activeText)) { frame.answer = '请明确是否保存为可手动继续的长期目标；每次只执行一段，暂不支持自动或定时推进。'; return { status: 'clarification' }; }
@@ -209,7 +211,16 @@ export class OperationGuard {
     }
     const selector = intent.selector ?? { keywords: [] };
     if (selector.when || selector.keywords.some(term => !request.prompt.includes(term))) throw new Error('目标筛选条件必须来自当前原话；Goal没有时间筛选');
-    const reference = referenceFromMessage(request.prompt);
+    let reference = referenceFromMessage(request.prompt);
+    // “那个计划”只指向宿主刚完整展示的唯一Goal；不能仅凭模型last标签选择数据库记录。
+    const demonstrative = reference === undefined && /(?:那个|这个)(?:学习计划|长期目标|长期任务|目标|计划)/u.test(activeText);
+    if (demonstrative) {
+      if (!display?.details || display.items.length !== 1) {
+        frame.answer = '没有唯一的完整目标视图，请先查看并明确选择目标；本轮未操作。'; return { status: 'clarification' };
+      }
+      goals.validateDisplay(display);
+      reference = { reference: 'last' };
+    }
     if (reference === 'ambiguous' || selector.reference && selector.reference !== reference?.reference
       || reference?.reference === 'choice' && (selector.reference !== 'choice' || selector.position !== reference.position)
       || selector.position !== undefined && selector.reference !== 'choice') {
@@ -218,7 +229,7 @@ export class OperationGuard {
     let records = goals.list();
     if (records.length > 100) { frame.answer = '目标较多，请先归档或使用更具体的范围；本轮未操作。'; return { status: 'clarification' }; }
     const hasFilters = selector.keywords.length > 0;
-    if (selector.reference === 'choice' || shortConfirm || selector.reference === 'last' && !hasFilters) {
+    if (selector.reference === 'choice' || shortConfirm || selector.reference === 'last' || demonstrative) {
       if (!display) { frame.answer = '没有有效目标清单，请先查看进度。'; return { status: 'clarification' }; }
       goals.validateDisplay(display);
       const item = selector.reference === 'choice' ? display.items[(selector.position ?? 0) - 1] : display.items.length === 1 ? display.items[0] : undefined;
@@ -235,7 +246,9 @@ export class OperationGuard {
     const goal = records[0]!;
     const verbs: Partial<Record<GoalAction, RegExp>> = { continue: /继续|接着|推进|重新生成/u, pause: /暂停|先停|停一下/u,
       cancel: /取消|终止|放弃|不用做了/u, complete: /(?:确认|确定).{0,25}(?:完成|达成)/u, revise_plan: /调整|改成|改为|先补|增加|新增|替换|重排/u };
-    if (verbs[action] && !verbs[action]!.test(activeText) && !(reference && display?.action === action)) throw new Error('原话中没有对应操作依据');
+    // 待选操作只能由纯选择短句延续；“查看刚才/第二个”不能被模型变成暂停或取消。
+    const selectionOnly = /^(?:第[0-9零〇一二两三四五六七八九十百]+(?:个|项|条|号)|[0-9零〇一二两三四五六七八九十百]+号|刚才那个|上一个)[。！!]?$/u.test(activeText.trim());
+    if (verbs[action] && !verbs[action]!.test(activeText) && !(selectionOnly && reference && display?.action === action)) throw new Error('原话中没有对应操作依据');
     const options: Parameters<GoalService['apply']>[3] = {};
     if (action === 'approve_plan' || action === 'complete') {
       if (!display?.details || !display.items.some(item => item.id === goal.id)) return show([goal], action, '请先核对下面当前内容，再明确确认。\n');

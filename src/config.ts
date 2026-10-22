@@ -13,6 +13,7 @@ export interface Config {
   memoryDir: string;
   memoryContextTokens: number;
   memoryQueryRewrite?: boolean;
+  goalEnabled?: boolean;
   pollIntervalMs: number;
   executionTimeoutMs: number;
   formation?: FormationOptions;
@@ -71,6 +72,7 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env): Config {
   if (!Number.isSafeInteger(memoryContextTokens) || memoryContextTokens < 512 || memoryContextTokens > 8192) throw new Error('MEMORY_CONTEXT_TOKENS 必须为512至8192的整数');
   if (env.MEMORY_QUERY_REWRITE && !['true', 'false'].includes(env.MEMORY_QUERY_REWRITE)) throw new Error('MEMORY_QUERY_REWRITE 必须为 true 或 false');
   if (env.MEMORY_FORMATION_ENABLED && !['true', 'false'].includes(env.MEMORY_FORMATION_ENABLED)) throw new Error('MEMORY_FORMATION_ENABLED 必须为 true 或 false');
+  if (env.GOAL_ENABLED !== undefined && !['true', 'false'].includes(env.GOAL_ENABLED)) throw new Error('GOAL_ENABLED 必须为 true 或 false');
   const formationEnabled = env.MEMORY_FORMATION_ENABLED === 'true';
   const rate = (key: string) => {
     const value = Number(env[key] ?? 0);
@@ -88,6 +90,7 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env): Config {
     memoryDir,
     memoryContextTokens,
     memoryQueryRewrite: env.MEMORY_QUERY_REWRITE === 'true',
+    goalEnabled: env.GOAL_ENABLED === 'true',
     pollIntervalMs: integer('POLL_INTERVAL_MS', 1000),
     executionTimeoutMs: integer('EXECUTION_TIMEOUT_MS', 120_000),
     formation: { enabled: formationEnabled, owner: 'single-user', inputRate: rate('MEMORY_FORMATION_INPUT_CNY_PER_MILLION'),

@@ -32,13 +32,14 @@ export class FeishuAcceptanceBudget {
   }
 }
 
-export function recordAcceptanceResponse(response: Response, file: string, redact: (text: string) => string): Response {
+export function recordAcceptanceResponse(response: Response, file: string, redact: (text: string) => string, maxBytes = 262144): Response {
+  if (!Number.isSafeInteger(maxBytes) || maxBytes < 1 || maxBytes > 4194304) throw new Error('验收响应记录上限无效');
   if (!response.body) return response;
   const chunks: Uint8Array[] = []; let size = 0;
   const stream = response.body.pipeThrough(new TransformStream<Uint8Array, Uint8Array>({
     transform(chunk, controller) {
       size += chunk.byteLength;
-      if (size > 262144) throw new Error('验收原始响应超出记录上限，停止验收');
+      if (size > maxBytes) throw new Error('验收原始响应超出记录上限，停止验收');
       chunks.push(chunk);
       // SDK读到结束标记后可能取消流，不依赖flush；每块保存累计快照以保留已收到的原输出。
       fs.writeFileSync(file, redact(Buffer.concat(chunks).toString('utf8')), { flag: chunks.length === 1 ? 'wx' : 'w', mode: 0o600 });

@@ -1,18 +1,20 @@
-# V3.0 Batch 5：真实模型与手机验收方案（未执行，待单独批准）
+# V3.0 Batch 5：真实验收方案（本轮额度已用尽，执行结果另记）
 
-日期：2026-10-22（Asia/Shanghai）。本次仅准备方案和验收工具，收费API请求/Token/费用均为0；下列预算不是本次授权。Batch1–4的Pi/SQLite/HTTP及飞书模拟测试不能替代真实语义质量或手机送达证据。
+方案初稿：2026-10-22；授权更新：2026-10-23（Asia/Shanghai）。用户已明确批准先补GOAL_ENABLED及回归，然后在隔离环境完成Batch5，最多48个模型HTTP请求/5元保守预留。用户后续表示手机不便，授权在电脑继续真实模型验收；飞书与手机本轮不复测，不能据此标为通过。实际记录见[Batch5报告](v3-batch5-acceptance.md)。当前实际48/48请求、预留2.337244元，已停服；电脑核心通过但完整清单未通过，不再发起本轮调用。最后暂停修复、其他控制及手机若补测须另行批准新预算，不能因5元有余额自动续测。本方案不是执行结果；Batch1–4的模拟测试不能替代真实语义质量或手机送达证据。
 
-## 待批准范围与费用
+## 本轮批准范围与费用
 
-- 建议本轮最多 **48个模型HTTP请求、人民币5元保守预留**，任一先到即停；不自动补测、扩额或重置账本。失败/中断/未知用量同样计入。主模型、隔离意图解析、Goal片段全部计数；不是48条手机消息。
+- 本轮最多 **48个模型HTTP请求、人民币5元保守预留**，任一先到即停；不自动补测、扩额或重置账本。失败/中断/未知用量同样计入。主模型、隔离意图解析、Goal片段全部计数；不是48条手机消息。
 - 单次输出最多4096 Token，意图解析最多1000 Token。每个实际Goal片段只有一个请求；一次控制通常是主模型工具提议、隔离解析、主模型收尾共3请求，有效短确认通常2请求，另加被明确授权的1个Goal请求。主模型可能漏工具或额外调用，按实际账本记，不承诺固定消耗。
 - 仅使用批准的兼容端点/模型、本人飞书应用和白名单账号，虚构目标/经历。启动前从供应商当前官方价格页核对输入/输出费率上界（含峰时及适用附加项），写入当前进程 `GOAL_ACCEPTANCE_INPUT_RATE`、`GOAL_ACCEPTANCE_OUTPUT_RATE`，单位元/百万Token；不把历史Formation费率当当前报价。费率不明则不启动。
 - 每请求预留微元 `ceil((完整请求UTF-8字节数+512)×输入费率 + 最大输出Token×输出费率)`。完整请求含系统、工具Schema和Session。字节数不是精确Token测量，不能证明供应商账单硬上限；额外收费类别不在批准上界中则停止。达到5元预留可能早于48请求，届时报告未完成项。
 - 新轮新根目录、新账本和响应文件；不复用或修改以前两个Formation账本。不改正式.env、正式数据、正式Formation开关、已发布机器人权限或应用版本。手机测试会向本人机器人会话发送结果，须一并批准。
 
-## 启动与停止（批准后才执行）
+## 启动与停止（本轮已批准）
 
 先确认正式服务已经正常停止，避免同一应用多条连接争抢。用Node>=24.15.0，完成typecheck/build/test。选择一个**尚不存在**的E盘目录，例 `E:/AgentWork/acceptance/v3-goals-round-01`；不要先手工建空根目录。用本机已有凭据配置，不把Key、Secret或open_id贴进聊天。
+
+启动器的 `--model-only` 运行原版Console/Service/Guard/Pi链路。用户起初要求先真实模型、手机稍后，曾为手机预留额度；14请求后用户改为电脑继续验收，现Console沿用同一48请求/5元总闸，不新开账本。以后手机若另行复测，不带该参数并以 `--resume` 沿用剩余额度；预算耗尽则须另行批准新预算。Console目标与飞书目标按原归属隔离，不能把Console输入当手机输入，也不能让飞书接管Console目标；手机核心闭环须另用虚构目标实测。2026-10-23核对[硅基流动官方价格页](https://www.siliconflow.cn/pricing)：deepseek-ai/DeepSeek-V4.1-Flash较高时段输入2、输出8、缓存读取0.04元/百万Token；本轮预留使用2/8且不扣缓存折扣。
 
 ```powershell
 # 两个费率值须在批准时核对并设置；不要照抄未知数字。
@@ -21,7 +23,7 @@ $env:GOAL_ACCEPTANCE_OUTPUT_RATE='<批准的输出费率>'
 node --env-file=.env --import tsx scripts/goal-feishu-acceptance.ts --authorized '--root=E:/AgentWork/acceptance/v3-goals-round-01'
 ```
 
-[验收入口](../../scripts/goal-feishu-acceptance.ts)无上述显式参数会在读取配置及联网前退出。它在当前进程覆盖三份数据路径，并关闭Formation与查询改写；文件.env不变。只允许指定兼容模型端点和原有飞书渠道，不注册任何外部工具。账本先原子落盘再请求，不因HTTP失败或重启退额度；配置/预算失败停止测试服务。
+[验收入口](../../scripts/goal-feishu-acceptance.ts)无上述显式参数会在读取配置及联网前退出。它在当前进程覆盖三份数据路径、显式开启GOAL_ENABLED，并关闭Formation与查询改写；文件.env不变。只允许指定兼容模型端点和原有飞书渠道，不注册任何外部工具。账本先原子落盘再请求，不因HTTP失败或重启退额度；配置/预算失败停止测试服务。
 
 输入 `/stop` 正常退出，等待锁释放。续测使用**同一根目录、身份、模型、费率和账本**：
 
@@ -29,7 +31,7 @@ node --env-file=.env --import tsx scripts/goal-feishu-acceptance.ts --authorized
 node --env-file=.env --import tsx scripts/goal-feishu-acceptance.ts --authorized --resume --fresh-session '--root=E:/AgentWork/acceptance/v3-goals-round-01'
 ```
 
-`--fresh-session`第一次使用新建sessions-fresh，旧sessions保留；后续同名参数会恢复该目录，不会反复清空历史。空会话验收前确认该目录尚不存在。不得删除Session、账本或acceptance.lock来重置额度；异常退出后先核对进程和账本，再人工处理遗留锁。
+`--fresh-session`第一次使用新建sessions-fresh，旧sessions保留；后续同名参数会恢复该目录，不会反复清空历史。空会话验收前确认该渠道身份的chat.session.jsonl尚不存在或user/assistant历史为0；Console与飞书的身份子目录不同，不以另一个渠道是否用过根目录判断。不得删除Session、账本或acceptance.lock来重置额度；异常退出后先核对进程和账本，再人工处理遗留锁。
 
 ## 手机话术与验收顺序
 

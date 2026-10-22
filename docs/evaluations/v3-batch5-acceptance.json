@@ -1,0 +1,1004 @@
+{
+  "version": 1,
+  "date": "2026-10-23",
+  "baselineHead": "74704bda3deb05f5bbd64d498ab2ce66fa63fbc9",
+  "status": "desktop core lifecycle passed; full Batch5 not passed",
+  "authorization": {
+    "requestLimit": 48,
+    "reserveCnyLimit": 5,
+    "changedByUserToDesktop": true,
+    "noGitCommitOrPushDuringAcceptance": true,
+    "subsequentGitPublicationAuthorized": true
+  },
+  "scope": {
+    "realModel": true,
+    "productionConsole": true,
+    "realPiSdk": true,
+    "realSqlite": true,
+    "feishuThisRound": false,
+    "phoneThisRound": false,
+    "formalDataAccessed": false,
+    "formationEnabled": false,
+    "queryRewriteEnabled": false
+  },
+  "runtime": {
+    "node": "v24.19.0",
+    "pi": "1.3.0",
+    "linuxNetwork": {}
+  },
+  "actual": {
+    "requests": 48,
+    "httpStatuses": [
+      200
+    ],
+    "reservedCny": 2.337244,
+    "actualBilledCny": null,
+    "usage": {
+      "input": 41234,
+      "output": 7500,
+      "cacheRead": 80896,
+      "cacheWrite": 0
+    },
+    "usageLimitation": "includes partial observed usage at response18; no refund or billing guarantee",
+    "unknownCostCalls": 48,
+    "requestStartRangeUtc": [
+      "2026-10-22T16:19:24.077Z",
+      "2026-10-22T16:50:09.301Z"
+    ],
+    "taskCount": 0,
+    "memoryMarkdownCount": 0,
+    "candidateCount": 0
+  },
+  "results": {
+    "originalM01ExpectedStructuredPlan": false,
+    "coreLifecycleAfterFixes": true,
+    "restart": {
+      "requestsBefore": 34,
+      "requestsAfter": 34,
+      "goalAndExecutionsUnchanged": true,
+      "checkpointRunId": "6e1e217d-7e29-49fe-af48-08168df16163"
+    },
+    "continue": {
+      "completedStepExecutionUnchanged": true,
+      "nextExecutionFromLastCheckpoint": true,
+      "onlyNextStepClaimed": true,
+      "waitingForCompletionConfirmation": true
+    },
+    "complete": {
+      "status": "completed",
+      "explicitConfirmationOnly": true,
+      "noNewExecution": true,
+      "checkpointUnchanged": true
+    },
+    "learningDraft": {
+      "expectedSteps": 1,
+      "actualSteps": 3,
+      "passed": false
+    },
+    "realPause": {
+      "passed": false,
+      "stateUnchanged": true,
+      "rawIntent": {
+        "action": "goal_manage",
+        "mode": "request",
+        "evidence": "暂停那个学习计划",
+        "goalAction": "pause",
+        "selector": {
+          "keywords": [
+            "学习计划"
+          ],
+          "reference": "last"
+        }
+      }
+    },
+    "offlinePauseFix": {
+      "beforeExit": 1,
+      "afterExit": 0,
+      "goalControlTestsPassed": 10,
+      "newPaidValidation": false
+    },
+    "unverified": [
+      "Feishu/phone Goal delivery",
+      "live cancel",
+      "live plan revision",
+      "live multi-active-goal clarification",
+      "live in-flight pause/cancel competition",
+      "live pause after final host fix"
+    ]
+  },
+  "database": {
+    "goals": [
+      {
+        "id": "5680ab83-b836-48f4-942e-a013ea7c650f",
+        "status": "completed",
+        "revision": 21,
+        "planRevision": 1,
+        "checkpointRunId": "47578f92-749a-47ad-9c6c-c91072ad504c",
+        "pendingPlan": false,
+        "executions": 7,
+        "committed": 4,
+        "deliveryErrors": 0
+      },
+      {
+        "id": "5970a7ff-0d52-4551-bb1e-5be23aac881d",
+        "status": "waiting_user",
+        "revision": 2,
+        "planRevision": 0,
+        "checkpointRunId": "8422cb88-5d7e-4bab-b4fc-f3dc77932b2d",
+        "pendingPlan": true,
+        "executions": 1,
+        "committed": 1,
+        "deliveryErrors": 0
+      }
+    ],
+    "executions": [
+      {
+        "runId": "836cdc4d-5585-4749-9cbf-ccf3bc668e2b",
+        "goalId": "5680ab83-b836-48f4-942e-a013ea7c650f",
+        "stepId": "b32f6dd7-b37e-4beb-94f4-8fb60953060c",
+        "sequence": 1,
+        "planRevision": 0,
+        "triggerRunId": "1d0f9e41-e54b-4d5f-a97f-768940c09a7b",
+        "status": "committed",
+        "baseCheckpointRunId": null,
+        "checkpointHash": "d615890ffeeb5841ea1fc65784181523786ef61c84918f8e0ff6a07abe10d8e8",
+        "stepOutcome": "partial"
+      },
+      {
+        "runId": "2d19d9db-6bcd-4903-aa90-a33e71ed40c8",
+        "goalId": "5680ab83-b836-48f4-942e-a013ea7c650f",
+        "stepId": "b32f6dd7-b37e-4beb-94f4-8fb60953060c",
+        "sequence": 2,
+        "planRevision": 0,
+        "triggerRunId": "2c76a8ed-1da3-45c7-981f-f2f8cbf5b339",
+        "status": "interrupted",
+        "baseCheckpointRunId": "836cdc4d-5585-4749-9cbf-ccf3bc668e2b",
+        "checkpointHash": null,
+        "stepOutcome": null
+      },
+      {
+        "runId": "b5e9aba0-1ac9-4c31-bb19-e8775273e9ef",
+        "goalId": "5680ab83-b836-48f4-942e-a013ea7c650f",
+        "stepId": "b32f6dd7-b37e-4beb-94f4-8fb60953060c",
+        "sequence": 3,
+        "planRevision": 0,
+        "triggerRunId": "3576d6da-0b24-4bfb-a128-72efe9b570c7",
+        "status": "failed",
+        "baseCheckpointRunId": "836cdc4d-5585-4749-9cbf-ccf3bc668e2b",
+        "checkpointHash": null,
+        "stepOutcome": null
+      },
+      {
+        "runId": "d6e8eebf-312b-4c06-924e-c3d629a4eb9f",
+        "goalId": "5680ab83-b836-48f4-942e-a013ea7c650f",
+        "stepId": "b32f6dd7-b37e-4beb-94f4-8fb60953060c",
+        "sequence": 4,
+        "planRevision": 0,
+        "triggerRunId": "bed90dc6-cceb-46ba-9a11-15e2758c51c4",
+        "status": "committed",
+        "baseCheckpointRunId": "836cdc4d-5585-4749-9cbf-ccf3bc668e2b",
+        "checkpointHash": "eca9fdf55218165c4f70008cf6e88f34b02f9e55851f9ce00f70850f82b6f605",
+        "stepOutcome": "complete"
+      },
+      {
+        "runId": "5633f6ea-00d4-40e7-96cc-2e1ef692f08e",
+        "goalId": "5680ab83-b836-48f4-942e-a013ea7c650f",
+        "stepId": "41bc97ec-a8d3-49bc-80a7-def48228daad",
+        "sequence": 5,
+        "planRevision": 1,
+        "triggerRunId": "356c81dd-a438-48ed-a17f-3e01baf01aea",
+        "status": "failed",
+        "baseCheckpointRunId": "d6e8eebf-312b-4c06-924e-c3d629a4eb9f",
+        "checkpointHash": null,
+        "stepOutcome": null
+      },
+      {
+        "runId": "6e1e217d-7e29-49fe-af48-08168df16163",
+        "goalId": "5680ab83-b836-48f4-942e-a013ea7c650f",
+        "stepId": "41bc97ec-a8d3-49bc-80a7-def48228daad",
+        "sequence": 6,
+        "planRevision": 1,
+        "triggerRunId": "ea9849c2-9bc3-4d5d-84fa-a64cbeb83417",
+        "status": "committed",
+        "baseCheckpointRunId": "d6e8eebf-312b-4c06-924e-c3d629a4eb9f",
+        "checkpointHash": "35be281e521d82fe8e35ab1b9de2d5b9780ccccc4fbcdac6f977bdcb8887db1a",
+        "stepOutcome": "complete"
+      },
+      {
+        "runId": "47578f92-749a-47ad-9c6c-c91072ad504c",
+        "goalId": "5680ab83-b836-48f4-942e-a013ea7c650f",
+        "stepId": "0a6f1d8d-1a72-4b9a-8bf6-c09f70ff1d7c",
+        "sequence": 7,
+        "planRevision": 1,
+        "triggerRunId": "35d239c8-c078-4f2a-aaea-a3b0298ba5f8",
+        "status": "committed",
+        "baseCheckpointRunId": "6e1e217d-7e29-49fe-af48-08168df16163",
+        "checkpointHash": "cca504c295d60f64a0e067189bce732098dc4d52684582cb6c2d2d1ec75b538d",
+        "stepOutcome": "complete"
+      },
+      {
+        "runId": "8422cb88-5d7e-4bab-b4fc-f3dc77932b2d",
+        "goalId": "5970a7ff-0d52-4551-bb1e-5be23aac881d",
+        "stepId": "085991d0-189c-46f6-a146-aa8f3b835229",
+        "sequence": 1,
+        "planRevision": 0,
+        "triggerRunId": "222435da-933c-4469-87a8-8d464b681b72",
+        "status": "committed",
+        "baseCheckpointRunId": null,
+        "checkpointHash": "2c32601e850ff28a846177f53e2954dcf8d13f185002871226ffb13b5057ec90",
+        "stepOutcome": "complete"
+      }
+    ],
+    "plans": [
+      {
+        "goalId": "5680ab83-b836-48f4-942e-a013ea7c650f",
+        "revision": 0,
+        "baseRevision": null,
+        "sourceRunId": "1d0f9e41-e54b-4d5f-a97f-768940c09a7b",
+        "approvedByRunId": null,
+        "hash": "d897050da939d05a1ab1d41615bf0ad9b28abdf0e93de97c76d8a85a645cb4e3",
+        "steps": 1
+      },
+      {
+        "goalId": "5680ab83-b836-48f4-942e-a013ea7c650f",
+        "revision": 1,
+        "baseRevision": 0,
+        "sourceRunId": "d6e8eebf-312b-4c06-924e-c3d629a4eb9f",
+        "approvedByRunId": "356c81dd-a438-48ed-a17f-3e01baf01aea",
+        "hash": "d83f46563476a0a3075f227a96d5048c256fd3ab39748031c48bc0e4a98e399b",
+        "steps": 2
+      },
+      {
+        "goalId": "5970a7ff-0d52-4551-bb1e-5be23aac881d",
+        "revision": 0,
+        "baseRevision": null,
+        "sourceRunId": "222435da-933c-4469-87a8-8d464b681b72",
+        "approvedByRunId": null,
+        "hash": "8ecc3fa55d17c8fe9ad7483d24fd0435b86c6c723eef4472ccfd1c4ef92220e5",
+        "steps": 1
+      }
+    ],
+    "integrity": [
+      {
+        "integrity_check": "ok"
+      }
+    ],
+    "foreignKeys": [],
+    "auditPassed": true
+  },
+  "automated": {
+    "tests": {
+      "windows": {
+        "total": 198,
+        "passed": 195,
+        "failed": 0,
+        "cancelled": 0,
+        "skipped": 3,
+        "durationMs": 17345.5045
+      },
+      "linux": {
+        "total": 198,
+        "passed": 198,
+        "failed": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "durationMs": 26176.027037
+      }
+    },
+    "commands": {
+      "typecheck": {
+        "windows": 0,
+        "linux": 0
+      },
+      "build": {
+        "windows": 0,
+        "linux": 0
+      },
+      "test": {
+        "windows": 0,
+        "linux": 0
+      },
+      "evalMemory": {
+        "windows": 0,
+        "linux": 0
+      },
+      "evalFormation": {
+        "windows": 0,
+        "linux": 0
+      }
+    },
+    "memory": {
+      "original": {
+        "answerable": 12,
+        "top1": 0.75,
+        "recall5": 0.75,
+        "mrr": 0.75,
+        "negativeCount": 4,
+        "insufficientEvidenceCorrect": 4,
+        "supportedCorrect": 9,
+        "falseSupportedNoAnswer": 0,
+        "supportedClaims": 9,
+        "correctSupportedClaims": 9,
+        "supportedRecordPrecision": 1,
+        "contextHitRate": 0.75,
+        "contextBytesMax": 1153,
+        "strictExpectedKeyContextPrecision": 0.6,
+        "latencyP50Ms": 16.66730000000001,
+        "latencyP95Ms": 22.57159999999999
+      },
+      "holdout": {
+        "answerable": 19,
+        "top1": 0.8947368421052632,
+        "recall5": 0.8947368421052632,
+        "mrr": 0.8947368421052632,
+        "negativeCount": 5,
+        "insufficientEvidenceCorrect": 5,
+        "supportedCorrect": 9,
+        "falseSupportedNoAnswer": 0,
+        "supportedClaims": 9,
+        "correctSupportedClaims": 9,
+        "supportedRecordPrecision": 1,
+        "contextHitRate": 0.8947368421052632,
+        "contextBytesMax": 1613,
+        "strictExpectedKeyContextPrecision": 0.4473684210526316,
+        "latencyP50Ms": 18.169500000000085,
+        "latencyP95Ms": 20.03489999999988
+      },
+      "evidenceHoldout": {
+        "answerable": 18,
+        "top1": 0.9444444444444444,
+        "recall5": 0.9444444444444444,
+        "mrr": 0.9444444444444444,
+        "negativeCount": 6,
+        "insufficientEvidenceCorrect": 6,
+        "supportedCorrect": 14,
+        "falseSupportedNoAnswer": 0,
+        "supportedClaims": 14,
+        "correctSupportedClaims": 14,
+        "supportedRecordPrecision": 1,
+        "contextHitRate": 0.9444444444444444,
+        "contextBytesMax": 1578,
+        "strictExpectedKeyContextPrecision": 0.3953488372093023,
+        "latencyP50Ms": 17.926500000000033,
+        "latencyP95Ms": 19.162199999999984
+      }
+    },
+    "formation": {
+      "windows": {
+        "windows": 30,
+        "passed": 30,
+        "validationPrecision": 1,
+        "fixtureRecall": 1,
+        "falseCandidateCount": 0,
+        "kindCorrect": 11,
+        "unauthorizedWrites": 0,
+        "calls": 20
+      },
+      "windowsHoldout": {
+        "windows": 30,
+        "passed": 30,
+        "validationPrecision": 1,
+        "fixtureRecall": 1,
+        "falseCandidateCount": 0,
+        "kindCorrect": 11,
+        "unauthorizedWrites": 0,
+        "calls": 20
+      },
+      "linux": {
+        "windows": 30,
+        "passed": 30,
+        "validationPrecision": 1,
+        "fixtureRecall": 1,
+        "falseCandidateCount": 0,
+        "kindCorrect": 11,
+        "unauthorizedWrites": 0,
+        "calls": 20
+      },
+      "linuxHoldout": {
+        "windows": 30,
+        "passed": 30,
+        "validationPrecision": 1,
+        "fixtureRecall": 1,
+        "falseCandidateCount": 0,
+        "kindCorrect": 11,
+        "unauthorizedWrites": 0,
+        "calls": 20
+      }
+    },
+    "limits": [
+      "Windows three original platform skips",
+      "native macOS and Windows ACL not verified",
+      "scripted model and transport for automated tests"
+    ]
+  },
+  "preservation": {
+    "formalEnvSha256": "70c687840e20b79f6f583a4eccadac6f7c7f15cb02a23e9a595a3366dea140b1",
+    "handoffSha256": "ae6feb3c57368cce9669920d04740555a6d0406f39cc10d53394723b3631c998",
+    "unchanged": true,
+    "paidProcessStopped": true,
+    "acceptanceLockExists": false,
+    "databaseLockExists": false,
+    "snapshotFiles": [
+      {
+        "path": "E:/AgentWork/acceptance/v3-goals-20261023/audit/stopped-final-agent.db",
+        "sha256": "2a97be36c1de7bf74d9ce331832b367f6b477f09c64285af31a1f3383ecd0776"
+      },
+      {
+        "path": "E:/AgentWork/acceptance/v3-goals-20261023/audit/stopped-final-agent.db-shm",
+        "sha256": "fd4c9fda9cd3f9ae7c962b0ddf37232294d55580e1aa165aa06129b8549389eb"
+      },
+      {
+        "path": "E:/AgentWork/acceptance/v3-goals-20261023/audit/stopped-final-agent.db-wal",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "E:/AgentWork/acceptance/v3-goals-20261023/audit/stopped-final-budget.json",
+        "sha256": "802b8ec6df7a75b0c849d3576552ef651501fe8f2d35bb30ba586e19ff27d094"
+      }
+    ]
+  },
+  "sources": {
+    "finalComparedFiles": 92,
+    "linuxMatchesFinal": true,
+    "finalHashes": {
+      "src/background-lane.ts": "4b5a14d6996a4dcb6e0d7ca34611c9b612d5b16a3ee8c96e29d42ee3d0467256",
+      "src/channel-router.ts": "1fd03cb9900563978db1f4ead2e569f4a8393f0a25a25258303eca8f118f77e1",
+      "src/config.ts": "ccb67a67c226cef244fd4d5d4e73e22a244f105f65137d57023134c60e0d549a",
+      "src/console-channel.ts": "44f5a85c3da3668fba592d15ca821fc9647bb478b791bf0b616585915c6098d6",
+      "src/contracts.ts": "dfa58b74227b5d0b768dbc531a5dda96074d3b55a90857965d66459a38cd93cc",
+      "src/feishu-channel.ts": "cc810afdd4474fb1362b93d9bd744f3e00f9cc6842796a8f78d27ff9a0b4dec4",
+      "src/feishu-transport.ts": "6817a40ae71876fb455571be108f7964126d0af2eed165d04a7d94ba8f2653b4",
+      "src/formation-service.ts": "5a7e198d234a4fbf18d3400cd796accf51d138d76625305bab2099c87999187a",
+      "src/formation-store.ts": "96a254c58de44ab637ccf10ca8886eba49d2e01c8e65a8ad0521739ba78302b3",
+      "src/formation-types.ts": "14a31928772be2ce01ca60c8b34c66555792f1d8d58e5e528653ca842a7e16a3",
+      "src/goal-runner.ts": "9c82ddd978d0af41f359a326dcf8dbcee9f06be6a27466c2ebcb3d7eca31e00d",
+      "src/goal-service.ts": "1d2a1d2546910127ed8f88eab0d6f4c9cbe142d31bc40b828a44c3b9d0d44a4b",
+      "src/goal-store.ts": "bb1854d1e20125b9a31525e0a0b9966f8b1311697e564e514b0779d64df81908",
+      "src/goal-tools.ts": "fca2d16ca582152e82f5146e5427b77291b15dceb5d57d4276d6872fc110a592",
+      "src/goal-types.ts": "4d7f67d8048c0b56f2d851e7e3c7f46fca542dfc450dba9cc6175e47dcaea400",
+      "src/main.ts": "5fbafb96692ef05dab57c7143d57249fbc798183ae82980828129c710e3b0d10",
+      "src/memory-retriever.ts": "ffa2cad1b2254b25510e463992998e69e8dc57d7f3a847dd0752744756d072f3",
+      "src/memory-service.ts": "65b4d1c35838661bb491c293c0abe5c1e27e607aa28b507728a3d21504cc6b0f",
+      "src/memory-tools.ts": "b27df66bf0ef4d333c4a822a4cdf78f1e73a946567187023a6ef343abf2efc62",
+      "src/operation-guard.ts": "ee008ee8601d3402f32784a50329507ae8f0778c2425df339c94de6dd2825e66",
+      "src/pi-executor.ts": "c22c1b97e01393f7342dd391029c2c2cacc9068f67b15c0721801f0d806f88cd",
+      "src/scheduler.ts": "1fa103748d5977eeeb51a28c1608f2355b5e463b95f8aa6a5997f5196751edce",
+      "src/sqlite-store.ts": "6470b06d2d3a3a4972dcd7e68ad538965e035a61369f43c7e626c22c8e8ef9cd",
+      "src/task-service.ts": "59854b71ed5ddfff1a1a3384a11e3878dac85b0b85ce9be90f6aee4878733e74",
+      "src/task-tools.ts": "9a1f8710563df587ca2f02385111edf8b86d120d7b8a1170cb73170095493bf9",
+      "src/time.ts": "733f13be44ae782caca141f0646c7c95137bd325232ca1fd9615830d7b303365",
+      "tests/authorization.test.ts": "fa3ce12fd3df73a65a76612857b18d11a421db19b8cd86a45235f033bdb6c908",
+      "tests/config.test.ts": "f623abc3f6914d9c7a0720c4209fb0677335ef770244431e082d0df021597e99",
+      "tests/feishu-channel.test.ts": "9f1138e928ba12114ce2c5e7346bf62031e42b6c425b3a7f16e90ad8eff0ad9f",
+      "tests/feishu-formation-acceptance.test.ts": "a8808a486b6f9be62aaa73dec2b0839ec3e0f530711c52c07e3cd45cb2fca1ea",
+      "tests/feishu-transport.test.ts": "35328ac420e00026461614f9dcf510d5b2bfa3e6373a543e7d7e7fae997fb5b8",
+      "tests/fixtures/memory-eval.json": "461074ccd3ce16657e37b5fdc9dac240d0cad8edc4a342c0f3f3aaf17c3c0483",
+      "tests/fixtures/memory-evidence-holdout.json": "f333908a776a1b9cd4186e5066829fed34150780646226b00bfd5f192a328dda",
+      "tests/fixtures/memory-formation-live.json": "1821183adcb908dd69e57d8785525671f37401c07f9a343ace1544e83dbe1403",
+      "tests/fixtures/memory-formation-revalidation.json": "fd98f8b9060ba7624801c5385d8550a07653c82cad23c8201026191960b9c105",
+      "tests/fixtures/memory-formation-windows.json": "49749896d5b524c12cbe45c37c5d075fc65349f499909a8256f6fe7c322335cf",
+      "tests/fixtures/memory-retrieval-development.json": "fbd84aa46803a2e1d1e70144f85780ec0e63c08bbac39377a0fff3f6ba774ca6",
+      "tests/fixtures/memory-retrieval-eval.json": "9f1f110f675695517bd9508656dd0c90083a34899ec9942e67c759632ec1fc7e",
+      "tests/fixtures/memory-retrieval-holdout.json": "96c50d46205a869f18a737d0659f57b088a47762241ba5a85d6a15e07fc14663",
+      "tests/fixtures/v3-goal-live-missing-fields-result.json": "a0f9c004a983ad39847994aef637606a4e2b5e944a8e91e856d33739820af9b1",
+      "tests/fixtures/v3-goal-live-step-id-result.json": "19cc4e7f53c86f0690f3b285c66f7fa074b3036cba6ccaf78c7667201eb0e802",
+      "tests/formation-evaluation.test.ts": "03621bc6501f3a9a87eb41c6e17cab3f231429de4389ef7fde1f55c5acb47f41",
+      "tests/formation-fixes.test.ts": "7ff47e44364400f5ad23720e64163e019b74992cb47b1de55ca2bc812f5a17cb",
+      "tests/formation-integration.test.ts": "fba788c4a251262f81cfb4a35994dc119aad3766dc896be72ff89253edc7462e",
+      "tests/formation-live-budget.test.ts": "0ab53fbcd41dc029713082c5b686e1fa73d4510a499b0f7bedf74adac2818f38",
+      "tests/formation-replay.test.ts": "f309158948a83ce47c98d6662a43bb47c7101169ba976115a0dd12119a49c343",
+      "tests/formation.test.ts": "7a5b5f3e6f6fa89f286672146cca677a2815e9ee6bf7a36fe738951eb6fea78e",
+      "tests/goal-audit.test.ts": "156a3d383ae0486b9372c4a58aa842064e3b7137be306c3f612a678633c1c19f",
+      "tests/goal-budget.test.ts": "6ef53f5a88b4a1ef968d9b599d8507f27a64e67003c71c45bdab0207a4a5b6d0",
+      "tests/goal-control.test.ts": "cbe1f9587ef97e20b55a94cecd738d17bc65d3c567ba3c93d2b05e2dd87be976",
+      "tests/goal-integration.test.ts": "6bff2cab2959e21c4713fecfb65154f822a3eda433aa3da01c8f7f8e5196388d",
+      "tests/goal-process.test.ts": "fb5a85d51268eb5aaf38be4b2cf427ad9895f8ccb9881385235f62f79a456fc0",
+      "tests/goal-runner.test.ts": "cfdbf226db10eb6ff2a021f1e3d75c4a9d269c130e0bb71659ef5fb3b3e3a66f",
+      "tests/goal-store.test.ts": "34bb3d9cba17ceae9090ef6aaa53f6a92fefcb4e9de306bf9db5110a431c8a98",
+      "tests/helpers/formation.ts": "e340741f33894bf3e53a168dc7bc1a50bc00830c3422290ac791f936e0979096",
+      "tests/helpers/intent-stub.ts": "56f4d77f9247431ad683bec5c3e75a272ed0397011d763b196847ac52e2019cb",
+      "tests/memory-acceptance.test.ts": "1f04d920d1e78c30f43b00068a9fedfc79e62eb26e61666fd4bc191e6a9bb215",
+      "tests/memory-closeout.test.ts": "8a6700a583d28c3f1349ab129b871e46066201dcf30e9976c0a4772b2f9bb0ac",
+      "tests/memory-evaluation.test.ts": "df9b44f10f12f9df60a6ce74ef31b49b952f1bfc35dc76b7b424e7a97806b801",
+      "tests/memory-evidence-integration.test.ts": "ef92b57ba240f26158df261422f6a8150ae6810036fd400d5c772ca97eb6b6e5",
+      "tests/memory-evidence.test.ts": "970b2205ddd312d472265b7eba89d0577c74e13f3d8e96dd6eb1042d9e6470e1",
+      "tests/memory-generation-budget.test.ts": "b0f6d9f09de501fa5316588339f54ffd88707bf3feba0ffb8826920866e5d2f3",
+      "tests/memory-integration.test.ts": "ee00d7102fa34fc2c05feaeb0072f5d48c8dbb5c9f5ddfdefba4a400703de9ad",
+      "tests/memory-retriever-integration.test.ts": "7f75a7fa2c4905985ea7e706e2d95c46e126252cb791e28e623d39cce8fa29eb",
+      "tests/memory-retriever.test.ts": "18cdb887707ab89d34570f4998589c197c4164e90cb1731d8d551af22981f8dd",
+      "tests/memory-service.test.ts": "065acc8e2a7f21dcac50a7d1c174c5c9d130a3d5ea5927ee13ed347e78af233d",
+      "tests/natural-language-integration.test.ts": "612134abc12a203d26554de13fe5eaf5525e4b9a02c1a1354e35451c3eebe977",
+      "tests/natural-language.test.ts": "c9840e971d351f3b7d7e1a29b4a75dccbbed0f4e8f26b2686b18e6f674912576",
+      "tests/pi-executor.test.ts": "b080e77b93725a2c729e929c58c567fa85e8112a797106e2e0022263e46b3f6d",
+      "tests/pi-integration.test.ts": "046ecf42fed492e2635ed13221e91b46a21eb48be44d2b698c17816e025c0a64",
+      "tests/scheduler.test.ts": "5f484a8a105f3dbd889b8e59aca6669a22ca9f4051d1ce8babb5c7099336249b",
+      "tests/service.test.ts": "d17486695fc50fa80bdb154ddf7127c5f974bc89aa8a874e45bcf1ed8ac28cfc",
+      "tests/session-persistence.test.ts": "4305d28c21b154a3079650c0cfa8d1624ffc43223c797704f634b5592d18ccd3",
+      "tests/task-service.test.ts": "967d8d29a93cca684b62a33ecc18fcb12048c9dc3e9f31974d68546f0c5938d2",
+      "tests/time.test.ts": "31b3ce87e3603c093e481b8baba946ce75c429aed6c86a0cea90b7b2c47d58be",
+      "scripts/audit-goals.ts": "21bed0690bd55f62becca985ce985a33647ed61cff928491e08e8c0e2df3a0dc",
+      "scripts/benchmark-memory.ts": "d661c0479c69ec96328a6c32e67e5b54b3ea276f224df60ae73971d63fb2720b",
+      "scripts/check-formation-live.ts": "1a24f46394f1db1295a0fc669bd3bd9f8a1fcb2fca9f1bc925a3e7854dbe0c69",
+      "scripts/check-memory-generation.ts": "e033089eec9472e2d043ee6da7501744924c8780e11b6ed69e6704a43f99f9d0",
+      "scripts/evaluate-formation.ts": "44db1933a1e64ea5f5c4621930f44a7f123ddc0d1ddd5e4c85aa466d6cca6281",
+      "scripts/evaluate-memory.ts": "91ebc4524e9cc35844e2f972169a3e3d6c0ce54586032c561fc562cdbb6cdef0",
+      "scripts/feishu-formation-acceptance.ts": "9e6b8121692f0da480577da125c86f3602106c7d0e69c19df71f78323b8f1f6b",
+      "scripts/formation-live-budget.ts": "2071dde3145d6b3505831fa3ffc45daa5bc69e801abe40d66dcd5430c1b41b7c",
+      "scripts/goal-feishu-acceptance.ts": "de4291ed696d0c48b50571625297e98bc247c611b813de861b93dff40103a8b8",
+      "scripts/replay-formation-live.ts": "cbb5f7171df34adbde2983819715fe8d3a203a39b296adadad3419c4abe22a78",
+      "scripts/replay-formation-revalidation.ts": "e0053588d98e42263b7cc5392813d878ab62a2980ddedabef16fda88da2d93d6",
+      "scripts/review-formation-live.ts": "9963a6ef108c90625db711bfbd3ef2a52891d482607d59ecb5dc1fb242d0695f",
+      "scripts/review-formation-revalidation.ts": "92acced0c4e8e1fef9fdc827fa13ce6174f4a2d3628a153fcbac5caf7f7bcd64",
+      "package.json": "804f0b5cff2d6deca0a73ed95b396704e66ffdea5072c6d84506694d61b061a6",
+      "package-lock.json": "583c37d94e5e5e23e8090c588e16f1d2768988bd1f6bd691ba4412f0b8b5d6c5",
+      "tsconfig.json": "f0852a9fdac08a3c14f7c9bf31533ad4da5dff9fff3d0c336680aedba604b781",
+      "tsconfig.test.json": "c62b377ed9917850947ba83c2a64ff6b6c7f2e042079766a8469ce36f954ab00"
+    },
+    "liveBeforeLastOfflinePauseFix": {
+      "src/background-lane.ts": "4b5a14d6996a4dcb6e0d7ca34611c9b612d5b16a3ee8c96e29d42ee3d0467256",
+      "src/channel-router.ts": "1fd03cb9900563978db1f4ead2e569f4a8393f0a25a25258303eca8f118f77e1",
+      "src/config.ts": "ccb67a67c226cef244fd4d5d4e73e22a244f105f65137d57023134c60e0d549a",
+      "src/console-channel.ts": "44f5a85c3da3668fba592d15ca821fc9647bb478b791bf0b616585915c6098d6",
+      "src/contracts.ts": "dfa58b74227b5d0b768dbc531a5dda96074d3b55a90857965d66459a38cd93cc",
+      "src/feishu-channel.ts": "cc810afdd4474fb1362b93d9bd744f3e00f9cc6842796a8f78d27ff9a0b4dec4",
+      "src/feishu-transport.ts": "6817a40ae71876fb455571be108f7964126d0af2eed165d04a7d94ba8f2653b4",
+      "src/formation-service.ts": "5a7e198d234a4fbf18d3400cd796accf51d138d76625305bab2099c87999187a",
+      "src/formation-store.ts": "96a254c58de44ab637ccf10ca8886eba49d2e01c8e65a8ad0521739ba78302b3",
+      "src/formation-types.ts": "14a31928772be2ce01ca60c8b34c66555792f1d8d58e5e528653ca842a7e16a3",
+      "src/goal-runner.ts": "9c82ddd978d0af41f359a326dcf8dbcee9f06be6a27466c2ebcb3d7eca31e00d",
+      "src/goal-service.ts": "1d2a1d2546910127ed8f88eab0d6f4c9cbe142d31bc40b828a44c3b9d0d44a4b",
+      "src/goal-store.ts": "bb1854d1e20125b9a31525e0a0b9966f8b1311697e564e514b0779d64df81908",
+      "src/goal-tools.ts": "fca2d16ca582152e82f5146e5427b77291b15dceb5d57d4276d6872fc110a592",
+      "src/goal-types.ts": "4d7f67d8048c0b56f2d851e7e3c7f46fca542dfc450dba9cc6175e47dcaea400",
+      "src/main.ts": "5fbafb96692ef05dab57c7143d57249fbc798183ae82980828129c710e3b0d10",
+      "src/memory-retriever.ts": "ffa2cad1b2254b25510e463992998e69e8dc57d7f3a847dd0752744756d072f3",
+      "src/memory-service.ts": "65b4d1c35838661bb491c293c0abe5c1e27e607aa28b507728a3d21504cc6b0f",
+      "src/memory-tools.ts": "b27df66bf0ef4d333c4a822a4cdf78f1e73a946567187023a6ef343abf2efc62",
+      "src/operation-guard.ts": "35d2449d39dd1aae3129f6ba8fd58ee303a322b8ca10a68fc3541600e65bd46e",
+      "src/pi-executor.ts": "c22c1b97e01393f7342dd391029c2c2cacc9068f67b15c0721801f0d806f88cd",
+      "src/scheduler.ts": "1fa103748d5977eeeb51a28c1608f2355b5e463b95f8aa6a5997f5196751edce",
+      "src/sqlite-store.ts": "6470b06d2d3a3a4972dcd7e68ad538965e035a61369f43c7e626c22c8e8ef9cd",
+      "src/task-service.ts": "59854b71ed5ddfff1a1a3384a11e3878dac85b0b85ce9be90f6aee4878733e74",
+      "src/task-tools.ts": "9a1f8710563df587ca2f02385111edf8b86d120d7b8a1170cb73170095493bf9",
+      "src/time.ts": "733f13be44ae782caca141f0646c7c95137bd325232ca1fd9615830d7b303365",
+      "tests/authorization.test.ts": "fa3ce12fd3df73a65a76612857b18d11a421db19b8cd86a45235f033bdb6c908",
+      "tests/config.test.ts": "f623abc3f6914d9c7a0720c4209fb0677335ef770244431e082d0df021597e99",
+      "tests/feishu-channel.test.ts": "9f1138e928ba12114ce2c5e7346bf62031e42b6c425b3a7f16e90ad8eff0ad9f",
+      "tests/feishu-formation-acceptance.test.ts": "a8808a486b6f9be62aaa73dec2b0839ec3e0f530711c52c07e3cd45cb2fca1ea",
+      "tests/feishu-transport.test.ts": "35328ac420e00026461614f9dcf510d5b2bfa3e6373a543e7d7e7fae997fb5b8",
+      "tests/fixtures/memory-eval.json": "461074ccd3ce16657e37b5fdc9dac240d0cad8edc4a342c0f3f3aaf17c3c0483",
+      "tests/fixtures/memory-evidence-holdout.json": "f333908a776a1b9cd4186e5066829fed34150780646226b00bfd5f192a328dda",
+      "tests/fixtures/memory-formation-live.json": "1821183adcb908dd69e57d8785525671f37401c07f9a343ace1544e83dbe1403",
+      "tests/fixtures/memory-formation-revalidation.json": "fd98f8b9060ba7624801c5385d8550a07653c82cad23c8201026191960b9c105",
+      "tests/fixtures/memory-formation-windows.json": "49749896d5b524c12cbe45c37c5d075fc65349f499909a8256f6fe7c322335cf",
+      "tests/fixtures/memory-retrieval-development.json": "fbd84aa46803a2e1d1e70144f85780ec0e63c08bbac39377a0fff3f6ba774ca6",
+      "tests/fixtures/memory-retrieval-eval.json": "9f1f110f675695517bd9508656dd0c90083a34899ec9942e67c759632ec1fc7e",
+      "tests/fixtures/memory-retrieval-holdout.json": "96c50d46205a869f18a737d0659f57b088a47762241ba5a85d6a15e07fc14663",
+      "tests/fixtures/v3-goal-live-missing-fields-result.json": "a0f9c004a983ad39847994aef637606a4e2b5e944a8e91e856d33739820af9b1",
+      "tests/fixtures/v3-goal-live-step-id-result.json": "19cc4e7f53c86f0690f3b285c66f7fa074b3036cba6ccaf78c7667201eb0e802",
+      "tests/formation-evaluation.test.ts": "03621bc6501f3a9a87eb41c6e17cab3f231429de4389ef7fde1f55c5acb47f41",
+      "tests/formation-fixes.test.ts": "7ff47e44364400f5ad23720e64163e019b74992cb47b1de55ca2bc812f5a17cb",
+      "tests/formation-integration.test.ts": "fba788c4a251262f81cfb4a35994dc119aad3766dc896be72ff89253edc7462e",
+      "tests/formation-live-budget.test.ts": "0ab53fbcd41dc029713082c5b686e1fa73d4510a499b0f7bedf74adac2818f38",
+      "tests/formation-replay.test.ts": "f309158948a83ce47c98d6662a43bb47c7101169ba976115a0dd12119a49c343",
+      "tests/formation.test.ts": "7a5b5f3e6f6fa89f286672146cca677a2815e9ee6bf7a36fe738951eb6fea78e",
+      "tests/goal-audit.test.ts": "156a3d383ae0486b9372c4a58aa842064e3b7137be306c3f612a678633c1c19f",
+      "tests/goal-budget.test.ts": "6ef53f5a88b4a1ef968d9b599d8507f27a64e67003c71c45bdab0207a4a5b6d0",
+      "tests/goal-control.test.ts": "2f18f962d4545b09b324cb627817cb04f1204019c84ffcf36f06974fd9f9ffc7",
+      "tests/goal-integration.test.ts": "6bff2cab2959e21c4713fecfb65154f822a3eda433aa3da01c8f7f8e5196388d",
+      "tests/goal-process.test.ts": "fb5a85d51268eb5aaf38be4b2cf427ad9895f8ccb9881385235f62f79a456fc0",
+      "tests/goal-runner.test.ts": "cfdbf226db10eb6ff2a021f1e3d75c4a9d269c130e0bb71659ef5fb3b3e3a66f",
+      "tests/goal-store.test.ts": "34bb3d9cba17ceae9090ef6aaa53f6a92fefcb4e9de306bf9db5110a431c8a98",
+      "tests/helpers/formation.ts": "e340741f33894bf3e53a168dc7bc1a50bc00830c3422290ac791f936e0979096",
+      "tests/helpers/intent-stub.ts": "56f4d77f9247431ad683bec5c3e75a272ed0397011d763b196847ac52e2019cb",
+      "tests/memory-acceptance.test.ts": "1f04d920d1e78c30f43b00068a9fedfc79e62eb26e61666fd4bc191e6a9bb215",
+      "tests/memory-closeout.test.ts": "8a6700a583d28c3f1349ab129b871e46066201dcf30e9976c0a4772b2f9bb0ac",
+      "tests/memory-evaluation.test.ts": "df9b44f10f12f9df60a6ce74ef31b49b952f1bfc35dc76b7b424e7a97806b801",
+      "tests/memory-evidence-integration.test.ts": "ef92b57ba240f26158df261422f6a8150ae6810036fd400d5c772ca97eb6b6e5",
+      "tests/memory-evidence.test.ts": "970b2205ddd312d472265b7eba89d0577c74e13f3d8e96dd6eb1042d9e6470e1",
+      "tests/memory-generation-budget.test.ts": "b0f6d9f09de501fa5316588339f54ffd88707bf3feba0ffb8826920866e5d2f3",
+      "tests/memory-integration.test.ts": "ee00d7102fa34fc2c05feaeb0072f5d48c8dbb5c9f5ddfdefba4a400703de9ad",
+      "tests/memory-retriever-integration.test.ts": "7f75a7fa2c4905985ea7e706e2d95c46e126252cb791e28e623d39cce8fa29eb",
+      "tests/memory-retriever.test.ts": "18cdb887707ab89d34570f4998589c197c4164e90cb1731d8d551af22981f8dd",
+      "tests/memory-service.test.ts": "065acc8e2a7f21dcac50a7d1c174c5c9d130a3d5ea5927ee13ed347e78af233d",
+      "tests/natural-language-integration.test.ts": "612134abc12a203d26554de13fe5eaf5525e4b9a02c1a1354e35451c3eebe977",
+      "tests/natural-language.test.ts": "c9840e971d351f3b7d7e1a29b4a75dccbbed0f4e8f26b2686b18e6f674912576",
+      "tests/pi-executor.test.ts": "b080e77b93725a2c729e929c58c567fa85e8112a797106e2e0022263e46b3f6d",
+      "tests/pi-integration.test.ts": "046ecf42fed492e2635ed13221e91b46a21eb48be44d2b698c17816e025c0a64",
+      "tests/scheduler.test.ts": "5f484a8a105f3dbd889b8e59aca6669a22ca9f4051d1ce8babb5c7099336249b",
+      "tests/service.test.ts": "d17486695fc50fa80bdb154ddf7127c5f974bc89aa8a874e45bcf1ed8ac28cfc",
+      "tests/session-persistence.test.ts": "4305d28c21b154a3079650c0cfa8d1624ffc43223c797704f634b5592d18ccd3",
+      "tests/task-service.test.ts": "967d8d29a93cca684b62a33ecc18fcb12048c9dc3e9f31974d68546f0c5938d2",
+      "tests/time.test.ts": "31b3ce87e3603c093e481b8baba946ce75c429aed6c86a0cea90b7b2c47d58be",
+      "scripts/audit-goals.ts": "21bed0690bd55f62becca985ce985a33647ed61cff928491e08e8c0e2df3a0dc",
+      "scripts/benchmark-memory.ts": "d661c0479c69ec96328a6c32e67e5b54b3ea276f224df60ae73971d63fb2720b",
+      "scripts/check-formation-live.ts": "1a24f46394f1db1295a0fc669bd3bd9f8a1fcb2fca9f1bc925a3e7854dbe0c69",
+      "scripts/check-memory-generation.ts": "e033089eec9472e2d043ee6da7501744924c8780e11b6ed69e6704a43f99f9d0",
+      "scripts/evaluate-formation.ts": "44db1933a1e64ea5f5c4621930f44a7f123ddc0d1ddd5e4c85aa466d6cca6281",
+      "scripts/evaluate-memory.ts": "91ebc4524e9cc35844e2f972169a3e3d6c0ce54586032c561fc562cdbb6cdef0",
+      "scripts/feishu-formation-acceptance.ts": "9e6b8121692f0da480577da125c86f3602106c7d0e69c19df71f78323b8f1f6b",
+      "scripts/formation-live-budget.ts": "2071dde3145d6b3505831fa3ffc45daa5bc69e801abe40d66dcd5430c1b41b7c",
+      "scripts/goal-feishu-acceptance.ts": "de4291ed696d0c48b50571625297e98bc247c611b813de861b93dff40103a8b8",
+      "scripts/replay-formation-live.ts": "cbb5f7171df34adbde2983819715fe8d3a203a39b296adadad3419c4abe22a78",
+      "scripts/replay-formation-revalidation.ts": "e0053588d98e42263b7cc5392813d878ab62a2980ddedabef16fda88da2d93d6",
+      "scripts/review-formation-live.ts": "9963a6ef108c90625db711bfbd3ef2a52891d482607d59ecb5dc1fb242d0695f",
+      "scripts/review-formation-revalidation.ts": "92acced0c4e8e1fef9fdc827fa13ce6174f4a2d3628a153fcbac5caf7f7bcd64",
+      "package.json": "804f0b5cff2d6deca0a73ed95b396704e66ffdea5072c6d84506694d61b061a6",
+      "package-lock.json": "583c37d94e5e5e23e8090c588e16f1d2768988bd1f6bd691ba4412f0b8b5d6c5",
+      "tsconfig.json": "f0852a9fdac08a3c14f7c9bf31533ad4da5dff9fff3d0c336680aedba604b781",
+      "tsconfig.test.json": "c62b377ed9917850947ba83c2a64ff6b6c7f2e042079766a8469ce36f954ab00"
+    },
+    "note": "final operation-guard and its tests changed after request48, only offline tested; earlier prompt/recorder fixes are described by request phase in Markdown"
+  },
+  "evidence": {
+    "root": "E:/AgentWork/acceptance/v3-goals-20261023",
+    "validationRoot": "E:/AgentWork/validation/personal-agent-v3-batch5-20261023",
+    "finalLogs": {
+      "delivery-checks.json": "317e7ad851bc952823910941eff434e49af8d84539a9d6e91d0d5c0c188f99ca",
+      "linux-build.log": "30760990998950e1eafcc0f67c5f05db68d7cdff6124e624ed2b53804c421cd6",
+      "linux-eval-formation.json": "305e10b27a272b12d87e80a8dc4c07b548eb2987daf63669d6b40c73eee66ac5",
+      "linux-eval-formation.log": "432fa17858dda1f2221483ce890b9c294eb4d6a406c58f7a54800fae0dc414ca",
+      "linux-eval-memory.log": "0f68d95a3921b451f2257f8f0a0368e3526bfcd2bd9f45c3a999fea4ba01bf82",
+      "linux-exitcodes.json": "0465c5dfd8599eeb66608f06611403e95aef7f77838e0bc0cbe1c552702c89a6",
+      "linux-test.log": "e464fa43f02d687398435bfacdc9be14ca440fa6611434ad58d6bb0bc557f628",
+      "linux-typecheck.log": "74c2686ec5fb9e7a7767eeed52bec6570c232765b21ee68a7733d6b9a8267ff3",
+      "pause47-final.log": "db535ba1d4785383f783f5e34d4b17943e9baf72928145b37b3961f558b57a88",
+      "source-hashes.json": "3ea3fa80615dbe6724c166fd9e7aba87250dcbf35612e230c228add22f6468e8",
+      "windows-build.log": "fdc16e80a5b96fbee30cf5babf5c8d35e7435b7643f31a1b1a46499536d16d92",
+      "windows-eval-formation.json": "faccdd639513eec97ba32f036741ec1ab07d74227a53157e28fc52fa1a1aac97",
+      "windows-eval-formation.log": "8f8c30604782b417f9170a263449a408f9cdde970eaa57c920b6568d65e6fd09",
+      "windows-eval-memory.log": "2c1d44aa03c9ac649a9adcd104062d7cfb3fa99c0fa0d2f4a58984e24a275212",
+      "windows-exitcodes.json": "80cf81fad5487886c82af9b131c319a2535a251c1875ac291088bb53dd0d500d",
+      "windows-test.log": "0c0c1acc0915f6a1b2329d026df815cbcbffaa290649614f7513c8890c0b9cd9",
+      "windows-typecheck.log": "699652f8619ee52da14fb0d84af7969b326299e4b49f523e93030f3cde58fc08"
+    },
+    "rawResponses": [
+      {
+        "request": 1,
+        "file": "E:/AgentWork/acceptance/v3-goals-20261023/response-01.txt",
+        "sha256": "7518616504048795656a24d387cb36746716224faf28b99ca28256513f2f11ca",
+        "bytes": 2544,
+        "hasDoneMarker": true
+      },
+      {
+        "request": 2,
+        "file": "E:/AgentWork/acceptance/v3-goals-20261023/response-02.txt",
+        "sha256": "550ebc501430c592c133c935c308800d157a7d18810a699def36eb353092dd52",
+        "bytes": 33386,
+        "hasDoneMarker": true
+      },
+      {
+        "request": 3,
+        "file": "E:/AgentWork/acceptance/v3-goals-20261023/response-03.txt",
+        "sha256": "b79b5e0c550478422da45c708616f76a58b92cfecc45f705e8e47c67769e9ca8",
+        "bytes": 61708,
+        "hasDoneMarker": true
+      },
+      {
+        "request": 4,
+        "file": "E:/AgentWork/acceptance/v3-goals-20261023/response-04.txt",
+        "sha256": "088cdc512299d16578441ef9dd2e2abdd1aa6a53154ab9644877296998853897",
+        "bytes": 2569,
+        "hasDoneMarker": true
+      },
+      {
+        "request": 5,
+        "file": "E:/AgentWork/acceptance/v3-goals-20261023/response-05.txt",
+        "sha256": "b0c5ca5b423bbcdb89e513050077c949cb4289991d22a7742706c77a2850c107",
+        "bytes": 38414,
+        "hasDoneMarker": true
+      },
+      {
+        "request": 6,
+        "file": "E:/AgentWork/acceptance/v3-goals-20261023/response-06.txt",
+        "sha256": "61d3dec925a38e03ea6f463752cc68d58a2ab098a58444c950085e1736d45193",
+        "bytes": 75960,
+        "hasDoneMarker": true
+      },
+      {
+        "request": 7,
+        "file": "E:/AgentWork/acceptance/v3-goals-20261023/response-07.txt",
+        "sha256": "6a4d91603a35897c199ddfcaabad0b824af79cf2ed90f7a82e887bdf7e559fd5",
+        "bytes": 171565,
+        "hasDoneMarker": true
+      },
+      {
+        "request": 8,
+        "file": "E:/AgentWork/acceptance/v3-goals-20261023/response-08.txt",
+        "sha256": "b4d35eb436cfd54946c9c50b835e8bd57dc9651d042b09f101f80dc207c07f9c",
+        "bytes": 2569,
+        "hasDoneMarker": true
+      },
+      {
+        "request": 9,
+        "file": "E:/AgentWork/acceptance/v3-goals-20261023/response-09.txt",
+        "sha256": "0be68213c03bd933056712d27fdc312ebdaedcb7f225f741c0abf5c7bdd106e9",
+        "bytes": 51282,
+        "hasDoneMarker": true
+      },
+      {
+        "request": 10,
+        "file": "E:/AgentWork/acceptance/v3-goals-20261023/response-10.txt",
+        "sha256": "54a4768290d7879ef6b28bc10750c5906688ff60d745bbd3bba7fc4026cc256c",
+        "bytes": 2569,
+        "hasDoneMarker": true
+      },
+      {
+        "request": 11,
+        "file": "E:/AgentWork/acceptance/v3-goals-20261023/response-11.txt",
+        "sha256": "68ff5b4ad0238fffb32d64e1ea2faf6604d0877a48371554c93deb996e7bc25a",
+        "bytes": 141867,
+        "hasDoneMarker": true
+      },
+      {
+        "request": 12,
+        "file": "E:/AgentWork/acceptance/v3-goals-20261023/response-12.txt",
+        "sha256": "3db7b7ead13df20b14d7110b0d72be30e4542874e5974401d8d260436c0c4a25",
+        "bytes": 2544,
+        "hasDoneMarker": true
+      },
+      {
+        "request": 13,
+        "file": "E:/AgentWork/acceptance/v3-goals-20261023/response-13.txt",
+        "sha256": "c052fef95ebc0824994c91c2aada2a5982fea4af0785efc5e78497f459a163d1",
+        "bytes": 104111,
+        "hasDoneMarker": true
+      },
+      {
+        "request": 14,
+        "file": "E:/AgentWork/acceptance/v3-goals-20261023/response-14.txt",
+        "sha256": "6ccde3edbcd181d3447513101c56e89831581149b93ad9eb49f2a3a70bdaeb8a",
+        "bytes": 127798,
+        "hasDoneMarker": true
+      },
+      {
+        "request": 15,
+        "file": "E:/AgentWork/acceptance/v3-goals-20261023/response-15.txt",
+        "sha256": "4b6b28224d98c411da2cf2a8d622c00056d868fb08eb300a41b254fbd20b2da1",
+        "bytes": 2569,
+        "hasDoneMarker": true
+      },
+      {
+        "request": 16,
+        "file": "E:/AgentWork/acceptance/v3-goals-20261023/response-16.txt",
+        "sha256": "35ceec93d6e76681e04a8db6a35d6d04b74b97577236bf999e33f10b1221bc71",
+        "bytes": 38562,
+        "hasDoneMarker": true
+      },
+      {
+        "request": 17,
+        "file": "E:/AgentWork/acceptance/v3-goals-20261023/response-17.txt",
+        "sha256": "49d287b36e226ea18616a219bb1b8849e21f7b98180df7adc03e37ea3117cfbc",
+        "bytes": 113465,
+        "hasDoneMarker": true
+      },
+      {
+        "request": 18,
+        "file": "E:/AgentWork/acceptance/v3-goals-20261023/response-18.txt",
+        "sha256": "3b42af3ce3215792cebd8bb875a72d0fa8d6f60b6abb9f5bb39661e0f79e341c",
+        "bytes": 262080,
+        "hasDoneMarker": false
+      },
+      {
+        "request": 19,
+        "file": "E:/AgentWork/acceptance/v3-goals-20261023/response-19.txt",
+        "sha256": "e6cb69fa5a42b775754c5bbfd08a0b1b592f61091733606c73fa7fb7b9473a20",
+        "bytes": 2569,
+        "hasDoneMarker": true
+      },
+      {
+        "request": 20,
+        "file": "E:/AgentWork/acceptance/v3-goals-20261023/response-20.txt",
+        "sha256": "6d6d20c6f347d6dc12b6a22fdce8969affdb13cac4247c0988c8b14a982837c1",
+        "bytes": 61202,
+        "hasDoneMarker": true
+      },
+      {
+        "request": 21,
+        "file": "E:/AgentWork/acceptance/v3-goals-20261023/response-21.txt",
+        "sha256": "015b3eb649926a70ef1d292fb3caaa4ce61269c1e5acfe819fb40ea289cfaf23",
+        "bytes": 65000,
+        "hasDoneMarker": true
+      },
+      {
+        "request": 22,
+        "file": "E:/AgentWork/acceptance/v3-goals-20261023/response-22.txt",
+        "sha256": "53b76bc426a6b4d87d2abd4a40db6d424ee8cf27cedb3abc166567fe696997cd",
+        "bytes": 310368,
+        "hasDoneMarker": true
+      },
+      {
+        "request": 23,
+        "file": "E:/AgentWork/acceptance/v3-goals-20261023/response-23.txt",
+        "sha256": "53fd04a40172dca67a14643306f8677addf0e6053f518e9613f76b62e5116f7d",
+        "bytes": 2569,
+        "hasDoneMarker": true
+      },
+      {
+        "request": 24,
+        "file": "E:/AgentWork/acceptance/v3-goals-20261023/response-24.txt",
+        "sha256": "8cb945d54120044f85231fe48df5d12aba3694ed5a43cddf2364e554fd323aa6",
+        "bytes": 58846,
+        "hasDoneMarker": true
+      },
+      {
+        "request": 25,
+        "file": "E:/AgentWork/acceptance/v3-goals-20261023/response-25.txt",
+        "sha256": "1bb80aa821c2f08cb9e7c920cb00fd969c7a8614c04e5cecb93a4f01a6d4dddf",
+        "bytes": 63709,
+        "hasDoneMarker": true
+      },
+      {
+        "request": 26,
+        "file": "E:/AgentWork/acceptance/v3-goals-20261023/response-26.txt",
+        "sha256": "22a77d451f848090bfc65e42ed6f22c75646844e54e48f18aefe93647942eb17",
+        "bytes": 230174,
+        "hasDoneMarker": true
+      },
+      {
+        "request": 27,
+        "file": "E:/AgentWork/acceptance/v3-goals-20261023/response-27.txt",
+        "sha256": "9fd70a729fae984133235ffbd119625b395cd139de5cabce7a3d6432783dd81a",
+        "bytes": 2569,
+        "hasDoneMarker": true
+      },
+      {
+        "request": 28,
+        "file": "E:/AgentWork/acceptance/v3-goals-20261023/response-28.txt",
+        "sha256": "e780dae33d182ad6554a9fcc841723c1ab8c72b3e40c6589ac6d8b136a2c60d8",
+        "bytes": 27250,
+        "hasDoneMarker": true
+      },
+      {
+        "request": 29,
+        "file": "E:/AgentWork/acceptance/v3-goals-20261023/response-29.txt",
+        "sha256": "5aa07208ea2609a26722460393e55f977d449b477dfb687e0402e27f8917b7e6",
+        "bytes": 187163,
+        "hasDoneMarker": true
+      },
+      {
+        "request": 30,
+        "file": "E:/AgentWork/acceptance/v3-goals-20261023/response-30.txt",
+        "sha256": "981f9b1837e9cbd7dc72e2950813f2f464b7bae0ef7874822b1c2475bb0d2206",
+        "bytes": 118243,
+        "hasDoneMarker": true
+      },
+      {
+        "request": 31,
+        "file": "E:/AgentWork/acceptance/v3-goals-20261023/response-31.txt",
+        "sha256": "e48da3b88651fe4fefbe9e72c1de5e2abea6918eb352119d82af1ddad1a5dc3d",
+        "bytes": 2569,
+        "hasDoneMarker": true
+      },
+      {
+        "request": 32,
+        "file": "E:/AgentWork/acceptance/v3-goals-20261023/response-32.txt",
+        "sha256": "10e6164fbad148aa7d8a7547e76ab075301459acb7bbf1804d825523f697c8e2",
+        "bytes": 36196,
+        "hasDoneMarker": true
+      },
+      {
+        "request": 33,
+        "file": "E:/AgentWork/acceptance/v3-goals-20261023/response-33.txt",
+        "sha256": "9d13196c950d979838bb1922335d21df216754521d53d00e93c5ecf1f635fec7",
+        "bytes": 159484,
+        "hasDoneMarker": true
+      },
+      {
+        "request": 34,
+        "file": "E:/AgentWork/acceptance/v3-goals-20261023/response-34.txt",
+        "sha256": "3eaecf70c8447533cbb20ea79daf599830761926deb320f6e1cce6f925f14769",
+        "bytes": 171928,
+        "hasDoneMarker": true
+      },
+      {
+        "request": 35,
+        "file": "E:/AgentWork/acceptance/v3-goals-20261023/response-35.txt",
+        "sha256": "0d829fa6b7c0047dc9f4ea695268f5786c67d84b35b8cdc06f1e76e38212ce11",
+        "bytes": 2569,
+        "hasDoneMarker": true
+      },
+      {
+        "request": 36,
+        "file": "E:/AgentWork/acceptance/v3-goals-20261023/response-36.txt",
+        "sha256": "3f62b6fe70c5c79926d6d97acc5ac814d0c1c1654b2bb387c858bd1990f0662a",
+        "bytes": 20682,
+        "hasDoneMarker": true
+      },
+      {
+        "request": 37,
+        "file": "E:/AgentWork/acceptance/v3-goals-20261023/response-37.txt",
+        "sha256": "a66e93d3e0a5933538e9a8f276fa80f9f9c3af3fd05a49e55a987e26ddb5ccc6",
+        "bytes": 88333,
+        "hasDoneMarker": true
+      },
+      {
+        "request": 38,
+        "file": "E:/AgentWork/acceptance/v3-goals-20261023/response-38.txt",
+        "sha256": "5d773db4486d89b8cc9ca3e2d3a54c5ecb2f881f52f739606366b50886baaba0",
+        "bytes": 184764,
+        "hasDoneMarker": true
+      },
+      {
+        "request": 39,
+        "file": "E:/AgentWork/acceptance/v3-goals-20261023/response-39.txt",
+        "sha256": "ce95bdd60ba472d1423fb0031a46da7655f96f43092c0fbb555f10c036fdd041",
+        "bytes": 2569,
+        "hasDoneMarker": true
+      },
+      {
+        "request": 40,
+        "file": "E:/AgentWork/acceptance/v3-goals-20261023/response-40.txt",
+        "sha256": "82d393cde831bdaefcbb598d7b2aa3a1ea26aa43e242ca46bdd5d56d7d2b6452",
+        "bytes": 20207,
+        "hasDoneMarker": true
+      },
+      {
+        "request": 41,
+        "file": "E:/AgentWork/acceptance/v3-goals-20261023/response-41.txt",
+        "sha256": "7e35227e717a23e5f272504b0395ce6ed603e185d03776d0a4280827b9fc31f8",
+        "bytes": 59977,
+        "hasDoneMarker": true
+      },
+      {
+        "request": 42,
+        "file": "E:/AgentWork/acceptance/v3-goals-20261023/response-42.txt",
+        "sha256": "fa4c1618eef029c72c1986745d9d12421eb717964323720ae753ca60789181e9",
+        "bytes": 2569,
+        "hasDoneMarker": true
+      },
+      {
+        "request": 43,
+        "file": "E:/AgentWork/acceptance/v3-goals-20261023/response-43.txt",
+        "sha256": "8010753f71ab278308053744cf196fc766d1036fa5ae50233776c297ffe72bfc",
+        "bytes": 33201,
+        "hasDoneMarker": true
+      },
+      {
+        "request": 44,
+        "file": "E:/AgentWork/acceptance/v3-goals-20261023/response-44.txt",
+        "sha256": "e7e6244e5197eb948341ee9aa92fb06059056827ea5592da7f6877688d0502a1",
+        "bytes": 52654,
+        "hasDoneMarker": true
+      },
+      {
+        "request": 45,
+        "file": "E:/AgentWork/acceptance/v3-goals-20261023/response-45.txt",
+        "sha256": "2c8812883cec3e08cbc3863a04e0a8b3bc0ca85e7c86258f51c36bcba2638641",
+        "bytes": 224822,
+        "hasDoneMarker": true
+      },
+      {
+        "request": 46,
+        "file": "E:/AgentWork/acceptance/v3-goals-20261023/response-46.txt",
+        "sha256": "7c405c15b3a4791153c0dfa01f1761541864e165ad1e89f3f476394c14cc60e7",
+        "bytes": 2569,
+        "hasDoneMarker": true
+      },
+      {
+        "request": 47,
+        "file": "E:/AgentWork/acceptance/v3-goals-20261023/response-47.txt",
+        "sha256": "36497b5c1c5ba63ee8e1430949b4f770209c9e0e8d9a49ea7d013d022c2a25bb",
+        "bytes": 18798,
+        "hasDoneMarker": true
+      },
+      {
+        "request": 48,
+        "file": "E:/AgentWork/acceptance/v3-goals-20261023/response-48.txt",
+        "sha256": "91a12b5d3a95e9c495347b57bb884bc56c211b0de05883a1732977ce1bbcf409",
+        "bytes": 25655,
+        "hasDoneMarker": true
+      }
+    ],
+    "expectations": {
+      "path": "E:/AgentWork/validation/personal-agent-v3-batch5-20261023/live-expectations.json",
+      "sha256": "fa7169fa6dc4b903efc6bc74f4ac1fb7fd5553a0d90ca86ea28f2b70b89482ba"
+    },
+    "failureLogs": {
+      "m01-replay-before.log": "fbcdb395d57d1c154af1b56ebe11466b5e9a4a0d409bdc2ee7fdc3f26573d0b8",
+      "m01-replay-after.log": "d766c97a3b8a3f0b3d564923b3a2c5ff0c83bfe3a058c562ba77c75aa2084aef",
+      "pause47-before.log": "ffaa60ecfe74b37206b538590efe1bd728b7d203a3419582426395a73e4b80ed",
+      "pause47-after.log": "684e7f74a6f9f915ec3e70c000e7b23f85c1ad074f87e1758e31444ca5d5a6e0"
+    }
+  }
+}

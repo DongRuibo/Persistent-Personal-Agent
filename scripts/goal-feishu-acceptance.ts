@@ -9,7 +9,7 @@ import { recordAcceptanceResponse } from './feishu-formation-acceptance.js';
 interface Attempt { bytes: number; outputLimit: number; reservedMicroCny: number; at: string; status?: number }
 interface Ledger { version: 1; identity: string; inputRate: number; outputRate: number; attempts: Attempt[] }
 
-// Batch5待批准方案：全进程48请求/5元先到即止；失败和未知用量不退额度。
+// Batch5已授权上限：全进程48请求/5元先到即止；失败和未知用量不退额度。
 export class GoalAcceptanceBudget {
   constructor(readonly ledger: Ledger) {
     if (ledger.version !== 1 || !Number.isFinite(ledger.inputRate) || !Number.isFinite(ledger.outputRate)
@@ -31,7 +31,8 @@ export class GoalAcceptanceBudget {
 async function start() {
   const args = process.argv.slice(2), rootArg = args.find(arg => arg.startsWith('--root='))?.slice(7);
   if (!args.includes('--authorized') || !rootArg || !isAbsolute(rootArg)
-    || args.some(arg => !['--authorized', '--resume', '--fresh-session'].includes(arg) && !arg.startsWith('--root='))) throw new Error('仅另行授权后使用 --authorized --root=<新的隔离绝对路径>；本次默认不联网');
+    || args.some(arg => !['--authorized', '--resume', '--fresh-session', '--model-only'].includes(arg) && !arg.startsWith('--root='))) throw new Error('仅另行授权后使用 --authorized --root=<新的隔离绝对路径>；本次默认不联网');
+  const modelOnly = args.includes('--model-only');
   const root = resolve(rootArg), budgetFile = join(root, 'budget.json');
   if (args.includes('--fresh-session') && !args.includes('--resume')) throw new Error('新Session必须续用原账本');
   if (args.includes('--resume') ? !fs.existsSync(budgetFile) : fs.existsSync(root)) throw new Error('新轮必须用新目录，续测必须保留账本');
@@ -60,17 +61,18 @@ async function start() {
       const sequence = ledger.attempts.length;
       console.log(`Goal验收请求${sequence}/48，累计保守预留${(budget.reserved / 1e6).toFixed(6)}/5元`);
       const response = await original(input, { ...init, redirect: 'error' }); attempt.status = response.status; persist();
-      return recordAcceptanceResponse(response, join(root, `response-${String(sequence).padStart(2, '0')}.txt`), redact);
+      // Goal输出至多4096Token；供应商逐片附usage时原始SSE远大于正文，独立放宽至4MiB。
+      return recordAcceptanceResponse(response, join(root, `response-${String(sequence).padStart(2, '0')}.txt`), redact, 4194304);
     } catch (error) { setImmediate(() => process.emit('SIGTERM')); throw error; }
   };
   Object.assign(process.env, { DATABASE_PATH: join(root, 'agent.db'), MEMORY_DIR: join(root, 'memory'),
-    SESSION_DIR: join(root, args.includes('--fresh-session') ? 'sessions-fresh' : 'sessions'), MEMORY_FORMATION_ENABLED: 'false', MEMORY_QUERY_REWRITE: 'false' });
+    SESSION_DIR: join(root, args.includes('--fresh-session') ? 'sessions-fresh' : 'sessions'), GOAL_ENABLED: 'true', MEMORY_FORMATION_ENABLED: 'false', MEMORY_QUERY_REWRITE: 'false' });
   const controls = createInterface({ input: process.stdin });
   controls.on('line', line => { if (line.trim() === '/stop') process.emit('SIGTERM'); });
   process.once('SIGTERM', () => controls.close()); process.once('SIGINT', () => controls.close());
   setInterval(() => { if (process.exitCode) controls.close(); }, 1000).unref();
-  console.log(`隔离Goal验收：${root}；输入/stop停止；Formation关闭`);
-  process.argv = [process.argv[0]!, resolve('src/main.ts'), '--feishu']; await import('../src/main.js');
+  console.log(`隔离Goal验收：${root}；模式=${modelOnly ? '真实模型/Console，沿用48请求累计上限' : '真实手机/Feishu'}；输入/stop停止；Goal开启，Formation关闭`);
+  process.argv = [process.argv[0]!, resolve('src/main.ts'), ...(modelOnly ? [] : ['--feishu'])]; await import('../src/main.js');
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) void start().catch(error => {

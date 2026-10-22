@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
@@ -42,6 +42,38 @@ test('Runner 一次授权只执行一段；等用户、投递失败和重复 tic
     assert.equal(view.executions[0]?.execution.status, 'committed'); assert.equal(f.calls, 1);
     f.store.deliveryFailed(view.executions[0]!.run.id, '模拟通知丢失');
     await f.runner.tick(); assert.equal(f.calls, 1); assert.equal(f.messages.length, 1);
+  } finally { await f.close(); }
+});
+
+test('真实结果22/30回放：自编Step ID或缺必填字段均不提交，保留旧Checkpoint；新步骤ID由宿主生成', async () => {
+  const raw = readFileSync(new URL('./fixtures/v3-goal-live-step-id-result.json', import.meta.url), 'utf8');
+  let text = JSON.stringify({ ...result, stepOutcome: 'partial', proposedPlan: undefined });
+  const f = fixture(async () => ({ text }));
+  const authorize = (regenerate = false) => {
+    const goal = f.store.goals.get(actor, f.goal.id);
+    f.store.goals.continue({ actor, sourceRunId: f.store.beginRun(null, now).id, expectedRevision: goal.revision,
+      text: regenerate ? '重新生成纯文本片段' : '继续一段' }, goal.id, now, regenerate);
+  };
+  try {
+    await f.runner.tick(); const checkpoint = f.store.goals.get(actor, f.goal.id).checkpointRunId;
+    text = raw; authorize(); await f.runner.tick(); await f.runner.tick();
+    let view = f.store.goals.view(actor, f.goal.id);
+    assert.equal(view.goal.status, 'blocked'); assert.equal(view.goal.checkpointRunId, checkpoint);
+    assert.equal(view.goal.pendingAction, null); assert.equal(view.executions[1]?.execution.status, 'failed');
+    assert.equal(f.calls, 2);
+    text = readFileSync(new URL('./fixtures/v3-goal-live-missing-fields-result.json', import.meta.url), 'utf8');
+    authorize(true); await f.runner.tick();
+    view = f.store.goals.view(actor, f.goal.id);
+    assert.equal(view.goal.status, 'blocked'); assert.equal(view.goal.checkpointRunId, checkpoint);
+    assert.match(view.executions[2]!.run.error!, /Schema/); assert.equal(f.calls, 3);
+    // 仅离线构造符合契约的对照，不修改原真实响应，也不把它当真实模型复验。
+    const corrected = JSON.parse(raw) as GoalResult;
+    for (const step of corrected.proposedPlan!.steps) delete step.stepId;
+    text = JSON.stringify(corrected); authorize(true); await f.runner.tick();
+    view = f.store.goals.view(actor, f.goal.id);
+    assert.equal(view.goal.status, 'waiting_user'); assert.equal(view.checkpoint?.previousCheckpointRunId, checkpoint);
+    assert.equal(view.goal.pendingAction?.spec.steps.length, 2);
+    assert.ok(view.goal.pendingAction?.spec.steps.every(step => /^[0-9a-f-]{36}$/u.test(step.stepId)));
   } finally { await f.close(); }
 });
 
@@ -126,7 +158,7 @@ test('后台门：旧Task优先、Goal等待前台、执行互斥；stop等待�
 
 test('真实Pi SDK+模拟模型：Goal无工具、只读Memory、独立新Session和settled；等待重开库不调用模型', async (t) => {
   const root = mkdtempSync(join(tmpdir(), 'goal-pi-'));
-  const config = readConfig({ DATABASE_PATH: join(root, 'app.db'), LLM_API_KEY: 'fake-goal-key', LLM_MODEL: 'local-stub', LLM_BASE_URL: 'https://example.invalid/v1' });
+  const config = readConfig({ DATABASE_PATH: join(root, 'app.db'), GOAL_ENABLED: 'true', LLM_API_KEY: 'fake-goal-key', LLM_MODEL: 'local-stub', LLM_BASE_URL: 'https://example.invalid/v1' });
   let store = new SqliteStore(config.databasePath), calls = 0;
   const memory = new FileMemoryService(config.memoryDir);
   const requests: string[] = [];
@@ -154,7 +186,7 @@ test('真实Pi SDK+模拟模型：Goal无工具、只读Memory、独立新Sessio
 test('真实Pi故障：HTTP500/非法JSON/截断/非法工具不重试，Memory预检和领取后Context损坏均关闭失败', async (t) => {
   for (const mode of ['http', 'json', 'length', 'tool', 'memory-before', 'memory-context'] as const) {
     const root = mkdtempSync(join(tmpdir(), 'goal-pi-fault-'));
-    const config = readConfig({ DATABASE_PATH: join(root, 'app.db'), LLM_API_KEY: 'fake-goal-fault-key', LLM_MODEL: 'local-stub', LLM_BASE_URL: 'https://example.invalid/v1', EXECUTION_TIMEOUT_MS: '500' });
+    const config = readConfig({ DATABASE_PATH: join(root, 'app.db'), GOAL_ENABLED: 'true', LLM_API_KEY: 'fake-goal-fault-key', LLM_MODEL: 'local-stub', LLM_BASE_URL: 'https://example.invalid/v1', EXECUTION_TIMEOUT_MS: '500' });
     const store = new SqliteStore(config.databasePath), tasks = new TaskService(store, config.timeZone), memory = new FileMemoryService(config.memoryDir);
     let calls = 0;
     t.mock.method(globalThis, 'fetch', async () => {

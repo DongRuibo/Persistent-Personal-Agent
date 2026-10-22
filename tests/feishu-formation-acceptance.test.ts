@@ -25,6 +25,19 @@ test('验收流读取器提前取消仍保存已收原始输出；跨块凭据�
   }
 });
 
+test('Goal长SSE可用独立4MiB记录上限；Formation默认256KiB及硬上限仍有效', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'feishu-audit-'));
+  try {
+    const input = 'data: ' + 'x'.repeat(300000) + '\n\ndata: [DONE]\n\n';
+    const file = join(root, 'goal.txt');
+    assert.equal(await recordAcceptanceResponse(new Response(input), file, text => text, 4194304).text(), input);
+    assert.equal(readFileSync(file, 'utf8'), input);
+    await assert.rejects(recordAcceptanceResponse(new Response(input), join(root, 'formation.txt'), text => text).text(), /记录上限/);
+    await assert.rejects(recordAcceptanceResponse(new Response('x'.repeat(4194305)), join(root, 'overflow.txt'), text => text, 4194304).text(), /记录上限/);
+    assert.throws(() => recordAcceptanceResponse(new Response('x'), file, text => text, 4194305), /上限无效/);
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
 test('飞书验收跨重启累计40请求；失败请求不退额', () => {
   const first = create();
   for (let i = 0; i < 20; i++) first.reserve(payload, 1000);

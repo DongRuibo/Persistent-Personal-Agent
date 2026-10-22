@@ -66,13 +66,13 @@ async function main(): Promise<void> {
     memory = new FileMemoryService(config.memoryDir, [config.apiKey, process.env.FEISHU_APP_SECRET ?? '']);
     const chatKey = feishuConfig ? JSON.stringify(['feishu', feishuConfig.appId, feishuConfig.allowedOpenId]) : 'console';
     if (config.formation?.enabled) formation = new FormationService({ ...config.formation, owner: createHash('sha256').update(chatKey).digest('hex') }, store, { listForHost: () => memory!.listForHost() }, [config.apiKey, process.env.FEISHU_APP_SECRET ?? '']);
-    const goals = new GoalService(store, tasks, id => goalRunner?.interrupt(id));
+    const goals = config.goalEnabled ? new GoalService(store, tasks, id => goalRunner?.interrupt(id)) : undefined;
     executor = await createPiExecutor(config, tasks, chatKey, memory, formation, lane, goals);
     if (shutdown.signal.aborted) return;
     const recovered = store.recoverInterrupted(new Date().toISOString());
-    const otherGoals = store.goals.readyForHost().filter(goal => goal.ownerId !== 'local-user' || (feishuConfig
+    const otherGoals = config.goalEnabled ? store.goals.readyForHost().filter(goal => goal.ownerId !== 'local-user' || (feishuConfig
       ? goal.target.channel !== 'feishu' || goal.target.appId !== feishuConfig.appId || goal.target.userOpenId !== feishuConfig.allowedOpenId
-      : goal.target.channel !== 'console'));
+      : goal.target.channel !== 'console')) : [];
     if (otherGoals.length) console.error(`有${otherGoals.length}个其他身份或渠道的Goal等待原绑定启动；本进程不会领取或改发。`);
     const consoleChannel = new ConsoleChannel(redact);
     if (feishuConfig) {
@@ -83,13 +83,13 @@ async function main(): Promise<void> {
     if (shutdown.signal.aborted) return;
     const channels = new ChannelRouter(consoleChannel, feishu);
     scheduler = new TaskScheduler(store, executor, channels, config.pollIntervalMs, reportError, () => new Date(), lane);
-    goalRunner = new GoalRunner(store, executor, channels, lane, { ownerId: 'local-user', pollIntervalMs: config.pollIntervalMs,
+    if (goals) goalRunner = new GoalRunner(store, executor, channels, lane, { ownerId: 'local-user', pollIntervalMs: config.pollIntervalMs,
       accepts: target => feishuConfig ? target.channel === 'feishu' && target.appId === feishuConfig.appId && target.userOpenId === feishuConfig.allowedOpenId : target.channel === 'console',
       reportError, fatal: () => { process.exitCode = 1; stop(); }, delivered: (goal, runId) => goals.displayed(goal, runId) });
     scheduler.start();
-    goalRunner.start();
+    goalRunner?.start();
     formation?.start();
-    console.log(`Personal Agent 已启动；用户时区=${config.timeZone}；中断记录=${recovered}；模式=${feishu ? 'feishu' : args.includes('--daemon') ? 'daemon' : 'console'}`);
+    console.log(`Personal Agent 已启动；用户时区=${config.timeZone}；中断记录=${recovered}；模式=${feishu ? 'feishu' : args.includes('--daemon') ? 'daemon' : 'console'}；Goal=${config.goalEnabled ? 'enabled' : 'disabled'}`);
     if (args.includes('--daemon') || feishu) {
       if (!shutdown.signal.aborted) await once(shutdown.signal, 'abort');
     } else {

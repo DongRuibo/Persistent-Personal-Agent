@@ -25,6 +25,31 @@ const tool = () => [{ index: 0, delta: { role: 'assistant', tool_calls: [{ index
 const steps = [1, 2].map(index => ({ title: `面试练习${index}`, instruction: `出第${index}道面试题`, deliverable: '题目与说明', doneWhen: '题目和说明已交付' }));
 const base: GoalResult = { stepOutcome: 'complete', artifactText: '虚构面试计划', progressSummary: '计划待批准', question: '是否批准？', proposedPlan: { steps, changeReason: '初始计划' } };
 
+test('Goal开关控制真实Pi工具与提示；关闭时即使传入Service也不能绕过并发出Goal请求', async (t) => {
+  for (const flag of [undefined, 'false', 'true']) {
+    const root = mkdtempSync(join(tmpdir(), 'goal-switch-'));
+    const config = readConfig({ DATABASE_PATH: join(root, 'app.db'), GOAL_ENABLED: flag,
+      LLM_API_KEY: 'fake-switch-key', LLM_MODEL: 'local-stub', LLM_BASE_URL: 'https://example.invalid/v1' });
+    const store = new SqliteStore(config.databasePath), tasks = new TaskService(store, config.timeZone);
+    const payloads: Payload[] = [];
+    t.mock.method(globalThis, 'fetch', async (_input: unknown, init?: RequestInit) => {
+      payloads.push(JSON.parse(String(init?.body))); return new Response(sseText('普通回复'));
+    });
+    const executor = await createPiExecutor(config, tasks, 'goal-switch', undefined, undefined, undefined, new GoalService(store, tasks, () => {}));
+    const request = () => ({ prompt: '普通问候', scope: 'chat' as const, signal: new AbortController().signal,
+      observer: store.observer(store.beginRun(null, new Date().toISOString()).id) });
+    try {
+      await executor.execute(request());
+      assert.equal(payloads[0]!.tools?.some(item => item.function.name === 'goal_manage'), flag === 'true');
+      assert.equal(JSON.stringify(payloads[0]!.messages).includes('长期目标与一次性提醒分离'), flag === 'true');
+      if (flag !== 'true') {
+        await assert.rejects(executor.execute({ ...request(), scope: 'goal' }), /GOAL_ENABLED/);
+        assert.equal(payloads.length, 1, '关闭时不会向模型发送Goal请求');
+      }
+    } finally { await executor.close(); store.close(); t.mock.restoreAll(); rmSync(root, { recursive: true, force: true }); }
+  }
+});
+
 test('真实Pi+SQLite+HTTP模拟模型/飞书：创建→计划→片段→Checkpoint→等待→全新Session重启→继续→完成；不重放/不形成记忆', { timeout: 20000 }, async () => {
   const root = mkdtempSync(join(tmpdir(), 'goal-lifecycle-'));
   const payloads: Payload[] = [], goalPayloads: Payload[] = [];
@@ -63,7 +88,7 @@ test('真实Pi+SQLite+HTTP模拟模型/飞书：创建→计划→片段→Check
   server.listen(0, '127.0.0.1'); await once(server, 'listening');
   const address = server.address(); assert.ok(address && typeof address !== 'string');
   const config = readConfig({ DATABASE_PATH: join(root, 'app.db'), LLM_API_KEY: 'fake-lifecycle-key', LLM_MODEL: 'local-stub',
-    LLM_BASE_URL: `http://127.0.0.1:${address.port}/v1`, MEMORY_FORMATION_ENABLED: 'false' });
+    LLM_BASE_URL: `http://127.0.0.1:${address.port}/v1`, GOAL_ENABLED: 'true', MEMORY_FORMATION_ENABLED: 'false' });
   const target = { channel: 'feishu' as const, appId: 'cli_0123456789abcdef', chatId: 'oc_fake', userOpenId: 'ou_fake' };
   let store = new SqliteStore(config.databasePath), memory = new FileMemoryService(config.memoryDir);
   const seedRun = store.beginRun(null, new Date().toISOString());

@@ -1,6 +1,6 @@
 # V3.0：持久化长期目标与有界执行
 
-状态：**V3.0 Batch 1–4 已在当前工作区完成隔离自动化实现，待审查；Batch 5真实模型/手机验收未执行**。日期：2026-10-22（Asia/Shanghai）。用户本轮授权连续开发Batch2–4，保留原四表模型、Task/Memory语义和权限边界。
+状态：**V3.0 Batch 1–4 已发布74704bd；Batch 5电脑核心验收通过，48请求已用尽，完整清单未全通过**。日期：2026-10-23（Asia/Shanghai）。已补默认关闭的GOAL_ENABLED与回归，按用户调整在电脑进行隔离真实模型验收；保留原四表模型、Task/Memory语义和权限边界。
 
 核对基线：本轮开始时本地HEAD、origin/main及实际远端main均为 `51bc736366733060e91625c881248dce268ceb9c`；Batch1未提交改动及原有HANDOFF.md保留。仅对虚构临时数据库与模拟模型验证；没有收费调用、正式服务/数据操作或Git推送。第1节基线及第15节Batch1记录是历史快照，当前新增实现见第16节。
 
@@ -434,7 +434,7 @@ cancel 可以覆盖停止中的 pause，pause 不能覆盖 cancel。控制先提
 
 ## 13. 分阶段实现清单与预计复杂度
 
-本表保留最初分阶段规划及粗估，不代表实际耗时。本轮已经授权并连续实施Batch2–4，各阶段先测试后推进；Batch5仍须另行批准收费与手机操作。真实模型波动、手机配合和审查另计。
+本表保留最初分阶段规划及粗估，不代表实际耗时。Batch2–4已连续实施，各阶段先测试后推进；Batch5于2026-10-23另获最多48请求/5元授权。真实模型波动、手机配合和审查另计。
 
 | 批次 | 最小改动与预计文件 | 完成门槛 | 复杂度/粗估 |
 | --- | --- | --- | --- |
@@ -478,9 +478,11 @@ cancel 可以覆盖停止中的 pause，pause 不能覆盖 cancel。控制先提
 
 专项验证使用临时 SQLite、SQL 触发器故障注入和真实本地子进程，**不使用真实模型或飞书**。覆盖：双进程重复领取、取消/提交竞争两种固定顺序及并发、创建/领取/提交/审批/控制/共享恢复回滚、延迟外键到 COMMIT 才失败、三种 outcome、草稿/v1/v2/旧版、跨 Goal 指针、来源权限、进程直接退出重开、投递失败后读取、不重试及旧 Task 唯一约束。全量测试也覆盖原有 Pi/Memory/飞书模拟链路；具体本轮数量见 STATE。
 
-Batch1历史交付时尚无Runner/用户工具；后续已由第16节实现接通。仍保留的限制：view返回全部Execution，长期大量历史尚无分页；uncertain没有强制重试API；未做真实Goal模型/手机验收或原生Mac/Windows ACL验收。
+Batch1历史交付时尚无Runner/用户工具；后续已由第16节实现接通。仍保留的限制：view返回全部Execution，长期大量历史尚无分页；uncertain没有强制重试API；Batch1交付时未做真实Goal模型/手机验收，后续进展见第16节及STATE；原生Mac/Windows ACL仍未验收。
 
 ## 16. Batch 2–4 实际实现与保留边界
+
+- 2026-10-23新增独立GOAL_ENABLED默认false。关闭时不组装GoalService/Runner、不注册goal_manage或Goal聊天提示，适配器也拒绝直接Goal执行；已有ready及历史不删除，原SQLite保守恢复保持不变。Batch5隔离启动器在本进程显式设true，不编辑正式.env。该开关只控制启用，不替代OperationGuard/版本/显示权限检查。
 
 - `goal-runner.ts`独立start/tick/stop；`background-lane.ts`在领取前共享后台门，旧到期Task优先，Goal等待前台排队。main恢复后启动，退出同时中止并等待Task/Goal/前台，再关闭Executor和数据库。Goal级abort只影响当前指定片段，不中止其他Task。
 - Pi新增scope=goal，公开SDK新建SessionManager.inMemory、工具白名单固定空、输出至多4096 Token、不重试。异常tool_calls在下一请求前中止；保留settled、stopReason、审计和Memory Context失败检查。Memory查询由宿主从目标/当前Step构造，不使用全JSON、不开启Goal查询改写。Goal临时Session始终dispose。
@@ -490,6 +492,10 @@ Batch1历史交付时尚无Runner/用户工具；后续已由第16节实现接�
 - 短“确认”只批准有效草稿，不附执行权限；明确“批准并继续一段”才ready。普通继续不能绕过草稿、完成确认或失败阻塞。失败须明确重新生成；普通学习反馈请同时明确继续一段。本阶段不把“我今天学完了”等孤立陈述自动解释为推进许可。
 - 计划增补“先补X”只从当前原话生成待批准步骤；完整替换的四字段逐字来自用户输入，已完成原定义保留。`GoalStore.proposePlan`新增同事务控制收据，撤销ready；运行中先写pause并增加revision，再abort。停止后paused有草稿时继续仅恢复审批视图，另行批准。目标原文不可变，改变整体范围新建Goal。没有额外Planner模型或静默实质改计划。
 - Goal控制查询/写入用goal_review事件排除Formation；Goal执行也不enqueue。主模型漏调工具仍可能导致没有实际控制，这由真实验收评估，不新增纠错Agent或声称自然语言完全可靠。
-- 验收增加`audit-goals.ts`只读核对器；`goal-feishu-acceptance.ts`仅供未来单独授权，默认不联网，独立48请求/5元累计预留、输出限额、响应留存和跨重启账本，不启用正式Formation。预算是保守预留而非供应商账单，费率和本轮范围须另行批准；本次实际收费请求/Token/费用均0。
+- 验收增加`audit-goals.ts`只读核对器；`goal-feishu-acceptance.ts`无授权参数不联网，独立48请求/5元累计预留、输出限额、响应留存和跨重启账本，不启用正式Formation。2026-10-23已获本轮授权，先以`--model-only`运行Console真实链路、累计最多16请求，再同账本进入手机阶段；Console和飞书目标归属分离。预算是保守预留而非供应商账单，实际结果见[Batch5报告](../evaluations/v3-batch5-acceptance.md)，原始失败不抹去。
 
-对应证据：[自动化验证](../evaluations/v3-mvp-validation.md)、[真实验收待批准方案](../evaluations/v3-live-acceptance-plan.md)。不交付V3.1定时触发、Observer、自主推进、外部执行、Skills、Outbox或VPS。
+对应证据：[自动化验证](../evaluations/v3-mvp-validation.md)、[真实验收方案](../evaluations/v3-live-acceptance-plan.md)。不交付V3.1定时触发、Observer、自主推进、外部执行、Skills、Outbox或VPS。
+
+2026-10-23真实验收定点修复：创建请求中独立的“不要虚构我的经历／不要替我假设已经掌握知识”是产物真实性约束，不否定保存Goal；Guard只豁免完整有界子句，禁止操作、混合指令及其他未知否定仍拦截，完整原话仍保存。另明确隔离解析器只以目标指认条件筛选，新反馈不作筛选；引用必须有原话依据。主模型收到宿主澄清后不得重复调用或编造已保存计划；初始化能列计划时须通过proposedPlan提交，不能只有文本草稿。这些提示词不替代宿主权限校验，也不保证未知模型输出稳定。
+
+2026-10-23收尾：实际48请求/保守预留2.337244元，电脑核心闭环通过，停止收费进程；真实学习草稿粒度及“暂停那个学习计划”失败保留，不标全项通过。最后指代修复只以当前原话和有效唯一完整视图绑定Goal，具名与指代取交集，离线回放通过但未再收费验证；Schema不保证自然语言步数约束。手机及其他未覆盖项见[当前报告](../evaluations/v3-batch5-acceptance.md)。

@@ -12,11 +12,13 @@ V2.1b.2 已按授权完成12次隔离真实复验：原六窗6/6，新两窗0/2�
 
 V2.1b.3 按授权定点修复上述三个问题：有成功显示的候选时，宿主为“第一条先不保存”等有界拒绝补执行；H01明确新项目丢弃错误旧目标，仅建议新增；H02只有能够从当前原文唯一核对的否定漏字才恢复完整属性。批准/版本/来源校验保留，未批准仍不保存。相同真实提取输出离线回放6/8→8/8；主模型漏工具由真实Pi＋模拟模型验证，不是新的收费模型或手机验收。复核命令：`node --import tsx scripts/replay-formation-revalidation.ts`；[修复与回归说明](docs/evaluations/v2.1b.3-formation-fixes.md)保留原始失败、前后对比和适用限制。正式Formation继续关闭。
 
-## V3.0：可手动继续的长期目标（本地待审查）
+## V3.0：可手动继续的长期目标（默认关闭，电脑核心验收通过）
 
-Batch 1–4 已接通 Goal/Plan/Step/Execution、独立 GoalRunner、受控自然语言入口与自动化生命周期。每次明确创建或继续最多执行一个纯文本片段，Checkpoint 与 Run、步骤、目标状态同一 SQLite 事务提交，随后等待用户。旧 Task 仍是一次性提醒；Goal 不使用 Memory 或聊天历史保存进度。没有新增依赖或 `.env` 参数；本轮没有启动正式用户服务、收费调用或真实手机验收。
+`GOAL_ENABLED` 默认 `false`，只接受显式 `true`/`false`。关闭时不注册Goal工具/提示、不启动Runner，不领取已有ready目标；数据不删除，启动时仍做原有保守崩溃恢复。仅在独立的 `DATABASE_PATH`、`SESSION_DIR`、`MEMORY_DIR` 测试进程中设 `GOAL_ENABLED=true`；专用Batch5启动器会自动开启，正式.env无需修改。该开关与Formation相互独立。
 
-审查后先使用**全新隔离路径**运行，不能复用正式数据库、Memory 或 Session。在终端当前进程设置 `DATABASE_PATH`、`MEMORY_DIR`、`SESSION_DIR`（PowerShell：`$env:DATABASE_PATH='E:/AgentWork/acceptance/v3-local/agent.db'`，另外两项分别指向同一新目录内的 `memory`、`sessions`），保持 `MEMORY_FORMATION_ENABLED=false`。运行 `npm run build`，再用 `npm start` 或 `npm start -- --feishu`；模型和飞书凭据只在本机配置。启动实际连接模型即可能计费，须另行批准；自动测试无需Key，均使用模拟模型。
+Batch 1–4 已接通 Goal/Plan/Step/Execution、独立 GoalRunner、受控自然语言入口与自动化生命周期。每次明确创建或继续最多执行一个纯文本片段，Checkpoint 与 Run、步骤、目标状态同一 SQLite 事务提交，随后等待用户。旧 Task 仍是一次性提醒；Goal 不使用 Memory 或聊天历史保存进度。没有新增依赖。Batch5按用户调整在电脑Console完成真实模型核心闭环，实际48请求、保守预留2.337244元后停服。完整清单未全通过：学习计划粒度有偏差，暂停指代仅离线修复、未收费复验；飞书/手机本轮未复测。结果与失败见[当前报告](docs/evaluations/v3-batch5-acceptance.md)。正式用户服务及数据不在本次操作范围。
+
+审查后先使用**全新隔离路径**运行，不能复用正式数据库、Memory 或 Session。在终端当前进程设置 `DATABASE_PATH`、`MEMORY_DIR`、`SESSION_DIR`（PowerShell：`$env:DATABASE_PATH='E:/AgentWork/acceptance/v3-local/agent.db'`，另外两项分别指向同一新目录内的 `memory`、`sessions`），保持 `MEMORY_FORMATION_ENABLED=false`。明确设 `GOAL_ENABLED=true` 后运行 `npm run build`，再用 `npm start` 或 `npm start -- --feishu`；模型和飞书凭据只在本机配置。收费验收使用[有累计预算的专用入口](docs/evaluations/v3-live-acceptance-plan.md)，普通启动不限制账单。自动测试无需Key，均使用模拟模型。
 
 可用话术：“帮我逐步准备 Agent 面试”“查看长期目标进度”“批准这个计划并继续一段”“继续之前的面试准备任务”“暂停那个学习计划”“取消面试目标”“确认面试目标已完成”。不需要UUID；同类目标多个时选宿主清单编号。等待中的学习反馈请连同“继续一段”明确提交，避免把普通聊天误作推进授权。
 
