@@ -2,10 +2,12 @@ import { randomUUID } from 'node:crypto';
 import { DatabaseSync } from 'node:sqlite';
 import type { ExecutionObserver, MessageTarget, ModelCall, Run, RunStatus, Task } from './contracts.js';
 import { FormationStore } from './formation-store.js';
+import { GoalStore } from './goal-store.js';
 
 export class SqliteStore {
   private readonly db: DatabaseSync;
   readonly formation: FormationStore;
+  readonly goals: GoalStore;
 
   constructor(path: string, private readonly redact: (value: unknown) => string = String) {
     this.db = new DatabaseSync(path);
@@ -42,6 +44,13 @@ export class SqliteStore {
       this.db.exec(`ALTER TABLE tasks ADD COLUMN target TEXT NOT NULL DEFAULT '{"channel":"console"}'`);
     }
     this.formation = new FormationStore(this.db);
+    this.goals = new GoalStore(this.db, {
+      transaction: fn => this.transaction(fn),
+      begin: now => this.beginRunInTransaction(null, now),
+      finish: (id, status, now, output, error) => this.finishRunInTransaction(id, status, now, output, error),
+      event: (id, type, details, now) => this.event(id, type, details, now),
+      redact: value => this.redact(value),
+    });
   }
 
   private transaction<T>(fn: () => T): T {
@@ -51,7 +60,8 @@ export class SqliteStore {
       this.db.exec('COMMIT');
       return result;
     } catch (error) {
-      this.db.exec('ROLLBACK');
+      // COMMIT 错误可能已终止事务；不要用二次 ROLLBACK 错误覆盖原始故障。
+      if (this.db.isTransaction) this.db.exec('ROLLBACK');
       throw error;
     }
   }
@@ -93,6 +103,10 @@ export class SqliteStore {
   }
 
   beginRun(taskId: string | null, now: string): Run {
+    return this.transaction(() => this.beginRunInTransaction(taskId, now));
+  }
+
+  private beginRunInTransaction(taskId: string | null, now: string): Run {
     const id = randomUUID();
     this.db.prepare("INSERT INTO runs (id, taskId, status, startedAt) VALUES (?, ?, 'running', ?)").run(id, taskId, now);
     this.event(id, 'run_started', undefined, now);
@@ -103,7 +117,7 @@ export class SqliteStore {
   acceptFeishuMessage(appId: string, messageId: string, now: string): Run | undefined {
     return this.transaction(() => {
       if (this.db.prepare('SELECT 1 FROM feishu_messages WHERE appId = ? AND messageId = ?').get(appId, messageId)) return undefined;
-      const run = this.beginRun(null, now);
+      const run = this.beginRunInTransaction(null, now);
       this.db.prepare('INSERT INTO feishu_messages VALUES (?, ?, ?)').run(appId, messageId, run.id);
       return run;
     });
@@ -122,22 +136,15 @@ export class SqliteStore {
       const changed = this.db.prepare("UPDATE tasks SET status = 'running', updatedAt = ? WHERE id = ? AND status = 'pending'")
         .run(now, task.id).changes;
       if (changed !== 1) return undefined;
-      return { task: { ...task, status: 'running', updatedAt: now }, run: this.beginRun(task.id, now) };
+      return { task: { ...task, status: 'running', updatedAt: now }, run: this.beginRunInTransaction(task.id, now) };
     });
   }
 
   finishRun(id: string, status: Exclude<RunStatus, 'running'>, now: string, output?: string, error?: string, enqueue?: () => void): void {
     this.transaction(() => {
-      const run = this.getRun(id);
-      if (!run || run.status !== 'running') throw new Error('执行记录已结束或不存在');
-      this.db.prepare('UPDATE runs SET status = ?, finishedAt = ?, output = ?, error = ? WHERE id = ?')
-        .run(status, now, output === undefined ? null : this.redact(output), error === undefined ? null : this.redact(error), id);
-      if (run.taskId) {
-        const result = this.db.prepare("UPDATE tasks SET status = ?, updatedAt = ? WHERE id = ? AND status = 'running'")
-          .run(status, now, run.taskId);
-        if (result.changes !== 1) throw new Error('任务状态与执行记录不一致');
-      }
-      this.event(id, `run_${status}`, error, now);
+      // Goal 必须连同 Checkpoint 提交，不能走普通聊天/Task 的独立结束入口。
+      if (this.db.prepare('SELECT 1 FROM goal_executions WHERE runId=?').get(id)) throw new Error('Goal Run 必须经 GoalStore 聚合提交');
+      const run = this.finishRunInTransaction(id, status, now, output, error);
       if (enqueue && status === 'succeeded' && !run.taskId) {
         // 队列故障只回滚自身，不将已经完成的聊天改成失败；成功时与 Run 原子提交。
         this.db.exec('SAVEPOINT formation_admission');
@@ -150,6 +157,20 @@ export class SqliteStore {
     });
   }
 
+  private finishRunInTransaction(id: string, status: Exclude<RunStatus, 'running'>, now: string, output?: string, error?: string): Run {
+    const run = this.getRun(id);
+    if (!run || run.status !== 'running') throw new Error('执行记录已结束或不存在');
+    this.db.prepare('UPDATE runs SET status = ?, finishedAt = ?, output = ?, error = ? WHERE id = ?')
+      .run(status, now, output === undefined ? null : this.redact(output), error === undefined ? null : this.redact(error), id);
+    if (run.taskId) {
+      const result = this.db.prepare("UPDATE tasks SET status = ?, updatedAt = ? WHERE id = ? AND status = 'running'")
+        .run(status, now, run.taskId);
+      if (result.changes !== 1) throw new Error('任务状态与执行记录不一致');
+    }
+    this.event(id, `run_${status}`, error, now);
+    return run;
+  }
+
   // 只能在主进程获得独占锁后调用，恢复逻辑绝不将运行中任务放回队列。
   recoverInterrupted(now: string): number {
     return this.transaction(() => {
@@ -158,6 +179,7 @@ export class SqliteStore {
       this.db.prepare("UPDATE runs SET status = 'interrupted', finishedAt = ?, error = ? WHERE status = 'running'")
         .run(now, '服务在执行完成前退出；可能已产生副作用，请人工核实');
       this.db.prepare("UPDATE tasks SET status = 'interrupted', updatedAt = ? WHERE status = 'running'").run(now);
+      this.goals.recoverInTransaction(now);
       return runs.length;
     });
   }

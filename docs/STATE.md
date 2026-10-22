@@ -4,11 +4,14 @@
 
 ## 当前阶段与进行中事项
 
-- 当前V2.1b.4真实飞书回归已收尾，基线 `2d31648233b04d7281a275b3e07bdf3ef61a9eea`。授权32次/2元内实际24请求、保守预留0.977334元；10个手机Run成功投递，核心候选→拒绝/批准→空Session检索链路通过。正式Formation仍false，测试进程已停、锁已释放；先供审查，不自动开发新功能。
-- 仅调整验收脚本：新轮专用目录/身份与32次跨重启账本，不接受旧48次扩额；私有保存原始模型响应，以区分真实错误提议和未观察到的故障分支。生产源码、SDK、Task/Session/Memory授权及正式.env均未改，HANDOFF.md原样保留；用户已明确授权将本轮五个文件提交并推送main，具体标识以Git记录为准。
+- 用户已批准V3.0三项核心决策并授权 **Batch 1 存储与事务**；实现待审查，[设计](designs/v3-persistent-goals.md)补齐控制崩溃优先级、bootstrap/计划批准、outcome映射及数据库重展示语义。开发基线为 `51bc736366733060e91625c881248dce268ceb9c`；2026-10-22用户另行明确授权将本批代码、测试和文档提交并推送main供审查。原未跟踪HANDOFF.md原样保留且不纳入本次提交，Batch 2不属于本次发布范围。
+- 已实现Goal/不可变Plan/Step/Execution四表，Checkpoint嵌入committed Execution；同连接原子创建、一次授权领取、结果/Checkpoint提交、计划批准、暂停/取消/完成、保守恢复与只读收据/进度。旧Task/Run唯一约束和状态枚举不改，正式存储及.env未触碰，无新依赖。尚无GoalRunner/Goal工具/用户入口，不能把本批当成飞书长期任务已可用。
+- 本轮Node24.19.0、Windows：typecheck/build成功；全量171项，168通过/0失败/3原有平台跳过（14.65秒），其中Goal专项32项全过。旧Task/调度、鉴权、去重、Session、Memory/Formation模拟集成继续通过；离线Memory64题与Formation60窗指标不退。付费API请求、Token和费用均0，无真实Goal模型/飞书验收，本轮未跑Mac/Linux。
+- 一次当前用户请求只产生一份ready授权；领取后不得重用。cancel优先于pause，已落盘控制在崩溃恢复后分别到cancelled/paused，无控制到blocked，不自动重试。Checkpoint/控制已提交后即使聊天或通知失败，也只读重展示，不再执行。语义授权仍须未来Service/Guard完成；当前存储API仅供可信宿主内部调用，不接受模型直接操作。
+- V2.1b.4已在 `51bc736` 提交推送五个验收文件，生产源码仍为 `2d31648233b04d7281a275b3e07bdf3ef61a9eea`。32次/2元授权内实际24请求、保守预留0.977334元；10个手机Run成功投递，核心候选→拒绝/批准→空Session检索通过。新轮专用目录/身份、32次账本及原始响应留存；正式Formation仍false，测试进程已停，旧46次账本和失败现场保留。
 - 独立目录 `data/acceptance/formation-feishu-v2.1b.4-20261022` 的两条虚构种子仅为夹具，不算手机审批。普通陈述先候选、自然拒绝实际rejected；Baryl项目及H02完整否定草稿显示后明确批准才各新增v1，Memory4、Task0、未批准写入0、旧种子未覆盖。H02真实漏“不”及错误服务端ID被宿主恢复/隔离；主模型漏拒绝工具及H01跨项目错误提示未出现，不冒充实测。
 - 空Session首问前用户/助手消息0；实际命中已批准H02 semantic/v1及原服务端记录，Context878/2048字节、evidence=uncertain；回答正确区分移动端不使用Ruby、数据脚本使用Ruby，用户手机确认。新JSONL仅本轮问答和固定系统说明，动态Memory数据块未追加。原始响应/候选/审批Run/ID/version/Markdown及Hash均核对，见[验收记录](evaluations/v2.1b.4-feishu-acceptance.md)和[机器证据](evaluations/v2.1b.4-feishu-acceptance.json)。
-- 本轮typecheck/build退出0；Windows139项136通过/0失败/3平台跳过（12.50秒），验收脚本6专项全过。24行模型用量：未缓存输入10061、缓存36096、输出1080 Token，cost字段null，预留不是实际账单。正式.env及旧46次账本Hash未变。前2原始流未落盘，已只修测试记录器并增加回归，从第3请求起有22份原始响应；上一批Linux137全过和离线8/8为历史证据，本轮未重跑，不宣称所有故障分支真实覆盖。
+- V2.1b.4历史typecheck/build退出0；Windows139项136通过/0失败/3平台跳过（12.50秒），验收脚本6专项全过。24行模型用量：未缓存输入10061、缓存36096、输出1080 Token，cost字段null，预留不是实际账单。正式.env及旧46次账本Hash未变。前2原始流未落盘，已只修测试记录器并增加回归，从第3请求起有22份原始响应；上一批Linux137全过和离线8/8为历史证据，不宣称所有故障分支真实覆盖。
 
 ## 已完成功能
 
@@ -28,18 +31,39 @@
 - V2.0 四类 Memory 共用服务与 SQLite 索引：Semantic PROFILE、Project projects、Episodic episodes、Procedural procedures。仅明确记忆意图可写；规范化正文去重、稳定 key 冲突拒绝、版本检查、来源关联 Run、Hash 校验；不自动保存推断或提取全部对话。
 - Memory 正文原子替换，索引可重建，启动和读取前修复；目录/文件0700/0600，宿主独占 Memory 锁，拒绝符号链接和凭据。通过 Pi 1.3.0 公开内联扩展和 context 返回本轮投影，工具只留收据，不把注入正文反复追加 Session；Context 异常公开 abort 并报错。
 - Formation只在明确开启的测试进程发现待审批候选，没有未经批准的自动保存；未新增依赖、Embedding/向量库、Observer、Skill、周期任务、WebUI、Outbox、外部队列或 VPS 配置。
+- V3.0 Batch 1仅存储：四表、版本/指针/同连接事务、一次授权、控制优先恢复和只读重展示；没有Goal执行器或用户操作工具。
 
 ## 最近关键修改（最多5项）
 
 | 日期 | 修改及位置 |
 | --- | --- |
+| 2026-10-22 | V3.0 Batch 1：补齐[事务设计](designs/v3-persistent-goals.md)，新增goal-types/store与32项存储回归；SqliteStore仅提取Run事务内部方法并协调恢复，保留旧Task约束；171项168通过/3平台跳过，用户授权提交推送供审查 |
 | 2026-10-22 | V2.1b.4真实手机核心链路通过：24请求/保守预留0.977334元，H02真实错误恢复、批准及空Session命中，已停服；139项136通过/3平台跳过 |
 | 2026-10-22 | 手机误写后保存意图定点修复；同类真实提议被拦截，46/48请求后停服，保留失败现场 |
 | 2026-10-22 | V2.1b.3有界拒绝补执行复用既有显示/身份/TTL/序号检查，不增加模型请求；Pi模拟漏工具场景真实变rejected |
 | 2026-10-22 | H01/H02同原输出回放6/8→8/8；明确新项目只建议新增，否定属性逐字恢复，冻结预期和旧目标不改 |
-| 2026-10-22 | 最终Windows137项134通过/3跳过，Linux137全过/0跳过；类型/构建及两项eval通过，实际API0 |
 
 ## 验证记录与证据边界
+
+### V3.0 Batch 1 存储与事务（2026-10-22，提交审查）
+
+- 生产改动仅 [goal-types.ts](../src/goal-types.ts)、[goal-store.ts](../src/goal-store.ts) 和 [sqlite-store.ts](../src/sqlite-store.ts)。不改Pi、OperationGuard、TaskService、Scheduler、渠道、Memory权限、Session或依赖。`SqliteStore.goals`共用原连接；原Run内部写入方法不自行BEGIN，Goal结果与进度必须同事务结束，普通finishRun拒绝单独结束Goal Run。
+- [32项Goal专项](../tests/goal-store.test.ts)用虚构临时库和本地子进程：创建/领取/审批/Checkpoint/控制/共享恢复故障整体回滚；两项延迟外键直到COMMIT才失败；两个进程竞争只有一个领取；取消和结果的两种固定顺序以及真实跨进程竞争；子进程直接退出后普通中断blocked、pause→paused、cancel→cancelled；恢复幂等、没有新授权不再执行。
+- Plan v0创建、v1仅草稿、批准才建新Step/Plan、仅批准不执行、明确批准并继续才ready、v2保留旧版和已完成原义/移除未完Step为superseded均验证。partial/complete/blocked映射、Checkpoint前指针/归属/Hash、跨Goal指针拒绝、已提交Execution不可改写、最终用户确认、暂停后的计划/完成确认恢复均覆盖。
+- 控制收据已落盘而前台Run失败/投递失败，或Checkpoint通知失败时，重开库仍能经receipt/view重展示真实计划/成果；Run数量不增加、没有ready授权。已成功Run却无Checkpoint的异常组合被uncertain阻塞，不根据output猜进度。不从Memory、Session或历史Run产生权限；模型语义判定尚未接入，不能声称已做Goal提示注入或自然语言验收。
+
+| 本轮命令/环境 | 实际结果 |
+| --- | --- |
+| `npm run typecheck` | 退出0，源代码及测试类型均通过 |
+| `npm run build` | 退出0，使用兼容Node24.19.0，未修改依赖 |
+| `npm test` | 171项，168通过、0失败、3跳过，14.65秒；含32项Goal及旧Task关键回归 |
+| `npm run eval:memory` | 退出0，64题离线词法；三集Top1/Recall@5/MRR/Context命中仍9/12、17/19、17/18；无答案误supported为0/4、0/5、0/6；最大Context1153/1613/1578字节；额外模型调用0 |
+| `npm run eval:formation -- --output=<临时新文件>` | 退出0，开发/留出各30/30、误候选0、未经批准写入0；模拟请求不计真实API；真实请求/Token/费用0 |
+
+- 三项Windows跳过是POSIX私有权限位、无权限创建符号链接及POSIX SIGTERM优雅退出；不是Goal存储测试跳过。本轮没有Mac/Linux新证据，历史Linux137通过不能当成本批通过。第一次Formation输出参数被PowerShell拆分而误写默认历史报告，随后恢复原Git版本、用单个完整参数重跑到临时文件；已核对历史评测文件无diff，冻结样本与原失败记录保留。
+- 测试日志及两项离线报告留在本机临时目录 `personal-agent-goals-validation-8f175179-3cd2-493e-ab79-a4f9bcfaa583`（系统TEMP下）；不写正式数据目录。无收费API、正式用户Agent、真实Goal/飞书联调；未开启正式Formation。
+- 提交前另在只包含本批8文件的隔离快照复跑：typecheck/build退出0，全量171项168通过/0失败/3原有平台跳过，15.69秒。原工作区复跑曾有一项Memory测试因Windows临时文件rename返回EPERM失败，原2项证据集成测试单独复跑均通过，隔离全量也通过；未为此修改Memory实现。日志在系统TEMP的 `personal-agent-batch1-release-084b341b-e760-4a71-bce7-d88968049287/validation.log`。发布期间发现的并行GoalRunner改动（含GoalStore新增查询方法）原样保留，不纳入本批提交。
+- 剩余：本批没有Runner、自动领取、控制abort、Goal自然语言工具、最终渠道呈现或可靠通知。view暂返回全部历史；uncertain需人工核对，不提供绕过不变量的强制重试。Batch2必须有界投影输入、验证Pi结果、提交失败先重读并停止新领取，不能把完整存储快照直接当无限上下文；详见设计第15节。
 
 ### V2.1b.4 真实飞书回归（2026-10-22）
 
@@ -419,10 +443,10 @@ V1 原有自动化证据：39项测试使用模拟模型/飞书服务和虚拟�
 
 ## 下一步与需要提供的信息
 
-1. 本批按用户明确授权将V2.1b.4的[手机验收](evaluations/v2.1b.4-feishu-acceptance.md)、[机器证据](evaluations/v2.1b.4-feishu-acceptance.json)、脚本/回归及本STATE交付main，供ChatGPT审查；生产源码仍与2d31648一致，发布提交标识见Git及交付回复。HANDOFF.md、正式.env及所有data原样保留，不纳入。
-2. 本轮普通拒绝、项目隔离、H02错误属性/目标恢复及空Session检索已实测。漏工具补执行和H01跨项目错误目标未自然出现，不为凑分支盲目重复收费；前批模拟/保存输出回放证据保留。若审查需要额外真实复测，先重新明确范围和预算；正式Formation继续关闭。
-3. Linux平台测试前批137项全过，本轮Windows139项136通过/3平台跳过，没有再次运行Linux；两者分别记录。Windows ACL、原生Mac、更多同义/否定结构及长期质量仍未验；两个轮次账本、旧误写现场及全部失败/测量问题不删、不重置。
-4. 不开发Observer、Skills、自动保存、另外两类发现、Outbox或VPS；下一任务由用户审查后确认，不要求用户发送Key。
+1. 审查[Batch1设计与接口](designs/v3-persistent-goals.md)、GoalStore/类型/测试及SqliteStore增量；核心决策已批准，本地实现已验证，但完整V3.0尚未完成。未经新授权不提交推送、不继续Batch2。
+2. Batch2建议先接有界GoalRunner及独立无工具Pi片段，保持Memory只读、一次授权最多一段；联通AbortController、检查提交异常重读/停机和退出顺序，以模拟模型验证后再接自然语言Goal Service/Guard。时间/Observer/外部能力/Outbox仍不在授权范围。
+3. V2.1b.4[手机验收](evaluations/v2.1b.4-feishu-acceptance.md)与[机器证据](evaluations/v2.1b.4-feishu-acceptance.json)仍供审查；普通拒绝、项目隔离、H02恢复、空Session读取已实测，漏工具补执行和H01错误目标分支未自然出现，不盲目重复收费。正式Formation继续关闭，任何新收费验收另行授权。
+4. 本批Windows171项168通过/3跳过，历史Linux137通过仍分开记录；Windows ACL、原生Mac和本批Linux、更多语义与长期稳定性未验。两个账本、原误写与失败现场不删，不开发Observer、Skills、自动保存、Outbox或VPS。
 
 ## V2.0.2 关键文件（主体及本轮修复）
 

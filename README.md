@@ -12,6 +12,14 @@ V2.1b.2 已按授权完成12次隔离真实复验：原六窗6/6，新两窗0/2�
 
 V2.1b.3 按授权定点修复上述三个问题：有成功显示的候选时，宿主为“第一条先不保存”等有界拒绝补执行；H01明确新项目丢弃错误旧目标，仅建议新增；H02只有能够从当前原文唯一核对的否定漏字才恢复完整属性。批准/版本/来源校验保留，未批准仍不保存。相同真实提取输出离线回放6/8→8/8；主模型漏工具由真实Pi＋模拟模型验证，不是新的收费模型或手机验收。复核命令：`node --import tsx scripts/replay-formation-revalidation.ts`；[修复与回归说明](docs/evaluations/v2.1b.3-formation-fixes.md)保留原始失败、前后对比和适用限制。正式Formation继续关闭。
 
+## V3.0 Batch 1：长期目标存储（审查中）
+
+已实现 Goal/Plan/Step/Execution 四表及事务接口，Checkpoint 与 Run 的成功状态原子提交，旧 Task 的一次性约束保留。数据库文件仍使用 `DATABASE_PATH`，打开库时只增量建表；本轮只对虚构临时数据库做了验证。没有新增配置或依赖，没有启动正式 Agent，也没有修改 `.env`。
+
+当前仅可由内部宿主代码调用 `store.goals`，**尚无用户 Goal 命令、模型工具或 GoalRunner**，飞书说“继续长期目标”还不会触发这套存储。计划批准默认只保存计划；显式授权执行时一次最多领取一段。中断不自动重试，运行中取消/暂停先登记，完成停止或重启对账后才进入终态；投递失败不重新执行。
+
+数据模型、状态映射、事务接口、恢复优先级及 Batch 2 建议见[设计与 Batch 1 说明](docs/designs/v3-persistent-goals.md)。专项回归：`node --import tsx --test tests/goal-store.test.ts tests/task-service.test.ts tests/scheduler.test.ts`；全量结果及平台跳过项见 [STATE](docs/STATE.md)。本阶段没有真实 Goal 模型或手机验收。
+
 ## V2.1b 候选形成（默认关闭）
 
 正式 Formation 未开启；隔离验收仅使用临时虚构数据。审查并修复已发现的问题后如决定试用，请先备份并使用独立的 `DATABASE_PATH`、`SESSION_DIR`、`MEMORY_DIR`，再在本机配置：

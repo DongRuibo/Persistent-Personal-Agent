@@ -42,6 +42,7 @@ API Key 只从环境变量读取，仓库仅放脱敏样例。准确依赖版本
 | Task / Run | SQLite 保存指令、下次执行时间、渠道接收目标、状态、执行结果与日志，跨进程重启保留 |
 | Pi Session | 短期对话上下文；交互使用 Pi JSONL 文件跨重启恢复，每个后台任务使用独立内存 Session 并释放；不是长期记忆 |
 | Memory Service | 跨 Session 的四类长期知识；Markdown 为事实源，独立 SQLite 为索引，不负责任务状态或完整聊天历史 |
+| Goal（V3.0 Batch 1） | 同应用库的四表持久目标/计划/步骤/执行；Checkpoint 嵌入已提交 Execution。当前仅存储接口，Runner 和自然语言控制尚未接入；不以 Memory 或 Session 代替真实进度 |
 | Channel | Console 与 FeishuChannel，使用包含目标的统一消息接口；任务引擎不绑定 SDK 或具体渠道 |
 
 Pi SDK 使用公开 API，不 Fork、不修改内部源码和 Agent Loop。宿主负责业务状态、权限和投递策略；单用户、单进程、串行后台任务，不引入微服务或工作流框架。
@@ -61,6 +62,7 @@ Pi SDK 使用公开 API，不 Fork、不修改内部源码和 Agent Loop。宿�
 | [src/memory-tools.ts](../src/memory-tools.ts) | 五项受控 Pi 工具，只返回操作收据，正文由 Context 临时提供 |
 | [src/task-service.ts](../src/task-service.ts) | 任务内容与时间校验、查询和 pending 取消规则 |
 | [src/sqlite-store.ts](../src/sqlite-store.ts) | SQLite 表、原子领取、执行状态、日志、恢复与投递记录 |
+| [src/goal-types.ts](../src/goal-types.ts)、[src/goal-store.ts](../src/goal-store.ts) | Goal 最小类型、同连接事务、一次授权领取、版本计划、Checkpoint、控制收据与保守恢复；没有模型/渠道依赖 |
 | [src/time.ts](../src/time.ts) | 有界中文时间与 ISO 时间解析，明确处理时区和 DST 歧义 |
 | [src/scheduler.ts](../src/scheduler.ts) | 独立扫描循环、串行执行、先提交结果再调用 Channel |
 | [src/console-channel.ts](../src/console-channel.ts) | 终端对话与命令、控制台消息输出；daemon 不启动输入循环 |
@@ -152,6 +154,9 @@ Memory 是低信任知识而非权限来源。历史用户/助手文字仍由 Pi
 | V2.1b.1 合法候选校验 | 完整来源归属及原兼容路径，property/范围/目标权限保留 | 已修复，历史输出离线回放12/12、6/6；121项测试118通过/3平台跳过；2026-10-22用户授权发布main，未做新收费或手机验收 |
 | V2.1b.2 真实复验 | 虚构数据8提取+2审批+2新Session生成及独立手机验收 | 原12请求宿主预期6/8，H01/H02仍失败；另行手机46/48请求完成核心机制链路，修复后误写提议被拦截，批准/明确拒绝/编辑确认/新Session检索均有库和Run证据。普通拒绝措辞仍有漏执行；Linux131全过、Windows128通过/3跳过。见[修复](evaluations/v2.1b.2-memory-consent-fix.md)与[手机报告](evaluations/v2.1b.2-platform-feishu-review.md)，不启用正式Formation |
 | V2.1b.3 三项定点修复 | 拒绝补执行、目标提示与否定属性恢复 | 保存输出8/8离线回放、Pi模拟集成及冻结12/60窗回归；不调用收费API或开启正式Formation，真实语义/手机复测仍单独列项 |
+| V3.0 Batch 1 目标存储 | 四表、不可变 Plan/Checkpoint、原子领取/提交/控制/恢复 | 核心决策已批准，本地实现与自动化验证；仅宿主存储接口，尚无 Runner/用户入口，结果见 STATE |
+
+V3.0 已确认采用“持久 Goal + 多次短生命周期 text_only Pi 片段”，每次用户明确创建/继续最多推进一段，之后等待用户。Checkpoint 放在 committed Execution；状态由宿主管理，Pi 保持原样。运行中的 pause/cancel 先持久化，崩溃恢复以 cancel、pause、普通中断阻塞的优先级落点；不自动重试。Task/Run 唯一约束、Memory 写入授权、Session 持久化及现有工具入口不变。完整事务与后续规划见[设计](designs/v3-persistent-goals.md)，只有 Batch 1 已实施，其余批次仍需授权。
 
 本阶段不做未经批准的自动保存、另外两类自动提取、Embedding、向量库、Observer、自主 Skill、周期任务、WebUI、复杂框架或 VPS。架构或范围调整先说明并取得确认，再同步本文及 STATE。
 
