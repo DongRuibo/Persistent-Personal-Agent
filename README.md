@@ -4,7 +4,13 @@
 
 V2.0 增加四类统一长期 Memory（SQLite 索引 + 可读 Markdown），支持在新 Session 中检索。V2.1b 增加默认关闭的后台 Semantic/Project 候选发现，必须由用户逐条批准才保存；没有自动保存、Embedding、Observer 或 Skill 执行。历史真实飞书与生成验收保留在 STATE。2026-10-21 完成一轮隔离真实 Formation 验收：13次请求，6条值得保留的事实中宿主保留4条；两条合法提议被校验误拒绝，尚未达到质量目标，继续默认关闭。失败原文、一次批准更新及新 Session 回答见[真实验收报告](docs/evaluations/v2.1b-formation-live-review.md)。
 
-V2.1b.1 已在本地定点修复这两条宿主误拒绝，保留完整时间/范围与原有更新目标校验。原输出离线回放12/12、值得保留事实6/6，不代表新真实模型质量已达标；正式Formation仍关闭，等待审查及新的复验授权。前后证据、回归结果与最多12请求的预算见[修复报告](docs/evaluations/v2.1b.1-formation-fix-review.md)。无需Key即可离线核对：`node --import tsx scripts/replay-formation-live.ts`。
+V2.1b.1 已定点修复这两条宿主误拒绝，保留完整时间/范围与原有更新目标校验。原输出离线回放12/12、值得保留事实6/6，不代表新真实模型质量已达标；前后证据见[修复报告](docs/evaluations/v2.1b.1-formation-fix-review.md)。无需Key即可离线核对：`node --import tsx scripts/replay-formation-live.ts`。
+
+V2.1b.2 已按授权完成12次隔离真实复验：原六窗6/6，新两窗0/2，整体6/8；两次批准与新Session回答通过，但错误项目target触发澄清、丢否定的property被拒绝。没有越权写入，仍不适合把质量标为全面达标，正式Formation保持关闭。[真实复验报告](docs/evaluations/v2.1b.2-formation-live-review.md)保留全部失败和实际用量；该批历史审计脚本的源码Hash检查对应原基线，不用于宣称新代码已做真实复验。
+
+2026-10-22真实手机曾发生普通项目陈述被直接memory_remember保存；用户授权[宿主保存意图定点修复](docs/evaluations/v2.1b.2-memory-consent-fix.md)后，同句式错误提议被宿主拦截并正常形成候选。已实测显示、批准、明确拒绝、编辑后再确认、全新空Session命中已批准的当前Memory；“第一条先不保存”曾仅口头答应、未实际拒绝，失败保留。最新Windows131项128通过/3平台跳过，Linux131全过/0跳过，类型/构建及生产修复后的两个eval退出0。本轮手机46/48请求、保守预留1.877388/2元，测试进程已停；[完整证据及剩余问题](docs/evaluations/v2.1b.2-platform-feishu-review.md)不代表形成质量全面达标，正式Formation仍关闭。
+
+V2.1b.3 按授权定点修复上述三个问题：有成功显示的候选时，宿主为“第一条先不保存”等有界拒绝补执行；H01明确新项目丢弃错误旧目标，仅建议新增；H02只有能够从当前原文唯一核对的否定漏字才恢复完整属性。批准/版本/来源校验保留，未批准仍不保存。相同真实提取输出离线回放6/8→8/8；主模型漏工具由真实Pi＋模拟模型验证，不是新的收费模型或手机验收。复核命令：`node --import tsx scripts/replay-formation-revalidation.ts`；[修复与回归说明](docs/evaluations/v2.1b.3-formation-fixes.md)保留原始失败、前后对比和适用限制。正式Formation继续关闭。
 
 ## V2.1b 候选形成（默认关闭）
 
@@ -34,7 +40,7 @@ MEMORY_FORMATION_OUTPUT_CNY_PER_MILLION=20
 
 候选7天过期，运行中清理正文/引文/旧值，停服期间在下次开启时清理。最小 Hash/状态保留用于抑制重复；SQLite空闲页、WAL、Run、Session及备份不保证擦除。Memory任意变化使尚未审批的旧候选失效，这是保守取舍。提取中崩溃不重试；批准前标 applying，重启只核对匹配落盘结果，无法确认则 blocked，需人工查状态，不盲重放。
 
-数据默认在项目私有数据目录，Git已忽略。Mac/Linux沿用0700/0600；Windows chmod 不代表 ACL 隔离，需用当前账户的私有目录并自行核对访问权限。本轮未验证 Windows ACL 或真实手机 Formation；收费语义小样本与模拟机制结果分别记录。验证命令：`npm run typecheck`、`npm run build`、`npm test`、`npm run eval:memory`、`npm run eval:formation`。详细边界和结果见 [设计与实现](docs/designs/v2.1b-memory-formation.md)、[离线报告](docs/evaluations/v2.1b-formation-review.md)及[真实验收](docs/evaluations/v2.1b-formation-live-review.md)。验收原始报告已落盘，收费脚本拒绝覆盖或再次消费本轮额度；离线复核使用 `node --import tsx scripts/review-formation-live.ts`，不联网。
+数据默认在项目私有数据目录，Git已忽略。Mac/Linux沿用0700/0600；Windows chmod 不代表 ACL 隔离，需用当前账户的私有目录并自行核对访问权限。已在隔离数据中进行小规模真实手机 Formation 验收，未验证 Windows ACL、原生Mac补跑或长期形成质量；收费语义小样本与模拟机制结果分别记录。验证命令：`npm run typecheck`、`npm run build`、`npm test`、`npm run eval:memory`、`npm run eval:formation`。详细边界和结果见 [设计与实现](docs/designs/v2.1b-memory-formation.md)、[离线报告](docs/evaluations/v2.1b-formation-review.md)及[真实验收](docs/evaluations/v2.1b-formation-live-review.md)。验收原始报告已落盘，收费脚本拒绝覆盖或再次消费本轮额度；离线复核使用 `node --import tsx scripts/review-formation-live.ts`，不联网。
 
 ## 环境与安装
 

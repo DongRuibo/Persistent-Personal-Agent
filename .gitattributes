@@ -4,3 +4,6 @@ docs/evaluations/v2.1b-formation-live.json -text
 docs/evaluations/v2.1b-formation-live-review.json -text
 docs/evaluations/v2.1b-formation-live.redacted-original.txt -text
 docs/evaluations/v2.1b.1-*.json -text
+tests/fixtures/memory-formation-revalidation.json -text
+docs/evaluations/v2.1b.2-*.json -text
+docs/evaluations/v2.1b.3-*.json -text

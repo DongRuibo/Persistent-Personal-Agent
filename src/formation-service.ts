@@ -10,11 +10,24 @@ type ReadMemory = Pick<FileMemoryService, 'listForHost'>;
 const pending = (candidate: MemoryCandidate) => ['pending', 'needs_clarification'].includes(candidate.status);
 const body = (record: Pick<MemoryRecord, 'content'>) => normalized(record.content);
 const canonical = (text: string) => normalized(text).replace(/^(?:我|本人)/u, '用户');
+const withoutTime = (text: string) => text.replace(/^(?:现在|以后|今后|平时|长期|工作时|学习时|目前)/u, '');
+function sourceProperty(text: string, property: string): string {
+  const clause = /^(?:我|本人)([^，。；,;！!\n]+)/u.exec(text.trim())?.[1];
+  if (!clause) return property;
+  // 只恢复原话首个自述子句中恰好漏掉的否定；时间/适用范围及其余字词必须逐字可核对。
+  const proposed = withoutTime(normalized(property));
+  for (let end = 1; end <= Math.min(clause.length, 60); end++) {
+    const prefix = clause.slice(0, end), field = withoutTime(normalized(prefix));
+    const negatives = [...field.matchAll(/并不|不|未|没/gu)];
+    if (negatives.length === 1 && field.replace(/并不|不|未|没/u, '') === proposed) return prefix.trim();
+  }
+  return property;
+}
 function owns(record: Pick<MemoryRecord, 'content'>, kind: string, subject: string, property: string): boolean {
   const text = body(record), field = normalized(property);
   // 写入目标比只读召回更保守：不借“用户的同事”或包含另一个项目名的句子转移归属。
   if (kind === 'semantic') return ['用户', '我', '本人'].some(owner => ['', '的', '不', '没', '未', '并不'].some(prefix => text.startsWith(owner + prefix + field)));
-  const name = normalized(subject);
+  const name = normalized(subject).replace(/项目$/u, '');
   return [name + '项目', name + '的', name + '的项目'].some(prefix => text.startsWith(prefix) && text.includes(field));
 }
 
@@ -118,27 +131,38 @@ export class FormationService {
         const job = jobs.find(job => job.runId === proposal.sourceRunId);
         if (!job || seen.has(job.id) || proposal.quote !== job.text || fingerprint(proposal.quote) !== job.sourceHash || !proposal.durable || proposal.mode !== 'asserted' ||
           !['semantic', 'project'].includes(proposal.kind) || excludedSource(job.text) || sensitive(job.text, this.secrets) ||
-          !normalized(job.text).includes(normalized(proposal.property)) || !normalized(job.text).includes(normalized(proposal.value))) continue;
+          !normalized(job.text).includes(normalized(proposal.value))) continue;
+        const property = proposal.kind === 'semantic' && proposal.subject === '用户' ? sourceProperty(job.text, proposal.property) : proposal.property;
+        if (!normalized(job.text).includes(normalized(property))) continue;
         const selfText = normalized(job.text).replace(/^(我|本人)(?:现在|以后|今后|平时|长期|工作时|学习时|目前)/u, '$1');
         // 属性可能包含时间/适用范围，先核对完整原话；仅为省略时间前缀的旧提议保留兼容判定。
         if (proposal.kind === 'semantic' && (proposal.subject !== '用户' ||
-          !owns({ content: job.text }, 'semantic', '用户', proposal.property) && !owns({ content: selfText }, 'semantic', '用户', proposal.property))) continue;
-        if (proposal.kind === 'project' && (!job.text.includes(proposal.subject) || /^(?:项目|这个项目|那个项目|我们)$/u.test(proposal.subject))) continue;
+          !owns({ content: job.text }, 'semantic', '用户', property) && !owns({ content: selfText }, 'semantic', '用户', property))) continue;
+        if (proposal.kind === 'project' && (!job.text.includes(proposal.subject) || !owns({ content: job.text }, 'project', proposal.subject, property) || /^(?:项目|这个项目|那个项目|我们)$/u.test(proposal.subject))) continue;
         seen.add(job.id);
-        const hash = fingerprint([proposal.kind, normalized(proposal.subject), normalized(proposal.property), canonical(job.text)].join(':'));
+        const hash = fingerprint([proposal.kind, normalized(proposal.subject), normalized(property), canonical(job.text)].join(':'));
         if (this.store.formation.suppressed(job.owner, hash)) continue;
-        const candidates = records.filter(record => record.kind === proposal.kind && owns(record, proposal.kind, proposal.subject, proposal.property));
+        // 恢复否定后，仍检查同一范围的相反旧值；只用于找目标，不改草稿中的否定/时间。
+        const fields = property === proposal.property ? [property] : [property, withoutTime(property).replace(/并不|不|未|没/u, '')];
+        const candidates = records.filter(record => record.kind === proposal.kind && fields.some(field => owns(record, proposal.kind, proposal.subject, field)));
         if (records.some(record => canonical(record.content) === canonical(job.text))) continue;
         // 模型 targetId 只是提示，必须落在宿主按主体和属性找到的集合内。
-        const invalidTarget = proposal.targetId && !candidates.some(record => record.id === proposal.targetId);
+        const invalidTarget = !!proposal.targetId && !candidates.some(record => record.id === proposal.targetId);
+        // 明确的另一项目或可逐字恢复的否定范围不能强绑模型ID；无法证明新事实边界时仍澄清。
+        const hinted = records.find(record => record.id === proposal.targetId);
+        const separateProject = proposal.kind === 'project' && hinted?.kind === 'project' && !owns(hinted, 'project', proposal.subject, '');
+        const safeNew = candidates.length === 0 && (separateProject || property !== proposal.property);
+        const clarifyTarget = invalidTarget && !safeNew;
+        if (property !== proposal.property) observer.event('formation_property_recovered', JSON.stringify({ sourceRunId: job.runId }));
+        if (invalidTarget) observer.event('formation_target_ignored', JSON.stringify({ sourceRunId: job.runId, matchingTargets: candidates.length }));
         const target = candidates.length === 1 && !invalidTarget ? candidates[0] : undefined;
         const candidate: MemoryCandidate = {
           id: randomUUID(), owner: job.owner, jobId: job.id, kind: proposal.kind as 'semantic' | 'project', subject: proposal.subject,
-          property: proposal.property, value: proposal.value, draft: job.text, quote: job.text, sourceHash: job.sourceHash,
+          property, value: proposal.value, draft: job.text, quote: job.text, sourceHash: job.sourceHash,
           digest, revision: 1, hash: fingerprint(job.text), fingerprint: hash,
-          status: invalidTarget || candidates.length > 1 ? 'needs_clarification' : 'pending', createdAt: at, expiresAt: job.expiresAt,
+          status: clarifyTarget || candidates.length > 1 ? 'needs_clarification' : 'pending', createdAt: at, expiresAt: job.expiresAt,
           target: target && { id: target.id, key: target.key, version: target.version, hash: target.hash, content: target.content },
-          targetOptions: candidates.map(record => record.id), reason: invalidTarget ? '模型目标与主体/属性不符，需澄清' : candidates.length > 1 ? '存在多个旧事实，请先选要更新的记录' : undefined,
+          targetOptions: candidates.map(record => record.id), reason: clarifyTarget ? '模型目标与主体/属性不符，需澄清' : candidates.length > 1 ? '存在多个旧事实，请先选要更新的记录' : undefined,
         };
         const conflicts = this.store.formation.candidates(job.owner).filter(old => pending(old) && old.kind === candidate.kind && normalized(old.subject) === normalized(candidate.subject) && normalized(old.property) === normalized(candidate.property));
         if (conflicts.length) {

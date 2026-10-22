@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "frozen": "2026-10-22",
+  "cases": [
+    {"id":"F01","category":"stable-preference","text":"我平时偏好简洁的中文解释。","expected":"new","kind":"semantic","approve":true,"question":"我偏好什么语言和风格的解释？"},
+    {"id":"F02","category":"scoped-preference","text":"我以后做 Agent 项目主要使用 TypeScript。","expected":"new","kind":"semantic"},
+    {"id":"F04","category":"qualified-update","text":"我现在主要用TypeScript，Python已经用得少了。","expected":"update","kind":"semantic","old":{"kind":"semantic","key":"fixture.language","content":"用户主要使用Python。"},"approve":true,"question":"我现在主要用什么，Python还用吗？"},
+    {"id":"F05","category":"duplicate","text":"我偏好无糖饮料。","expected":"duplicate","kind":"semantic","old":{"kind":"semantic","key":"fixture.drink","content":"用户偏好无糖饮料。"}},
+    {"id":"F06","category":"other-person","text":"小岚偏爱语音沟通。","expected":"none","old":{"kind":"semantic","key":"fixture.contact","content":"用户偏爱文字沟通。"}},
+    {"id":"F08","category":"negated-fact","text":"我不希望回答省略错误原因。","expected":"new","kind":"semantic"},
+    {"id":"H01","category":"other-project","text":"Beryl项目的界面使用西班牙语，开发语言为Rust。","expected":"new","kind":"project","old":{"kind":"project","key":"fixture.cedar.ui","content":"Cedar项目的界面使用法语，开发语言为Go。"}},
+    {"id":"H02","category":"scoped-negation","text":"我以后做移动端项目不使用Ruby，只在数据脚本中使用Ruby。","expected":"new","kind":"semantic","old":{"kind":"semantic","key":"fixture.server.ruby","content":"用户做服务端项目使用Ruby。"}}
+  ]
+}

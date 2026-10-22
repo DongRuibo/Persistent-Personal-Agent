@@ -67,7 +67,7 @@ test('时间与范围只能用于原话校验：不扩大更新目标，不截�
     { text: '我以后同事主要使用 TypeScript。', property: '主要使用', subject: '用户', expected: 'none' },
     { text: '我平时偏好简洁的中文解释。', property: '平时偏好', subject: '同事', value: '中文', expected: 'none' },
     { text: '我以后做 Agent 项目不使用 TypeScript。', property: '以后做 Agent 项目不使用', subject: '用户', expected: 'needs_clarification' },
-    { text: 'Beryl项目以后不使用TypeScript。', property: '以后不使用', subject: 'Beryl', kind: 'project', expected: 'needs_clarification' },
+    { text: 'Beryl项目以后不使用TypeScript。', property: '以后不使用', subject: 'Beryl', kind: 'project', expected: 'pending' },
     { text: 'Beryl项目以后不使用TypeScript。', property: '以后不使用', subject: 'Cedar', kind: 'project', expected: 'none' },
   ];
   for (const sample of samples) {
@@ -85,7 +85,8 @@ test('时间与范围只能用于原话校验：不扩大更新目标，不截�
         assert.deepEqual(candidate.targetOptions, []); assert.equal(candidate.property, sample.property);
         assert.equal(candidate.draft, sample.text); assert.equal(candidate.quote, sample.text);
         let wrote = false;
-        assert.throws(() => h.formation.approve(h.formation.view().view, 1, h.request('第一条记下来'), () => { wrote = true; return old; }), /澄清/);
+        // 跨项目的明确新事实只可建议新增；同主体未知范围仍须澄清，不放宽旧记录更新。
+        if (candidate.status === 'needs_clarification') assert.throws(() => h.formation.approve(h.formation.view().view, 1, h.request('第一条记下来'), () => { wrote = true; return old; }), /澄清/);
         assert.equal(wrote, false);
       }
       assert.equal(memoryDigest(h.memory.listForHost()), before);

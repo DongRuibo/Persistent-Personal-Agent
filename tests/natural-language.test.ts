@@ -270,10 +270,58 @@ test('否定、假设、引用、查询及普通偏好不会因主模型调用�
   } finally { env.close(); }
 });
 
+test('解析器误把普通事实标为保存请求，宿主仍不直接写入或遗留确认权限', async () => {
+  const env = setup();
+  try {
+    for (const [message, fact] of [
+      ['星帆验收项目使用 SQLite 保存本地数据', '星帆验收项目使用 SQLite 保存本地数据'],
+      ['Tundra 项目使用 JSON 保存配置', 'JSON'],
+      ['我喜欢中文回答', '我喜欢中文回答'],
+      ['设备日志记录故障码', '故障码'],
+    ]) {
+      env.plan(message!, { action: 'memory_remember', mode: 'request', evidence: message, bodyEvidence: fact, body: fact, kind: 'project' });
+      assert.match((await env.run(message!, 'memory_remember')).text, /未.*保存|没有.*保存/);
+      assert.deepEqual(env.memory.listForHost(), []);
+    }
+    // 普通陈述被拒绝后，下一轮“确认”不能凭空获得写入能力。
+    env.plan('确认', { action: 'memory_remember', confirmation: true });
+    await env.run('确认', 'memory_remember');
+    assert.deepEqual(env.memory.listForHost(), []);
+  } finally { env.close(); }
+});
+
+test('强制错误request不能让否定、假设或引用中的记忆指令保存', async () => {
+  const env = setup();
+  try {
+    for (const message of ['不要记住我喜欢甜咖啡', '如果我说记住我喜欢甜咖啡，你会怎么做？', '朋友说“请记住我喜欢甜咖啡”', '这只是引用：记住我喜欢甜咖啡']) {
+      env.plan(message, { action: 'memory_remember', mode: 'request', bodyEvidence: '我喜欢甜咖啡', body: '我喜欢甜咖啡' });
+      await env.run(message, 'memory_remember');
+      assert.deepEqual(env.memory.listForHost(), []);
+    }
+  } finally { env.close(); }
+});
+
+test('未识别的自然保存请求先确认，错误confirmation不能代替用户同意', async () => {
+  const env = setup();
+  try {
+    const message = '关于长期记忆，我希望以后能查到这条：我喜欢温水';
+    env.plan(message, { action: 'memory_remember', bodyEvidence: '我喜欢温水', body: '我喜欢温水' });
+    assert.match((await env.run(message, 'memory_remember')).text, /确认/);
+    assert.deepEqual(env.memory.listForHost(), []);
+    env.plan('先不要保存', { action: 'memory_remember', confirmation: true });
+    await env.run('先不要保存', 'memory_remember');
+    assert.deepEqual(env.memory.listForHost(), []);
+    // 重新展示待确认草稿，真正的当前确认仍可保存。
+    await env.run(message, 'memory_remember');
+    await env.run('确认', 'memory_remember');
+    assert.equal(env.memory.listForHost().length, 1);
+  } finally { env.close(); }
+});
+
 test('自然语言明确 Memory 保存、唯一目标更新/删除，实质改写确认及版本防覆盖', async () => {
   const env = setup();
   try {
-    for (const [message, fact] of [['记住我比较喜欢中文回答', '我比较喜欢中文回答'], ['以后你要记得我偏好简洁的解释', '我偏好简洁的解释'], ['你可以记一下，我现在主要用 TypeScript 开发', '我现在主要用 TypeScript 开发']]) {
+    for (const [message, fact] of [['记住我比较喜欢中文回答', '我比较喜欢中文回答'], ['以后你要记得我偏好简洁的解释', '我偏好简洁的解释'], ['你可以记一下，我现在主要用 TypeScript 开发', '我现在主要用 TypeScript 开发'], ['请记住“我不喜欢甜咖啡”', '我不喜欢甜咖啡'], ['请把我喜欢温水保存为长期记忆', '我喜欢温水']]) {
       env.plan(message!, { action: 'memory_remember', body: fact, bodyEvidence: fact, kind: 'semantic' });
       assert.match((await env.run(message!, 'memory_remember')).text, /已保存/);
     }

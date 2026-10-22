@@ -16,6 +16,41 @@ import { sseText } from './helpers/intent-stub.js';
 interface Payload { messages: { role: string; content?: unknown }[]; tools?: unknown[] }
 const content = (value: unknown) => typeof value === 'string' ? value : (value as { text: string }[]).map((item) => item.text).join('');
 
+test('真实Pi与错误解析器：普通项目事实不能直接写Memory，主模型口头成功也不能覆盖宿主结果', async (t) => {
+  const root = mkdtempSync(join(tmpdir(), 'agent-memory-consent-'));
+  const config = readConfig({ DATABASE_PATH: join(root, 'agent.db'), LLM_API_KEY: 'fake-consent-key', LLM_MODEL: 'local-stub', LLM_BASE_URL: 'https://example.invalid/v1' });
+  const store = new SqliteStore(config.databasePath);
+  const tasks = new TaskService(store, config.timeZone);
+  const memory = new FileMemoryService(config.memoryDir);
+  const message = '星帆验收项目使用 SQLite 保存本地数据';
+  let classifierCalls = 0;
+  t.mock.method(globalThis, 'fetch', async (_input: unknown, init?: RequestInit) => {
+    const payload = JSON.parse(String(init?.body)) as Payload;
+    if (content(payload.messages.find(item => item.role === 'system')!.content).startsWith('你是隔离的当前用户意图解析器')) {
+      classifierCalls++;
+      return new Response(sseText(JSON.stringify({ action: 'memory_remember', mode: 'request', evidence: message, bodyEvidence: message, body: message, kind: 'project', key: 'fictional.database' })));
+    }
+    const index = payload.messages.findLastIndex(item => item.role === 'user');
+    if (payload.messages.slice(index + 1).some(item => item.role === 'tool')) return new Response(sseText('已保存长期记忆'));
+    const frames = [
+      { index: 0, delta: { role: 'assistant', tool_calls: [{ index: 0, id: 'false-memory-call', type: 'function', function: { name: 'memory_remember', arguments: JSON.stringify({ kind: 'project', key: 'fictional.database', content: message }) } }] }, finish_reason: null },
+      { index: 0, delta: {}, finish_reason: 'tool_calls' },
+    ];
+    return new Response(frames.map(choice => `data: ${JSON.stringify({ id: 'consent-stub', model: 'local-stub', choices: [choice] })}\n\n`).join('') + 'data: [DONE]\n\n');
+  });
+  const executor = await createPiExecutor(config, tasks, 'memory-consent-test', memory);
+  try {
+    const run = store.beginRun(null, new Date().toISOString());
+    const reply = await executor.execute({ prompt: message, scope: 'chat', signal: new AbortController().signal, observer: store.observer(run.id) });
+    assert.match(reply.text, /没有.*保存/);
+    assert.deepEqual(memory.listForHost(), []);
+    assert.equal(classifierCalls, 1, '不增加额外分类调用');
+    assert.equal(store.modelCalls(run.id).length, 3);
+    assert.ok(!store.events(run.id).some(event => ['operation_authorized', 'operation_committed', 'operation_confirmation_required'].includes(event.type)));
+    assert.equal(tasks.list().length, 0);
+  } finally { await executor.close(); memory.close(); store.close(); rmSync(root, { recursive: true, force: true }); }
+});
+
 test('真实 Pi + 模拟模型：隔离解析无 Memory/历史/工具、参数不能扩权、重启澄清编号、额外用量和失败关闭', async (t) => {
   const root = mkdtempSync(join(tmpdir(), 'agent-natural-pi-'));
   const config = readConfig({ DATABASE_PATH: join(root, 'agent.db'), LLM_API_KEY: 'fake-natural-api-key', LLM_MODEL: 'local-stub', LLM_BASE_URL: 'https://example.invalid/v1' });

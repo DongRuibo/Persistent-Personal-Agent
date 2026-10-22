@@ -1,0 +1,157 @@
+{
+  "mode": "offline-replay-v2.1b.2-recorded-output",
+  "createdAt": "2026-10-22T01:09:22.053Z",
+  "rawReportSha256": "7024b12f80548df48343aa5e7510c2624110a165526888e999d6a960499d6321",
+  "fixtureSha256": "fd98f8b9060ba7624801c5385d8550a07653c82cad23c8201026191960b9c105",
+  "sourceSha256": "510b25af10041e74fc0bc04241a26fe0766a43ed5a407d2376a71e9ef9e7da73",
+  "actualApiRequests": 0,
+  "actualTokens": 0,
+  "actualCostCny": 0,
+  "boundary": "仅sourceRunId和targetId重绑临时库随机ID；原始模型语义输出不修改，不批准、不生成、不发送飞书。",
+  "metrics": {
+    "expectedOutcomes": "8/8",
+    "unauthorizedWrites": 0
+  },
+  "rows": [
+    {
+      "id": "F01",
+      "expected": "new",
+      "actual": "new",
+      "passed": true,
+      "rawOutputSha256": "cc13bb81f60fe54a6afdf74ae37220117e4fa6f9279bf3380aba6cb100624c22",
+      "sourceText": "我平时偏好简洁的中文解释。",
+      "unchangedWithoutApproval": true,
+      "candidate": {
+        "subject": "用户",
+        "property": "平时偏好",
+        "value": "简洁的中文解释",
+        "draft": "我平时偏好简洁的中文解释。",
+        "status": "pending",
+        "targetCount": 0
+      },
+      "events": []
+    },
+    {
+      "id": "F02",
+      "expected": "new",
+      "actual": "new",
+      "passed": true,
+      "rawOutputSha256": "9e7039510a680ab8a3f880f598ac4d2094202290242504076478030a8e29d8ed",
+      "sourceText": "我以后做 Agent 项目主要使用 TypeScript。",
+      "unchangedWithoutApproval": true,
+      "candidate": {
+        "subject": "用户",
+        "property": "以后做 Agent 项目主要使用",
+        "value": "TypeScript",
+        "draft": "我以后做 Agent 项目主要使用 TypeScript。",
+        "status": "pending",
+        "targetCount": 0
+      },
+      "events": []
+    },
+    {
+      "id": "F04",
+      "expected": "update",
+      "actual": "update",
+      "passed": true,
+      "rawOutputSha256": "9860ef3c59bd2a85711ac5fec3085827bc5bfa9608f96a515da65a2cf722ecc2",
+      "sourceText": "我现在主要用TypeScript，Python已经用得少了。",
+      "unchangedWithoutApproval": true,
+      "candidate": {
+        "subject": "用户",
+        "property": "主要用",
+        "value": "TypeScript",
+        "draft": "我现在主要用TypeScript，Python已经用得少了。",
+        "status": "pending",
+        "target": {
+          "key": "fixture.language",
+          "version": 1,
+          "content": "用户主要使用Python。"
+        },
+        "targetCount": 1
+      },
+      "events": []
+    },
+    {
+      "id": "F05",
+      "expected": "duplicate",
+      "actual": "duplicate",
+      "passed": true,
+      "rawOutputSha256": "1bd87b9fa5d1da4403d765a96f82af2b90b9bec63e033f4ee88b6a94b7d420a1",
+      "sourceText": "我偏好无糖饮料。",
+      "unchangedWithoutApproval": true,
+      "candidate": null,
+      "events": []
+    },
+    {
+      "id": "F06",
+      "expected": "none",
+      "actual": "none",
+      "passed": true,
+      "rawOutputSha256": "9179854f5e4a50e98d32050ad355015b8301cd31732643f2471690ecf6352236",
+      "sourceText": "小岚偏爱语音沟通。",
+      "unchangedWithoutApproval": true,
+      "candidate": null,
+      "events": []
+    },
+    {
+      "id": "F08",
+      "expected": "new",
+      "actual": "new",
+      "passed": true,
+      "rawOutputSha256": "ffd33462dbf54e14688303d73bc1f2d4848cb6816365f15f812507c180eac428",
+      "sourceText": "我不希望回答省略错误原因。",
+      "unchangedWithoutApproval": true,
+      "candidate": {
+        "subject": "用户",
+        "property": "不希望回答省略",
+        "value": "错误原因",
+        "draft": "我不希望回答省略错误原因。",
+        "status": "pending",
+        "targetCount": 0
+      },
+      "events": []
+    },
+    {
+      "id": "H01",
+      "expected": "new",
+      "actual": "new",
+      "passed": true,
+      "rawOutputSha256": "12eaa872524b85fe603fc36f7716b8533b0ae283b267ff0321753aec2d7b9dfe",
+      "sourceText": "Beryl项目的界面使用西班牙语，开发语言为Rust。",
+      "unchangedWithoutApproval": true,
+      "candidate": {
+        "subject": "Beryl项目",
+        "property": "界面使用",
+        "value": "西班牙语",
+        "draft": "Beryl项目的界面使用西班牙语，开发语言为Rust。",
+        "status": "pending",
+        "targetCount": 0
+      },
+      "events": [
+        "formation_target_ignored"
+      ]
+    },
+    {
+      "id": "H02",
+      "expected": "new",
+      "actual": "new",
+      "passed": true,
+      "rawOutputSha256": "2762338d34ac3fadc30ea859eb4f6a8e1c6bfc1b28eec838298bb4bb41132bcc",
+      "sourceText": "我以后做移动端项目不使用Ruby，只在数据脚本中使用Ruby。",
+      "unchangedWithoutApproval": true,
+      "candidate": {
+        "subject": "用户",
+        "property": "以后做移动端项目不使用Ruby",
+        "value": "不使用Ruby，只在数据脚本中使用Ruby",
+        "draft": "我以后做移动端项目不使用Ruby，只在数据脚本中使用Ruby。",
+        "status": "pending",
+        "targetCount": 0
+      },
+      "events": [
+        "formation_property_recovered",
+        "formation_target_ignored"
+      ]
+    }
+  ]
+}

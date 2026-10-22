@@ -1,0 +1,121 @@
+{
+  "reviewedAt": "2026-10-21T16:36:36.949Z",
+  "startedAt": "2026-10-21T16:33:16.475Z",
+  "completedAt": "2026-10-21T16:33:36.347Z",
+  "baselineCommit": "f79a8b8858b66b2c8f839dd3d2f00e03f2dc1d5b",
+  "rawReportSha256": "7024b12f80548df48343aa5e7510c2624110a165526888e999d6a960499d6321",
+  "fixtureSha256": "fd98f8b9060ba7624801c5385d8550a07653c82cad23c8201026191960b9c105",
+  "requests": {
+    "total": 12,
+    "extraction": 8,
+    "approval": 2,
+    "generation": 2,
+    "allHttp200AndStop": true,
+    "reservedCny": 0.61681
+  },
+  "tokens": {
+    "inputIncludingCached": 5680,
+    "output": 1076,
+    "cachedInput": 1024,
+    "uncachedInput": 4656
+  },
+  "pricing": {
+    "source": "https://www.siliconflow.cn/pricing",
+    "verifiedDate": "2026-10-22",
+    "peakRatesCnyPerMillion": {
+      "uncachedInput": 2,
+      "cachedInput": 0.04,
+      "output": 8
+    },
+    "estimatedPeakCny": 0.017960959999999998,
+    "billingVerified": false
+  },
+  "timing": {
+    "p50Ms": 1186.9552000000003,
+    "maxMs": 1909.1512999999977
+  },
+  "metrics": {
+    "expectedOutcomes": "6/8",
+    "originalSix": "6/6",
+    "newHoldoutTwo": "0/2",
+    "readyWorthKeeping": "4/6",
+    "retainedIncludingClarification": "5/6",
+    "unauthorizedWrites": 0,
+    "appliedMemories": 2,
+    "correctFreshSessionAnswers": "2/2",
+    "rawProposals": 9,
+    "note": "H01保留了完整且正确的新项目原话，但错误模型target使其需澄清，不计作可直接批准成功；H02无候选。不是总体语义成功率或手机验收。"
+  },
+  "humanReview": [
+    {
+      "id": "F01",
+      "result": "PASS",
+      "reason": "完整平时偏好被接受；真实审批新增v1，新Session回答简洁中文，当前Memory证据一致。"
+    },
+    {
+      "id": "F02",
+      "result": "PASS",
+      "reason": "以后做Agent项目范围保留为pending候选；未批准无写入。"
+    },
+    {
+      "id": "F04",
+      "result": "PASS",
+      "reason": "正确旧ID原地v2、当前审批Run；新Session保留Python用得少的限定，没有加载旧v1正文。"
+    },
+    {
+      "id": "F05",
+      "result": "PASS_HOST_DEDUPE",
+      "reason": "模型仍提重复记录，宿主去重；不是模型主动去重成功。"
+    },
+    {
+      "id": "F06",
+      "result": "PASS_HOST_BLOCK_RAW_SCOPE_ERROR",
+      "reason": "模型再次给小岚的事实引用用户记录targetId，宿主因主体拒绝，没有覆盖用户偏好。"
+    },
+    {
+      "id": "F08",
+      "result": "PASS",
+      "reason": "不希望省略错误原因完整保留，无否定反转。"
+    },
+    {
+      "id": "H01",
+      "result": "FAIL_READY_NEEDS_CLARIFICATION",
+      "reason": "模型把Beryl两个字段都指向Cedar旧ID，并违反每来源最多一提议；宿主只保留第一条完整原话为needs_clarification，无更新目标、不覆盖Cedar。安全拦截有效，直接形成候选目标未达。"
+    },
+    {
+      "id": "H02",
+      "result": "FAIL_NO_CANDIDATE",
+      "reason": "property=做移动端项目使用Ruby丢了不字，并非来源连续片段，且target指向服务端旧事实；宿主在来源字段校验处拒绝。content虽保留否定，不能补足无效property。"
+    }
+  ],
+  "approved": [
+    {
+      "caseId": "F01",
+      "memoryId": "8222a56c-a79a-4a17-8c0d-13d340e7770e",
+      "version": 1,
+      "approvalRunId": "ef578232-ae36-4716-8a2f-e17a5a4e5f6d",
+      "content": "我平时偏好简洁的中文解释。",
+      "question": "我偏好什么语言和风格的解释？",
+      "answer": "你偏好**简洁的中文解释**。",
+      "contextBytes": 668,
+      "contextBudget": 2048
+    },
+    {
+      "caseId": "F04",
+      "memoryId": "8ac6d6e9-2570-48db-840e-fdf891350810",
+      "version": 2,
+      "approvalRunId": "6fcdcd01-7c03-4804-ace5-315a3170c407",
+      "content": "我现在主要用TypeScript，Python已经用得少了。",
+      "question": "我现在主要用什么，Python还用吗？",
+      "answer": "根据本轮检索到的资料，你现在**主要使用 TypeScript**；Python **已经用得少了**。",
+      "contextBytes": 628,
+      "contextBudget": 2048
+    }
+  ],
+  "unverified": [
+    "真实主Agent工具选择/清单送达/手机体验仍模拟",
+    "未做第二轮和Mac/Linux平台补测",
+    "没有开启正式Formation或分析正式历史",
+    "H01/H02未修复或重跑，不能宣称质量目标全面达标"
+  ]
+}

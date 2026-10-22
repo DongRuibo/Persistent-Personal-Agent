@@ -1,0 +1,171 @@
+{
+  "createdAt": "2026-10-22T01:14:39.052Z",
+  "baseline": "f79a8b8858b66b2c8f839dd3d2f00e03f2dc1d5b",
+  "actualApiRequests": 0,
+  "actualTokens": 0,
+  "actualCostCny": 0,
+  "formalFormationEnabled": false,
+  "initialRedRegression": {
+    "tests": 2,
+    "passed": 0,
+    "failed": 2,
+    "failures": [
+      "保存输出H01/H02不符合新候选预期",
+      "第一条先不保存仍只有口头回复"
+    ]
+  },
+  "windows": {
+    "tests": 137,
+    "passed": 134,
+    "failed": 0,
+    "skipped": 3,
+    "durationMs": 15472.9304,
+    "logSha256": "0743cc1c36cd9eb79f176c98ab045dc9b9409e17096a4d9abcc2ccf8c0b85210"
+  },
+  "linux": {
+    "tests": 137,
+    "passed": 137,
+    "failed": 0,
+    "skipped": 0,
+    "durationMs": 24064.813569,
+    "logSha256": "903e8e9e0728e38d3af0cef3831c7eae67b1e65d81e85158140fb67d52418b97"
+  },
+  "typecheckAndBuild": {
+    "windows": 0,
+    "linux": 0
+  },
+  "replay": {
+    "before": {
+      "expectedOutcomes": "6/8",
+      "unauthorizedWrites": 0
+    },
+    "after": {
+      "expectedOutcomes": "8/8",
+      "unauthorizedWrites": 0
+    },
+    "sameOriginalOutputs": true,
+    "rawReportSha256": "7024b12f80548df48343aa5e7510c2624110a165526888e999d6a960499d6321"
+  },
+  "fixtureIntegrity": [
+    {
+      "file": "tests/fixtures/memory-formation-live.json",
+      "sha256": "1821183adcb908dd69e57d8785525671f37401c07f9a343ace1544e83dbe1403",
+      "baselineMatch": true
+    },
+    {
+      "file": "tests/fixtures/memory-formation-windows.json",
+      "sha256": "49749896d5b524c12cbe45c37c5d075fc65349f499909a8256f6fe7c322335cf",
+      "baselineMatch": true
+    },
+    {
+      "file": "docs/evaluations/v2.1b-formation-live.json",
+      "sha256": "c91a79d0d080275a747f7037924239b07830d43cd9e391f43ac0b5cc422ddf6f",
+      "baselineMatch": true
+    },
+    {
+      "file": "tests/fixtures/memory-formation-revalidation.json",
+      "sha256": "fd98f8b9060ba7624801c5385d8550a07653c82cad23c8201026191960b9c105",
+      "baselineMatch": true
+    }
+  ],
+  "formationEval": {
+    "fixtureSha256": "49749896d5b524c12cbe45c37c5d075fc65349f499909a8256f6fe7c322335cf",
+    "development": {
+      "windows": 30,
+      "passed": 30,
+      "validationPrecision": 1,
+      "fixtureRecall": 1,
+      "falseCandidateCount": 0,
+      "kindCorrect": 11,
+      "unauthorizedWrites": 0,
+      "calls": 20
+    },
+    "holdout": {
+      "windows": 30,
+      "passed": 30,
+      "validationPrecision": 1,
+      "fixtureRecall": 1,
+      "falseCandidateCount": 0,
+      "kindCorrect": 11,
+      "unauthorizedWrites": 0,
+      "calls": 20
+    },
+    "actualApiRequests": 0
+  },
+  "memoryEval": {
+    "original": {
+      "answerable": 12,
+      "top1": 0.75,
+      "recall5": 0.75,
+      "mrr": 0.75,
+      "negativeCount": 4,
+      "insufficientEvidenceCorrect": 4,
+      "supportedCorrect": 9,
+      "falseSupportedNoAnswer": 0,
+      "supportedClaims": 9,
+      "correctSupportedClaims": 9,
+      "supportedRecordPrecision": 1,
+      "contextHitRate": 0.75,
+      "contextBytesMax": 1153,
+      "strictExpectedKeyContextPrecision": 0.6,
+      "latencyP50Ms": 21.312599999999975,
+      "latencyP95Ms": 27.21120000000002
+    },
+    "holdout": {
+      "answerable": 19,
+      "top1": 0.8947368421052632,
+      "recall5": 0.8947368421052632,
+      "mrr": 0.8947368421052632,
+      "negativeCount": 5,
+      "insufficientEvidenceCorrect": 5,
+      "supportedCorrect": 9,
+      "falseSupportedNoAnswer": 0,
+      "supportedClaims": 9,
+      "correctSupportedClaims": 9,
+      "supportedRecordPrecision": 1,
+      "contextHitRate": 0.8947368421052632,
+      "contextBytesMax": 1613,
+      "strictExpectedKeyContextPrecision": 0.4473684210526316,
+      "latencyP50Ms": 22.71440000000007,
+      "latencyP95Ms": 24.541200000000117
+    },
+    "evidenceHoldout": {
+      "answerable": 18,
+      "top1": 0.9444444444444444,
+      "recall5": 0.9444444444444444,
+      "mrr": 0.9444444444444444,
+      "negativeCount": 6,
+      "insufficientEvidenceCorrect": 6,
+      "supportedCorrect": 14,
+      "falseSupportedNoAnswer": 0,
+      "supportedClaims": 14,
+      "correctSupportedClaims": 14,
+      "supportedRecordPrecision": 1,
+      "contextHitRate": 0.9444444444444444,
+      "contextBytesMax": 1578,
+      "strictExpectedKeyContextPrecision": 0.3953488372093023,
+      "latencyP50Ms": 21.677099999999882,
+      "latencyP95Ms": 24.447000000000116
+    },
+    "usage": {
+      "calls": 0,
+      "failures": 0,
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "cacheReadTokens": 0,
+      "elapsedMs": 0
+    }
+  },
+  "sourceHashFormat": "UTF-8 LF normalized",
+  "sourceHashes": {
+    "src/formation-service.ts": "510b25af10041e74fc0bc04241a26fe0766a43ed5a407d2376a71e9ef9e7da73",
+    "src/operation-guard.ts": "64a8e4282ad8a6b651b03f4dd9e80b05e9df80b8337683aa1a5b15375ccf8de3",
+    "src/pi-executor.ts": "ed65e99d64411ae732ad4d9fe0bd91d04ca89bdbfd4bfad8f867011209746275",
+    "scripts/replay-formation-revalidation.ts": "e0053588d98e42263b7cc5392813d878ab62a2980ddedabef16fda88da2d93d6",
+    "tests/formation-fixes.test.ts": "7ff47e44364400f5ad23720e64163e019b74992cb47b1de55ca2bc812f5a17cb",
+    "tests/formation-integration.test.ts": "fba788c4a251262f81cfb4a35994dc119aad3766dc896be72ff89253edc7462e",
+    "tests/formation-replay.test.ts": "f309158948a83ce47c98d6662a43bb47c7101169ba976115a0dd12119a49c343"
+  },
+  "liveRetestPerformed": false,
+  "boundary": "Windows/Linux离线、保存真实输出回放和真实Pi+模拟模型；未新增真实API或手机验收，不重置旧账本。"
+}

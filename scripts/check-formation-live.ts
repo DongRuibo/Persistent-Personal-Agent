@@ -10,35 +10,39 @@ import { sseText } from '../tests/helpers/intent-stub.js';
 import { FormationLiveBudget, safeReportJson } from './formation-live-budget.js';
 import type { LivePayload, LivePhase } from './formation-live-budget.js';
 
-if (!process.argv.includes('--allow-paid')) throw new Error('需要本轮16请求/1元明确授权，再使用 --allow-paid；默认不联网');
+const revalidation = process.argv.includes('--v2.1b.2');
+const requestLimit = revalidation ? 12 : 16;
+if (!process.argv.includes('--allow-paid')) throw new Error(`需要本轮${requestLimit}请求/1元明确授权，再使用 --allow-paid；默认不联网`);
 if (process.env.LLM_BASE_URL !== 'https://api.siliconflow.cn/v1' || process.env.LLM_MODEL !== 'deepseek-ai/DeepSeek-V4.1-Flash' || !process.env.LLM_API_KEY || process.env.LLM_API_KEY === '<REDACTED>') throw new Error('需在本机配置硅基流动模型/端点和有效Key；没有发送请求');
+if (revalidation && process.env.MEMORY_FORMATION_ENABLED === 'true') throw new Error('正式Formation开关必须保持关闭；未发送请求');
 
 interface Sample { id: string; category: string; text: string; expected: string; kind?: string; old?: MemoryInput; approve?: boolean; question?: string; prefilter?: boolean }
 interface Payload extends LivePayload { messages: { role: string; content: unknown }[] }
 const content = (value: unknown): string => typeof value === 'string' ? value : Array.isArray(value) ? value.map(part => (part as { text?: string }).text ?? '').join('') : '';
-const fixtureUrl = new URL('../tests/fixtures/memory-formation-live.json', import.meta.url);
+const fixtureUrl = new URL(revalidation ? '../tests/fixtures/memory-formation-revalidation.json' : '../tests/fixtures/memory-formation-live.json', import.meta.url);
 const fixture = JSON.parse(readFileSync(fixtureUrl, 'utf8')) as { cases: Sample[] };
-const outputUrl = new URL('../docs/evaluations/v2.1b-formation-live.json', import.meta.url);
+const outputUrl = new URL(revalidation ? '../docs/evaluations/v2.1b.2-formation-live.json' : '../docs/evaluations/v2.1b-formation-live.json', import.meta.url);
 // 已有报告也是跨进程的消费闸；不提供自动覆盖/重跑开关。
 if (existsSync(outputUrl)) throw new Error('本轮验收报告已存在；不能重跑或重复消费预算，请先人工核对');
 const key = process.env.LLM_API_KEY;
 const redact = redactor(key);
-const budget = new FormationLiveBudget();
+const budget = new FormationLiveBudget(revalidation);
 const nativeFetch = globalThis.fetch;
 const wire: Record<string, unknown>[] = [], rows: Record<string, unknown>[] = [], captures: Promise<void>[] = [];
-const sourceFiles = ['src/formation-service.ts', 'src/formation-types.ts', 'src/formation-store.ts', 'src/pi-executor.ts', 'src/operation-guard.ts', 'src/memory-service.ts', 'src/memory-retriever.ts', 'scripts/check-formation-live.ts'];
+const sourceFiles = ['src/formation-service.ts', 'src/formation-types.ts', 'src/formation-store.ts', 'src/pi-executor.ts', 'src/operation-guard.ts', 'src/memory-service.ts', 'src/memory-retriever.ts', 'scripts/check-formation-live.ts', 'scripts/formation-live-budget.ts'];
 const hashes = Object.fromEntries(sourceFiles.map(file => [file, fingerprint(readFileSync(file, 'utf8'))]));
 const startedAt = new Date().toISOString();
 const formalEnabled = process.env.MEMORY_FORMATION_ENABLED === 'true';
 let completedAt: string | undefined, active: { caseId: string; mode: 'extraction' | 'list' | 'approval' | 'generation' } | undefined;
 const save = (initial = false) => writeFileSync(outputUrl, safeReportJson({
   mode: 'real-formation-and-intent-and-readonly-generation', status: completedAt ? 'completed' : 'running-or-interrupted', startedAt, completedAt,
-  model: process.env.LLM_MODEL, providerOrigin: 'https://api.siliconflow.cn', maxRequests: 16, budgetCny: 1,
+  round: revalidation ? 'V2.1b.2' : 'V2.1b',
+  model: process.env.LLM_MODEL, providerOrigin: 'https://api.siliconflow.cn', maxRequests: requestLimit, budgetCny: 1,
   reservedCny: budget.reservedCny, actualNetworkRequests: budget.attempts.length, budgetRatesCnyPerMillion: { input: 10, output: 20 },
   fixtureSha256: fingerprint(readFileSync(fixtureUrl, 'utf8')), sourceHashes: hashes,
   formalFormationEnabledBefore: formalEnabled, formalFormationEnabledAfter: process.env.MEMORY_FORMATION_ENABLED === 'true',
   privateDataRead: false, formalDataWritten: false, feishuMessagesSent: 0,
-  boundary: '12个虚构来源窗。成功chat Run由验收宿主构造，不是真人聊天；列表显示与主Agent审批调度模拟，仅候选提取、审批隔离解析和新Session只读生成联网。敏感输入由原宿主预滤，可能少于16请求；无重试、不填满剩余额度。',
+  boundary: `${fixture.cases.length}个虚构来源窗。成功chat Run由验收宿主构造，不是真人聊天；列表显示与主Agent审批调度模拟，仅候选提取、审批隔离解析和新Session只读生成联网。可能少于${requestLimit}请求；无重试、不填满剩余额度。`,
   wire, rows,
 }, redact) + '\n', { flag: initial ? 'wx' : 'w', mode: 0o600 });
 save(true);
@@ -152,10 +156,13 @@ try {
         } catch { result.approvalOrGenerationError = '审批或生成未正常结束，未重试；参见请求及实际状态'; result.currentMemories = h.memory.listForHost(); }
       } else if (sample.approve) result.approvalSkipped = '预定候选未通过，不换样本或手动造候选来冒充端到端成功';
       result.tasksCreated = h.store.listTasks().length;
-    } catch { result.error = '隔离验收步骤失败，保留当前证据；未自动重试'; }
+    } catch {
+      result.error = '隔离验收步骤失败，保留当前证据；未自动重试';
+      if (revalidation && (result.unapprovedMemoryUnchanged === false || h.store.listTasks().length)) throw new Error('隔离状态异常，终止后续请求');
+    }
     finally { active = undefined; await executor?.close(); await h.close(); await Promise.all(captures); save(); }
-    process.stderr.write(`Formation真实验收 ${sample.id}；请求=${budget.attempts.length}/16；预留=${budget.reservedCny.toFixed(6)}元\n`);
+    process.stderr.write(`Formation真实验收 ${sample.id}；请求=${budget.attempts.length}/${requestLimit}；预留=${budget.reservedCny.toFixed(6)}元\n`);
   }
   completedAt = new Date().toISOString();
 } finally { active = undefined; await Promise.all(captures); globalThis.fetch = nativeFetch; save(); }
-console.log(JSON.stringify({ completedAt, cases: rows.length, requests: budget.attempts.length, reservedCny: budget.reservedCny, report: 'docs/evaluations/v2.1b-formation-live.json', note: '必须人工核对真实输出；退出0不表示语义验收全部通过' }));
+console.log(JSON.stringify({ completedAt, cases: rows.length, requests: budget.attempts.length, reservedCny: budget.reservedCny, report: revalidation ? 'docs/evaluations/v2.1b.2-formation-live.json' : 'docs/evaluations/v2.1b-formation-live.json', note: '必须人工核对真实输出；退出0不表示语义验收全部通过' }));

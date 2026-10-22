@@ -48,6 +48,27 @@ function matches(text: string, term: string): boolean {
 }
 const ttl = 5 * 60_000;
 
+function memorySaveRequest(message: string, fact: string): 'direct' | 'confirm' | 'none' {
+  const marker = '[事实]';
+  // 事实和引文里的“保存/记住”不是授权动作；只检查当前原话中事实之外的请求框架。
+  const frame = message.normalize('NFKC').split(fact.normalize('NFKC')).join(marker)
+    .replace(/「[^」]*」|『[^』]*』|“[^”]*”|‘[^’]*’|"[^"]*"|'[^']*'|`[^`]*`/gu, value => value.includes(marker) ? marker : ' ')
+    .replace(/^(?:kind|key)=.+$/gmu, '').trim();
+  if (!frame.includes(marker) || /如果|假设|假如|要是|引用|他说|她说|朋友说|不要|不用|无需|别|先不|[?？]/u.test(frame)) return 'none';
+  const prefix = '(?:(?:请(?:帮我)?|帮我|麻烦你?|你(?:可以|要|帮我)?|我(?:想|希望)(?:让)?你|(?:以后|今后)你要)[，,\\s]*)*';
+  const direct = new RegExp(`^${prefix}(?:记住|记一下|记下来|记得)[：:，,\\s]*\\[事实\\][。！!吧\\s]*$`, 'u');
+  const storage = new RegExp(`^${prefix}把?\\[事实\\](?:保存|存入|记录)(?:为|到|在)长期记忆(?:里|中)?[。！!吧\\s]*$`, 'u');
+  if (direct.test(frame) || storage.test(frame)) return 'direct';
+  // 这只是有界的直接执行快路径；其他自然记忆请求仍可确认，不要求固定命令格式。
+  return /记住|记一下|记下来|记得|长期记忆/u.test(frame) ? 'confirm' : 'none';
+}
+
+function confirmsMemorySave(message: string): boolean {
+  const text = message.normalize('NFKC').replace(/[，,。！!\s]/gu, '');
+  // 短确认已由resolve处理；长确认必须指向宿主刚展示的内容，不能只信模型的confirmation标签。
+  return /^(?:可以|好的|同意|确认|行|没问题)(?:就)?按你?(?:刚才|上面)(?:整理|展示)?的?(?:内容|草稿)保存吧?$/u.test(text);
+}
+
 // 只校验可确定的选择标记，不代替自然语言意图解析；引号里的标题/示例不授予引用能力。
 function referenceFromMessage(message: string): { reference: 'choice' | 'last' | 'latest'; position?: number } | 'ambiguous' | undefined {
   const text = message.normalize('NFKC').replace(/\s+/gu, '').replace(/「[^」]*」|『[^』]*』|“[^”]*”|‘[^’]*’|"[^"]*"|'[^']*'|`[^`]*`/gu, ' ');
@@ -73,6 +94,20 @@ function referenceFromMessage(message: string): { reference: 'choice' | 'last' |
   return undefined;
 }
 
+function candidateRejection(message: string): Intent | undefined {
+  const text = message.normalize('NFKC').replace(/\s+/gu, '');
+  const item = '(?:第[0-9零〇一二两三四五六七八九十百]+(?:条|个|项)|[0-9零〇一二两三四五六七八九十百]+号)(?:记忆候选|候选|记忆)?';
+  const decline = '(?:先|暂时)?(?:不保存|不要保存|不用保存|不记下来|拒绝)';
+  const single = new RegExp(`^(?:请)?(?:(?:把)?${item}${decline}|${decline}${item})[。！!吧]?$`, 'u');
+  const all = /^(?:请)?(?:这些|全部)(?:记忆候选|候选|记忆)?(?:先|暂时)?(?:不保存|不要保存|不用保存|拒绝)[。！!吧]?$/u;
+  const reference = referenceFromMessage(message);
+  if (single.test(text) && reference && reference !== 'ambiguous' && reference.reference === 'choice') return {
+    action: 'memory_review', mode: 'request', evidence: message, review: 'reject', selector: { ...reference, keywords: [] },
+  };
+  if (all.test(text)) return { action: 'memory_review', mode: 'request', evidence: message, review: 'reject_view' };
+  return undefined;
+}
+
 // 唯一能将隔离解析结果变为本轮能力的宿主边界；主 Agent/Memory 无法写入该状态。
 export class OperationGuard {
   private readonly context = new AsyncLocalStorage<Frame>();
@@ -80,12 +115,14 @@ export class OperationGuard {
     private readonly interpret: Interpret, private readonly state: DialogueReferences,
     private readonly saveState: (value: DialogueReferences) => void = () => {}) {}
 
-  async withRequest<T extends { text: string }>(request: ExecutionRequest, action: () => Promise<T>): Promise<T> {
+  async withRequest<T extends { text: string }>(request: ExecutionRequest, action: () => Promise<T>, formation?: FormationService): Promise<T> {
     if (request.scope !== 'chat') return action();
     const frame: Frame = { request, references: structuredClone(this.state), used: false };
     return this.context.run(frame, async () => {
       try {
         const result = await action();
+        // 主模型可能只口头答应拒绝；仅对当前原话中的有界拒绝补执行，仍走原显示/序号/版本校验。
+        if (!frame.plan && formation?.options.enabled && frame.references.candidateReview && candidateRejection(request.prompt)) await this.reviewCandidates(formation);
         return frame.answer ? { ...result, text: frame.answer } : result;
       } finally {
         if (!frame.plan && (this.state.choices || this.state.confirmation || this.state.candidateReview)) { delete this.state.choices; delete this.state.confirmation; delete this.state.candidateReview; this.saveState(this.state); }
@@ -126,7 +163,7 @@ export class OperationGuard {
     // 先占用同一个 Frame，防止并发工具在等待隔离解析时另获授权。
     frame.used = true; frame.plan = Promise.resolve('candidate_review');
     const request = frame.request, view = frame.references.candidateReview;
-    const raw = await this.interpret(request.prompt, { tool: 'memory_review', count: view?.items.length, confirmation: view?.confirm }, request);
+    const raw = (view && candidateRejection(request.prompt)) ?? await this.interpret(request.prompt, { tool: 'memory_review', count: view?.items.length, confirmation: view?.confirm }, request);
     request.signal.throwIfAborted();
     if (!Value.Check(intentSchema, raw)) throw new Error('候选审批意图格式无效');
     const intent = raw as Intent;
@@ -148,7 +185,7 @@ export class OperationGuard {
       if (!/这些|全部|都/u.test(request.prompt) || !/不(?:用|要)?(?:保存|记)|不保存|不记|拒绝/u.test(request.prompt)) throw new Error('没有明确拒绝当前清单的依据');
       formation.reject(view); frame.answer = '当前展示的候选已拒绝；没有写入长期 Memory。';
     } else if (intent.review === 'reject') {
-      if (!/不要|不用|不记|不存|拒绝|先不/u.test(request.prompt)) throw new Error('没有明确拒绝依据');
+      if (!/不要|不用|不记|不存|不保存|拒绝|先不/u.test(request.prompt)) throw new Error('没有明确拒绝依据');
       formation.reject(view, position!); frame.answer = '这条候选已拒绝；没有写入长期 Memory。';
     } else if (intent.review === 'edit') {
       const draft = intent.bodyEvidence?.trim();
@@ -181,7 +218,7 @@ export class OperationGuard {
     frame.request.signal.throwIfAborted();
     if (frame.used) throw new Error('本轮写操作已消费，不重复执行；请先核对结果');
     frame.request.observer.event('operation_proposed', tool); // 不记录正文或可能混入的凭据。
-    const operation = await (frame.plan ??= this.resolve(frame));
+    const operation = await (frame.plan ??= this.resolve(frame, tool));
     frame.request.signal.throwIfAborted();
     if (typeof operation === 'string') { frame.answer = operation; return { executed: false, clarification: operation }; }
     if (operation.tool !== tool) throw new Error('工具操作超出本轮用户意图，未执行');
@@ -206,7 +243,7 @@ export class OperationGuard {
     return value;
   }
 
-  private async resolve(frame: Frame): Promise<WriteOperation | string> {
+  private async resolve(frame: Frame, proposedTool: Tool): Promise<WriteOperation | string> {
     const { request, references } = frame;
     let now = this.tasks.now().getTime();
     const pending = references.confirmation;
@@ -230,6 +267,7 @@ export class OperationGuard {
     if (intent.mode !== 'request' || intent.action === 'none' || !intent.evidence.trim() || !request.prompt.includes(intent.evidence)) throw new Error('当前消息没有明确的写入授权，未执行');
     if (intent.confirmation) {
       if (!confirming || intent.action !== confirming.operation.tool || intent.bodyEvidence) return '没有对应的有效待确认内容，请重新说明本次操作。';
+      if (intent.action === 'memory_remember' && !confirmsMemorySave(request.prompt)) return '当前消息没有明确同意保存刚展示的内容；本轮未保存长期记忆。';
       this.validateCurrent(confirming.operation); return confirming.operation;
     }
     const fact = intent.bodyEvidence?.trim();
@@ -245,9 +283,12 @@ export class OperationGuard {
       return this.confirmRewrite(operation, fact!, frame);
     }
     if (intent.action === 'memory_remember') {
+      if (proposedTool !== 'memory_remember') throw new Error('工具操作超出本轮用户意图，未执行');
       const body = intent.body!.trim();
+      const consent = memorySaveRequest(request.prompt, fact!);
+      if (consent === 'none') return '已了解这项信息；本轮没有直接保存为长期记忆。';
       const operation: WriteOperation = { tool: 'memory_remember', args: { kind: intent.kind ?? 'semantic', key: intent.key ?? `explicit.${createHash('sha256').update(body).digest('hex').slice(0, 16)}`, content: body } };
-      return this.confirmRewrite(operation, fact!, frame);
+      return this.confirmRewrite(operation, fact!, frame, consent === 'confirm');
     }
     const selector = intent.selector;
     if (!selector) return '请说明要操作哪条提醒或记忆。';
@@ -300,13 +341,13 @@ export class OperationGuard {
     return this.confirmRewrite({ tool: 'memory_update', args: { id: record.id, content: intent.body!.trim(), expectedVersion: record.version } }, fact!, frame);
   }
 
-  private confirmRewrite(operation: WriteOperation, evidence: string, frame: Frame): WriteOperation | string {
+  private confirmRewrite(operation: WriteOperation, evidence: string, frame: Frame, memoryConsent = false): WriteOperation | string {
     const body = 'instruction' in operation.args ? operation.args.instruction : 'content' in operation.args ? operation.args.content : '';
-    if (body === evidence) return operation;
+    if (!memoryConsent && body === evidence) return operation;
     if (operation.tool === 'create_task' && normalize(evidence.replace(operation.args.when, '').replace(/^[，,:：\s]+|[，,:：\s]+$/gu, '')) === normalize(body)) return operation;
     this.state.confirmation = { operation, expires: this.tasks.now().getTime() + ttl }; this.saveState(this.state);
     frame.request.observer.event('operation_confirmation_required', operation.tool);
-    return `拟保存的内容为：${body}\n这包含改写，请确认是否按这个内容执行；也可以直接告诉我应怎样改。`;
+    return `拟保存的内容为：${body}\n${memoryConsent ? '我还不能确定你是否要求保存为长期记忆' : '这包含改写'}，请确认是否按这个内容执行；也可以直接告诉我应怎样改。`;
   }
 
   private validateCurrent(operation: WriteOperation): void {

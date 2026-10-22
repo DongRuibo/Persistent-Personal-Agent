@@ -85,3 +85,46 @@ test('真实 Pi SDK+模拟模型/飞书：新聊天入队、隔离提取、候�
     }
   } finally { await feishu.stop(); await executor.close(); await h.close(); }
 });
+
+test('真实Pi SDK：主模型只口头答应“第一条先不保存”，宿主实际拒绝且不额外调用解析器', async t => {
+  const h = formationHarness(); let interpretations = 0, modelCalls = 0;
+  t.mock.method(globalThis, 'fetch', async (_url: unknown, init?: RequestInit) => {
+    const payload = JSON.parse(String(init?.body)) as Payload;
+    const system = content(payload.messages.find(message => message.role === 'system')?.content);
+    if (system.includes('隔离的当前用户意图解析器')) {
+      interpretations++;
+      const { message } = JSON.parse(content(payload.messages.findLast(message => message.role === 'user')?.content));
+      assert.equal(message, '查看候选', '拒绝补执行无需额外模型解析');
+      return reply(JSON.stringify({ action: 'memory_review', mode: 'query', evidence: message, review: 'list' }));
+    }
+    modelCalls++;
+    const lastUser = payload.messages.findLastIndex(message => message.role === 'user');
+    const message = content(payload.messages[lastUser]?.content);
+    if (message.includes('查看候选') && !payload.messages.slice(lastUser + 1).some(row => row.role === 'tool')) {
+      const choice = { index: 0, delta: { role: 'assistant', tool_calls: [{ index: 0, id: 'review-tool', type: 'function', function: { name: 'memory_review', arguments: '{}' } }] }, finish_reason: 'tool_calls' };
+      return new Response(`data: ${JSON.stringify({ id: 'review', model: 'stub', choices: [choice] })}\n\ndata: [DONE]\n\n`, { headers: { 'Content-Type': 'text/event-stream' } });
+    }
+    return reply('好的，这条先不保存。');
+  });
+  let executor: Awaited<ReturnType<typeof createPiExecutor>> | undefined;
+  try {
+    await h.extract('我喜欢中文'); const candidateId = h.store.formation.candidates('single-user')[0]!.id;
+    executor = await createPiExecutor(h.config, h.tasks, 'rejection-fallback', h.memory, h.formation);
+    const viewReq = h.request('查看候选');
+    const shown = await executor.execute(viewReq);
+    h.store.finishRun(viewReq.source!.reference, 'succeeded', h.now().toISOString(), shown.text); h.store.event(viewReq.source!.reference, 'delivery_succeeded');
+    const req = h.request('第一条先不保存');
+    const result = await executor.execute(req);
+    assert.match(result.text, /已拒绝/); assert.equal(h.store.formation.get(candidateId)?.status, 'rejected');
+    assert.equal(h.memory.listForHost().length, 0); assert.equal(h.tasks.list().length, 0);
+    assert.equal(modelCalls, 3); assert.equal(interpretations, 1);
+    const jobs = h.store.formation.jobs().length;
+    h.store.finishRun(req.source!.reference, 'succeeded', h.now().toISOString(), result.text, undefined,
+      () => h.formation.enqueue({ owner: 'single-user', runId: req.source!.reference, text: req.prompt, channel: 'feishu', at: h.now().toISOString() }));
+    assert.equal(h.store.formation.jobs().length, jobs, '实际审查事件阻止再次形成候选');
+    assert.ok(h.store.events(req.source!.reference).some(event => event.type === 'formation_review' && event.details === 'reject'));
+    assert.equal(h.store.events(req.source!.reference).some(event => event.type === 'operation_committed'), false);
+    const journal = readdirSync(h.config.sessionDir).flatMap(dir => readFileSync(join(h.config.sessionDir, dir, 'chat.session.jsonl'), 'utf8').split('\n'));
+    assert.ok(journal.some(line => line.includes('第一条先不保存')), '仍保留Pi原生用户对话历史');
+  } finally { await executor?.close(); await h.close(); }
+});

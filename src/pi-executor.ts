@@ -113,7 +113,7 @@ export class PiExecutor implements AgentExecutor {
       const run = () => runPiSession(session!, request, this.timeoutMs);
       const withMemory = () => this.memory ? this.memory.withRequest(request, run, this.guard ? null : undefined) : run();
       const withTasks = () => this.tasks ? this.tasks.withRequest(request, withMemory, this.guard ? null : undefined) : withMemory();
-      return await (this.guard ? this.guard.withRequest(request, withTasks) : withTasks());
+      return await (this.guard ? this.guard.withRequest(request, withTasks, this.formation) : withTasks());
     } finally {
       if (session) {
         this.active.delete(session);

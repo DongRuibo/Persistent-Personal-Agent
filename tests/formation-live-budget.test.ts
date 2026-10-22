@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { FormationLiveBudget, safeReportJson } from '../scripts/formation-live-budget.js';
 import { redactor } from '../src/config.js';
@@ -29,4 +30,26 @@ test('Formation验收限制16请求/分阶段次数/1元保守预留，未知失
   const before = expensive.reservedCny;
   assert.throws(() => expensive.reserve('extraction', payload, 16384), /1元/); assert.equal(expensive.reservedCny, before);
   for (const bad of [{ ...payload, tools: [{}] }, { ...payload, max_tokens: 4096 }, { ...payload, enable_thinking: true }]) assert.throws(() => new FormationLiveBudget().reserve('extraction', bad, 1200), /不符/);
+});
+
+test('V2.1b.2独立授权闸：8提取+2审批+2生成、分阶段字节、总预留不超过0.87968元', () => {
+  const result = spawnSync(process.execPath, ['--import', 'tsx', 'scripts/check-formation-live.ts', '--v2.1b.2'], { encoding: 'utf8' });
+  assert.notEqual(result.status, 0); assert.match(result.stderr, /12请求\/1元明确授权/);
+  const budget = new FormationLiveBudget(true);
+  for (let i = 0; i < 8; i++) budget.reserve('extraction', payload, 3072);
+  assert.throws(() => budget.reserve('extraction', payload, 3072), /上限/);
+  for (let i = 0; i < 2; i++) budget.reserve('approval', { ...payload, max_tokens: 1000 }, 6144);
+  for (let i = 0; i < 2; i++) budget.reserve('generation', { ...payload, max_tokens: 4096 }, 8192);
+  assert.equal(budget.attempts.length, 12); assert.ok(Math.abs(budget.reservedCny - .87968) < 1e-9);
+  assert.throws(() => budget.reserve('generation', payload, 8192), /12次/);
+  for (const [phase, bytes] of [['extraction', 3073], ['approval', 6145], ['generation', 8193]] as const) assert.throws(() => new FormationLiveBudget(true).reserve(phase, payload, bytes), /上限/);
+});
+
+test('复验8窗在调用前冻结：原六窗逐字及预期不变、仅F01/F04批准、两个独立新样本', () => {
+  interface Sample { id: string; approve?: boolean }
+  const load = (name: string) => JSON.parse(readFileSync(new URL(`./fixtures/${name}`, import.meta.url), 'utf8')) as { cases: Sample[] };
+  const previous = load('memory-formation-live.json'), current = load('memory-formation-revalidation.json');
+  assert.deepEqual(current.cases.slice(0, 6), previous.cases.filter(sample => ['F01', 'F02', 'F04', 'F05', 'F06', 'F08'].includes(sample.id)));
+  assert.equal(current.cases.length, 8); assert.deepEqual(current.cases.filter(sample => sample.approve).map(sample => sample.id), ['F01', 'F04']);
+  assert.deepEqual(current.cases.slice(6).map(sample => sample.id), ['H01', 'H02']);
 });
