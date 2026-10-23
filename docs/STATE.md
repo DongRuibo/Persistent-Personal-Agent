@@ -4,12 +4,16 @@
 
 ## 当前阶段与进行中事项
 
+- 新任务：按2026-10-23授权连续实现V3.1、V3.2、V3.3，独立受管工作树开发，本地提交、不推送；原工作区的未提交文件和HANDOFF未改。上一轮7份复验文件在独立树保存为31c798a检查点。
+- V3.1定时策略/宿主授权账本已实现，默认双开关关闭；四张原Goal表和旧Task约束不重建。方案见[主动执行设计](designs/v3-proactive-goals.md)。时间专项4项通过；Windows全量217项214通过、3原平台跳过，断网Linux217项全部通过，两平台typecheck/build/两个eval退出0。日志在 `E:/AgentWork/validation/personal-agent-proactive-20261023/v31`。质量关卡通过，继续V3.2。
+- V3.0.1真实复验结论保留：数量与取消局部通过，自然暂停和主模型收据解释失败；这次不消费历史额度，也不把模拟结果写成真实通过。以下为其原始交接事实。
+
 - V3.0.1代码ade995b及发布状态ae2a820已在main。用户随后单独授权[小规模Console复验](evaluations/v3.0.1-live-retest-plan.md)，本轮基线本地/远端均ae2a820，仅新增独立入口、限额测试及文档，未改Goal/Guard/Pi业务实现。本轮未提交或推送，GOAL_ENABLED仍默认false。
 - 联网前通过Windows/断网Linux的6项限额测试：固定16次/2元/32768字节/4096输出Token，跨进程账本、费用、并发锁、容量、篡改和失败不退额均验证；只放行配置模型POST端点，无飞书连接。用户追加允许仅只读.env四个LLM模型字段，私有启动器白名单抽取并直接注入，不解析数据路径/飞书字段、不显示或落盘凭据；正式数据及历史验收目录/数据库未打开。
 - 实际14/16请求，均HTTP200，预留0.605440/2元后正常停服，未使用剩余2次。可观察未缓存输入12281/缓存读取15744/输出1248 Token，14条cost均null，预留不是账单。新根目录 `E:/AgentWork/acceptance/v3.0.1-retest-20261023`，独立v301-console-budget.json，无旧48次账本读写、自动重试或话术改写。
 - A与C分别输出1步待批草稿，数量局部通过；B“暂停那个学习计划”的关键词学习计划与银杏阅读计划不匹配，宿主未命中，A仍waiting_user/revision2；D正确只取消枫叶Goal→cancelled/revision3，A与两个Checkpoint/Execution不变。冻结链路含A应paused的预期未满足；主模型收尾还误读工具收据，虽被宿主最终呈现覆盖，**本轮未全通过，暂不能完整阶段收尾**。
 - 真实库仅2次committed初始化、两个Plan仍v0，未批准或执行正式v1计划；Task0、Memory Markdown0、候选0，外键/完整性/Goal只读审计均正常。原始SSE、冻结方案、Session、A/B/C/D及停服快照和db/WAL/SHM副本留在新根目录；锁均释放。证据与分层判断见[真实报告](evaluations/v3.0.1-live-retest.md)/[JSON](evaluations/v3.0.1-live-retest.json)。
-- 最终Windows213项210通过/0失败/3原有平台跳过，断网Linux213通过/0失败/0跳过；两平台typecheck/build、两个eval均退出0，97份代码/测试/脚本/配置Hash一致且与真实调用前相同。新日志在 `E:/AgentWork/validation/personal-agent-v301-retest-20261023`。下一步先离线审查B的泛称筛选及模型收据误解，不再收费补测、操作手机或推进V3.1。
+- 当时最终Windows213项210通过/0失败/3原有平台跳过，断网Linux213通过/0失败/0跳过；两平台typecheck/build、两个eval均退出0，97份代码/测试/脚本/配置Hash一致且与真实调用前相同。旧日志在 `E:/AgentWork/validation/personal-agent-v301-retest-20261023`；后来新授权允许V3.1–V3.3模拟开发，未追加真实复验。
 
 ## 已完成功能
 

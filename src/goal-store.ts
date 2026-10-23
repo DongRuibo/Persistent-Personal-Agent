@@ -22,6 +22,11 @@ const binding = (actor: GoalActor): string => hash([actor.ownerId, actor.target.
 
 // 仅负责同连接的短事务；没有调度、模型调用或自然语言授权能力。
 export class GoalStore {
+  policy?: {
+    consume(goal: Goal, authorization: NonNullable<Goal['readyInput']>, now: string): Run | undefined;
+    current(execution: GoalExecution, now: string): boolean;
+    settled(execution: GoalExecution, goal: Goal, now: string): void;
+  };
   constructor(private readonly db: DatabaseSync, private readonly tx: RunTransactions) {
     db.exec(`
       CREATE TABLE IF NOT EXISTS goals (
@@ -168,6 +173,8 @@ export class GoalStore {
       || this.db.prepare("SELECT 1 FROM run_events WHERE runId=? AND type='goal_control'").get(sourceRunId)) {
       throw new Error('需要新的宿主用户授权 Run；禁止重复或后台执行授权');
     }
+    if (this.db.prepare('SELECT 1 FROM goal_grants WHERE sourceRunId=? OR executionRunId=?').get(sourceRunId, sourceRunId)
+      || this.db.prepare('SELECT 1 FROM goal_policy_events WHERE sourceRunId=?').get(sourceRunId)) throw new Error('策略或触发 Run 不是新的用户操作');
   }
 
   private command(command: GoalCommand, id: string, now: string): Goal {
@@ -211,12 +218,13 @@ export class GoalStore {
       const authorization = goal.readyInput;
       const step = this.plan(goal).spec.steps.find(item => item.stepId === goal.currentStepId);
       const stepRow = this.db.prepare('SELECT status FROM goal_steps WHERE goalId=? AND id=?').get(id, goal.currentStepId);
-      const receipt = authorization && this.controlReceipt(actor, authorization.triggerRunId);
-      if (!authorization || !receipt || receipt.goalId !== id || receipt.revision !== goal.revision || !step || stepRow?.status !== 'pending'
+      const receipt = authorization?.kind !== 'policy' && authorization && this.controlReceipt(actor, authorization.triggerRunId);
+      if (!authorization || authorization.kind !== 'policy' && (!receipt || receipt.goalId !== id || receipt.revision !== goal.revision) || !step || stepRow?.status !== 'pending'
         || goal.controlRequested || goal.blockedReason || goal.pendingAction) throw new Error('Goal 领取条件或授权不一致');
       const input: GoalExecutionInput = { goalId: id, objective: goal.objective, planRevision: goal.planRevision, step,
         authorization, previousCheckpoint: this.checkpoint(goal) };
-      const run = this.tx.begin(now);
+      const run = authorization.kind === 'policy' ? this.policy?.consume(goal, authorization, now) : this.tx.begin(now);
+      if (!run) return undefined;
       const sequence = Number(this.db.prepare('SELECT coalesce(max(sequence),0)+1 AS n FROM goal_executions WHERE goalId=?').get(id)!.n);
       this.db.prepare(`INSERT INTO goal_executions (runId,goalId,stepId,planRevision,sequence,triggerRunId,baseGoalRevision,
         baseCheckpointRunId,capabilityClass,status,inputJson,inputHash) VALUES (?,?,?,?,?,?,?,?,'text_only','running',?,?)`)
@@ -279,7 +287,7 @@ export class GoalStore {
       this.time(now);
       const { execution, goal } = this.running(runId);
       // 控制先提交时，迟到的文本只留在 Run，不成为有效进度。
-      if (goal.controlRequested || goal.revision !== execution.baseGoalRevision || goal.planRevision !== execution.planRevision
+      if (this.policy && !this.policy.current(execution, now) || goal.controlRequested || goal.revision !== execution.baseGoalRevision || goal.planRevision !== execution.planRevision
         || goal.currentStepId !== execution.stepId || goal.checkpointRunId !== execution.baseCheckpointRunId) {
         this.tx.finish(runId, 'succeeded', now, this.text(result.artifactText, 32_000));
         this.stopExecution(execution, goal, 'discarded', 'stale_result', now);
@@ -293,7 +301,7 @@ export class GoalStore {
           inputSourceRunId: execution.triggerRunId, stepOutcome: result.stepOutcome,
           artifactText: this.text(result.artifactText, 32_000), progressSummary: this.text(result.progressSummary, 4000),
           question: this.text(result.question, 4000), blockedReason: result.stepOutcome === 'blocked' ? this.text(result.blockedReason ?? '', 2000) : null,
-          proposedPlan };
+          proposedPlan, ...(result.needsUserFeedback === undefined ? {} : { needsUserFeedback: result.needsUserFeedback }) };
         this.tx.finish(runId, 'succeeded', now, checkpoint.artifactText);
         this.db.prepare("UPDATE goal_executions SET status='committed',checkpointJson=?,checkpointHash=? WHERE runId=?")
           .run(JSON.stringify(checkpoint), hash(checkpoint), runId);
@@ -304,6 +312,7 @@ export class GoalStore {
           revision=revision+1,updatedAt=? WHERE id=?`).run(result.stepOutcome === 'blocked' ? 'blocked' : 'waiting_user', currentStepId,
           runId, proposedPlan ? JSON.stringify(proposedPlan) : null, checkpoint.blockedReason, now, goal.id);
         this.tx.event(runId, 'goal_checkpoint_committed', JSON.stringify({ goalId: goal.id, stepOutcome: result.stepOutcome }), now);
+        this.policy?.settled(this.executionForHost(runId), this.get({ ownerId: goal.ownerId, target: goal.target }, goal.id), now);
       }
       return this.execution(this.db.prepare('SELECT * FROM goal_executions WHERE runId=?').get(runId)!);
     });
@@ -394,6 +403,7 @@ export class GoalStore {
         control === 'cancel' ? null : goal.pendingAction ? JSON.stringify(goal.pendingAction) : null,
         status === 'uncertain' ? 'invariant_violation' : reason, control === 'cancel' ? now : null, now, goal.id);
     this.tx.event(execution.runId, 'goal_execution_stopped', JSON.stringify({ goalId: goal.id, status, control, reason }), now);
+    this.policy?.settled(this.executionForHost(execution.runId), this.get({ ownerId: goal.ownerId, target: goal.target }, goal.id), now);
   }
 
   // 仅 SqliteStore 在同一恢复事务中调用；Run 已中断，不能嵌套 BEGIN 或重新执行。

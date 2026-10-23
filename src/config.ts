@@ -1,6 +1,7 @@
 import { dirname, resolve, sep } from 'node:path';
 import { Temporal } from '@js-temporal/polyfill';
 import type { FormationOptions } from './formation-types.js';
+import type { ProactiveOptions } from './goal-policy-types.js';
 
 export interface Config {
   provider: string;
@@ -14,6 +15,7 @@ export interface Config {
   memoryContextTokens: number;
   memoryQueryRewrite?: boolean;
   goalEnabled?: boolean;
+  proactive?: ProactiveOptions;
   pollIntervalMs: number;
   executionTimeoutMs: number;
   formation?: FormationOptions;
@@ -73,6 +75,14 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env): Config {
   if (env.MEMORY_QUERY_REWRITE && !['true', 'false'].includes(env.MEMORY_QUERY_REWRITE)) throw new Error('MEMORY_QUERY_REWRITE 必须为 true 或 false');
   if (env.MEMORY_FORMATION_ENABLED && !['true', 'false'].includes(env.MEMORY_FORMATION_ENABLED)) throw new Error('MEMORY_FORMATION_ENABLED 必须为 true 或 false');
   if (env.GOAL_ENABLED !== undefined && !['true', 'false'].includes(env.GOAL_ENABLED)) throw new Error('GOAL_ENABLED 必须为 true 或 false');
+  if (env.PROACTIVE_ENABLED !== undefined && !['true', 'false'].includes(env.PROACTIVE_ENABLED)) throw new Error('PROACTIVE_ENABLED 必须为 true 或 false');
+  const proactiveEnabled = env.PROACTIVE_ENABLED === 'true';
+  if (proactiveEnabled && env.GOAL_ENABLED !== 'true') throw new Error('主动执行还需要 GOAL_ENABLED=true');
+  const proactiveNumber = (key: string, fallback: number, integral = false) => {
+    const value = Number(env[key] ?? fallback);
+    if (!Number.isFinite(value) || value < 0 || value > 10000 || integral && !Number.isSafeInteger(value)) throw new Error(`${key} 必须是有限的非负${integral ? '整数' : '数值'}`);
+    return value;
+  };
   const formationEnabled = env.MEMORY_FORMATION_ENABLED === 'true';
   const rate = (key: string) => {
     const value = Number(env[key] ?? 0);
@@ -91,6 +101,10 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env): Config {
     memoryContextTokens,
     memoryQueryRewrite: env.MEMORY_QUERY_REWRITE === 'true',
     goalEnabled: env.GOAL_ENABLED === 'true',
+    proactive: { enabled: proactiveEnabled, inputRate: proactiveNumber('PROACTIVE_INPUT_CNY_PER_MILLION', 0),
+      outputRate: proactiveNumber('PROACTIVE_OUTPUT_CNY_PER_MILLION', 0), dailyCalls: proactiveNumber('PROACTIVE_DAILY_CALLS', 20, true),
+      dailyExecutions: proactiveNumber('PROACTIVE_DAILY_EXECUTIONS', 20, true), dailyBudgetCny: proactiveNumber('PROACTIVE_DAILY_BUDGET_CNY', 1),
+      totalExecutions: proactiveNumber('PROACTIVE_TOTAL_EXECUTIONS', 100, true), totalBudgetCny: proactiveNumber('PROACTIVE_TOTAL_BUDGET_CNY', 5) },
     pollIntervalMs: integer('POLL_INTERVAL_MS', 1000),
     executionTimeoutMs: integer('EXECUTION_TIMEOUT_MS', 120_000),
     formation: { enabled: formationEnabled, owner: 'single-user', inputRate: rate('MEMORY_FORMATION_INPUT_CNY_PER_MILLION'),

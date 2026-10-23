@@ -5,6 +5,7 @@ import { ExecutionInterrupted } from './contracts.js';
 import { SqliteStore } from './sqlite-store.js';
 import { TaskService } from './task-service.js';
 import type { FormationService } from './formation-service.js';
+import { policyConsole } from './goal-policy-console.js';
 
 export const consoleHelp = `Personal Agent
   普通文本                         与 Agent 对话（支持自然语言任务管理）
@@ -13,6 +14,8 @@ export const consoleHelp = `Personal Agent
   /task <完整ID>                    查看任务、执行、用量及事件
   /cancel <完整ID>                  取消 pending 任务
   /runs                            查看最近100次执行（含对话）
+  /policies                        查看当前 Console 的执行策略（主动总开关开启时）
+  /policy approve <JSON>           明确批准有界策略；show ID / pause|revoke JSON 查看或停用
   /quit                            停止服务
   --daemon                         无终端后台运行；SIGTERM/SIGINT 停止
   --feishu                         飞书私聊与主动通知；需配置应用及用户白名单
@@ -20,7 +23,7 @@ export const consoleHelp = `Personal Agent
 
 export class ConsoleChannel implements Channel {
   private reader?: Interface;
-  constructor(private readonly redact: (value: unknown) => string) {}
+  constructor(private readonly redact: (value: unknown) => string, private readonly proactiveEnabled = false) {}
 
   async sendMessage(message: { text: string; taskId?: string; runId?: string }): Promise<void> {
     console.log(this.redact(`${message.taskId ? `[task ${message.taskId}] ` : ''}${message.runId ? `[run ${message.runId}] ` : ''}${message.text}`));
@@ -46,6 +49,10 @@ export class ConsoleChannel implements Channel {
           let output: unknown;
           let chatRunId: string | undefined;
           if (text === '/help') output = consoleHelp;
+          else if (text === '/policies' || text.startsWith('/policy ')) {
+            if (!this.proactiveEnabled) throw new Error('PROACTIVE_ENABLED 未开启');
+            output = policyConsole(store, { ownerId: 'local-user', target: { channel: 'console' } }, text, new Date().toISOString());
+          }
           else if (text === '/tasks') output = tasks.list();
           else if (text.startsWith('/task ')) {
             const id = text.slice(6).trim();

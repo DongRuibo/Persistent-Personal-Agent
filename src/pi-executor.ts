@@ -222,11 +222,21 @@ export async function createPiExecutor(config: Config, tasks: TaskService, chatK
     let memoryContextError: unknown;
     // 仅通过公开内联扩展注册 context。私有空资源目录 + no* + 内存设置，避免发现本机 Pi 资源。
     const resourceDir = join(sessionDir, 'runtime-resources');
-    const extensions = memory ? new DefaultResourceLoader({
+    let providerRequests = 0;
+    const extensions = memory || scope === 'goal' ? new DefaultResourceLoader({
       cwd: resourceDir, agentDir: resourceDir, settingsManager: SettingsManager.inMemory(),
       noExtensions: true, noSkills: true, noPromptTemplates: true, noThemes: true, noContextFiles: true,
       extensionFactories: [(pi) => {
+        pi.on('before_provider_request', (event, sdkContext) => {
+          if (scope !== 'goal') return;
+          providerRequests++;
+          if (providerRequests > 1 || Buffer.byteLength(JSON.stringify(event.payload)) > 32768) {
+            memoryContextError = new Error('Goal 请求次数或32768字节容量上限触发；不自动重试');
+            sdkContext.abort();
+          }
+        });
         pi.on('context', async (event, sdkContext) => {
+          if (!memory) return;
           try {
             if (config.memoryQueryRewrite && scope !== 'goal') await memory.prepareRetrieval(async (query, signal) => {
               // 没有工具、历史、Memory 正文或授权状态；只扩大只读检索词，不产生能力。
@@ -307,6 +317,7 @@ export async function createPiExecutor(config: Config, tasks: TaskService, chatK
       dispose: session.dispose.bind(session), getLastAssistantText: session.getLastAssistantText.bind(session),
       prompt: async (text, options) => {
         memoryContextError = undefined;
+        providerRequests = 0;
         memory?.repair(); // 在写入新用户消息/调用模型之前先校验文件和索引。
         try {
           await session.prompt(`[当前用户时间：${Temporal.Now.zonedDateTimeISO(config.timeZone).toString()}]\n${text}`, options);

@@ -3,11 +3,13 @@ import { DatabaseSync } from 'node:sqlite';
 import type { ExecutionObserver, MessageTarget, ModelCall, Run, RunStatus, Task } from './contracts.js';
 import { FormationStore } from './formation-store.js';
 import { GoalStore } from './goal-store.js';
+import { GoalPolicyStore } from './goal-policy-store.js';
 
 export class SqliteStore {
   private readonly db: DatabaseSync;
   readonly formation: FormationStore;
   readonly goals: GoalStore;
+  readonly policies: GoalPolicyStore;
 
   constructor(path: string, private readonly redact: (value: unknown) => string = String) {
     this.db = new DatabaseSync(path);
@@ -51,6 +53,10 @@ export class SqliteStore {
       event: (id, type, details, now) => this.event(id, type, details, now),
       redact: value => this.redact(value),
     });
+    this.policies = new GoalPolicyStore(this.db, { transaction: fn => this.transaction(fn),
+      begin: now => this.beginRunInTransaction(null, now), finish: (id, now) => { this.finishRunInTransaction(id, 'succeeded', now, '宿主策略触发审计，非聊天授权'); } },
+    (actor, id) => this.goals.get(actor, id));
+    this.goals.policy = this.policies;
   }
 
   private transaction<T>(fn: () => T): T {

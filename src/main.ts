@@ -54,6 +54,7 @@ async function main(): Promise<void> {
   process.once('SIGTERM', stop);
   try {
     store = new SqliteStore(config.databasePath, redact);
+    if (config.proactive) store.policies.configure(config.proactive);
     if (!feishuConfig && store.hasPendingFeishuTasks()) {
       throw new Error('数据库中有待执行的飞书任务，请使用 --feishu 启动；Console 调试请使用独立 DATABASE_PATH');
     }
@@ -74,7 +75,7 @@ async function main(): Promise<void> {
       ? goal.target.channel !== 'feishu' || goal.target.appId !== feishuConfig.appId || goal.target.userOpenId !== feishuConfig.allowedOpenId
       : goal.target.channel !== 'console')) : [];
     if (otherGoals.length) console.error(`有${otherGoals.length}个其他身份或渠道的Goal等待原绑定启动；本进程不会领取或改发。`);
-    const consoleChannel = new ConsoleChannel(redact);
+    const consoleChannel = new ConsoleChannel(redact, config.proactive?.enabled);
     if (feishuConfig) {
       const transport = new FeishuSdkTransport(feishuConfig, reportError, () => { process.exitCode = 1; stop(); });
       feishu = new FeishuChannel(feishuConfig, transport, executor, tasks, store, redact, reportError, formation, lane);
@@ -85,7 +86,7 @@ async function main(): Promise<void> {
     scheduler = new TaskScheduler(store, executor, channels, config.pollIntervalMs, reportError, () => new Date(), lane);
     if (goals) goalRunner = new GoalRunner(store, executor, channels, lane, { ownerId: 'local-user', pollIntervalMs: config.pollIntervalMs,
       accepts: target => feishuConfig ? target.channel === 'feishu' && target.appId === feishuConfig.appId && target.userOpenId === feishuConfig.allowedOpenId : target.channel === 'console',
-      reportError, fatal: () => { process.exitCode = 1; stop(); }, delivered: (goal, runId) => goals.displayed(goal, runId) });
+      reportError, proactiveEnabled: config.proactive?.enabled, fatal: () => { process.exitCode = 1; stop(); }, delivered: (goal, runId) => goals.displayed(goal, runId) });
     scheduler.start();
     goalRunner?.start();
     formation?.start();

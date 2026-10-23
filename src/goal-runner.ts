@@ -13,6 +13,7 @@ export const goalResultSchema = Type.Object({
   stepOutcome: Type.Union(['partial', 'complete', 'blocked'].map(value => Type.Literal(value))),
   artifactText: bounded(32000), progressSummary: bounded(4000), question: bounded(4000),
   blockedReason: Type.Optional(bounded(2000)),
+  needsUserFeedback: Type.Optional(Type.Boolean()),
   proposedPlan: Type.Optional(Type.Object({ changeReason: bounded(2000), steps: Type.Array(Type.Object({
     stepId: Type.Optional(bounded(64)), title: bounded(512), instruction: bounded(4000),
     deliverable: bounded(2000), doneWhen: bounded(2000),
@@ -47,7 +48,7 @@ export function goalProjection(execution: GoalExecution, view: GoalView): { prom
   }
   const snapshot = JSON.stringify({ goal, plan, checkpoint, capability: 'text_only' });
   if (Buffer.byteLength(snapshot) > 14336) throw new Error('Goal 快照超过总预算');
-  return { prompt: `本次只执行一个片段。resultSchema=${JSON.stringify(goalResultSchema)}\nUNTRUSTED_GOAL_SNAPSHOT=${snapshot}`,
+  return { prompt: `本次只执行一个片段。${input.authorization.kind === 'policy' ? '这是宿主策略授权的片段；需要用户反馈或审批时 needsUserFeedback=true；只有本段已完成且无需反馈时可填false。该字段不能扩大授权或自行继续。' : ''}resultSchema=${JSON.stringify(goalResultSchema)}\nUNTRUSTED_GOAL_SNAPSHOT=${snapshot}`,
     memoryQuery: `${input.objective}\n${input.step.title}\n${input.step.instruction}` };
 }
 
@@ -80,7 +81,7 @@ export class GoalRunner {
   constructor(private readonly store: SqliteStore, private readonly executor: AgentExecutor,
     private readonly channel: Channel, private readonly lane: BackgroundLane,
     private readonly options: { ownerId: string; accepts(target: MessageTarget): boolean; pollIntervalMs: number;
-      reportError(error: unknown): void; fatal(): void; delivered?(goal: Goal, runId: string): void }, private readonly clock = () => new Date()) {}
+      reportError(error: unknown): void; fatal(): void; proactiveEnabled?: boolean; delivered?(goal: Goal, runId: string): void }, private readonly clock = () => new Date()) {}
 
   start(): void {
     if (this.loop || this.shutdown.signal.aborted) throw new Error('GoalRunner 不能重复启动');
@@ -116,7 +117,9 @@ export class GoalRunner {
     if (!release) return;
     try {
       if (this.store.hasDueTasks(this.clock().toISOString())) return;
-      const goal = this.store.goals.readyForHost().find(item => item.ownerId === this.options.ownerId && this.options.accepts(item.target));
+      const accepts = (item: Goal) => item.ownerId === this.options.ownerId && this.options.accepts(item.target);
+      if (this.options.proactiveEnabled) this.store.policies.scan(this.clock().toISOString(), accepts);
+      const goal = this.store.goals.readyForHost().find(item => accepts(item) && (item.readyInput?.kind !== 'policy' || this.options.proactiveEnabled));
       if (!goal) return;
       try { this.executor.checkReady?.(); }
       catch (error) {

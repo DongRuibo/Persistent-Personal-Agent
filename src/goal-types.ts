@@ -1,4 +1,5 @@
 import type { MessageTarget, Run } from './contracts.js';
+import type { PolicyAuthorization } from './goal-policy-types.js';
 
 export type GoalStatus = 'ready' | 'running' | 'waiting_user' | 'paused' | 'blocked' | 'completed' | 'cancelled';
 export type GoalStepStatus = 'pending' | 'running' | 'waiting_user' | 'completed' | 'failed' | 'blocked' | 'superseded';
@@ -31,7 +32,7 @@ export interface GoalPlanDraft {
   baseRevision: number; revision: number; spec: GoalPlanSpec;
   sourceRunId: string; changeReason: string; hash: string;
 }
-export interface GoalReadyInput { triggerRunId: string; text: string; kind: 'create' | 'continue' | 'regenerate' | 'approve' }
+export type GoalReadyInput = { triggerRunId: string; text: string; kind: 'create' | 'continue' | 'regenerate' | 'approve' } | PolicyAuthorization;
 export interface Goal {
   id: string; ownerId: string; accessKey: string; target: MessageTarget; objective: string;
   createdByRunId: string; status: GoalStatus; revision: number; planRevision: number;
@@ -53,6 +54,7 @@ export interface GoalCheckpoint {
   previousCheckpointRunId: string | null; inputSourceRunId: string;
   stepOutcome: StepOutcome; artifactText: string; progressSummary: string; question: string;
   blockedReason: string | null; proposedPlan: GoalPlanDraft | null;
+  needsUserFeedback?: boolean;
 }
 export interface GoalExecution {
   runId: string; goalId: string; stepId: string; planRevision: number; sequence: number;
@@ -64,6 +66,7 @@ export interface GoalExecution {
 export interface GoalResult {
   stepOutcome: StepOutcome; artifactText: string; progressSummary: string; question: string;
   blockedReason?: string;
+  needsUserFeedback?: boolean;
   proposedPlan?: { steps: GoalStepProposal[]; changeReason: string };
 }
 export interface GoalControlReceipt {
