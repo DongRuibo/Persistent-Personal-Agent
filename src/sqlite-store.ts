@@ -4,12 +4,14 @@ import type { ExecutionObserver, MessageTarget, ModelCall, Run, RunStatus, Task 
 import { FormationStore } from './formation-store.js';
 import { GoalStore } from './goal-store.js';
 import { GoalPolicyStore } from './goal-policy-store.js';
+import { GoalNotificationStore } from './goal-notification-store.js';
 
 export class SqliteStore {
   private readonly db: DatabaseSync;
   readonly formation: FormationStore;
   readonly goals: GoalStore;
   readonly policies: GoalPolicyStore;
+  readonly notifications: GoalNotificationStore;
 
   constructor(path: string, private readonly redact: (value: unknown) => string = String) {
     this.db = new DatabaseSync(path);
@@ -56,7 +58,15 @@ export class SqliteStore {
     this.policies = new GoalPolicyStore(this.db, { transaction: fn => this.transaction(fn),
       begin: now => this.beginRunInTransaction(null, now), finish: (id, now) => { this.finishRunInTransaction(id, 'succeeded', now, '宿主策略触发审计，非聊天授权'); } },
     (actor, id) => this.goals.get(actor, id));
-    this.goals.policy = this.policies;
+    this.notifications = new GoalNotificationStore(this.db, fn => this.transaction(fn));
+    this.goals.policy = {
+      consume: (goal, auth, now) => this.policies.consume(goal, auth, now),
+      current: (execution, now) => this.policies.current(execution, now),
+      settled: (execution, goal, now) => {
+        this.policies.settled(execution, goal, now);
+        this.notifications.enqueue(execution, this.goals.get({ ownerId: goal.ownerId, target: goal.target }, goal.id), now);
+      },
+    };
   }
 
   private transaction<T>(fn: () => T): T {
@@ -186,6 +196,7 @@ export class SqliteStore {
         .run(now, '服务在执行完成前退出；可能已产生副作用，请人工核实');
       this.db.prepare("UPDATE tasks SET status = 'interrupted', updatedAt = ? WHERE status = 'running'").run(now);
       this.goals.recoverInTransaction(now);
+      this.notifications.recoverInTransaction(now);
       return runs.length;
     });
   }

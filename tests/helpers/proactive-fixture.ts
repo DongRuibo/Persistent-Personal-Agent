@@ -46,10 +46,12 @@ export async function fixture() {
   let now = initialTime;
   let result: GoalResult = { stepOutcome: 'complete', artifactText: '虚构练习题', progressSummary: '交付一题', question: '请回答后继续', needsUserFeedback: true };
   let calls = 0;
+  let responseGate: Promise<void> | undefined, deliveryFailures = 0;
   const payloads: unknown[] = [], sent: string[] = [], errors: unknown[] = [];
   const server = createServer(async (req, res) => {
     let body = ''; for await (const chunk of req) body += String(chunk);
     calls++; payloads.push(JSON.parse(body));
+    await responseGate;
     res.writeHead(200, { 'Content-Type': 'text/event-stream' }); res.end(sseText(JSON.stringify(result)));
   });
   server.listen(0, '127.0.0.1'); await once(server, 'listening');
@@ -59,12 +61,13 @@ export async function fixture() {
   let store = new SqliteStore(config.databasePath); store.policies.configure(hostOptions);
   let executor = await createPiExecutor(config, new TaskService(store, config.timeZone));
   let runner = makeRunner();
-  function makeRunner() { return new GoalRunner(store, executor, { sendMessage: async value => { sent.push(value.text); } }, new BackgroundLane(), {
+  function makeRunner() { return new GoalRunner(store, executor, { sendMessage: async value => { sent.push(value.text); if (deliveryFailures-- > 0) throw new Error('模拟已发送但确认丢失'); } }, new BackgroundLane(), {
     ownerId: actor.ownerId, accepts: value => value.channel === 'console', pollIntervalMs: 10, proactiveEnabled: true,
     reportError: error => errors.push(error), fatal: () => errors.push('fatal'),
   }, () => new Date(now)); }
-  return { root, get store() { return store; }, get runner() { return runner; }, get calls() { return calls; }, payloads, sent, errors,
+  return { root, get store() { return store; }, get runner() { return runner; }, get executor() { return executor; }, get calls() { return calls; }, payloads, sent, errors,
     time(value: string) { now = value; }, result(value: GoalResult) { result = value; },
+    holdResponse(gate: Promise<void> | undefined) { responseGate = gate; }, failDelivery(count: number) { deliveryFailures = count; },
     async restart() { await runner.stop(); await executor.close(); store.close();
       store = new SqliteStore(config.databasePath); store.policies.configure(hostOptions); store.recoverInterrupted(now);
       executor = await createPiExecutor(config, new TaskService(store, config.timeZone)); runner = makeRunner(); },

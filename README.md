@@ -28,7 +28,29 @@ Batch 1–4 已接通 Goal/Plan/Step/Execution、独立 GoalRunner、受控自�
 
 暂停/取消运行中的目标先显示“正在停止”，SDK结束后才落 paused/cancelled；迟到结果不能推进。模型失败/中断进入 blocked，不自动重试；核实后可明确“重新生成面试任务这一段”，可能再次计费。uncertain/invariant_violation必须人工核对，不能强行继续。查看进度只读取已提交成果，通知失败不重新执行；查看仍通过交互模型路由，可能有主模型及隔离意图解析消耗，没有后台推进请求。
 
-Goal输入快照最多14 KiB，加Memory最多2 KiB；目标/反馈、计划和摘要/问题超预算先阻塞，不悄悄截断条件。较长成果只提供明确标记的摘录及原Checkpoint引用，完整正文仍在数据库。每段临时Pi Session、零工具、输出最多4096 Token、沿用执行超时；不支持Shell、Browser、MCP、定时/Observer/自主连续推进或可靠通知Outbox。
+手动Goal输入快照最多14 KiB，加Memory最多2 KiB；目标/反馈、计划和摘要/问题超预算先阻塞，不悄悄截断条件。较长成果只提供明确标记的摘录及原Checkpoint引用，完整正文仍在数据库。每段临时Pi Session、零工具、输出最多4096 Token、沿用执行超时；不支持Shell、Browser、MCP或外部写工具。新增主动策略见下节。
+
+## V3.1–V3.3：显式策略下的时间、观察及有界推进
+
+代码和本地模拟验收与真实模型/飞书验收分开。原V3.0.1暂停与收据解释缺口仍开放。设计与数据迁移见[主动执行设计](docs/designs/v3-proactive-goals.md)，实际检查见[验证报告](docs/evaluations/v3-proactive-validation.md)。全部新增表与V3.0数据兼容，不改变Task一次性、Memory写入或Pi Loop。
+
+`GOAL_ENABLED=false`、`PROACTIVE_ENABLED=false` 均为默认值。仅在**新的隔离目录**配置两者为true；设置经核对的 `PROACTIVE_INPUT_CNY_PER_MILLION` / `PROACTIVE_OUTPUT_CNY_PER_MILLION`，未知或0时不执行自动片段。宿主每日调用、执行、人民币预留及总次数/总预留使用 `.env.example` 中的独立上限；每条策略还需更小的明确上限。每日按UTC，全局账本跨重启与策略保留，失败或缺失usage不退预留。费率是用户批准的上界，预留不是供应商账单硬保证。
+
+先按前节创建Goal、查看并批准正式Plan，保持waiting_user；再用 `/policies`、`/policy show ID` 查看策略和审计。审批不交给模型，Console直接输入一行完整JSON（替换真实隔离Goal的ID/revision/planRevision及未来有效期）：
+
+```text
+/policy approve {"goalId":"<隔离Goal ID>","expectedGoalRevision":3,"planRevision":1,"expiresAt":"2027-01-01T00:00:00.000Z","capability":"text_only","schedule":{"kind":"daily","time":"09:00","timeZone":"Asia/Shanghai"},"limits":{"segmentsPerTrigger":1,"dailyExecutions":2,"dailyModelCalls":2,"totalExecutions":5,"dailyBudgetCny":0.2,"totalBudgetCny":0.5}}
+/policy pause {"id":"<策略ID>","version":1}
+/policy revoke {"id":"<策略ID>","version":2}
+```
+
+单次未来改用 `schedule={"kind":"once","at":"2026-12-01T01:00:00.000Z","timeZone":"Asia/Shanghai"}`；每周用 `{"kind":"weekly","time":"09:00","timeZone":"Asia/Shanghai","weekday":1}`（周一为1）。IANA当地时间的DST重复/不存在日期跳过，停机错过多个周期只补一个；不回放旧周期。修改或恢复策略采用明确撤销、按当前Goal版本重新批准。Goal暂停、取消、改计划、手动继续使旧版本失效；失败/中断、计划审批、需要反馈或已到计划尾部也停止，不能自动批准计划或确认Goal完成。
+
+观察策略替换schedule为 `{"kind":"github","repository":"fiction/agent","branch":"main","intervalSeconds":300}`。只读公开GitHub API，首次建基线不触发；后续新提交与compare差异生成持久Observation，批次唤醒一次。最短60秒，响应64KiB、变化快照10KiB、提交窗口20条；窗口断裂、force push、过大或读取失败保留游标并退避，需人工核对后重批基线。差异/commit message只作低信任资料，不授予工具或长期Memory写入。测试不会访问真实GitHub，生产适配器只有明确审批该策略才发出读取。私有仓库认证不在本版范围。
+
+每触发允许1～5个片段，GoalRunner每次tick最多执行一段。仅上段complete、明确 `needsUserFeedback=false`、还有已批准步骤且所有限额有效才允许续段；缺失该字段默认停下。自动Goal的通知Outbox与Checkpoint同事务提交，最多3次发送尝试，失败退避30秒/60秒，重启可恢复；通知可能迟到、重复或最终失败，不能保证exactly-once或必达。不会因通知失败重跑模型。延迟通知是执行时快照，审批/继续前重新查看当前Goal。
+
+无需Key/正式数据的本地演示：`node --import tsx --test tests/goal-policy.test.ts tests/github-observer.test.ts tests/goal-autonomy.test.ts`。这会运行模拟时钟、真实SQLite、原版Pi SDK、本机模型及GitHub HTTP桩，演示A定时、B观察、C有界持续推进及故障恢复；临时目录由测试创建并清理。不要将其称为真实模型或手机验收。策略配置目前仅有Console确定性命令，尚未开放自然语言/飞书策略审批。
 
 专项回归：`node --import tsx --test tests/goal-*.test.ts`。只读核对隔离库：`node --import tsx scripts/audit-goals.ts E:/AgentWork/acceptance/v3-local/agent.db`；不建表、不修复、不输出正文。完整[设计](docs/designs/v3-persistent-goals.md)、[自动化证据](docs/evaluations/v3-mvp-validation.md)、[Batch 5手机验收方案](docs/evaluations/v3-live-acceptance-plan.md)及最新[STATE](docs/STATE.md)分别记录实现和未验证范围。
 
@@ -415,13 +437,13 @@ SDK 错误只输出固定类别和可提取的安全状态码，不打印原始�
 - 消息目标由 Channel 的可信上下文绑定，模型工具没有选择或修改接收人的参数。出站再次检查 App ID 和白名单，配置更换后不会把旧任务通知发给新的用户；不匹配只记录投递错误。
 - 消息结果先写入 `runs`，再发送。飞书业务错误保存 code，网络错误只记录安全摘要，不记录 SDK 原始 Axios 对象、请求头、App Secret 或连接票据。文本按编码字节分片，每片关联稳定 uuid，但不自动重发。
 
-目前**未实现通知 Outbox**，存在以下故障窗口：
+旧Task、聊天回复和手动Goal通知仍沿用直接发送，未使用Outbox，存在以下故障窗口（V3.3策略执行的通知例外，见前节）：
 
 1. Run/任务结果已经提交，发送前进程崩溃：任务保持 succeeded，通知可能永久丢失，甚至没有机会记录 deliveryError。
 2. 飞书已接收但客户端超时，或发送后尚未记录 `delivery_succeeded` 就崩溃：送达状态不确定，不自动重发，也不重新调用模型。长消息分片可能只送达前半部分。
 3. 入站去重已提交但模型尚未执行就崩溃：该消息仍算接收过，Run 恢复为 interrupted，重投不会自动重放，以免重复创建已产生副作用的任务。用户应先发新消息查询任务，再决定是否重新提出请求。排队消息只在内存中，未实现入站补偿。
 
-后续可靠投递可在**提交任务结果的同一 SQLite 事务**写入通知 Outbox，由独立投递循环领取记录、使用稳定消息标识和分片进度重试并确认送达；只重试投递，不重跑 Agent。仍需遵守飞书幂等窗口及限流，不能宣称外部恰好一次。本版仅说明该升级方向，不实现。
+旧Task及前台回复的Outbox仍是后续范围。V3.3只为策略Goal执行增加最小持久通知及有限重试；未实现飞书分片进度或供应商幂等保证，不能宣称外部恰好一次。
 
 ## 时间规则
 
@@ -447,7 +469,7 @@ Console 输入 → Task Service / AgentExecutor → Pi 交互 Session
 - `contracts.ts` 定义业务接口；Pi 类型只存在于 Pi 适配层 `pi-executor.ts` 和 `task-tools.ts`。V1.2 在适配层接入原生 Session 文件，未修改 Pi SDK。
 - Task 状态由 SQLite 管理，Pi Session 只保存当前对话上下文。交互 Session 在进程内复用并跨重启恢复，每次后台任务使用独立内存 Session 并释放，二者不混入对话历史。
 - Scheduler 只依赖 `AgentExecutor`、存储和 `Channel.sendMessage()`；ChannelRouter 根据任务的持久化目标路由到 Console 或 FeishuChannel，飞书官方 SDK 仅封装在 FeishuSdkTransport 中。
-- 独立 FileMemoryService 管理四类长期知识与可重建索引，通过公开 Context 临时注入；Memory、Session、Task 均独立。没有 WebUI、周期任务或复杂工作流。
+- 独立 FileMemoryService 管理四类长期知识与可重建索引，通过公开 Context 临时注入；Memory、Session、Task 均独立。Goal的已授权周期策略见前节；没有WebUI或复杂工作流框架。
 
 任务状态：`pending → running → succeeded / failed / interrupted`；`pending → cancelled`。
 
@@ -480,6 +502,6 @@ V2.0 自动化覆盖四类 CRUD、来源/权限、去重/版本冲突、跨进�
 
 当前限制：没有上下文自动压缩；历史跨重启保留，长对话达到模型上下文限制后需要使用新的 Session 目录。会话文件与 SQLite 不是跨存储事务；强杀时可能出现两者记录不一致或最后一条会话记录不完整，恢复只加载上下文，不自动补偿或重放。服务采用协作式取消，若供应商/SDK 无法响应 abort，退出可能延迟；下次启动会标记遗留执行中断。崩溃可能发生在结果生成后或通知投递前，不保证通知一定送达。
 
-V1 核心本机闭环及 V1.2 上下文跨重启恢复已有真实用户实测反馈；V2.0 Project Memory 核心闭环已有真实飞书验收；本次 Retriever 的真实语义与手机效果仍待验收。尚未实测的取消/鉴权与重投场景可另行补充。不自动开展 V2.1、Observer、周期任务、WebUI 或 VPS。本版沿用已有执行日志，并增加不含正文的 Memory 命中事件。
+V1 核心本机闭环及 V1.2 上下文跨重启恢复已有真实用户实测反馈；V2.0 Project Memory 核心闭环已有真实飞书验收；Retriever 的真实语义与手机效果仍待验收。V3.1–V3.3本地模拟与真实验收分开记录；WebUI、Skills、Computer Use、VPS及其他生态不在本轮范围。本版复用已有Run/Events/ModelCalls，不另建评测平台。
 
 官方参考：[Pi SDK](https://pi.dev/docs/latest/sdk)、[1.3.0 完整控制示例](https://github.com/earendil-works/pi/blob/v1.3.0/packages/coding-agent/examples/sdk/12-full-control.ts)、[Node SQLite](https://nodejs.org/api/sqlite.html)。

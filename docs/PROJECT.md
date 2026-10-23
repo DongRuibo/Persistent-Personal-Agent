@@ -82,7 +82,7 @@ Pi SDK 使用公开 API，不 Fork、不修改内部源码和 Agent Loop。宿�
 - `message_end` 记录模型响应与用量；`agent_settled` 后仍检查 aborted、模型与工具错误、截断及最终文本。执行结束、数据库成功提交、渠道投递成功互相区分。
 - UTC 持久化、IANA 用户时区解析。支持的中文时间语法见 README，歧义或 DST 无效时间要求用户明确，不让模型或服务器时区决定。
 - 交互白名单为三项任务工具及 `memory_search/get/remember/update/forget`；显式开启Formation后增加无参数 `memory_review`，后台无工具，可由宿主只读检索 Memory。禁止默认 Shell、任意文件读写和通用网络能力。服务仍需写数据库并请求配置的模型 API，工具白名单不等同于 OS 沙箱。
-- 飞书只允许配置的应用内 open_id 和文本私聊；`(appId, message_id)` 持久化去重后再安排执行，不自动重放中断消息。模型执行和发送均不阻塞事件接收；发送失败只保存 deliveryError，不重跑 Agent。Outbox 尚未实现，故障窗口与升级方向见 README。
+- 飞书只允许配置的应用内 open_id 和文本私聊；`(appId, message_id)` 持久化去重后再安排执行，不自动重放中断消息。模型执行和发送均不阻塞事件接收；旧Task/聊天/手动Goal发送失败不重跑Agent。V3.3策略Goal具有最小持久通知Outbox，有限重投也可能重复或最终失败。
 
 ## V2.0 四类长期 Memory
 
@@ -166,11 +166,23 @@ V3.0 采用“持久Goal + 多次短生命周期text_only Pi片段”，已在�
 
 V3.0.1增加有界原话数量校验：明确正式Step边界约束整个计划（含已完成Step），在草稿与审批事务核对；安排数量和单Step内部动作不直接等同于正式Step数，口径不明时完整展示并需明确确认。数量错误不裁剪、不补收费请求，保留旧Checkpoint；多重/二选一自然指代只澄清。规则不是通用语义证明；[独立报告](evaluations/v3.0.1-closeout.md)不改旧Batch5结论。后续经用户单独授权的Console真实复验使用新16/2入口，14请求/0.605440元预留后停服：数量及取消局部通过，泛称“学习计划”与“阅读计划”的筛选仍使自然暂停失败，主模型收尾也误读工具收据；宿主状态与最终呈现正确不等于模型全链路通过。详见[真实复验](evaluations/v3.0.1-live-retest.md)，暂不能完整收尾，未启用日常Goal。
 
-Checkpoint位于committed Execution，与Run/Step/Goal同事务提交；异常先重读，无法核对则停止新领取并停服，不请求模型补交。运行中pause/cancel先持久化、再abort；恢复以cancel、pause、普通中断阻塞的优先级落点。通知无Outbox，不保证送达；查询可重展示，不重跑成果。失败仅在明确重新生成文本时新建尝试；uncertain无强制重试入口。
+Checkpoint位于committed Execution，与Run/Step/Goal同事务提交；异常先重读，无法核对则停止新领取并停服，不请求模型补交。运行中pause/cancel先持久化、再abort；恢复以cancel、pause、普通中断阻塞的优先级落点。手动Goal通知无Outbox；策略Goal按下节持久投递，仍不保证送达。查询可重展示，不重跑成果。失败仅在明确重新生成文本时新建尝试；uncertain无强制重试入口。
 
 计划增补或完整替换仅形成待批准草稿；已完成步骤和旧成果保留。运行中调整先暂停，停止后恢复审批；不原地改变目标原文，换目标新建Goal。Task/Run一次性唯一约束、Memory写入授权及Session隔离保留；Goal控制聊天和执行不进入Formation。原版Pi源码、node_modules、权限框架和依赖均未修改。完整[设计](designs/v3-persistent-goals.md)、[自动化证据](evaluations/v3-mvp-validation.md)和[待授权真实验收](evaluations/v3-live-acceptance-plan.md)明确区分机制通过与真实语义未验收。
 
-本阶段不做未经批准的自动保存、另外两类自动提取、Embedding、向量库、Observer、自主 Skill、周期任务、WebUI、复杂框架或 VPS。架构或范围调整先说明并取得确认，再同步本文及 STATE。
+本阶段不做未经批准的自动保存、另外两类自动提取、Embedding、向量库、Skills、Computer Use、WebUI、复杂框架或VPS。已于2026-10-23另外授权V3.1–V3.3如下；不因此开启正式环境。
+
+## V3.1–V3.3 主动执行架构
+
+保持 `GOAL_ENABLED=false`，新增独立 `PROACTIVE_ENABLED=false`；单个Goal还必须经可信Console显式审批策略。模型没有策略写工具，不能从Memory、网页、commit message或旧聊天启用策略。策略绑定所有者/渠道、Goal/Plan版本、到期时间、text_only、时间或GitHub条件及限额；调整或恢复采取撤销旧策略、重新批准。默认最大每触发1段，可显式批准1～5段，每段仍独立Session/Execution/Checkpoint。
+
+增量七表：`goal_policies / goal_policy_events / goal_triggers / goal_grants / goal_observer_cursors / goal_observations / goal_notifications`。原四表不重建，旧JSON和Run/Task唯一约束保留。时间/观察Trigger与Grant持久化；技术来源Run只作审计，不能伪装聊天授权。领取事务消费Grant并预留预算，与新Run/Execution一起提交；Checkpoint及最小通知Outbox同事务，崩溃不补跑模型。`GoalRunner → GoalPolicyStore → GoalStore → AgentExecutor/Pi` 共用原后台门；只读GitHub网络在短事务外，返回再核对版本与游标。
+
+每日限额按UTC，所有策略共享宿主每日/总次数和人民币保守预留；未知费率阻塞，usage缺失或失败不退额。HTTP请求体至多32768字节、每段至多一次模型请求/4096输出Token。时间IANA/DST缺口或重复当天跳过；长停机只合并一次唤醒。Observer最短60秒、有限指数退避、首次只建基线、每批变化一个授权，SHA与游标跨重启核对；force push/窗口断裂/过大不猜进度。
+
+自动结果partial、缺失/true反馈标志、待审批草稿、计划末尾、权限/限额不足或失败/中断均停止策略。用户控制先撤销提交权，迟到结果discarded。`needsUserFeedback=false`只在已批准策略和其余宿主条件内允许后续，不能产生新权限；语义是否正确仍依赖模型，不把Schema当语义证明。通知最多3次、退避及恢复只重发消息；无严格exactly-once、必达或飞书分片幂等保证。自动产物只保存在Checkpoint，不进入长期Memory或Formation。
+
+接口、数据迁移和边界详见[设计](designs/v3-proactive-goals.md)，[本地验收](evaluations/v3-proactive-validation.md)仅证明隔离模拟机制；真实模型、GitHub正式仓库和飞书尚未验收。V3.0.1原真实暂停与收据误解失败保留。
 
 ## V2.1b 候选与正式知识的边界
 

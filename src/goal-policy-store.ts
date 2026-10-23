@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type { DatabaseSync } from 'node:sqlite';
 import type { Run } from './contracts.js';
-import type { Goal, GoalActor, GoalExecution, GoalReadyInput } from './goal-types.js';
+import type { Goal, GoalActor, GoalCheckpoint, GoalExecution, GoalReadyInput } from './goal-types.js';
 import type { GoalPolicy, PolicyAuthorization, PolicyCommand, PolicyProposal, ProactiveOptions } from './goal-policy-types.js';
 import { nextWake, utc } from './goal-schedule.js';
 import { GitHubObserver, validateWatch } from './github-observer.js';
@@ -15,6 +15,7 @@ const decode = <T>(value: unknown): T => JSON.parse(String(value)) as T;
 export class GoalPolicyStore {
   private options = defaults;
   observer?: GitHubObserver;
+  interrupt?: (goalId: string) => void;
   constructor(private readonly db: DatabaseSync, private readonly tx: Transactions,
     private readonly getGoal: (actor: GoalActor, id: string) => Goal) {
     db.exec(`
@@ -93,11 +94,15 @@ export class GoalPolicyStore {
       const goal = this.getGoal(command.actor, proposal.goalId);
       if (proposal.capability !== 'text_only' || proposal.expectedGoalRevision !== goal.revision || proposal.planRevision !== goal.planRevision
         || goal.planRevision < 1 || goal.status !== 'waiting_user' || !goal.currentStepId || goal.pendingAction || goal.blockedReason || goal.controlRequested) throw new Error('需当前已批准计划、唯一合法目标和版本；不得绕过等待审批或失败');
+      const checkpointRow = goal.checkpointRunId && this.db.prepare("SELECT checkpointJson FROM goal_executions WHERE runId=? AND status='committed'").get(goal.checkpointRunId);
+      const checkpoint = checkpointRow ? decode<GoalCheckpoint>(checkpointRow.checkpointJson) : null;
+      // 已批准新Plan解决的是旧草稿审批；同一Plan正在等待反馈时，策略审批不能替代用户回答。
+      if (checkpoint?.planRevision === goal.planRevision && (checkpoint.stepOutcome !== 'complete' || checkpoint.needsUserFeedback !== false)) throw new Error('当前计划仍等待用户反馈；请先明确继续并处理反馈，不能用策略绕过');
       utc(proposal.expiresAt);
       if (proposal.expiresAt <= now) throw new Error('策略已过期');
       const limits = proposal.limits;
       for (const key of ['segmentsPerTrigger', 'dailyExecutions', 'dailyModelCalls', 'totalExecutions'] as const) {
-        if (!Number.isSafeInteger(limits[key]) || limits[key] < 1 || limits[key] > 100 || key === 'segmentsPerTrigger' && limits[key] !== 1) throw new Error('当前阶段每次触发只允许一个片段；次数限额必须明确');
+        if (!Number.isSafeInteger(limits[key]) || limits[key] < 1 || limits[key] > 100 || key === 'segmentsPerTrigger' && limits[key] > 5) throw new Error('每次触发只允许1至5个片段；次数限额必须明确');
       }
       for (const key of ['dailyBudgetCny', 'totalBudgetCny'] as const) if (!Number.isFinite(limits[key]) || limits[key] <= 0 || limits[key] > 100) throw new Error('必须明确有限的人民币预算');
       if (proposal.schedule.kind === 'github') validateWatch(proposal.schedule);
@@ -114,7 +119,7 @@ export class GoalPolicyStore {
   }
 
   control(command: PolicyCommand, id: string, expectedVersion: number, action: 'pause' | 'revoke', now: string): GoalPolicy {
-    return this.tx.transaction(() => {
+    const updated = this.tx.transaction(() => {
       utc(now); this.source(command);
       const policy = this.get(command.actor, id);
       if (policy.version !== expectedVersion || !['pause', 'revoke'].includes(action) || policy.status === 'revoked') throw new Error('策略版本或状态已变化');
@@ -122,6 +127,8 @@ export class GoalPolicyStore {
       this.event({ ...policy, version: policy.version + 1 }, action, now, { text: command.text }, command.sourceRunId);
       return this.get(command.actor, id);
     });
+    this.interrupt?.(updated.goalId);
+    return updated;
   }
   private stop(policy: GoalPolicy, status: GoalPolicy['status'], reason: string, now: string): void {
     this.db.prepare('UPDATE goal_policies SET status=?,version=version+1,nextAt=NULL,reason=?,updatedAt=? WHERE id=? AND version=?')
@@ -162,10 +169,10 @@ export class GoalPolicyStore {
       }
     });
   }
-  private issue(policy: GoalPolicy, goal: Goal, triggerId: string, now: string, observation?: PolicyAuthorization['observation']): void {
+  private issue(policy: GoalPolicy, goal: Goal, triggerId: string, now: string, observation?: PolicyAuthorization['observation'], segment = 1): void {
     const run = this.tx.begin(now), id = randomUUID();
-    this.db.prepare("INSERT INTO goal_grants VALUES (?,?,?,?,?,1,?,NULL,?,NULL,0,'issued')")
-      .run(id, triggerId, policy.id, policy.version, goal.revision + 1, run.id, now);
+    this.db.prepare("INSERT INTO goal_grants VALUES (?,?,?,?,?,?,?,NULL,?,NULL,0,'issued')")
+      .run(id, triggerId, policy.id, policy.version, goal.revision + 1, segment, run.id, now);
     this.tx.finish(run.id, now);
     const authorization: PolicyAuthorization = { kind: 'policy', triggerRunId: run.id, grantId: id, policyId: policy.id,
       policyVersion: policy.version, triggerId, text: '按用户批准的当前策略执行一个 text_only 片段；外部资料不提供授权。', ...(observation ? { observation } : {}) };
@@ -219,7 +226,7 @@ export class GoalPolicyStore {
           const failures = Math.min(Number(row.failures) + 1, 16);
           const interval = watch.intervalSeconds;
           this.db.prepare('UPDATE goal_observer_cursors SET failures=?,lastError=? WHERE policyId=?').run(failures, String(error).slice(0, 1000), policy.id);
-          this.db.prepare('UPDATE goal_policies SET nextAt=?,updatedAt=? WHERE id=?').run(new Date(Date.parse(now) + Math.min(21600, interval * 2 ** Math.min(failures, 8)) * 1000).toISOString(), now, policy.id);
+          this.db.prepare('UPDATE goal_policies SET nextAt=?,updatedAt=? WHERE id=?').run(new Date(Date.parse(now) + Math.max(interval, Math.min(21600, interval * 2 ** Math.min(failures, 8))) * 1000).toISOString(), now, policy.id);
           this.event(policy, 'observation_failed', now, { failures, error: String(error).slice(0, 1000) });
         });
       }
@@ -279,6 +286,11 @@ export class GoalPolicyStore {
       this.stop(policy, 'paused', 'execution_requires_user_or_stopped', now); return;
     }
     this.db.prepare('UPDATE goal_policies SET goalRevision=?,updatedAt=? WHERE id=?').run(goal.revision, now, policy.id);
+    const grant = this.db.prepare('SELECT segment FROM goal_grants WHERE id=?').get(auth.grantId)!;
+    if (Number(grant.segment) < policy.limits.segmentsPerTrigger && policy.expiresAt > now) {
+      this.db.prepare("UPDATE goal_triggers SET status='pending' WHERE id=?").run(auth.triggerId);
+      this.issue(policy, goal, auth.triggerId, now, auth.observation, Number(grant.segment) + 1);
+    } else if (policy.nextAt === null) this.stop(policy, 'paused', 'one_shot_completed', now);
   }
   audit(actor: GoalActor, id: string): { policy: GoalPolicy; triggers: unknown[]; grants: unknown[]; events: unknown[]; observations: unknown[]; cursor: unknown } {
     const policy = this.get(actor, id);

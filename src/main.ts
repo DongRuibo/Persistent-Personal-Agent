@@ -89,6 +89,7 @@ async function main(): Promise<void> {
     if (goals) goalRunner = new GoalRunner(store, executor, channels, lane, { ownerId: 'local-user', pollIntervalMs: config.pollIntervalMs,
       accepts: target => feishuConfig ? target.channel === 'feishu' && target.appId === feishuConfig.appId && target.userOpenId === feishuConfig.allowedOpenId : target.channel === 'console',
       reportError, proactiveEnabled: config.proactive?.enabled, fatal: () => { process.exitCode = 1; stop(); }, delivered: (goal, runId) => goals.displayed(goal, runId) });
+    store.policies.interrupt = id => goalRunner?.interrupt(id);
     scheduler.start();
     goalRunner?.start();
     formation?.start();

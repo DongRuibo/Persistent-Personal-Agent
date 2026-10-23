@@ -58,6 +58,8 @@ export interface ExecutionRequest {
   scope: 'chat' | 'task' | 'goal';
   // Goal 的检索词由宿主独立构造，不把整个进度快照当检索问题。
   memoryQuery?: string;
+  // 仅可信 GoalRunner 从已消费的宿主策略授权设置，不是模型工具参数。
+  policyExecution?: boolean;
   signal: AbortSignal;
   observer: ExecutionObserver;
   source?: { channel: 'console' | 'feishu'; reference: string };

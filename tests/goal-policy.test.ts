@@ -80,3 +80,26 @@ test('宿主开关/身份/版本/审批/停止状态/预算和费率缺失全部
     assert.equal(store.goals.view(actor, next.id).executions.length, 1);
   } finally { store.close(); }
 });
+
+test('单次触发、过期和Goal状态/计划改变都不能留下后续执行权限', async () => {
+  for (const change of ['once', 'expired', 'pause', 'plan'] as const) {
+    const f = await fixture();
+    try {
+      const goal = seedGoal(f.store), spec = proposal(goal);
+      spec.schedule = { kind: 'once', at: '2026-10-23T01:00:00.000Z', timeZone: 'Asia/Shanghai' };
+      if (change === 'expired') spec.expiresAt = '2026-10-23T01:01:00.000Z';
+      const policy = approve(f.store, spec);
+      if (change === 'pause' || change === 'plan') {
+        const run = f.store.beginRun(null, initialTime), command = { actor, sourceRunId: run.id, text: change, expectedRevision: goal.revision };
+        if (change === 'pause') f.store.goals.control(command, goal.id, 'pause', initialTime);
+        else f.store.goals.proposePlan(command, goal.id, { changeReason: '新计划', steps: [{ title: '新步骤', instruction: '新内容', deliverable: '文本', doneWhen: '提交' }] }, initialTime);
+        f.store.finishRun(run.id, 'succeeded', initialTime, '已控制');
+      }
+      f.time(change === 'expired' ? '2026-10-23T02:00:00.000Z' : '2026-10-23T01:00:00.000Z');
+      await f.runner.tick(); await f.runner.tick();
+      assert.equal(f.calls, change === 'once' ? 1 : 0);
+      assert.ok(['paused', 'expired'].includes(f.store.policies.get(actor, policy.id).status));
+      assert.equal(f.store.goals.get(actor, goal.id).readyInput, null);
+    } finally { await f.close(); }
+  }
+});

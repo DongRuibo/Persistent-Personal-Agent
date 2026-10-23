@@ -86,3 +86,14 @@ test('迟到HTTP返回不能越过用户撤销；不接受任意端点、仓库�
     assert.throws(() => validateWatch({ ...watch, intervalSeconds: 1 }));
   } finally { await f.close(); await g.close(); }
 });
+
+test('低频观察发生失败时，退避不能比用户批准的频率更快', async () => {
+  const f = await fixture(), g = await github();
+  try {
+    f.store.policies.observer = g.adapter; g.fail(true);
+    const policy = approve(f.store, { ...proposal(seedGoal(f.store)), schedule: { ...watch, intervalSeconds: 86400 } });
+    await f.runner.tick();
+    assert.ok(f.store.policies.get(actor, policy.id).nextAt! >= '2026-10-24T00:00:00.000Z');
+    f.time('2026-10-23T12:00:00.000Z'); await f.runner.tick(); assert.equal(g.paths.length, 1);
+  } finally { await f.close(); await g.close(); }
+});

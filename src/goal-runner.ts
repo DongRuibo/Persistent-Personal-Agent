@@ -118,6 +118,7 @@ export class GoalRunner {
     const release = this.lane.acquire(true);
     if (!release) return;
     try {
+      if (this.options.proactiveEnabled) await this.store.notifications.deliver(this.channel, this.options.ownerId, this.options.accepts, this.clock().toISOString());
       if (this.store.hasDueTasks(this.clock().toISOString())) return;
       const accepts = (item: Goal) => item.ownerId === this.options.ownerId && this.options.accepts(item.target);
       if (this.options.proactiveEnabled) {
@@ -144,7 +145,7 @@ export class GoalRunner {
       let result: GoalResult | undefined, failure: unknown;
       try {
         const projection = goalProjection(execution, this.store.goals.view(actor, goal.id));
-        const response = await this.executor.execute({ ...projection, scope: 'goal', signal, observer: this.store.observer(run.id) });
+        const response = await this.executor.execute({ ...projection, scope: 'goal', policyExecution: execution.input.authorization.kind === 'policy', signal, observer: this.store.observer(run.id) });
         if (signal.aborted) throw new ExecutionInterrupted('Goal 执行中断');
         result = parseGoalResult(response.text);
       } catch (error) { failure = error; }
@@ -162,6 +163,10 @@ export class GoalRunner {
             error instanceof GoalPlanQuantityError ? error.message : 'checkpoint_commit_failed', this.clock().toISOString());
           else if (current.status !== 'committed' || technical?.status !== 'succeeded') throw error;
         } catch (readError) { this.halt(readError); return; }
+      }
+      if (execution.input.authorization.kind === 'policy') {
+        if (this.options.proactiveEnabled) await this.store.notifications.deliver(this.channel, this.options.ownerId, this.options.accepts, this.clock().toISOString());
+        return;
       }
       try {
         const displayed = this.store.goals.view(actor, goal.id);
