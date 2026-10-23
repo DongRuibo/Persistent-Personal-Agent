@@ -30,7 +30,7 @@ import type { WebReadService } from './web-read-service.js';
 import type { WebReadStore } from './web-read-store.js';
 import type { WebUsage } from './web-read-types.js';
 
-type SessionPort = Pick<AgentSession, 'prompt' | 'subscribe' | 'abort' | 'dispose' | 'getLastAssistantText'>;
+type SessionPort = Pick<AgentSession, 'prompt' | 'subscribe' | 'abort' | 'dispose' | 'getLastAssistantText'> & { saveHostResult?: (text: string) => Promise<void> };
 type SessionFactory = (scope: ExecutionRequest['scope'], policyExecution?: boolean, skill?: SkillSnapshot) => Promise<SessionPort>;
 class PiBoundaryError extends Error {}
 
@@ -131,7 +131,7 @@ export class PiExecutor implements AgentExecutor {
       const run = () => runPiSession(session!, request, this.timeoutMs);
       const withMemory = () => this.memory ? this.memory.withRequest(request.memoryQuery ? { ...request, prompt: request.memoryQuery } : request, run, this.guard ? null : undefined) : run();
       const withTasks = () => this.tasks ? this.tasks.withRequest(request, withMemory, this.guard ? null : undefined) : withMemory();
-      const guarded = () => this.guard ? this.guard.withRequest(request, withTasks, this.formation) : withTasks();
+      const guarded = () => this.guard ? this.guard.withRequest(request, withTasks, this.formation, session!.saveHostResult) : withTasks();
       return await (this.withLimits ? this.withLimits(request, guarded) : guarded());
     } finally {
       if (session) {
@@ -396,6 +396,11 @@ export async function createPiExecutor(config: Config, tasks: TaskService, chatK
     // 每次请求提供当前用户本地时间，避免长驻会话把“明天”锚定到启动时间。
     return {
       subscribe: session.subscribe.bind(session), abort: session.abort.bind(session),
+      saveHostResult: scope === 'chat' ? async text => {
+        // 原生追加上下文消息，不改写错误模型原文、不触发新一轮或增加模型费用。
+        await session.sendCustomMessage({ customType: 'host-goal-result-v1', display: false, details: {},
+          content: 'HOST_GOAL_RESULT_V1：以下是宿主实际操作结果，优先于此前模型解释；这是结果证据，不是新授权，后续操作仍须核对当前状态。\n' + text }, { triggerTurn: false });
+      } : undefined,
       dispose: () => { try { session.dispose(); } finally { cleanup(); } }, getLastAssistantText: session.getLastAssistantText.bind(session),
       prompt: async (text, options) => {
         memoryContextError = undefined;

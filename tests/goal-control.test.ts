@@ -13,6 +13,48 @@ import type { Goal, GoalResult } from '../src/goal-types.js';
 const start = '2026-10-22T03:00:00.000Z';
 const step = { title: '练习', instruction: '出题', deliverable: '一道题', doneWhen: '已交付' };
 const result: GoalResult = { stepOutcome: 'complete', artifactText: '虚构初步计划', progressSummary: '待审批', question: '是否批准计划？', proposedPlan: { steps: [step], changeReason: '初始计划' } };
+
+test('V3.0.1真实B离线重放：泛称学习计划不否决唯一银杏阅读视图，具名约束仍取交集', async () => {
+  const history = JSON.parse(readFileSync(new URL('../docs/evaluations/v3.0.1-live-retest.json', import.meta.url), 'utf8'));
+  const f = fixture();
+  try {
+    const goal = f.bootstrap(await f.create('银杏阅读计划'));
+    await f.view('银杏'); const before = f.goals.plan(goal.id);
+    await f.execute('暂停那个学习计划', { goalAction: 'pause', selector: history.outcome.B.selector });
+    assert.equal(f.goals.get(goal.id).status, 'paused');
+    assert.deepEqual(f.goals.plan(goal.id).executions, before.executions);
+    assert.equal(f.goals.get(goal.id).checkpointRunId, goal.checkpointRunId);
+    await f.execute('继续银杏阅读计划', { goalAction: 'continue', selector: { keywords: ['银杏'] } });
+    await f.view('银杏'); const unchanged = f.goals.get(goal.id);
+    for (const message of ['暂停那个松柏学习计划', '不要暂停那个学习计划', '如果暂停那个学习计划', '暂停那个学习计划并取消它']) {
+      await f.execute(message, { goalAction: 'pause', selector: { keywords: ['学习计划'] } }).catch(() => {});
+      assert.deepEqual(f.goals.get(goal.id), unchanged);
+      await f.view('银杏');
+    }
+    await f.execute('暂停那个银杏学习计划', { goalAction: 'pause', selector: { keywords: ['学习计划'] } });
+    assert.equal(f.goals.get(goal.id).status, 'paused');
+  } finally { f.close(); }
+});
+
+test('银杏泛称指代修复仍核对有效唯一视图、投递、期限、身份、Goal及草稿版本', async t => {
+  for (const kind of ['missing', 'multi', 'undelivered', 'expired', 'channel', 'revision', 'draft']) await t.test(kind, async () => {
+    const f = fixture();
+    try {
+      const goal = f.bootstrap(await f.create('银杏阅读计划')); await f.view('银杏');
+      let target: MessageTarget = { channel: 'console' };
+      if (kind === 'missing') delete f.state.goalView;
+      if (kind === 'multi') { await f.create('银杏备考计划'); await f.view('银杏'); }
+      if (kind === 'undelivered') await f.execute('查看银杏进度', { goalAction: 'view', mode: 'query', selector: { keywords: ['银杏'] } }, false);
+      if (kind === 'expired') f.advance();
+      if (kind === 'channel') target = { channel: 'feishu', appId: 'fake', chatId: 'fake', userOpenId: 'fake' };
+      if (kind === 'revision') f.state.goalView!.items[0]!.revision--;
+      if (kind === 'draft') f.state.goalView!.items[0]!.draftHash = 'fake';
+      const before = f.goals.get(goal.id);
+      await f.execute('暂停那个学习计划', { goalAction: 'pause', selector: { keywords: ['学习计划'] } }, true, target).catch(() => {});
+      assert.deepEqual(f.goals.get(goal.id), before);
+    } finally { f.close(); }
+  });
+});
 function fixture() {
   const store = new SqliteStore(':memory:'); let now = new Date(start);
   const tasks = new TaskService(store, 'Asia/Shanghai', () => now);

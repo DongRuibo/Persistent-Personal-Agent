@@ -51,7 +51,7 @@ export interface DialogueReferences {
   goalView?: GoalDisplay;
   webView?: WebView;
 }
-interface Frame { request: ExecutionRequest; references: DialogueReferences; plan?: Promise<WriteOperation | string>; used: boolean; webUsed?: boolean; answer?: string }
+interface Frame { request: ExecutionRequest; references: DialogueReferences; plan?: Promise<WriteOperation | string>; used: boolean; webUsed?: boolean; goalUsed?: boolean; answer?: string; contextResult?: string }
 export type Interpret = (message: string, pending: { tool?: Tool | 'memory_review' | 'goal_manage'; count?: number; confirmation?: boolean; goalAction?: GoalAction }, request: ExecutionRequest) => Promise<unknown>;
 const normalize = (value: string) => value.normalize('NFKC').toLowerCase().replace(/\s+/gu, '');
 const segmenter = new Intl.Segmenter('zh', { granularity: 'word' });
@@ -110,6 +110,12 @@ function referenceFromMessage(message: string): { reference: 'choice' | 'last' |
   return undefined;
 }
 
+function deicticGoalLabel(message: string): { name: string; kind: string } | undefined {
+  // 只在独立的自然指代句中区分类别与具名；复杂修饰和混合动作仍走原有保守匹配。
+  const match = message.normalize('NFKC').trim().match(/^(?:请)?(?:暂停|先停|停一下|取消|终止|放弃|继续|查看)(?:(?:刚才|刚刚|上次)的?)?(?:那个|这个)([^，,。；;！!\s]*?)(学习计划|长期目标|长期任务|目标|计划)[。！!]?$/u);
+  return match ? { name: match[1]!, kind: match[2]! } : undefined;
+}
+
 function candidateRejection(message: string): Intent | undefined {
   const text = message.normalize('NFKC').replace(/\s+/gu, '');
   const item = '(?:第[0-9零〇一二两三四五六七八九十百]+(?:条|个|项)|[0-9零〇一二两三四五六七八九十百]+号)(?:记忆候选|候选|记忆)?';
@@ -132,7 +138,7 @@ export class OperationGuard {
     private readonly saveState: (value: DialogueReferences) => void = () => {},
     private readonly web?: { service: WebReadService; store: WebReadStore; owner: string }) {}
 
-  async withRequest<T extends { text: string }>(request: ExecutionRequest, action: () => Promise<T>, formation?: FormationService): Promise<T> {
+  async withRequest<T extends { text: string }>(request: ExecutionRequest, action: () => Promise<T>, formation?: FormationService, saveGoalResult?: (text: string) => Promise<void>): Promise<T> {
     if (request.scope !== 'chat') return action();
     if (this.web && this.state.webView) {
       // 后台Goal通知可能在Web等待确认时到达；先清理冲突视图，再建立本轮授权上下文。
@@ -143,9 +149,24 @@ export class OperationGuard {
     const frame: Frame = { request, references: structuredClone(this.state), used: false };
     return this.context.run(frame, async () => {
       try {
-        const result = await action();
+        let result: T;
+        try { result = await action(); }
+        catch (error) {
+          if (!frame.goalUsed || !frame.answer || request.signal.aborted) {
+            if (frame.goalUsed && !request.signal.aborted) await saveGoalResult?.('本轮Goal工具执行失败，不能凭模型解释推断成功、未保存或已取消；请重新查看宿主当前状态，不自动重试。');
+            throw error;
+          }
+          // 控制收据已经落盘时，模型收尾失败不能把成功操作说成失败，更不能重做操作。
+          request.observer.event('goal_model_finalization_failed', String(error));
+          result = { text: frame.answer } as T;
+        }
         // 主模型可能只口头答应拒绝；仅对当前原话中的有界拒绝补执行，仍走原显示/序号/版本校验。
         if (!frame.plan && !frame.webUsed && formation?.options.enabled && frame.references.candidateReview && candidateRejection(request.prompt)) await this.reviewCandidates(formation);
+        if (frame.goalUsed && frame.answer) {
+          request.signal.throwIfAborted();
+          // 不把后台成果或动态Memory复制到交互Session；只追加宿主控制状态收据。
+          await saveGoalResult?.(frame.contextResult ?? '本轮宿主要求澄清，未提交新的Goal控制；请重新查看当前状态。');
+        }
         return frame.answer ? { ...result, text: frame.answer } : result;
       } finally {
         if (!frame.plan && (this.state.choices || this.state.confirmation || this.state.candidateReview)) { delete this.state.choices; delete this.state.confirmation; delete this.state.candidateReview; this.saveState(this.state); }
@@ -221,7 +242,7 @@ export class OperationGuard {
   async manageGoals(goals: GoalService, signal?: AbortSignal): Promise<unknown> {
     const frame = this.frame();
     if (frame.used || frame.plan) throw new Error('本轮操作已经消费，不能同时控制Goal和Task/Memory');
-    frame.used = true; frame.plan = Promise.resolve('goal_manage');
+    frame.used = true; frame.goalUsed = true; frame.plan = Promise.resolve('goal_manage');
     if (signal) frame.request = { ...frame.request, signal: AbortSignal.any([frame.request.signal, signal]) };
     const request = frame.request;
     request.observer.event('goal_review');
@@ -234,7 +255,9 @@ export class OperationGuard {
         expires: this.tasks.now().getTime() + ttl, displayRunId: request.source.reference, action, details: records.length === 1 };
       delete this.state.choices; delete this.state.confirmation; delete this.state.candidateReview;
       this.saveState(this.state); frame.answer = prefix + text;
-      return { status: 'displayed', count: records.length };
+      frame.contextResult = prefix + (records.length ? records.map(goal => `目标：${goal.objective}；状态：${goal.status}；版本：${goal.revision}；计划：v${goal.planRevision}；控制请求：${goal.controlRequested ?? '无'}；待批准：${!!goal.pendingAction}`).join('\n') : '本轮筛选交集为空，不代表数据库没有Goal；未提交控制。');
+      return { status: 'displayed', count: records.length, result: frame.contextResult,
+        goals: records.map(goal => ({ id: goal.id, status: goal.status, revision: goal.revision, planRevision: goal.planRevision, controlRequested: goal.controlRequested })) };
     };
     if (priorReceipt) return show([priorReceipt], undefined, '此请求已有控制收据，以下为当前状态：\n');
     const display = frame.references.goalView;
@@ -272,13 +295,14 @@ export class OperationGuard {
       frame.answer = '指代存在歧义，请明确一个目标或重新查看并选择编号；本轮未操作。'; return { status: 'clarification' };
     }
     // “那个计划”只指向宿主刚完整展示的唯一Goal；不能仅凭模型last标签选择数据库记录。
-    const demonstrative = reference === undefined && /(?:那个|这个)(?:学习计划|长期目标|长期任务|目标|计划)/u.test(activeText);
+    const label = deicticGoalLabel(activeText);
+    const demonstrative = !!label || reference === undefined && /(?:那个|这个)(?:学习计划|长期目标|长期任务|目标|计划)/u.test(activeText);
     if (demonstrative) {
       if (!display?.details || display.items.length !== 1) {
         frame.answer = '没有唯一的完整目标视图，请先查看并明确选择目标；本轮未操作。'; return { status: 'clarification' };
       }
       goals.validateDisplay(display);
-      reference = { reference: 'last' };
+      if (!reference) reference = { reference: 'last' };
     }
     if (reference === 'ambiguous' || selector.reference && selector.reference !== reference?.reference
       || reference?.reference === 'choice' && (selector.reference !== 'choice' || selector.position !== reference.position)
@@ -294,7 +318,13 @@ export class OperationGuard {
       const item = selector.reference === 'choice' ? display.items[(selector.position ?? 0) - 1] : display.items.length === 1 ? display.items[0] : undefined;
       records = records.filter(goal => goal.id === item?.id);
     }
-    records = records.filter(goal => selector.keywords.every(term => matches(goal.objective, term)));
+    records = records.filter(goal => (!label?.name || normalize(goal.objective).includes(normalize(label.name)))
+      && selector.keywords.every(term => {
+        // 只有绑定到有效唯一视图后，才允许把确切类别后缀视为泛称；其余关键词全部保留。
+        if (label && term === label.kind) return true;
+        if (label?.name && term === label.name + label.kind) return matches(goal.objective, label.name);
+        return matches(goal.objective, term);
+      }));
     if (selector.reference === 'latest') records = records.slice(0, 1);
     if (!query && !selector.reference && !hasFilters && !shortConfirm) {
       if (display?.items.length === 1) { goals.validateDisplay(display); records = records.filter(goal => goal.id === display.items[0]!.id); }
