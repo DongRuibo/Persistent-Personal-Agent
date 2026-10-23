@@ -1,0 +1,177 @@
+{
+  "baseCommit": "79c83d0479dcf6a2dec364d7d66abb145d8164e1",
+  "mainUnchanged": "5285975a3354f778012999526ed587b7e1b5c573",
+  "branch": "feature/goal-web-snapshots",
+  "scope": "acceptance-only durable Web hard cap and focused A-D recovery audit",
+  "evidenceRoot": "E:/AgentWork/validation/personal-agent-goal-web-final-20261023",
+  "node": "24.19.0",
+  "sdk": "@earendil-works/pi-coding-agent@1.3.0",
+  "limits": {
+    "modelRequests": 32,
+    "microCny": 6000000,
+    "modelBodyBytes": 65536,
+    "outputTokens": 4096,
+    "webReservations": 1,
+    "resourceId": "pi-skills-v1",
+    "url": "https://raw.githubusercontent.com/earendil-works/pi/v1.3.0/packages/coding-agent/docs/skills.md",
+    "ledgerVersion": 2,
+    "oldLedgerResume": "reject",
+    "failuresRefunded": false
+  },
+  "red": {
+    "tests": 1,
+    "passed": 0,
+    "failed": 1,
+    "mockDns": 2,
+    "mockWebGets": 2,
+    "modelHttp": 4,
+    "webRowsSucceeded": 2,
+    "assertion": "same acceptance root must not send second GET",
+    "log": "goal-web-final-review-red.txt",
+    "logSha256": "5fc3c9e58c99a21cf1ae64c52e5658226afaae5e21578366cd8068ec373945e4",
+    "source": "goal-web-final-review-red.test.txt"
+  },
+  "green": {
+    "mockDns": 1,
+    "mockWebGets": 1,
+    "modelHttp": 4,
+    "webSucceeded": 1,
+    "webDeniedFailed": 1,
+    "webReservations": 1,
+    "budgetTestsPassed": 12,
+    "focusedTestsPassed": 34,
+    "newTotalTests": 14
+  },
+  "windows": {
+    "tests": 441,
+    "passed": 438,
+    "failed": 0,
+    "skipped": 3,
+    "gates": [
+      {
+        "gate": "typecheck",
+        "exit": 0,
+        "seconds": 3.18,
+        "log": "E:\\AgentWork\\validation\\personal-agent-goal-web-final-20261023\\windows-typecheck.log"
+      },
+      {
+        "gate": "build",
+        "exit": 0,
+        "seconds": 1.6,
+        "log": "E:\\AgentWork\\validation\\personal-agent-goal-web-final-20261023\\windows-build.log"
+      },
+      {
+        "gate": "test",
+        "exit": 0,
+        "seconds": 28.08,
+        "log": "E:\\AgentWork\\validation\\personal-agent-goal-web-final-20261023\\windows-test.log"
+      },
+      {
+        "gate": "eval:memory",
+        "exit": 0,
+        "seconds": 3.71,
+        "log": "E:\\AgentWork\\validation\\personal-agent-goal-web-final-20261023\\windows-eval-memory.log"
+      },
+      {
+        "gate": "eval:formation",
+        "exit": 0,
+        "seconds": 10.14,
+        "log": "E:\\AgentWork\\validation\\personal-agent-goal-web-final-20261023\\windows-eval-formation.log"
+      }
+    ]
+  },
+  "linux": {
+    "tests": 441,
+    "passed": 441,
+    "failed": 0,
+    "skipped": 0,
+    "network": "none",
+    "hostMounts": 0,
+    "cpu": 2,
+    "memoryGiB": 3,
+    "container": "personal-agent-goal-web-final-20261023",
+    "stopped": true,
+    "gates": [
+      {
+        "gate": "typecheck",
+        "exit": 0,
+        "signal": null,
+        "seconds": 4.914
+      },
+      {
+        "gate": "build",
+        "exit": 0,
+        "signal": null,
+        "seconds": 2.134
+      },
+      {
+        "gate": "test",
+        "exit": 0,
+        "signal": null,
+        "seconds": 228.392
+      },
+      {
+        "gate": "eval:memory",
+        "exit": 0,
+        "signal": null,
+        "seconds": 3.57
+      },
+      {
+        "gate": "eval:formation",
+        "exit": 0,
+        "seconds": 16.517,
+        "log": "linux-eval-formation-final.log",
+        "priorExit": 1,
+        "priorLog": "linux-eval-formation.log",
+        "reason": "EEXIST output protection; new output path, unchanged source and fixtures"
+      }
+    ]
+  },
+  "sourceFiles": 145,
+  "projectFiles": 141,
+  "sdkFiles": 4,
+  "sourceManifestSha256": "d6c9be6eb2df19311203227cd01c6032d3edc06e82fe5f7da73bbe08cbc930df",
+  "sourceHashesMatched": true,
+  "receiptPersistenceFault": {
+    "sameRunCreatesNewControl": false,
+    "goals": 1,
+    "originalAuthorizationExecuted": 1,
+    "repeatedExecutions": 0
+  },
+  "invalidSnapshot": {
+    "cases": [
+      "missing",
+      "corrupt",
+      "version"
+    ],
+    "validSkillSupplied": true,
+    "claimMustThrowWebError": true,
+    "grantConsumed": false,
+    "grantReservedCny": 0,
+    "newExecutions": 0,
+    "newModelCalls": 0,
+    "newGets": 0,
+    "checkpointUnchanged": true
+  },
+  "preservedFailures": [
+    "red-web-budget.log",
+    "green-initial.log: unordered SQLite rows and synchronous abort mock",
+    "windows-initial/linux-initial: before Web-specific claim assertion tightening",
+    "linux-final/linux-eval-formation.log: EEXIST output protection, exit 1; fresh output path succeeds"
+  ],
+  "originalWorkspaceFiles": 8,
+  "originalWorkspaceHashesUnchanged": true,
+  "oldAcceptanceReportsUnchanged": true,
+  "actualPaidModelRequests": 0,
+  "actualAcceptanceWebsiteGets": 0,
+  "actualFeishuOperations": 0,
+  "formalConfigOrDataOperations": 0,
+  "engineeringMergeReady": true,
+  "mergedMain": false,
+  "remaining": [
+    "Unified live Console acceptance requires fresh authorization and current verified rates",
+    "V3.0.1 real natural pause and receipt interpretation failures remain open",
+    "Old v1 ledger/stale lock/pending writes require manual reconciliation; no reset/refund/retry",
+    "Windows ACL/native macOS and long-running live behavior remain unverified"
+  ]
+}

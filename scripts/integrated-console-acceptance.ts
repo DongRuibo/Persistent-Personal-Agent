@@ -5,15 +5,22 @@ import { fileURLToPath } from 'node:url';
 import { readConfig, redactor } from '../src/config.js';
 import { approveSkill } from '../src/skills-admin.js';
 import { SkillService } from '../src/skill-service.js';
+import { WebReadService } from '../src/web-read-service.js';
+import type { WebResolver, WebTransport } from '../src/web-read-service.js';
+import { defaultWebResources } from '../src/web-read-types.js';
 import { recordAcceptanceResponse } from './feishu-formation-acceptance.js';
 
 export const integratedLimits = { requests: 32, microCny: 6000000, bodyBytes: 65536, outputTokens: 4096 } as const;
+export const integratedWebLimit = { reservations: 1, resourceId: 'pi-skills-v1',
+  url: 'https://raw.githubusercontent.com/earendil-works/pi/v1.3.0/packages/coding-agent/docs/skills.md' } as const;
 export interface AcceptanceProfile {
   endpoint: string; model: string; inputRate: number; outputRate: number; checkedAt: string;
   planHash: string; entryHash: string; codeHash: string;
 }
 interface Attempt { at: string; bytes: number; output: number; reservedMicroCny: number; status?: number }
-interface Ledger { version: 1; scope: 's0-s1b-v301-console-v1'; identity: string; limits: typeof integratedLimits; profile: AcceptanceProfile; attempts: Attempt[] }
+interface WebAttempt { at: string; resourceId: string; url: string; catalogHash: string }
+interface Ledger { version: 2; scope: 's0-s1b-v301-console-v2'; identity: string; limits: typeof integratedLimits; profile: AcceptanceProfile; attempts: Attempt[];
+  webLimit: typeof integratedWebLimit; webAttempts: WebAttempt[] }
 const digest = (value: string | Buffer) => createHash('sha256').update(value).digest('hex');
 const capacity = (bytes: number, output: number) => Number.isSafeInteger(bytes) && bytes > 0 && bytes <= integratedLimits.bodyBytes
   && Number.isSafeInteger(output) && output > 0 && output <= integratedLimits.outputTokens;
@@ -24,8 +31,11 @@ const freshPrice = (profile: AcceptanceProfile) => Number.isFinite(Date.parse(pr
 export class IntegratedAcceptanceBudget {
   constructor(readonly ledger: Ledger) {
     const p = ledger.profile;
-    if (ledger.version !== 1 || ledger.scope !== 's0-s1b-v301-console-v1' || !/^[a-f0-9]{64}$/u.test(ledger.identity)
+    if (ledger.version !== 2 || ledger.scope !== 's0-s1b-v301-console-v2' || !/^[a-f0-9]{64}$/u.test(ledger.identity)
       || JSON.stringify(ledger.limits) !== JSON.stringify(integratedLimits) || !p || !p.endpoint || !p.model
+      || JSON.stringify(ledger.webLimit) !== JSON.stringify(integratedWebLimit) || !Array.isArray(ledger.webAttempts)
+      || ledger.webAttempts.length > integratedWebLimit.reservations || ledger.webAttempts.some(a => !Number.isFinite(Date.parse(a.at))
+        || a.resourceId !== integratedWebLimit.resourceId || a.url !== integratedWebLimit.url || !/^[a-f0-9]{64}$/u.test(a.catalogHash))
       || ![p.inputRate, p.outputRate].every(n => Number.isFinite(n) && n > 0 && n <= 10000)
       || !Number.isFinite(Date.parse(p.checkedAt)) || [p.planHash, p.entryHash, p.codeHash].some(h => !/^[a-f0-9]{64}$/u.test(h))
       || !Array.isArray(ledger.attempts) || ledger.attempts.length > integratedLimits.requests
@@ -34,6 +44,11 @@ export class IntegratedAcceptanceBudget {
       || this.reserved > integratedLimits.microCny) throw new Error('统一验收账本损坏、费率未知或限额变化，拒绝联网');
   }
   get reserved(): number { return this.ledger.attempts.reduce((sum, item) => sum + item.reservedMicroCny, 0); }
+  reserveWeb(resourceId: string, url: string, catalogHash: string): void {
+    if (resourceId !== integratedWebLimit.resourceId || url !== integratedWebLimit.url || !/^[a-f0-9]{64}$/u.test(catalogHash)) throw new Error('统一验收仅允许固定Pi Skills资源及HTTPS地址');
+    if (this.ledger.webAttempts.length >= integratedWebLimit.reservations) throw new Error('统一验收整轮最多一次Web GET预留，失败、中断或重启不退额');
+    this.ledger.webAttempts.push({ at: new Date().toISOString(), resourceId, url, catalogHash });
+  }
   reserve(bytes: number, output: number): Attempt {
     if (!freshPrice(this.ledger.profile)) throw new Error('统一验收费率核实已过期，拒绝继续联网');
     if (!capacity(bytes, output)) throw new Error('统一验收请求超过65536字节或4096输出Token');
@@ -55,9 +70,10 @@ export function openIntegratedAcceptance(root: string, profile: AcceptanceProfil
   let closed = false, failed = false;
   const close = () => { if (!closed) { closed = true; fs.rmSync(lock); } };
   try {
-    const identity = digest(JSON.stringify([root, profile, integratedLimits]));
+    const identity = digest(JSON.stringify([root, profile, integratedLimits, integratedWebLimit]));
     const ledger: Ledger = resume ? JSON.parse(fs.readFileSync(file, 'utf8')) : {
-      version: 1, scope: 's0-s1b-v301-console-v1', identity, limits: { ...integratedLimits }, profile: structuredClone(profile), attempts: [],
+      version: 2, scope: 's0-s1b-v301-console-v2', identity, limits: { ...integratedLimits }, profile: structuredClone(profile), attempts: [],
+      webLimit: { ...integratedWebLimit }, webAttempts: [],
     };
     const budget = new IntegratedAcceptanceBudget(ledger);
     if (ledger.identity !== identity || JSON.stringify(profile) !== JSON.stringify(ledger.profile)) throw new Error('根目录、端点、模型、费率、方案或源码已改变，拒绝续测');
@@ -71,6 +87,21 @@ export function openIntegratedAcceptance(root: string, profile: AcceptanceProfil
     };
     persist(); return { root, budget, persist, close };
   } catch (error) { close(); throw error; }
+}
+
+// 验收专用子类仅在DNS之前加整轮预留；产品服务的许可、SQLite及HTTPS校验原样复用。
+export function integratedAcceptanceWeb(session: ReturnType<typeof openIntegratedAcceptance>, resolver?: WebResolver, transport?: WebTransport): WebReadService {
+  const resource = defaultWebResources.find(item => item.id === integratedWebLimit.resourceId);
+  if (!resource || resource.url !== integratedWebLimit.url) throw new Error('统一验收固定Web目录已改变，需要重新审查方案');
+  return new class extends WebReadService {
+    override async fetch(id: string, hash: string, signal: AbortSignal) {
+      signal.throwIfAborted();
+      const approved = this.current(id, hash);
+      session.budget.reserveWeb(approved.id, approved.url, approved.hash);
+      session.persist(); // 同步落盘完成前不得调用父类；失败、取消和未知结果不释放预留。
+      return super.fetch(id, hash, signal);
+    }
+  }([resource], resolver, transport);
 }
 
 export function integratedAcceptanceFetch(session: ReturnType<typeof openIntegratedAcceptance>, apiKey: string, transport: typeof fetch = globalThis.fetch): typeof fetch {
@@ -111,7 +142,7 @@ async function start() {
     fs.copyFileSync(planFile, join(session.root, 'frozen-plan.md'), fs.constants.COPYFILE_EXCL);
     for (const id of ['agent-notes', 'interview-practice']) { fs.cpSync(join('skills', id), join(managed, id), { recursive: true }); approveSkill(managed, id, true); }
     fs.writeFileSync(join(session.root, 'authorization.json'), JSON.stringify({ scope: session.budget.ledger.scope, profile, limits: integratedLimits,
-      skills: new SkillService(managed).list().map(({ id, hash }) => ({ id, hash })), consoleOnly: true, realWebGetsExpected: 1 }, null, 2), { flag: 'wx', mode: 0o600 });
+      skills: new SkillService(managed).list().map(({ id, hash }) => ({ id, hash })), consoleOnly: true, webLimit: integratedWebLimit }, null, 2), { flag: 'wx', mode: 0o600 });
   } else {
     const frozen = JSON.parse(fs.readFileSync(join(session.root, 'authorization.json'), 'utf8'));
     if (digest(fs.readFileSync(join(session.root, 'frozen-plan.md'))) !== profile.planHash
@@ -126,8 +157,9 @@ async function start() {
     try { return await guarded(input, init); }
     catch (error) { process.exitCode = 1; setImmediate(() => process.emit('SIGTERM')); throw error; }
   };
-  console.log('统一隔离Console验收；32请求/6元/65536字节；不重试、不扩额。/quit停止；所有原始文件只留新目录。');
-  process.argv = [process.argv[0]!, resolve('src/main.ts')]; await import('../src/main.js');
+  console.log('统一隔离Console验收；32模型请求/6元/65536字节及整轮一次固定Web GET预留；不重试、不扩额。/quit停止；所有原始文件只留新目录。');
+  const { main } = await import('../src/main.js');
+  process.argv = [process.argv[0]!, resolve('src/main.ts')]; await main(integratedAcceptanceWeb(session));
 }
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) void start().catch(error => {
   console.error(redactor(process.env.LLM_API_KEY ?? '')(error)); process.exitCode = 1;

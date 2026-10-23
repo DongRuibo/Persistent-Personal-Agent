@@ -1,0 +1,26 @@
+import assert from 'node:assert/strict';
+import { test } from 'node:test';
+import { join } from 'node:path';
+import { integratedAcceptanceFetch, openIntegratedAcceptance } from '../scripts/integrated-console-acceptance.js';
+import { webFixture } from './helpers/web-fixture.js';
+import { reply, toolCall } from './helpers/skills-fixture.js';
+
+test('统一验收根目录跨Run和重启最多一次固定Web GET，模型额度不能替代Web限额', async () => {
+  const nativeFetch = globalThis.fetch;
+  const f = await webFixture((_payload, count) => count % 2 ? toolCall('web_get', { resourceId: 'pi-skills-v1' }) : reply('模型收尾'));
+  const root = join(f.root, 'acceptance'), profile = { endpoint: f.config.baseUrl + '/chat/completions', model: 'local-stub',
+    inputRate: 2, outputRate: 8, checkedAt: new Date().toISOString(), planHash: '1'.repeat(64), entryHash: '2'.repeat(64), codeHash: '3'.repeat(64) };
+  let session = openIntegratedAcceptance(root, profile);
+  try {
+    globalThis.fetch = integratedAcceptanceFetch(session, f.config.apiKey!, nativeFetch);
+    await f.chat(); assert.equal(f.requests, 1); assert.equal(f.dns, 1);
+    session.close(); session = openIntegratedAcceptance(root, profile, true);
+    globalThis.fetch = integratedAcceptanceFetch(session, f.config.apiKey!, nativeFetch);
+    await f.restart(); await f.chat();
+    console.log(JSON.stringify({ mockWebGets: f.requests, mockDns: f.dns, modelHttp: session.budget.ledger.attempts.length,
+      webRows: f.store.web.calls().map(row => ({ runId: row.runId, status: row.status })) }));
+    assert.equal(f.requests, 1, '同一验收根目录的新Run不得发出第二次GET');
+    assert.equal(f.dns, 1, '第二次读取必须在DNS之前拒绝');
+    assert.equal(session.budget.ledger.attempts.length, 4);
+  } finally { globalThis.fetch = nativeFetch; session.close(); await f.close(); }
+});

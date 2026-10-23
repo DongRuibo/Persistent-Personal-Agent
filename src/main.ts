@@ -1,6 +1,7 @@
 import { mkdir } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
-import { dirname } from 'node:path';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { once } from 'node:events';
 import lockfile from 'proper-lockfile';
 import { readConfig, readFeishuConfig, redactor } from './config.js';
@@ -20,7 +21,7 @@ import { GoalRunner } from './goal-runner.js';
 import { GoalService } from './goal-service.js';
 import { GitHubObserver } from './github-observer.js';
 
-async function main(): Promise<void> {
+export async function main(webService?: WebReadService): Promise<void> {
   const args = process.argv.slice(2);
   if (args.includes('--help')) { console.log(consoleHelp); return; }
   if (args.some((arg) => !['--daemon', '--feishu'].includes(arg)) || (args.includes('--daemon') && args.includes('--feishu'))) {
@@ -72,7 +73,7 @@ async function main(): Promise<void> {
     if (config.formation?.enabled) formation = new FormationService({ ...config.formation, owner: createHash('sha256').update(chatKey).digest('hex') }, store, { listForHost: () => memory!.listForHost() }, [config.apiKey, process.env.FEISHU_APP_SECRET ?? '']);
     const goals = config.goalEnabled ? new GoalService(store, tasks, id => goalRunner?.interrupt(id)) : undefined;
     executor = await createPiExecutor(config, tasks, chatKey, memory, formation, lane, goals,
-      config.webReadEnabled ? { service: new WebReadService(), store: store.web } : undefined);
+      config.webReadEnabled ? { service: webService ?? new WebReadService(), store: store.web } : undefined);
     if (shutdown.signal.aborted) return;
     const recovered = store.recoverInterrupted(new Date().toISOString());
     const otherGoals = config.goalEnabled ? store.goals.readyForHost().filter(goal => goal.ownerId !== 'local-user' || (feishuConfig
@@ -119,7 +120,7 @@ async function main(): Promise<void> {
   }
 }
 
-main().catch((error: unknown) => {
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) void main().catch((error: unknown) => {
   console.error(redactor(process.env.LLM_API_KEY || '', process.env.FEISHU_APP_SECRET)(error));
   process.exitCode = 1;
 });

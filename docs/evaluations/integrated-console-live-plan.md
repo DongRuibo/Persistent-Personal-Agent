@@ -8,6 +8,8 @@
 
 统一入口为 `scripts/integrated-console-acceptance.ts`。同一个新隔离根目录、一份integrated-budget.json贯穿所有阶段和正常重启；baseline与集成阶段只隔离Session子目录，不拆预算。原子预留/文件fsync后才发送，失败不退额，进程互斥锁，续测核对根目录、模型、端点、费率、冻结方案/入口/源码/包Hash；旧账本、超限、容量不符、残留锁或未完成写入全部拒绝。
 
+Web硬限制也在这份账本中：v2格式保存不可变webLimit与webAttempts，整轮最多一次预留，只允许`pi-skills-v1`及`https://raw.githubusercontent.com/earendil-works/pi/v1.3.0/packages/coding-agent/docs/skills.md`。验收专用Web服务在调用产品DNS/HTTPS实现之前同步预留、fsync落盘；新Run、切换Session及跨进程重启不能重置。首次DNS/请求失败、中断或结果不确定均不退额，第二次及其他资源在DNS前拒绝。它与32模型请求/6元限制同时生效，互不替代，不改变普通产品的Web配额。旧v1账本没有可核对的Web消费记录，拒绝续测，不自动升级为零消费；异常退出残留锁仍需人工核对，不自动清锁。
+
 模型请求体最多65536字节，输出最多4096 Token；Goal仍有更严格的32768字节上限，Chat Skills/Web共用每轮8次额度。每次预留公式（费率单位元/百万Token）：`ceil((实际JSON字节+512)*输入费率 + max_output_tokens*输出费率)` 微元；按字节保守估算输入，不依赖缓存折扣或模型usage退额，不承诺供应商账单严格等于预留。
 
 费率**本轮未联网核实**，不得把历史2/8元当作当前报价。执行前由操作者从供应商官方定价确认模型、输入/缓存最高价、输出价及附加费用，并在24小时内注入ACCEPTANCE_PRICE_CHECKED_AT；未知费率或未知额外计费则不执行。仅以输入2/输出8演算：单请求最大预留0.164864元，32请求总上界5.275648元，因此建议6元；若实际费率更高，6元可能提前阻止后续步骤，不追加预算。
@@ -22,7 +24,7 @@ node --import tsx scripts/integrated-console-acceptance.ts --authorized --rates-
 node --import tsx scripts/integrated-console-acceptance.ts --authorized --rates-confirmed --web-authorized --resume --root=<同一隔离目录>
 ```
 
-入口只复制/批准仓库中的agent-notes和interview-practice到新受管目录。Goal/Skills/Web仅在该隔离集成进程开启；Proactive、Formation、Memory改写始终关闭，未接飞书、Observer、手机或正式账号。正式.env、Task/Session/Memory、历史验收数据库不读不写。一次GET仍经S1-A的DNS/IP/TLS/代理/类型/大小/总超时检查，不为真实站点放宽边界。冻结话术中只有W1授予读取权限，不能重发W1或以恢复为由重新获取；web_read_calls原始行数核对为1。若模型漏调工具或站点不合格，记录失败并停止依赖步骤。
+入口只复制/批准仓库中的agent-notes和interview-practice到新受管目录。Goal/Skills/Web仅在该隔离集成进程开启；Proactive、Formation、Memory改写始终关闭，未接飞书、Observer、手机或正式账号。正式.env、Task/Session/Memory、历史验收数据库不读不写。一次GET仍经S1-A的DNS/IP/TLS/代理/类型/大小/总超时检查，不为真实站点放宽边界。冻结话术中只有W1授予读取权限，不能重发W1或以恢复为由重新获取；正常冻结路径web_read_calls应仅一行，额外拒绝尝试可能留下failed行，不能把表行数当作实际GET数。联合核对webAttempts最多一项、来源/状态/快照及DNS/传输证据。若模型漏调工具或站点不合格，记录失败并停止依赖步骤。
 
 ## 冻结话术与门槛
 

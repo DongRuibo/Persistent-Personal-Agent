@@ -107,6 +107,33 @@ test('Skill版本变化阻止Web绑定Goal降级执行', async () => {
   } finally { await f.close(); }
 });
 
+test('主动快照缺失/损坏/错版本在预检及领取事务内拒绝，不消费Grant或增加Execution', async t => {
+  for (const kind of ['missing', 'corrupt', 'version'] as const) await t.test(kind, async () => {
+    const f = await prepare(); let db: DatabaseSync | undefined;
+    try {
+      const p = policy(f), actor = f.web.goals.actor(), now = f.web.tasks.now().toISOString();
+      const checkpoint = f.goal.checkpointRunId, executions = f.view.executions.length, calls = f.calls, plan = f.view.plan;
+      f.web.store.policies.scan(now, goal => goal.ownerId === actor.ownerId && goal.target.channel === 'console');
+      assert.equal(f.goal.readyInput?.kind, 'policy'); f.web.store.goals.validateWeb(actor, f.goal.id);
+      const binding = f.view.plan.spec.skillBindings!.find(binding => binding.stepId === f.goal.currentStepId)!;
+      const skill = f.web.executor.skills!.snapshot(binding.skillId, binding.packageHash);
+      db = new DatabaseSync(f.web.config.databasePath);
+      if (kind === 'missing') db.exec('DELETE FROM web_read_calls');
+      else db.exec(`UPDATE web_read_calls SET snapshotJson=json_set(snapshotJson,'$.${kind === 'corrupt' ? 'text' : 'version'}','tampered')`);
+      // 模拟预检成功后、领取之前的来源变化，事务必须在consume前再次冻结核对。
+      assert.throws(() => f.web.store.goals.claim(actor, f.goal.id, f.goal.revision, now, skill), /Web/u);
+      let grants = f.web.store.policies.audit(actor, p.id).grants as { consumedAt: string | null; reserveCny: number }[];
+      assert.equal(grants.length, 1); assert.equal(grants[0]!.consumedAt, null); assert.equal(grants[0]!.reserveCny, 0);
+      await f.runner.tick(); await f.runner.tick(); await f.restart(); await f.runner.tick();
+      assert.equal(f.goal.status, 'blocked'); assert.equal(f.goal.blockedReason, 'web_snapshot_unavailable');
+      assert.equal(f.goal.checkpointRunId, checkpoint); assert.deepEqual(f.view.plan, plan); assert.equal(f.view.executions.length, executions);
+      grants = f.web.store.policies.audit(actor, p.id).grants as typeof grants;
+      assert.ok(grants.every(grant => grant.consumedAt === null && grant.reserveCny === 0));
+      assert.equal(f.calls, calls); assert.equal(f.web.requests, 1);
+    } finally { db?.close(); await f.close(); }
+  });
+});
+
 test('Web失败不能绑定不存在的资料；绑定草稿变化使旧审批视图失效，不跨模块借确认', async () => {
   const f = await goalWebFixture();
   try {

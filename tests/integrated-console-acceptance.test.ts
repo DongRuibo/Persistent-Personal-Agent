@@ -2,16 +2,17 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { mkdtempSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
-import { integratedLimits, IntegratedAcceptanceBudget, integratedAcceptanceFetch, openIntegratedAcceptance } from '../scripts/integrated-console-acceptance.js';
+import { integratedLimits, integratedWebLimit, IntegratedAcceptanceBudget, integratedAcceptanceFetch, openIntegratedAcceptance } from '../scripts/integrated-console-acceptance.js';
 import type { AcceptanceProfile } from '../scripts/integrated-console-acceptance.js';
 import { webFixture } from './helpers/web-fixture.js';
 import { content, reply, toolCall } from './helpers/skills-fixture.js';
 
 const profile = (extra: Partial<AcceptanceProfile> = {}): AcceptanceProfile => ({ endpoint: 'https://model.invalid/v1/chat/completions', model: 'local-stub',
   inputRate: 2, outputRate: 8, checkedAt: new Date().toISOString(), planHash: '1'.repeat(64), entryHash: '2'.repeat(64), codeHash: '3'.repeat(64), ...extra });
-const ledger = (p = profile()) => ({ version: 1 as const, scope: 's0-s1b-v301-console-v1' as const, identity: 'a'.repeat(64), limits: { ...integratedLimits }, profile: p, attempts: [] });
+const ledger = (p = profile()) => ({ version: 2 as const, scope: 's0-s1b-v301-console-v2' as const, identity: 'a'.repeat(64), limits: { ...integratedLimits }, profile: p, attempts: [],
+  webLimit: { ...integratedWebLimit }, webAttempts: [] });
 const directory = () => join(mkdtempSync(join(tmpdir(), 'integrated-budget-')), 'new-root');
 
 test('统一入口默认拒绝联网，32/6/64KiB/4096与未知费率闸全部离线验证', () => {
@@ -27,6 +28,17 @@ test('统一入口默认拒绝联网，32/6/64KiB/4096与未知费率闸全部�
   assert.throws(() => openIntegratedAcceptance(directory(), profile({ checkedAt: '2000-01-01T00:00:00.000Z' })), /费率/);
   const expired = new IntegratedAcceptanceBudget(ledger()); expired.ledger.profile.checkedAt = '2000-01-01T00:00:00.000Z';
   assert.throws(() => expired.reserve(1, 1), /费率/); assert.equal(expired.ledger.attempts.length, 0);
+});
+
+test('主入口显式注入不触发双启动；直接启动及旧验收import启动方式仍可使用', () => {
+  for (const args of [['--import', 'tsx', 'src/main.ts', '--help'], ['--import', 'tsx', '--input-type=module', '-e',
+    `process.argv=[process.execPath,${JSON.stringify(resolve('src/main.ts'))},'--help']; await import('./src/main.ts');`]]) {
+    const child = spawnSync(process.execPath, args, { encoding: 'utf8', env: { PATH: process.env.PATH, SystemRoot: process.env.SystemRoot }, windowsHide: true });
+    assert.equal(child.status, 0, child.stderr); assert.match(child.stdout, /help|帮助|quit/u);
+  }
+  const child = spawnSync(process.execPath, ['--import', 'tsx', '--input-type=module', '-e',
+    "const {main}=await import('./src/main.ts'); if(typeof main!=='function') process.exitCode=1;"], { encoding: 'utf8', env: { PATH: process.env.PATH }, windowsHide: true });
+  assert.equal(child.status, 0, child.stderr); assert.equal(child.stdout, '');
 });
 
 test('独占锁、原子预留、重启累计、篡改限额/金额/模型/源码和历史账本均保守拒绝', () => {
