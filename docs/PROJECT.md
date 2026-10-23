@@ -194,6 +194,8 @@ Goal侧Outbox/Observer及提交后通知不跨网络占用后台门；网络前�
 
 Chat附加同名覆盖内置实现的受限原生read，操作只映射批准包；原有Task/Memory工具依旧经过当前原话Guard。每轮read2次，正文累计8KiB跨原生Session重启保留，重复正文照样计额；用尽只拒绝Skill读取，正常聊天可继续。开启Skills时主Loop和辅助解析/改写共享每轮8次HTTP上限，65536字节payload，无重试，不宣称账单硬限制。两份自有包为agent-notes与interview-practice。
 
+特殊字段disable-model-invocation只接受当前原话中完整独立的明确调用句，不以包含ID、引用、否定、假设或历史会话推断权限。它不改变普通包自动选择、宿主目录批准或Goal Plan审批。限制与回归见[定点报告](evaluations/s0-invocation-fix.md)。S1只读Web仍为[设计建议](designs/s1-readonly-web-tools.md)，没有注册工具、迁移或扩大Goal/Policy能力。
+
 GoalPlanSpec新增可选skillBindings，模型仅可提议每步skillId；宿主映射ID/版本/Hash并纳入草稿和Plan Hash。成功展示后明确批准才生效，改绑/移除需新Plan；旧JSON不回填，完成Step及Checkpoint不变。原四表、Task/Run唯一约束与Policy/Grant权限/限额不变，无新增DDL。
 
 Runner在门外准备包快照，重新入门后复核Task优先、Goal/Plan/Grant版本，再随claim冻结Execution输入。原生/skill显式展开只用于该一份冻结副本，联网前校验全文与参数、零工具、一次HTTP；执行后再次核对包未禁用/变化。Skill不可用时沿用blocked语义，尚未领取Step保留pending、授权不被消费；修复后需重新批准/授权。临时Session和副本释放，不从历史恢复工具。结果仍由原Checkpoint聚合事务提交，原Outbox只重投消息，不重跑模型。产物不自动进Memory或Formation。

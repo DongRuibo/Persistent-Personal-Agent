@@ -14,6 +14,15 @@ export function inspectSkills(root: string, paths: string[]) {
   });
 }
 
+function explicitlyInvokesSkill(message: string, id: string): boolean {
+  const text = message.normalize('NFKC').trim(), name = id.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
+  // 特殊标志只接受完整、独立的调用句；不从提及、引文、条件或历史中猜授权。
+  const target = `(?:(?:skill|技能)\\s+)?${name}`;
+  return new RegExp(`^(?:(?:请(?:帮我)?|帮我|麻烦你?)\\s*)?(?:使用|调用|加载)\\s*${target}[。！!]?$`, 'iu').test(text)
+    || new RegExp(`^(?:please\\s+)?(?:use|invoke|load)\\s+${target}[.!]?$`, 'iu').test(text)
+    || text === `/skill:${id}`;
+}
+
 export function skillReadTool(service: SkillService, usage: SkillUsage, save: () => void,
   activated: (details: string) => void, currentText: () => string = () => '') {
   let reads = 0;
@@ -28,7 +37,9 @@ export function skillReadTool(service: SkillService, usage: SkillUsage, save: ()
       try {
         if (++reads > 2) throw new Error('本轮Skill最多读取2次');
         const { info, data } = service.read(input.path);
-        if (info.disableModelInvocation && !currentText().includes(info.id)) throw new Error('此Skill需要用户明确指定');
+        if (info.disableModelInvocation && !explicitlyInvokesSkill(currentText(), info.id)) {
+          throw new Error(`此Skill需要用户明确指定；请单独发送“请使用 Skill ${info.id}”或 /skill:${info.id}`);
+        }
         if (input.offset !== undefined || input.limit !== undefined) throw new Error('S0 Skill不支持分页，不能绕过累计额度');
         const token = `${info.id}:${info.hash}:${input.path}`;
         if (usage.bytes + data.length > 8192) throw new Error('本Session Skill累计8192字节已用尽；普通聊天仍可继续');

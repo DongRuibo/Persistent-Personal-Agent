@@ -1,0 +1,87 @@
+{
+  "baseCommit": "fb5201c637cea86c9e8c8733d909859d50b72c99",
+  "date": "2026-10-23",
+  "scope": "s0-disable-model-invocation-fix",
+  "evidenceRoot": "E:/AgentWork/validation/personal-agent-s0-invocation-20261023-172457",
+  "runtime": "Node 24.19.0",
+  "before": {
+    "exitCode": 1,
+    "tests": 32,
+    "passed": 7,
+    "failed": 25,
+    "note": "Two top-level regressions failed; runner includes parent and child counts and cascading counter assertions, not 25 separate bugs"
+  },
+  "afterTargeted": {
+    "exitCode": 0,
+    "tests": 53,
+    "passed": 53,
+    "failed": 0
+  },
+  "windows": {
+    "typecheck": 0,
+    "build": 0,
+    "test": 0,
+    "evalMemory": 0,
+    "evalFormation": 0,
+    "tests": 302,
+    "passed": 299,
+    "failed": 0,
+    "skipped": 3
+  },
+  "linux": "not rerun for this patch; prior S0 270/270 remains historical",
+  "paidApiRequests": 0,
+  "productionConfigOrDataModified": false,
+  "existingAcceptanceReportsModified": false,
+  "sourceFiles": [
+    {
+      "file": "src/skill-tools.ts",
+      "sha256": "7f135bba9e621b4cbfbb3a017a8e98b556ccd47d62b71e3b07ab250f147efffa"
+    },
+    {
+      "file": "tests/skills.test.ts",
+      "sha256": "288ee9ddd60d2915c338d03cbe4402970348dbeef81d20056a39313031d6d1a1"
+    }
+  ],
+  "logs": [
+    {
+      "file": "01-before.log",
+      "sha256": "cb75f6a0fbcc025b39560b31bcb84254b5b5ebbaa164dbb1c8a91693d4f15546"
+    },
+    {
+      "file": "02-skills-after.log",
+      "sha256": "f39a43b928da53d88e86b5d506bc1102b04b34a6c8ea030f37733fb69ec4e2a9"
+    },
+    {
+      "file": "windows-typecheck.log",
+      "sha256": "699652f8619ee52da14fb0d84af7969b326299e4b49f523e93030f3cde58fc08"
+    },
+    {
+      "file": "windows-build.log",
+      "sha256": "fdc16e80a5b96fbee30cf5babf5c8d35e7435b7643f31a1b1a46499536d16d92"
+    },
+    {
+      "file": "windows-test.log",
+      "sha256": "c64243cd32834a0bd97351b51a5088dbce2cb4419bfdad243f27f98bd731e8ad"
+    },
+    {
+      "file": "windows-eval-memory.log",
+      "sha256": "519f697a028bfcb0e0ae52e1ed7f4781115a95a38647af348d6e7028ded054c9"
+    },
+    {
+      "file": "windows-eval-formation.log",
+      "sha256": "88b967f15f915c7ed8b40080f30c92ed3285fb6869d8237f8777caa50f3b4eb6"
+    }
+  ],
+  "knownOpen": [
+    "Bounded standalone invocation syntax only; complex expressions denied",
+    "Read permission does not guarantee model selection or native expansion",
+    "Previous Skill body remains in persisted Session",
+    "V3.0.1 natural pause and receipt interpretation live failures",
+    "Skills live Console/Feishu acceptance and Windows ACL not performed"
+  ],
+  "legacyFormationReport": {
+    "defaultOutputRestoredToBase": true,
+    "currentOutput": "formation-offline-current.json",
+    "sha256": "ba7b236d79fd34afc284250444974a41c503321ab11646320ff3d52a4f821355"
+  }
+}

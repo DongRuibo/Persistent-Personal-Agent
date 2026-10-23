@@ -58,6 +58,8 @@ Batch 1–4 已接通 Goal/Plan/Step/Execution、独立 GoalRunner、受控自�
 
 `SKILLS_ENABLED=false`。开启后只加载专用 `SKILLS_DIR`（默认 `<DATABASE_PATH>.skills`）内 `approved.json` 明确批准、内容Hash匹配的标准包，不扫描全局Pi/Skills/Extensions/MCP。复用Pi1.3.0的发现、解析、目录、read格式化及原版Agent Loop；没有自建Skill解析器。
 
+只有声明 `disable-model-invocation:true` 的特殊包，需要当前用户独立发送明确调用句，例如 `请使用 Skill agent-notes`、`调用 agent-notes` 或 `/skill:agent-notes`，才允许本轮受限read。仅提到ID、否定、引用、假设、疑问、带其他说明的复合句及历史调用均不授权；不确定时会返回格式提示。此判断只允许读取，不保证模型选择或已展开Skill，Chat不因此开启原生命令展开；`/skill ID`仍只是宿主查看命令。两份产品包未声明此标志，保留正常自动选择。修复与边界见[报告](docs/evaluations/s0-invocation-fix.md)；[Console真实体验方案](docs/evaluations/s0-console-live-experience-plan.md)尚未执行。
+
 首批仅 [agent-notes](skills/agent-notes/SKILL.md) 与 [interview-practice](skills/interview-practice/SKILL.md)：整理已提供资料、面试练习。只消费给定文字，不自行上网或写文件/Memory。自动化演示仅用新临时目录、本机模拟模型和真实SQLite，无需Key、不读.env：
 
 ```sh

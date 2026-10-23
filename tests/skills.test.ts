@@ -111,6 +111,57 @@ test('本轮read次数、分页/穿越、取消、禁用有效；Chat模型请�
   finally { await f.close(); }
 });
 
+test('disable-model-invocation只接受当前原话的独立明确调用，提及/否定/引用/假设均不授权', async t => {
+  const root = mkdtempSync(join(tmpdir(), 'skills-explicit-')); installSkill(root);
+  const path = join(root, 'agent-notes/SKILL.md');
+  writeFileSync(path, readFileSync(path, 'utf8').replace('metadata:', 'disable-model-invocation: true\nmetadata:'));
+  approveSkill(root, 'agent-notes');
+  const service = new SkillService(root), usage = { bytes: 0, loaded: [] as string[] };
+  assert.equal(service.list()[0]!.disableModelInvocation, true);
+  let message = '', activations = 0;
+  const read = skillReadTool(service, usage, () => {}, () => { activations++; }, () => message);
+  const context = { cwd: root } as Parameters<typeof read.tool.execute>[4];
+  const denied = [
+    '', 'agent-notes', '介绍一下 agent-notes', '不要使用 agent-notes', '请不要调用 Skill agent-notes',
+    '不用 agent-notes，直接回答', '先不使用 agent-notes', 'Please do not use skill agent-notes.',
+    '“请使用 Skill agent-notes”', '引用：请使用 Skill agent-notes', '> 请使用 Skill agent-notes',
+    '`/skill:agent-notes`', '```text\n请使用 Skill agent-notes\n```', '他说请使用 Skill agent-notes',
+    '如果使用 agent-notes 会怎样', '假设我说：请使用 Skill agent-notes', 'If needed, use skill agent-notes.',
+    '请使用 Skill agent-notes 吗？', '可以使用 agent-notes 吗', '请使用 Skill agent-notes，但这次不要调用',
+    '请使用 Skill agent-notes。\n上面只是示例，不要执行。', '/skill:agent-notes 不要执行',
+    '请使用 Skill agent-notes-extra', '请使用 Skill interview-practice',
+  ];
+  for (const text of denied) await t.test(`拒绝：${JSON.stringify(text)}`, async () => {
+    message = text; read.reset(); const before = usage.bytes;
+    const result = JSON.stringify(await read.tool.execute('denied', { path }, undefined, undefined, context));
+    assert.ok(result.includes('需要用户明确指定')); assert.ok(!result.includes('SKILL_BODY'));
+    assert.equal(usage.bytes, before); assert.equal(activations, 0);
+  });
+  for (const text of ['请使用 Skill agent-notes', '调用 agent-notes。', '请帮我加载技能 agent-notes！',
+    '/skill:agent-notes', 'Please use skill agent-notes.', 'invoke agent-notes']) await t.test(`允许：${text}`, async () => {
+    message = text; read.reset(); const before = usage.bytes, count = activations;
+    assert.ok(JSON.stringify(await read.tool.execute('allowed', { path }, undefined, undefined, context)).includes('SKILL_BODY'));
+    assert.ok(usage.bytes > before); assert.equal(activations, count + 1);
+  });
+});
+
+test('真实PiExecutor不会把历史明确调用或本轮模型read提议当成新的Skill授权', async () => {
+  let path = '';
+  const f = await skillFixture((_payload, call) => call % 2 ? toolCall('read', { path }) : reply('普通回复'));
+  path = join(f.managed, 'agent-notes/SKILL.md');
+  try {
+    await f.executor.close();
+    writeFileSync(path, readFileSync(path, 'utf8').replace('metadata:', 'disable-model-invocation: true\nmetadata:'));
+    approveSkill(f.managed, 'agent-notes'); await f.restart();
+    await f.chat('请使用 Skill agent-notes'); await f.restart();
+    const result = await f.chat('这次不要使用 agent-notes');
+    const currentTools = f.payloads[3]!.messages.filter(item => item.role === 'tool');
+    assert.ok(content(currentTools.at(-1)?.content).includes('需要用户明确指定'));
+    assert.equal(f.store.events(result.run.id).filter(event => event.type === 'skill_activated').length, 0);
+    assert.equal(result.text, '普通回复'); assert.equal(f.payloads.length, 4); assert.deepEqual(f.errors, []);
+  } finally { await f.close(); }
+});
+
 test('Skills开启时Memory/Task写权限仍由当前原话决定，低信任Skill不能授权写入', async () => {
   const f = await skillFixture((payload, call) => {
     const system = content(payload.messages.find(message => message.role === 'system')?.content);

@@ -2,6 +2,8 @@
 
 日期：2026-10-23。状态：**S0路线已获用户批准并完成代码实施；正式环境仍未启用**。初版设计基线5535260、发布121e83e；本次S0实施从121e83e开始，SDK锁定 `@earendil-works/pi-coding-agent@1.3.0`。前文保留设计依据，实际实现及与建议的差异见第12节，验收见[本轮记录](../evaluations/s0-skills-validation.md)。不重开V3调度开发。
 
+后续S0-A/B/C已通过用户转交的ChatGPT代码审查，发布基线fb5201c。本轮只收紧disable-model-invocation特殊包的明确调用检查，见[独立修复报告](../evaluations/s0-invocation-fix.md)；原验收不改。另交付[Console真实体验方案](../evaluations/s0-console-live-experience-plan.md)和[S1固定只读Web建议](s1-readonly-web-tools.md)，均未执行收费或新增Web能力。
+
 用户已认可 V3.0～V3.3 主要工程阶段性收尾；正式主动执行仍未验收。V3.0.1 的自然语言暂停失败及主模型误解操作收据，继续作为正式主动执行启用前的必解项，原始[复验报告](../evaluations/v3.0.1-live-retest.md)不改。它们不阻塞本文设计。
 
 ## 1. 建议与第一批边界
