@@ -101,3 +101,24 @@ test('同资源多份快照必须明确最近一次；跨渠道、失败展示�
     assert.equal(f.web.requests, 2);
   } finally { await f.close(); }
 });
+
+test('资料绑定的具名目标不能由解析模型漏词或空筛选改为当前唯一视图', async () => {
+  const f = await goalWebFixture();
+  try {
+    await f.seed(); f.selector([]); const before = f.goal;
+    await f.web.chat('将已获取的 Pi Skills 文档全文绑定到松柏阅读计划第1步').catch(() => {});
+    assert.deepEqual(f.goal, before); assert.ok(!f.goal.pendingAction!.spec.webBindings); assert.equal(f.web.requests, 1);
+  } finally { await f.close(); }
+});
+
+test('模型建议新步骤时，资料未继承必须在待批准界面明确显示，不能让旧绑定冒充新步骤资料', async () => {
+  const f = await goalWebFixture();
+  try {
+    await f.seed(); await f.web.chat('将已获取的 Pi Skills 文档全文绑定到银杏学习目标第1步'); await f.web.chat('批准银杏计划并继续一段');
+    f.result({ stepOutcome: 'partial', artifactText: '建议一个新的练习步骤', progressSummary: '等待新计划审批', question: '是否改为新计划',
+      proposedPlan: { changeReason: '提出调整，不授予资料权限', steps: [{ title: '新的练习', instruction: '等待用户决定', deliverable: '文本', doneWhen: '用户核对' }] } });
+    await f.runner.tick(); const shown = (await f.web.chat('查看银杏进度')).text;
+    assert.match(shown, /待批准计划步骤1：无Web资料绑定/); assert.ok(!f.goal.pendingAction!.spec.webBindings);
+    assert.ok(f.view.plan.spec.webBindings?.length); assert.equal(f.web.requests, 1);
+  } finally { await f.close(); }
+});

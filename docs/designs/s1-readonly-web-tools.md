@@ -1,5 +1,7 @@
 # S1 受控只读 Tools：最小 Web 获取设计
 
+后续更新：用户已在5285975基线上授权S1-B并实施，见[增量设计](goal-web-snapshot-integration.md)和[本轮报告](../evaluations/goal-web-milestone.md)。下文“未开发/需另行批准S1-B”描述S1-A原交付时点，当前实现以第9节为准，不改历史验收结论。
+
 日期：2026-10-23。状态：**S1-A1/A2/A3已连续实施；最终双平台验收见独立报告，正式未启用**。原设计基线fb5201c，实施基线 `fd4bc856ef26e7482c05d251e39af4773eb40707`；进展见[阶段记录](../evaluations/s1-web-validation.md)。承接[S0原生Skills设计](skills-tools-architecture.md)，保留原版 Pi 1.3.0 SDK/Loop；Skill 是方法，Tool 才是宿主 I/O 能力，二者的批准不能相互替代。正文保留原设计取舍，实施差异最终单列。
 
 ## 1. 推荐范围与取舍
@@ -139,3 +141,11 @@ TLS最低1.2，专用Agent显式proxyEnv={}，先完成证书/主机名和实际
 提供给模型的正文在UTF-8边界明确节选，Session累计8KiB；完整原文留在SQLite。普通聊天可在额度耗尽后继续，停服/重启不能清额，关闭开关不会抹去已持久化正文。Skills/Web共用每轮8次模型请求与64KiB实际payload上限，含辅助解析，不能叠加两份预算。后台Task/Goal不注册Web，Policy/Grant仍是text_only，未开发S1-B。
 
 证据仅为真实SQLite、原版Pi、虚构内容、本机模拟模型/DNS/HTTP/TLS。测试CA/私钥是公开虚构材料，不安装系统证书；生产无内网/localhost绕过配置。完整源代码及4份SDK文件Hash跨平台核对，默认关闭、不联网验收正式站点或收费模型。模型可能不选工具或误述收据，实际读取以账本/ToolResult为准；不能把模拟成功当真实模型或飞书体验通过。
+
+## 9. S1-B后续实际实现
+
+5285975之后获批：WebReadStore只读选择/验证同身份、完整渠道和成功投递的快照；GoalService/Guard映射当前资料标题及步骤/全文或行范围，生成待批准Plan绑定。多个历史来源须明确最近一次，每步最多一份，可与原Skill绑定共存。
+
+Plan JSON可选webBindings，不新增表或缓存；来源/时间/版本/Hash及节选范围展示后审批，变更重新批准。领取时冻结到Execution输入并参与Hash，提交前复核。单份资料4KiB及原总容量共同生效，不静默裁剪。Goal零工具、单模型请求、不联网；缺失/损坏/错版本/跨身份或禁用均阻塞，无自动重取、替换或额外授权。
+
+旧Plan、完成Step和Checkpoint不改写，原Policy/Grant/预算/暂停撤销/通知事务保持。S2、任意文件/URL、动态网页更新、HTML、Shell、MCP、Sandbox和Computer Use仍不在范围。自然暂停与收据只完成离线修复，真实复验见统一待授权方案。

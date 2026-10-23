@@ -216,6 +216,16 @@ OperationGuard只依据当前原话、可信身份/渠道和宿主目录，明�
 
 S1-A不包含S1-B Goal网页快照绑定、主动Web更新、任意网址、搜索、HTML解析、登录、文件/Shell、MCP、Sandbox或Computer Use。实现与自动化证据见[报告](evaluations/s1-web-validation.md)，设计取舍见[S1说明](designs/s1-readonly-web-tools.md)，本轮没有真实网站/模型/飞书验收。
 
+## S1-B：批准资料与长期Goal
+
+S1-B在5285975基线上另行获批。只复用web_read_calls成功完整快照；宿主chatKey映射可信身份并核对完整渠道、来源Run及投递，模型不能指定快照ID、Hash或路径。用户明确资料/Goal/步骤及全文或行范围，宿主生成待批准绑定；每步一份资料，可与原Skill绑定共存，不共享授权。文本最多4096字节，超限拒绝，不自动裁剪；原输入总上限仍生效。
+
+GoalPlanSpec新增可选webBindings：来源ID/URL/版本/目录Hash、获取时间、完整正文Hash/大小、行范围及选中文本Hash/大小。原四表与Web账本不变、无新增DDL；旧JSON省略字段兼容。审批纳入Plan Hash，领取事务内重新校验并冻结Execution.input.web，参与inputHash；提交前复核来源。缺失/损坏/错版本/身份或禁用错误均停止，不自动联网修复；完成Step、旧Plan、Checkpoint及Policy/Grant/预算/Outbox语义保留。
+
+Goal/Policy仍text_only、零工具、单片段单模型请求，不具备web_get或动态网页能力。网络开关只限制Chat获取，已批准快照可离线使用。Skill和Web均为低信任输入，不授予Task/Memory/策略权限，不自动写长期记忆。
+
+V3.0.1修复区分有效唯一视图中的类别泛称与具名交集；Goal工具提供实际状态，Pi公开sendCustomMessage(triggerTurn:false)追加宿主收据，保留错误模型原文，只保存状态/版本，不混入后台成果或临时Memory。最终呈现以宿主为准，模型收尾失败不重做操作；历史真实失败仍须另验。见[增量设计](designs/goal-web-snapshot-integration.md)、[工程报告](evaluations/goal-web-milestone.md)。
+
 ## V2.1b 候选与正式知识的边界
 
 - `formation-types.ts`定义来源、候选、视图与严格输出Schema；`formation-store.ts`在应用库新增Job/候选两表；`formation-service.ts`负责有界Worker、去重/保守冲突、快照失效与审批状态。Pi相关调用仅在适配器，用公开completeSimple，不创建另一套Agent Loop。

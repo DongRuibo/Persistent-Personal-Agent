@@ -11,6 +11,7 @@ import { content, reply, toolCall } from './skills-fixture.js';
 export async function goalWebFixture(body = 'PI_SNAPSHOT_ONLY：原生Skill按需加载。\n第二行：工具不产生授权。\n第三行：未知事实应保留未知。') {
   const lane = new BackgroundLane(), events = new EventEmitter(), sent: string[] = [], errors: unknown[] = [];
   let goalCalls = 0, failNotifications = 0, gate: Promise<void> | undefined;
+  let selector: string[] | undefined;
   let result: GoalResult = { stepOutcome: 'complete', artifactText: 'FROZEN_EXERCISE：依据已批准资料给出一道虚构问题。', progressSummary: '已提交一道题', question: '请回答后再继续', needsUserFeedback: true };
   const f = await webFixture(async payload => {
     const system = content(payload.messages.find(message => message.role === 'system')?.content);
@@ -20,7 +21,7 @@ export async function goalWebFixture(body = 'PI_SNAPSHOT_ONLY：原生Skill按�
       const goalAction = message.includes('逐步') ? 'create' : /绑定|用于|移除/.test(message) ? 'revise_plan' : message.includes('批准') ? 'approve_plan'
         : message.includes('查看') ? 'view' : message.includes('暂停') ? 'pause' : message.includes('取消') ? 'cancel' : 'continue';
       return reply(JSON.stringify({ action: 'goal_manage', mode: goalAction === 'view' ? 'query' : 'request', evidence: message, goalAction,
-        ...(goalAction === 'create' ? {} : { selector: { keywords: message.includes('那个学习计划') ? ['学习计划'] : ['银杏'] } }) }));
+        ...(goalAction === 'create' ? {} : { selector: { keywords: selector ?? (message.includes('那个学习计划') ? ['学习计划'] : ['银杏']) } }) }));
     }
     if (system.includes('有界纯文本片段')) {
       goalCalls++; assert.equal(payload.tools?.length ?? 0, 0); events.emit('goal'); await gate;
@@ -46,7 +47,7 @@ export async function goalWebFixture(body = 'PI_SNAPSHOT_ONLY：原生Skill按�
   boot();
   return { web: f, sent, errors, events, get runner() { return runner; }, get calls() { return goalCalls; },
     get goal() { return f.goals.list()[0]!; }, get view() { return f.goals.plan(f.goals.list()[0]!.id); },
-    result(value: GoalResult) { result = value; }, hold(value?: Promise<void>) { gate = value; }, started() { return once(events, 'goal'); }, failNotification() { failNotifications++; },
+    result(value: GoalResult) { result = value; }, selector(value?: string[]) { selector = value; }, hold(value?: Promise<void>) { gate = value; }, started() { return once(events, 'goal'); }, failNotification() { failNotifications++; },
     async seed() { await f.chat('请读取 Pi Skills 文档，并总结加载流程'); await f.chat('帮我逐步建立银杏Agent学习目标，使用Skill interview-practice，计划最多两步。'); await runner.tick(); },
     async restart(service?: WebReadService) { await runner.stop(); await f.restart(service); f.store.recoverInterrupted(f.tasks.now().toISOString()); boot(); },
     async close() { gate = undefined; await runner.stop(); await f.close(); },

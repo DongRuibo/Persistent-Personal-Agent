@@ -2,6 +2,8 @@
 
 实施基线5285975，用户已授权本轮 A～D。保留原版 Pi、现有 Goal 四表、Policy/Grant/Checkpoint 与 web_read_calls，不新增缓存、队列、外部服务或网络工具。
 
+当前已实施并完成双平台离线关卡，实际结果及失败见[工程报告](../evaluations/goal-web-milestone.md)。新增公开宿主接口为WebReadStore.selectForGoal/freezeForGoal、GoalStore.proposeWebBinding/validateWeb/blockWeb；DTO为WebSnapshotBinding与FrozenWebInput。它们都不引用Pi内部对象或网络执行接口。
+
 ## 数据与接口
 
 WebReadStore 增加宿主只读选择/校验接口，从同一身份与渠道已成功完成并投递的 Chat Run 读取完整合法快照。按唯一文档标题选择；多个历史快照必须明确选最近一次。模型不能提供来源ID、Hash、路径或身份。GoalActor 与 Web 的身份映射沿用 Console / 飞书应用与白名单用户的原宿主 chatKey，并额外核对完整渠道目标。
@@ -9,6 +11,8 @@ WebReadStore 增加宿主只读选择/校验接口，从同一身份与渠道已
 Plan 增量保存每步 Web 绑定：源记录ID、固定资源/URL/目录版本Hash、获取时间、完整内容Hash与大小、全文或明确行范围、选中文本Hash与字节数。每步最多一个资料绑定，可与原 Skill 绑定同时存在。没有新 SQL 表；旧 Plan 无字段时行为不变。
 
 用户明确指定资料、Goal 和步骤后只生成草稿，展示来源/时间/Hash/全文或行范围；审批仍要求同一有效完整视图。变更已批准绑定产生新 Plan 版本，已完成步骤绑定不可改写。未批准草稿更改有新的草稿Hash/revision校验，旧展示不能批准它。
+
+绑定句由宿主独立核对批准资源的完整标题和具名目标，不能只依赖解析模型的keywords；未知/混合表达澄清。新步骤没有继承旧Web资料时明确显示“无Web资料绑定”，旧步骤资料不会冒充新步骤输入。快照本身不延续网络许可TTL，不会因为等待或重启再次获取。
 
 领取事务内重新验证快照与绑定，冻结完整选中文本到 Execution 输入并参与 inputHash；模型请求只投影该冻结资料。提交前再验证来源未丢失/损坏或被禁用。Goal 不注册 web_get，不发网络请求，仍零工具、单片段单模型请求。旧 Checkpoint 不修改。
 

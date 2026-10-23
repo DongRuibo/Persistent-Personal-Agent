@@ -4,14 +4,15 @@
 
 ## 当前阶段与进行中事项
 
-- 新任务A～D基线5285975，独立分支feature/goal-web-snapshots。A完成两项真实失败的最小离线修复，B完成快照Plan绑定/审批、Execution冻结和恢复，C完成Web+Skill/手动与主动Goal/强杀与事务及通知故障场景。A/B/C分别通过Windows五关，当前421项418通过/3原平台跳过；D及最终双平台关卡继续实施。设计见[快照集成](designs/goal-web-snapshot-integration.md)，证据见[本轮报告](evaluations/goal-web-milestone.md)。本轮仅可推审查分支，禁止改远端main；不使用旧收费额度。
-- S1-A开发及发布基线为fd4bc856ef26e7482c05d251e39af4773eb40707。S0及特殊包权限修复已由用户确认通过ChatGPT代码审查；S1-A1/A2/A3已完成，本轮按用户追加授权合并main并推送GitHub，不开发S1-B或扩大Goal/Policy。
-- S1-A1/A2/A3工程及隔离自动化已连续完成：固定资源/安全网络、原版Pi Chat工具、当前原话与成功展示确认、单次持久许可/预算/快照、取消/强杀恢复、共用模型额度及Session正文额度。仅增量web_read_calls一表，不扩大Task/Memory/Goal/Policy权限，见[完整报告](evaluations/s1-web-validation.md)及[机器摘要](evaluations/s1-web-validation.json)。
-- 发布使用独立工作树 `C:/Users/Dongr/.codex/worktrees/v3-proactive/Persistent Personal Agent`，main快进合并feature/s1-readonly-web，保留A1=36dca0c、A2=a77c729、A3=f70c68c三个阶段提交；本次另补发布交接，最终远端SHA以GitHub refs/heads/main为准。原E盘保留分支local/preserve-workspace-20261023及8份已有文件（含HANDOFF）Hash未变，不覆盖或混入提交。
-- V3.0.1自然语言暂停与主模型操作收据误解两项真实失败列为**正式主动执行启用前必解项**，须独立修复并真实复验；[原始报告](evaluations/v3.0.1-live-retest.md)不改，不因V3工程收尾或Skills设计而标记通过。
-- 最终两平台均Node24.19.0，typecheck/build/npm test/两个eval全部退出0；Windows387项384通过/0失败/3原平台跳过，Linux387全过/0跳过，Web专项85/85。137份项目/SDK文件Hash一致，检查后再次复核。首轮385项及新增竞争反例的失败/修复日志均保留；证据根目录E:/AgentWork/validation/personal-agent-s1-web-20261023-180629。Linux新容器全程network=none、无宿主挂载，同lockfile依赖仅从既有停止测试容器复制，未新安装；容器已停。Formation输出新路径，历史报告不改。
-- 本次合并发布仅更新STATE；重新核对137份源码/SDK和43份验收日志Hash、27份发布文件范围及原工作区8份文件Hash，检查文档与Git差异，不重复执行上述产品回归。未修改正式配置、数据、历史验收结果或启用功能。
-- WEB_READ_ENABLED、SKILLS_ENABLED、GOAL_ENABLED、PROACTIVE_ENABLED默认false，Formation不启用。本轮收费API、正式网站/真实账号、飞书/手机、正式.env/数据/历史验收库操作均0。[S0 Console体验方案](evaluations/s0-console-live-experience-plan.md)仍未获收费执行授权，不沿用旧预算。
+- 本轮A～D工程及离线验收已完成，基线5285975a3354f778012999526ed587b7e1b5c573，独立工作树C:/Users/Dongr/.codex/worktrees/v3-proactive/Persistent Personal Agent，分支feature/goal-web-snapshots。只按本轮授权推审查分支，不合并或直接推main、不部署。
+- A完成自然暂停泛称/具名交集及宿主操作收据修复：原话仍须唯一有效、成功投递的视图；身份/渠道/TTL/revision/显示版本不放宽。宿主状态进入ToolResult及原生Session，模型收尾失败不重做操作、不增加纠错调用，后台成果与临时Memory不混入交互Session。
+- B复用web_read_calls完成快照选择、Plan绑定/展示/审批、Execution冻结/inputHash和Checkpoint/重启恢复；每步一份Web资料可与Skill共存，4KiB及既有总容量限制，超限不自动裁剪。来源失效/损坏/错身份/错版本或Skill变化阻塞，Goal仍text_only、零工具、单片段单模型请求，无新增DDL或新缓存。
+- C真实SQLite/原版Pi/本机HTTP覆盖Chat资料整理、手动学习Goal、策略反馈/预算停止、暂停/撤销迟到结果、提交失败、通知重投及真实SIGKILL进程恢复。自审反例补齐具名目标漏词和未继承资料的审批显示，先红后绿，不改冻结预期或旧报告。
+- A/B/C分别保存本地提交c058579、accfb28、0586228及阶段关卡；D与最终审查修复见本分支最终Git记录。最终Windows427项424通过/0失败/3原平台跳过，隔离Linux427全部通过/0跳过，两平台typecheck/build/test/eval:memory/eval:formation均退出0；144份项目/SDK文件Hash测试前后一致。原始失败、首轮426项及最终427项日志均保留，见[报告](evaluations/goal-web-milestone.md)与[机器摘要](evaluations/goal-web-milestone.json)。
+- Linux新容器personal-agent-goal-web-20261023全程network=none、无宿主挂载，Node24.19.0、2CPU/3GiB；同lockfile的已有Linux测试依赖tar复用，无联网安装，测试后已停止。证据目录E:/AgentWork/validation/personal-agent-goal-web-20261023-195458。
+- D准备[统一Console冻结方案](evaluations/integrated-console-live-plan.md)与专用入口/离线限制测试；建议另行批准最多32次模型HTTP、6元预留及一次固定Web GET，预计28次；本轮未确认当前费率、未执行。不能复用历史预算、目录或余额，价格未知不得联网。
+- V3.0.1自然语言暂停与收据解释的两项历史真实失败仍是正式主动执行启用门槛：离线修复已通过，尚未新真实复验；[原始报告](evaluations/v3.0.1-live-retest.md)不改、不标成真实通过。S0/S1/V3真实模型、正式网站、飞书/手机和正式主动策略尚未统一验收。
+- WEB_READ_ENABLED、SKILLS_ENABLED、GOAL_ENABLED、PROACTIVE_ENABLED默认false，Formation关闭。本轮收费API/真实网站/账号/飞书/手机/正式.env与数据操作均0。原E盘分支local/preserve-workspace-20261023、HEAD ae2a820及8份已有文件（含HANDOFF）Hash保持不变；没有覆盖或混入提交。
 
 ## 已完成功能
 
@@ -38,11 +39,11 @@
 
 | 日期 | 修改及位置 |
 | --- | --- |
+| 2026-10-23 | A～D完成：自然暂停/状态收据离线修复、S1-B快照Plan与Skill联合执行、策略/故障/强杀恢复，最终Windows424/427且3原跳过、断网Linux427/427，五关均0、144源码/SDK Hash一致；统一32请求/6元真实方案仅准备，真实失败仍开放；仅推审查分支，不改main |
 | 2026-10-23 | S1-A1/A2/A3连续完成：阶段Windows329/332→354/357，最终Windows384/387、断网Linux387/387；Web85/85，五关均0。固定来源、可信许可、单表恢复；原始失败保留，默认关闭；用户随后授权合并main及推送，发布仅补STATE |
 | 2026-10-23 | S0特殊包明确调用定点修复：先红后绿、专项53/53、Windows299/302且3原平台跳过；五关均0。新增Console16次/2元待授权方案、S1只读Web设计；用户随后授权提交推送，仅补发布交接状态，未收费，原真实失败保留 |
 | 2026-10-23 | S0-A/B/C完成并逐阶段过关；最终Node24.19 Windows267通过/3原跳过、断网Linux270全过，两边五关均0；118源码Hash一致。用户随后授权合并推送main，发布仅补STATE；默认未启用，原始失败及阶段证据保留 |
 | 2026-10-23 | V3主要工程按用户确认收尾；[原生Skills设计](designs/skills-tools-architecture.md)及[SDK隔离验证9项通过](evaluations/pi-native-skills-spike.md)，无产品功能启用；V3.0.1两项真实失败仍为主动启用门槛 |
-| 2026-10-23 | 后台门修复7d02dd9：基线6项失败→18项专项通过，Windows246/249、Linux249全过，两边五检查均0；用户后授权合并推送main，发布只补STATE，未真实启用；[独立报告](evaluations/v3-background-lane-review.md) |
 
 ## 验证记录与证据边界
 

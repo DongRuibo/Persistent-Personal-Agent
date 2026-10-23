@@ -365,6 +365,17 @@ export class OperationGuard {
       const evidence = intent.bodyEvidence?.trim();
       if (webBindingRequest) {
         if (rejectsWebRequest(request.prompt) || intent.skillId !== undefined) throw new Error('资料绑定需要独立、明确的当前请求，不能混合改变Skill');
+        const assignment = activeText.trim().match(/^(?:请)?(?:将|把)(?:已获取的|已读取的|最近(?:一次)?(?:成功)?(?:读取|获取)的|刚才(?:成功)?(?:读取|获取)的)(.+?)(?:全文|完整正文|第\d+(?:至|到|-)\d+行)(?:绑定到|用于|用作)(.+?)(?:当前步骤|这一步|第[0-9一二三四五六七八九十]+步)[。！!]?$/u);
+        const removal = activeText.trim().match(/^(?:请)?移除(.+?)(?:当前步骤|这一步|第[0-9一二三四五六七八九十]+步)的?(?:Web资料|Web快照|资料)绑定[。！!]?$/u);
+        const destination = assignment?.[2]?.trim() ?? removal?.[1]?.trim();
+        if (!destination) throw new Error('请独立说明已获取的文档、Goal及步骤，不混合其他操作');
+        if (/^(?:这个|当前)(?:Goal|目标|计划)$/iu.test(destination)) {
+          if (!display?.details || display.items.length !== 1 || display.items[0]!.id !== goal.id) throw new Error('资料目标指代需要唯一有效完整视图');
+          goals.validateDisplay(display);
+        } else {
+          const name = destination.replace(/(?:学习目标|学习计划|长期目标|长期任务|阅读计划|目标|计划|Goal)$/iu, '');
+          if (!name.trim() || !normalize(goal.objective).includes(normalize(name))) throw new Error('资料绑定的具名Goal与当前目标不符；不能因模型漏词改变目标');
+        }
         const positions = [...activeText.matchAll(/第([0-9一二三四五六七八九十]+)步/gu)];
         if (positions.length > 1) throw new Error('资料绑定只能选择一个步骤');
         if (positions.length) {
@@ -373,9 +384,11 @@ export class OperationGuard {
             ? (word.startsWith('十') ? 1 : digits.indexOf(word[0]!)) * 10 + (word.endsWith('十') ? 0 : digits.indexOf(word.at(-1)!)) : digits.indexOf(word);
           if (!Number.isSafeInteger(options.webPosition) || options.webPosition < 1 || options.webPosition > 12) throw new Error('步骤编号无效');
         }
-        if (/移除/u.test(activeText)) options.webSelection = null;
+        if (removal) options.webSelection = null;
         else {
           const sources = webRequestSelection(activeText, [...defaultWebResources]);
+          const source = defaultWebResources.find(resource => resource.id === sources.ids[0]);
+          if (!source || ![source.id, source.title, ...source.aliases].some(alias => normalize(alias) === normalize(assignment![1]!))) throw new Error('资料标题必须与一份批准资源完全对应，不能夹带其他操作');
           const ranges = [...activeText.matchAll(/第(\d+)(?:至|到|-)(\d+)行/gu)];
           if (sources.ids.length !== 1 || ranges.length > 1 || ranges.length && /全文|完整正文/u.test(activeText)
             || !ranges.length && !/全文|完整正文/u.test(activeText)) throw new Error('请明确一份已获取文档及全文或第N至M行范围；不自动节选');

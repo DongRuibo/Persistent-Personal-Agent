@@ -98,7 +98,7 @@ Chat自动匹配目录并通过受限原生read按需读取正文和references�
 
 每个Run/许可最多一次实际GET；HTTP错误、超时、模型失败或发送失败都不自动重取。DNS全部地址须合格，固定IP和TLS校验在HTTP发送前完成；不跟重定向、不继承代理、不发送Cookie/鉴权头或用户提问，只接受UTF-8公开纯文本/Markdown。单次10秒、头部8KiB、响应32KiB，宿主UTC日20次尝试/640KiB预留，失败不退款，跨重启保留。读取与写操作不在同轮混用，切换Web界面后旧审批须重新查看。
 
-Chat的Skills/Web共用每轮8次模型HTTP上限，含辅助解析；Web正文在原生Session内累计8KiB，超额只拒绝新获取，普通聊天仍可继续。完整合法正文保存在SQLite快照，提供给模型的节选明确标注。既有正文仍保留在Session，关闭开关不会清除历史。Web不写Memory，不向Task/Goal/Policy开放工具，也不开发Goal网页快照绑定。
+Chat的Skills/Web共用每轮8次模型HTTP上限，含辅助解析；Web正文在原生Session内累计8KiB，超额只拒绝新获取，普通聊天仍可继续。完整合法正文保存在SQLite快照，提供给模型的节选明确标注。既有正文仍保留在Session，关闭开关不会清除历史。Web不写Memory，不向Task/Goal/Policy开放工具；已有资料的Goal绑定由S1-B独立审批。
 
 安全的本地演示无需Key、不加载.env、不访问真实站点：
 
@@ -116,6 +116,31 @@ SELECT runId,resourceId,catalogHash,status,reservedBytes,createdAt,finishedAt,
        json_extract(snapshotJson,'$.contentHash') AS contentHash,
        json_extract(snapshotJson,'$.bytes') AS actualBytes FROM web_read_calls;
 ```
+
+## S1-B：把已获取资料交给 Goal
+
+在新的隔离环境开启Goal，先取得同身份/渠道成功读取并投递的固定资源快照，再创建目标并查看初步计划。例如目标已明确使用Skill interview-practice后，可说：
+
+```text
+将已获取的 Pi Skills 文档全文绑定到银杏阅读计划第1步
+将最近读取的 Pi Skills 文档第1至8行绑定到银杏阅读计划当前步骤
+批准银杏阅读计划并继续一段
+```
+
+前两句只生成待批准草稿；核对来源、时间、版本、Hash及全文/行范围后才批准。每步最多一份Web资料，可与一个Skill同时绑定，二者不相互授权。多份来源须明确“最近读取的”；全文超过4096 UTF-8字节拒绝，只有用户明确行范围才节选。现有Goal总输入及实际请求体上限继续生效，组合超限在模型发送前阻塞。
+
+绑定进入Plan Hash，领取时冻结文本到Execution inputHash；Goal零工具、一次模型请求、不联网。快照缺失/损坏、跨身份/渠道、资源禁用/错版本或Skill变化保守阻塞，不用新网页或新包替代。变更重新展示审批，完成Step、旧Plan、Checkpoint不改写。Web许可TTL不延伸到未来获取；关闭网络开关不抹去已批准资料，也不自动刷新。
+
+“暂停那个学习计划”仍须唯一、有效、成功投递的视图；类别泛称可与标题不同，具名条件仍取交集。用户和原生Session接收真实宿主状态收据，不增加纠错模型调用、不把后台成果复制到交互Session。历史真实失败仍待另行真实复验。
+
+无需Key、.env或外网的完整演示：
+
+```sh
+node --import tsx --test tests/goal-web.test.ts tests/goal-web-reliability.test.ts tests/goal-receipt-context.test.ts
+node --import tsx --test tests/integrated-console-acceptance.test.ts
+```
+
+第一条覆盖完整链路、策略预算及暂停/撤销/强杀/数据库/通知故障，第二条只验证未来验收入口的离线限额。实现及失败见[工程报告](docs/evaluations/goal-web-milestone.md)；统一真实方案建议32次/6元和一次固定Web GET，**尚未授权执行**，见[冻结方案](docs/evaluations/integrated-console-live-plan.md)。正式配置、数据、飞书/手机及S2权限不在本轮范围。
 
 ## V2.1b 候选形成（默认关闭）
 

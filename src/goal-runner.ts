@@ -67,9 +67,10 @@ export function renderGoal(view: GoalView): string {
     ...[planQuantityQuestion(goal.objective, goal.pendingAction.spec.steps.length)].filter((text): text is string => !!text),
     '请明确批准计划；如需执行，同时说“批准并继续一段”。调整计划请给出完整步骤及产物、验收条件。');
   for (const [label, spec] of [['正式计划', plan.spec], ['待批准计划', goal.pendingAction?.spec]] as const) {
-    for (const binding of spec?.webBindings ?? []) {
-      const position = spec!.steps.findIndex(step => step.stepId === binding.stepId) + 1;
-      lines.push(`${label}步骤${position}使用Web快照 ${binding.snapshotId}：${binding.resourceId}@${binding.version}；来源=${binding.url}；读取时间=${binding.fetchedAt}；目录Hash=${binding.catalogHash}；正文Hash=${binding.contentHash}；完整大小=${binding.bytes}字节；范围=${binding.lines ? '第' + binding.lines.start + '至' + binding.lines.end + '行（节选）' : '全文'}；选中Hash=${binding.selectedHash}；选中大小=${binding.selectedBytes}字节。执行不联网，资料不授予权限。`);
+    for (const [index, step] of (spec?.steps ?? []).entries()) {
+      const binding = spec?.webBindings?.find(item => item.stepId === step.stepId);
+      if (binding) lines.push(`${label}步骤${index + 1}使用Web快照 ${binding.snapshotId}：${binding.resourceId}@${binding.version}；来源=${binding.url}；读取时间=${binding.fetchedAt}；目录Hash=${binding.catalogHash}；正文Hash=${binding.contentHash}；完整大小=${binding.bytes}字节；范围=${binding.lines ? '第' + binding.lines.start + '至' + binding.lines.end + '行（节选）' : '全文'}；选中Hash=${binding.selectedHash}；选中大小=${binding.selectedBytes}字节。执行不联网，资料不授予权限。`);
+      else if (plan.spec.webBindings?.length || goal.pendingAction?.spec.webBindings?.length) lines.push(`${label}步骤${index + 1}：无Web资料绑定；不会沿用其他步骤的资料。`);
     }
     if (plan.spec.skillBindings?.length || goal.pendingAction?.spec.skillBindings?.length) for (const [index, step] of (spec?.steps ?? []).entries()) {
       const binding = spec?.skillBindings?.find(binding => binding.stepId === step.stepId);
