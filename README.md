@@ -54,6 +54,40 @@ Batch 1–4 已接通 Goal/Plan/Step/Execution、独立 GoalRunner、受控自�
 
 专项回归：`node --import tsx --test tests/goal-*.test.ts`。只读核对隔离库：`node --import tsx scripts/audit-goals.ts E:/AgentWork/acceptance/v3-local/agent.db`；不建表、不修复、不输出正文。完整[设计](docs/designs/v3-persistent-goals.md)、[自动化证据](docs/evaluations/v3-mvp-validation.md)、[Batch 5手机验收方案](docs/evaluations/v3-live-acceptance-plan.md)及最新[STATE](docs/STATE.md)分别记录实现和未验证范围。
 
+## S0：Pi 原生 Skills（默认关闭）
+
+`SKILLS_ENABLED=false`。开启后只加载专用 `SKILLS_DIR`（默认 `<DATABASE_PATH>.skills`）内 `approved.json` 明确批准、内容Hash匹配的标准包，不扫描全局Pi/Skills/Extensions/MCP。复用Pi1.3.0的发现、解析、目录、read格式化及原版Agent Loop；没有自建Skill解析器。
+
+首批仅 [agent-notes](skills/agent-notes/SKILL.md) 与 [interview-practice](skills/interview-practice/SKILL.md)：整理已提供资料、面试练习。只消费给定文字，不自行上网或写文件/Memory。自动化演示仅用新临时目录、本机模拟模型和真实SQLite，无需Key、不读.env：
+
+```sh
+node --import tsx --test tests/skills.test.ts tests/goal-skills.test.ts tests/goal-skills-integration.test.ts
+```
+
+供后续自行检查的安装步骤：先 `npm run build`；在**停服且此前不存在的隔离目录**中复制标准包，再由宿主批准。例如PowerShell：
+
+```powershell
+New-Item -ItemType Directory -Path './data/s0-demo/agent.db.skills'
+Copy-Item -LiteralPath './skills/agent-notes' -Destination './data/s0-demo/agent.db.skills' -Recurse
+Copy-Item -LiteralPath './skills/interview-practice' -Destination './data/s0-demo/agent.db.skills' -Recurse
+node dist/skills-admin.js ./data/s0-demo/agent.db.skills agent-notes
+node dist/skills-admin.js ./data/s0-demo/agent.db.skills interview-practice
+```
+
+该宿主命令只批准已复制包并生成Hash清单，不是模型工具，不下载、不执行安装脚本；批准不启动Agent。含批准参考文件的包只限Chat，命令末尾加 `chat-only`；S0 Goal包必须自包含、只有SKILL.md且不超过4096字节。需要脚本、执行工具或其他资源的包明确拒绝。
+
+后续启动自己的隔离验收进程时，临时环境变量设置 `SKILLS_ENABLED=true`，并将 `DATABASE_PATH`、`SESSION_DIR`、`MEMORY_DIR`、`SKILLS_DIR` 指向同一全新验收目录的各自专用路径，保持Formation/Goal/Proactive关闭，先核对 `/skills`、`/skill agent-notes`。真实模型对话另行安排，本轮未执行这些真实启动或收费步骤；不要直接在正式目录照抄开启。
+
+Chat自动匹配目录并通过受限原生read按需读取正文和references：只允许已批准路径，拒绝穿越、链接/junction、硬链接、分页、脚本与任意文件。每轮最多2次read，Session正文累计8192字节，重复读取也计额度，原生Session custom entry跨重启保留。额度不足只返回Skill拒绝收据，普通对话和旧工具仍可用，不自动清Session或重置额度。开启Skills时每轮主Loop与辅助解析/Memory改写共用最多8次模型HTTP，实际payload最多65536字节，无自动重试；它不是供应商账单硬上限。
+
+手动Goal可说“帮我逐步准备面试，使用Skill interview-practice”，也可让草稿在批准集合提议skillId。宿主展示每步ID/version/完整Hash及无绑定项，必须成功送达并审批；“给面试当前步骤改用Skill agent-notes”或“移除面试当前步骤的Skill”只生成新草稿，再批准。模型不能指定路径/可信Hash，已完成Step和旧成果不改。启用Goal仍需独立GOAL_ENABLED与用户单次授权。
+
+主动Goal还需PROACTIVE_ENABLED及显式Policy/Grant：仅按审批Plan固定Skill，仍为text_only、零工具、每片段一次模型请求。宿主通过原生 `/skill:name` 在时间前缀之前展开冻结副本；联网前逐字核对名称、位置、正文、本轮Goal输入及Hash。执行后也核对未禁用/变更，失败保守停止。Execution/inputHash记录实际Skill原文/版本/Hash，Checkpoint和通知仍走原事务，通知失败不重跑。
+
+升级/停用：停服后修改受管包或清单。更新必须重新运行宿主批准命令并重启，旧Goal不能自动换到新Hash，须改选并重批Plan。`approved.json` 中 `enabled:false` 表示禁用；已有绑定无法使用时Goal阻塞，不创建新Execution。历史Chat正文、Run和Session不删除，历史内容不授予当前工具权限。无运行中热安装/启用接口。
+
+实现与故障边界见[设计](docs/designs/skills-tools-architecture.md)与[本轮验证](docs/evaluations/s0-skills-validation.md)。真实模型的自动选择/遵循质量、真实主动执行、飞书及长期运行尚未验收；V3.0.1自然暂停和收据解释原始失败继续保留。S0没有Shell、Web、Browser、MCP、Sandbox、Computer Use或外部写工具。
+
 ## V2.1b 候选形成（默认关闭）
 
 正式 Formation 未开启；隔离验收仅使用临时虚构数据。审查并修复已发现的问题后如决定试用，请先备份并使用独立的 `DATABASE_PATH`、`SESSION_DIR`、`MEMORY_DIR`，再在本机配置：
@@ -481,8 +515,8 @@ Console 输入 → Task Service / AgentExecutor → Pi 交互 Session
 
 ## 安全与日志
 
-- 交互白名单为 `create_task`、`list_tasks`、`cancel_task` 及五项 Memory 工具；显式开启Formation后另加 `memory_review`。后台 Session/形成请求无工具，允许宿主只读检索。没有 Shell、任意文件读写、浏览器或通用网络工具。
-- SDK 使用内存凭据和设置；交互 Session 使用宿主指定私有文件。资源加载器只注册宿主内联 Memory 扩展，关闭本机扩展、Skills、AGENTS、模板及 MCP 自动发现；不读取全局 Pi 配置，不保存 Key 到 Pi 认证文件。
+- 交互白名单为create_task/list_tasks/cancel_task及五项Memory工具；显式开启Formation后另加memory_review，SKILLS_ENABLED开启后另加仅批准Skill文件的受限read。后台Session/形成请求无工具，允许宿主只读检索。没有Shell、任意文件读写、浏览器或通用网络工具。
+- SDK使用内存凭据和设置；交互Session使用宿主指定私有文件。资源加载器只注册宿主内联扩展，关闭本机扩展、AGENTS、模板及MCP自动发现；Skills也不自动发现，只有SKILLS_ENABLED显式开启后加载受管批准包。不读取全局Pi配置，不保存Key到Pi认证文件。
 - 关闭 Agent 自动重试、Provider HTTP 重试、自动压缩、缓存预热和 SDK 可配置的分析功能。保留原版 Pi SDK 及 Agent Loop。
 - 服务自身仍会写 SQLite，并向指定 LLM API 和启用的飞书服务发请求。工具白名单属于应用能力边界，不是操作系统沙箱。模型会收到对话和当前任务内容。
 - `.env`、数据库、默认 Memory、Session 文件、构建产物及依赖目录已加入 `.gitignore`。启动设置 umask 0077，新建数据目录权限0700；会话和 Memory 目录/文件打开时收紧权限，其他已有数据文件权限需要自行检查。
@@ -502,6 +536,6 @@ V2.0 自动化覆盖四类 CRUD、来源/权限、去重/版本冲突、跨进�
 
 当前限制：没有上下文自动压缩；历史跨重启保留，长对话达到模型上下文限制后需要使用新的 Session 目录。会话文件与 SQLite 不是跨存储事务；强杀时可能出现两者记录不一致或最后一条会话记录不完整，恢复只加载上下文，不自动补偿或重放。服务采用协作式取消，若供应商/SDK 无法响应 abort，退出可能延迟；下次启动会标记遗留执行中断。崩溃可能发生在结果生成后或通知投递前，不保证通知一定送达。
 
-V1 核心本机闭环及 V1.2 上下文跨重启恢复已有真实用户实测反馈；V2.0 Project Memory 核心闭环已有真实飞书验收；Retriever 的真实语义与手机效果仍待验收。V3.1–V3.3本地模拟与真实验收分开记录；WebUI、Skills、Computer Use、VPS及其他生态不在本轮范围。本版复用已有Run/Events/ModelCalls，不另建评测平台。
+V1核心本机闭环及V1.2上下文跨重启恢复已有真实用户实测反馈；V2.0 Project Memory核心闭环已有真实飞书验收；Retriever真实语义与手机效果仍待验收。V3.1–V3.3及S0本地模拟与真实验收分开记录；S0只含上述纯文本Skills，WebUI、Computer Use、VPS及其他生态不在本轮范围。本版复用已有Run/Events/ModelCalls，不另建评测平台。
 
 官方参考：[Pi SDK](https://pi.dev/docs/latest/sdk)、[1.3.0 完整控制示例](https://github.com/earendil-works/pi/blob/v1.3.0/packages/coding-agent/examples/sdk/12-full-control.ts)、[Node SQLite](https://nodejs.org/api/sqlite.html)。

@@ -7,6 +7,7 @@ import type { Goal, GoalActor, GoalExecution, GoalResult, GoalView } from './goa
 import { SqliteStore } from './sqlite-store.js';
 import { BackgroundLane } from './background-lane.js';
 import { GoalPlanQuantityError, planQuantityQuestion } from './goal-plan-quantity.js';
+import type { SkillSnapshot } from './skill-service.js';
 
 const bounded = (maxLength: number) => Type.String({ minLength: 1, maxLength });
 export const goalResultSchema = Type.Object({
@@ -66,7 +67,10 @@ export function renderGoal(view: GoalView): string {
     ...[planQuantityQuestion(goal.objective, goal.pendingAction.spec.steps.length)].filter((text): text is string => !!text),
     '请明确批准计划；如需执行，同时说“批准并继续一段”。调整计划请给出完整步骤及产物、验收条件。');
   for (const [label, spec] of [['正式计划', plan.spec], ['待批准计划', goal.pendingAction?.spec]] as const) {
-    for (const binding of spec?.skillBindings ?? []) lines.push(`${label}步骤${spec!.steps.findIndex(step => step.stepId === binding.stepId) + 1}使用Skill ${binding.skillId}@${binding.version}；Hash=${binding.packageHash}；仅纯文本，不授予工具权限。`);
+    if (plan.spec.skillBindings?.length || goal.pendingAction?.spec.skillBindings?.length) for (const [index, step] of (spec?.steps ?? []).entries()) {
+      const binding = spec?.skillBindings?.find(binding => binding.stepId === step.stepId);
+      lines.push(binding ? `${label}步骤${index + 1}使用Skill ${binding.skillId}@${binding.version}；Hash=${binding.packageHash}；仅纯文本，不授予工具权限。` : `${label}步骤${index + 1}：无Skill绑定。`);
+    }
   }
   if (goal.blockedReason) lines.push(`阻塞：${goal.blockedReason}；核实原因后可明确要求重新生成纯文本片段。`);
   const lastError = view.executions.at(-1)?.run.error;
@@ -87,7 +91,9 @@ export class GoalRunner {
   constructor(private readonly store: SqliteStore, private readonly executor: AgentExecutor,
     private readonly channel: Channel, private readonly lane: BackgroundLane,
     private readonly options: { ownerId: string; accepts(target: MessageTarget): boolean; pollIntervalMs: number;
-      reportError(error: unknown): void; fatal(): void; proactiveEnabled?: boolean; delivered?(goal: Goal, runId: string): void }, private readonly clock = () => new Date()) {}
+      reportError(error: unknown): void; fatal(): void; proactiveEnabled?: boolean; delivered?(goal: Goal, runId: string): void }, private readonly clock = () => new Date()) {
+    store.goals.setSkills(executor.skills);
+  }
 
   start(): void {
     if (this.loop || this.shutdown.signal.aborted) throw new Error('GoalRunner 不能重复启动');
@@ -133,14 +139,27 @@ export class GoalRunner {
       await this.store.policies.observe(this.clock().toISOString(), accepts, this.shutdown.signal);
     }
     if (this.shutdown.signal.aborted) return;
+    const goal = this.store.goals.readyForHost().find(item => accepts(item) && (item.readyInput?.kind !== 'policy' || this.options.proactiveEnabled));
+    if (!goal) return;
+    const actor: GoalActor = { ownerId: goal.ownerId, target: goal.target };
+    let preparedSkill: SkillSnapshot | undefined;
+    const binding = this.store.goals.view(actor, goal.id).plan.spec.skillBindings?.find(binding => binding.stepId === goal.currentStepId);
+    // 包读取在执行门/领取事务外；回来仍核对revision、到期Task和Grant。
+    try {
+      if (binding) {
+        if (!this.executor.skills) throw new Error('SKILLS_ENABLED未开启，已绑定Skill不能降级执行');
+        preparedSkill = this.executor.skills.snapshot(binding.skillId, binding.packageHash);
+      }
+    } catch (error) {
+      this.store.goals.blockSkill(actor, goal.id, goal.revision, this.clock().toISOString());
+      this.options.reportError(error); return;
+    }
     const release = this.lane.acquire(true);
     if (!release) return;
     let finished: { goal: Goal; actor: GoalActor; runId: string; policy: boolean } | undefined;
     try {
       // 网络等待之后重新检查；模型执行及聚合提交仍共用同一互斥门。
       if (this.store.hasDueTasks(this.clock().toISOString())) return;
-      const goal = this.store.goals.readyForHost().find(item => accepts(item) && (item.readyInput?.kind !== 'policy' || this.options.proactiveEnabled));
-      if (!goal) return;
       try { this.executor.checkReady?.(); }
       catch (error) {
         const reason = String(error);
@@ -150,8 +169,7 @@ export class GoalRunner {
       this.blockedReason = undefined;
       // 同步健康检查也可能耗时；领取和消费预算前再核对到期Task。
       if (this.shutdown.signal.aborted || this.store.hasDueTasks(this.clock().toISOString())) return;
-      const actor: GoalActor = { ownerId: goal.ownerId, target: goal.target };
-      const claimed = this.store.goals.claim(actor, goal.id, goal.revision, this.clock().toISOString());
+      const claimed = this.store.goals.claim(actor, goal.id, goal.revision, this.clock().toISOString(), preparedSkill);
       if (!claimed) return;
       const { execution, run } = claimed;
       const controller = new AbortController();
@@ -160,8 +178,13 @@ export class GoalRunner {
       let result: GoalResult | undefined, failure: unknown;
       try {
         const projection = goalProjection(execution, this.store.goals.view(actor, goal.id));
-        const response = await this.executor.execute({ ...projection, scope: 'goal', policyExecution: execution.input.authorization.kind === 'policy', signal, observer: this.store.observer(run.id) });
+        const response = await this.executor.execute({ ...projection, scope: 'goal', policyExecution: execution.input.authorization.kind === 'policy',
+          ...(execution.input.skill ? { skill: execution.input.skill } : {}), signal, observer: this.store.observer(run.id) });
         if (signal.aborted) throw new ExecutionInterrupted('Goal 执行中断');
+        if (execution.input.skill) {
+          const current = this.executor.skills?.snapshot(execution.input.skill.id, execution.input.skill.hash);
+          if (!current || current.text !== execution.input.skill.text) throw new Error('Skill执行后已禁用或变更，拒绝提交进度');
+        }
         result = parseGoalResult(response.text);
       } catch (error) { failure = error; }
       try {
@@ -183,14 +206,14 @@ export class GoalRunner {
     } finally { this.active = undefined; release(); }
     // 只释放一次执行门，再等待通知；stop仍等待在途工作，不遗留数据库写入。
     if (!finished || this.shutdown.signal.aborted) return;
-    const { goal, actor, runId } = finished;
+    const { goal: finishedGoal, actor: finishedActor, runId } = finished;
     if (finished.policy) {
       if (this.options.proactiveEnabled) await this.store.notifications.deliver(this.channel, this.options.ownerId, this.options.accepts, this.clock().toISOString());
       return;
     }
     try {
-      const displayed = this.store.goals.view(actor, goal.id);
-      await this.channel.sendMessage({ text: renderGoal(displayed), goalId: goal.id, runId, target: goal.target });
+      const displayed = this.store.goals.view(finishedActor, finishedGoal.id);
+      await this.channel.sendMessage({ text: renderGoal(displayed), goalId: finishedGoal.id, runId, target: finishedGoal.target });
       this.store.event(runId, 'delivery_succeeded');
       // 绑定实际发送的版本；网络等待期间的新计划不能冒充用户已经看到的内容。
       this.options.delivered?.(displayed.goal, runId);

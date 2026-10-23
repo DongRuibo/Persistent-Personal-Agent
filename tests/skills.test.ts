@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync, symlinkSync, linkSync } from 'node:fs';
+import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync, symlinkSync, linkSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { SkillService, safeSkillFile } from '../src/skill-service.js';
@@ -8,6 +8,7 @@ import { skillReadTool } from '../src/skill-tools.js';
 import { readConfig } from '../src/config.js';
 import { FileMemoryService } from '../src/memory-service.js';
 import { createPiExecutor } from '../src/pi-executor.js';
+import { approveSkill } from '../src/skills-admin.js';
 import { installSkill, skillFixture, content, toolCall, reply } from './helpers/skills-fixture.js';
 
 test('Skills配置默认关闭、专用目录、严格布尔值；受管包原生解析与Hash验证', () => {
@@ -20,6 +21,17 @@ test('Skills配置默认关闭、专用目录、严格布尔值；受管包原�
   writeFileSync(join(root, 'agent-notes/SKILL.md'), readFileSync(join(root, 'agent-notes/SKILL.md'), 'utf8') + 'changed');
   assert.throws(() => service.snapshot('agent-notes'), /Hash/);
   assert.throws(() => new SkillService(root), /Hash/);
+});
+
+test('首批两份产品Skill可用原版SDK解析并按自包含text_only批准', () => {
+  const root = mkdtempSync(join(tmpdir(), 'skills-shipped-'));
+  for (const id of ['agent-notes', 'interview-practice']) {
+    mkdirSync(join(root, id)); copyFileSync(join('skills', id, 'SKILL.md'), join(root, id, 'SKILL.md')); approveSkill(root, id);
+  }
+  const service = new SkillService(root);
+  assert.equal(service.list().length, 2);
+  assert.ok(service.snapshot('agent-notes').text.includes('区分资料原文'));
+  assert.ok(service.snapshot('interview-practice').text.includes('等待用户回答'));
 });
 
 test('原生格式警告、同名目录、不支持脚本、容量、硬链接与junction拒绝', () => {

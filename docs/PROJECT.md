@@ -81,7 +81,7 @@ Pi SDK 使用公开 API，不 Fork、不修改内部源码和 Agent Loop。宿�
 - 重启继续等待中的任务；遗留 running 标记 interrupted；失败、中断和投递失败不自动重跑任务。有外部副作用时须人工核实，不能保证恰好一次。
 - `message_end` 记录模型响应与用量；`agent_settled` 后仍检查 aborted、模型与工具错误、截断及最终文本。执行结束、数据库成功提交、渠道投递成功互相区分。
 - UTC 持久化、IANA 用户时区解析。支持的中文时间语法见 README，歧义或 DST 无效时间要求用户明确，不让模型或服务器时区决定。
-- 交互白名单为三项任务工具及 `memory_search/get/remember/update/forget`；显式开启Formation后增加无参数 `memory_review`，后台无工具，可由宿主只读检索 Memory。禁止默认 Shell、任意文件读写和通用网络能力。服务仍需写数据库并请求配置的模型 API，工具白名单不等同于 OS 沙箱。
+- 交互白名单为三项任务工具及 `memory_search/get/remember/update/forget`；显式开启Formation后增加memory_review，显式开启S0后增加仅批准Skill文件的受限原生read。后台始终无工具，可由宿主只读检索Memory。禁止默认Shell、任意文件读写和通用网络；数据库/模型请求不等于OS沙箱。
 - 飞书只允许配置的应用内 open_id 和文本私聊；`(appId, message_id)` 持久化去重后再安排执行，不自动重放中断消息。模型执行和发送均不阻塞事件接收；旧Task/聊天/手动Goal发送失败不重跑Agent。V3.3策略Goal具有最小持久通知Outbox，有限重投也可能重复或最终失败。
 
 ## V2.0 四类长期 Memory
@@ -186,7 +186,19 @@ Goal侧Outbox/Observer及提交后通知不跨网络占用后台门；网络前�
 
 接口、数据迁移和边界详见[设计](designs/v3-proactive-goals.md)，[本地验收](evaluations/v3-proactive-validation.md)仅证明隔离模拟机制；真实模型、GitHub正式仓库和飞书尚未验收。V3.0.1原真实暂停与收据误解失败保留。
 
-用户已确认V3.0～V3.3主要工程阶段性收尾；V3.0.1自然语言暂停及操作收据误解仍须在正式主动执行启用前独立解决并真实复验。当前仅开展[Pi原生Skills调研与设计](designs/skills-tools-architecture.md)及[隔离技术验证](evaluations/pi-native-skills-spike.md)，不自建Skills解析/Agent Loop；方案待审查，不代表已实施产品、批准新工具权限或启用正式能力，当前运行架构及默认关闭边界不变。
+用户已确认V3.0～V3.3主要工程阶段性收尾；V3.0.1自然语言暂停及操作收据误解仍须在正式主动执行启用前独立解决并真实复验。之后已明确批准S0原生Skills路线：保留[原调研](evaluations/pi-native-skills-spike.md)，实现与实际验收见[设计](designs/skills-tools-architecture.md)和[本轮记录](evaluations/s0-skills-validation.md)，正式能力仍关闭。
+
+## S0 原生 Skills 与宿主授权
+
+独立 `SKILLS_ENABLED=false`，专用受管目录与宿主approved.json批准清单，原生loadSkills/DefaultResourceLoader/parseFrontmatter处理发现与格式；宿主只补身份、范围、资源校验和内容Hash。不开全局资源发现，不自建Skill解析器或Loop。包至多8个，每包16文件/128KiB，只接收正文及references文本；拒绝符号链接、junction、硬链接、脚本和未知资源。批准/更新在停服后完成，模型无安装、启用或写清单工具。
+
+Chat附加同名覆盖内置实现的受限原生read，操作只映射批准包；原有Task/Memory工具依旧经过当前原话Guard。每轮read2次，正文累计8KiB跨原生Session重启保留，重复正文照样计额；用尽只拒绝Skill读取，正常聊天可继续。开启Skills时主Loop和辅助解析/改写共享每轮8次HTTP上限，65536字节payload，无重试，不宣称账单硬限制。两份自有包为agent-notes与interview-practice。
+
+GoalPlanSpec新增可选skillBindings，模型仅可提议每步skillId；宿主映射ID/版本/Hash并纳入草稿和Plan Hash。成功展示后明确批准才生效，改绑/移除需新Plan；旧JSON不回填，完成Step及Checkpoint不变。原四表、Task/Run唯一约束与Policy/Grant权限/限额不变，无新增DDL。
+
+Runner在门外准备包快照，重新入门后复核Task优先、Goal/Plan/Grant版本，再随claim冻结Execution输入。原生/skill显式展开只用于该一份冻结副本，联网前校验全文与参数、零工具、一次HTTP；执行后再次核对包未禁用/变化。Skill不可用时沿用blocked语义，尚未领取Step保留pending、授权不被消费；修复后需重新批准/授权。临时Session和副本释放，不从历史恢复工具。结果仍由原Checkpoint聚合事务提交，原Outbox只重投消息，不重跑模型。产物不自动进Memory或Formation。
+
+`skill-service.ts`负责宿主管理边界，`skill-tools.ts`集中公开Pi Skill/read适配，`skills-admin.ts`仅为停服人工批准入口。业务服务只传宿主DTO，Pi类型不进入Goal/Policy。安全限制依靠宿主验证与工具白名单，不把Skill提示词当权限保证，也不声称同账户恶意进程隔离。真实语义、渠道与长期稳定性另验，S0不开放任何其他工具能力。
 
 ## V2.1b 候选与正式知识的边界
 

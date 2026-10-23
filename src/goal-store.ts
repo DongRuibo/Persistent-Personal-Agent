@@ -1,6 +1,6 @@
 import { createHash, randomUUID } from 'node:crypto';
 import type { DatabaseSync } from 'node:sqlite';
-import type { SkillCatalog } from './skill-service.js';
+import type { SkillCatalog, SkillSnapshot } from './skill-service.js';
 import type { Run, RunStatus } from './contracts.js';
 import { validatePlanQuantity, validateQuantityApproval } from './goal-plan-quantity.js';
 import type {
@@ -212,7 +212,18 @@ export class GoalStore {
     });
   }
 
-  claim(actor: GoalActor, id: string, expectedRevision: number, now: string): { goal: Goal; execution: GoalExecution; run: Run } | undefined {
+  blockSkill(actor: GoalActor, id: string, expectedRevision: number, now: string): void {
+    this.tx.transaction(() => {
+      this.time(now);
+      const goal = this.get(actor, id);
+      if (goal.status !== 'ready' || goal.revision !== expectedRevision) return;
+      // 尚未领取的Step仍是pending；只阻塞Goal，重新审批后可合法领取原步骤。
+      this.db.prepare("UPDATE goals SET status='blocked',blockedReason='skill_unavailable',readyInputJson=NULL,revision=revision+1,updatedAt=? WHERE id=?").run(now, id);
+      if (goal.readyInput) this.tx.event(goal.readyInput.triggerRunId, 'goal_skill_blocked', JSON.stringify({ goalId: id }), now);
+    });
+  }
+
+  claim(actor: GoalActor, id: string, expectedRevision: number, now: string, skill?: SkillSnapshot): { goal: Goal; execution: GoalExecution; run: Run } | undefined {
     return this.tx.transaction(() => {
       this.time(now);
       const goal = this.get(actor, id);
@@ -226,6 +237,10 @@ export class GoalStore {
         || goal.controlRequested || goal.blockedReason || goal.pendingAction) throw new Error('Goal 领取条件或授权不一致');
       const input: GoalExecutionInput = { goalId: id, objective: goal.objective, planRevision: goal.planRevision, step,
         authorization, previousCheckpoint: this.checkpoint(goal) };
+      const bound = this.plan(goal).spec.skillBindings?.find(binding => binding.stepId === step.stepId);
+      if (bound ? !skill || skill.id !== bound.skillId || skill.hash !== bound.packageHash || skill.version !== bound.version
+        || !skill.text || Buffer.byteLength(skill.text) > 4096 : !!skill) throw new Error('Skill执行快照与已批准Plan绑定不一致');
+      if (skill) input.skill = structuredClone(skill);
       const run = authorization.kind === 'policy' ? this.policy?.consume(goal, authorization, now) : this.tx.begin(now);
       if (!run) return undefined;
       const sequence = Number(this.db.prepare('SELECT coalesce(max(sequence),0)+1 AS n FROM goal_executions WHERE goalId=?').get(id)!.n);

@@ -4,12 +4,12 @@
 
 ## 当前阶段与进行中事项
 
-- 调研开始及本次发布前已独立核对本地main、origin/main与GitHub远端main，基线均为 `553526038a44cf0c07091c604991ac1503b3b09d`，包含后台门修复7d02dd9。用户确认该修复通过ChatGPT审查，V3.0～V3.3主要工程阶段性收尾；不继续扩展调度器或重复同类模拟研究。正式主动执行及长期稳定性尚未验收。
-- 用户已批准从121e83e连续完成S0-A/B/C，在独立分支feature/s0-native-skills开发，不推送、不使用正式环境。S0-A与S0-B均通过五关：Chat原生受限read/累计额度、两份纯文本包，以及Goal审批绑定/改绑/移除、Plan Hash与完成Step保留；B阶段Windows261项258通过/3原跳过。当前进入S0-C后台原生展开，Linux最终回归未完成，详见[本轮验证](evaluations/s0-skills-validation.md)。
-- 设计与验证材料位于独立工作树 `C:/Users/Dongr/.codex/worktrees/v3-proactive/Persistent Personal Agent`，从 `design/skills-tools-20261023` 准备发布。用户随后明确授权提交并推送GitHub；发布仅包含设计、验证报告、一次性脚本、PROJECT和STATE共5份文件，快进main后推送并核对远端SHA，不涉及产品功能启用。原E盘工作区仍在 `local/preserve-workspace-20261023`，已有7份未提交文件及HANDOFF均保留，不加入本次提交。
+- 已核对本地与GitHub main实施基线121e83e9a679bfccf646bca0597ccc2a274f34eb。V3.0～V3.3主要工程按用户确认阶段性收尾；本次连续完成用户批准的S0-A/B/C，不扩展调度器或后续工具阶段。
+- S0原生Skills MVP工程及隔离自动化已完成：Chat原生目录/受限read、跨重启累计额度、两份自包含包；Goal提议/指定/审批Hash绑定、改绑/移除；后台原生显式展开与联网前逐字校验、零工具/单请求、Checkpoint/Policy/Grant/预算/通知恢复。无新框架、依赖、DDL或Pi修改，详见[设计](designs/skills-tools-architecture.md)和[完整验证](evaluations/s0-skills-validation.md)。
+- 工作位于独立工作树 `C:/Users/Dongr/.codex/worktrees/v3-proactive/Persistent Personal Agent`，分支feature/s0-native-skills。本地阶段提交A=9a8fa84、B=9d6c541，C见本分支Git记录；本次没有推送远端。原E盘保留分支local/preserve-workspace-20261023及8份已有文件（含HANDOFF）SHA256未变，不覆盖、不混入提交。
 - V3.0.1自然语言暂停与主模型操作收据误解两项真实失败列为**正式主动执行启用前必解项**，须独立修复并真实复验；[原始报告](evaluations/v3.0.1-live-retest.md)不改，不因V3工程收尾或Skills设计而标记通过。
-- 已阅读AGENTS/PROJECT/STATE/README及V3/Pi1.3.0实际源码、公开声明和官方文档；[隔离技术验证](evaluations/pi-native-skills-spike.md)最终9项全过、6次本机模拟HTTP，两轮完成运行累计12次本机HTTP，收费0。保留首次ESM导入方式错误原始失败；真实模型语义、产品Chat/Goal/SQLite集成尚未验证。4份文档171个本地链接及UTF-8、脚本node --check、git diff --check通过；原工作区8份已有文件SHA256未变。未运行整套typecheck/build/test/两个eval或Linux回归；历史后台门Windows246通过/3跳过、Linux249全过仅作[既有证据](evaluations/v3-background-lane-review.md)。
-- 本轮收费模型请求0、真实GitHub Observer/飞书/手机操作0，未读取或修改正式.env/正式数据/历史测试数据库；默认GOAL_ENABLED与PROACTIVE_ENABLED仍false，Formation不启用。拟议SKILLS_ENABLED尚未实现。后台非抢占、旧Task发送持门、Outbox可能迟到/重复/失败等已有边界不变。
+- 最终Windows和隔离Linux均Node24.19.0，typecheck/build/npm test/两个eval退出0；Windows270项267通过/0失败/3原平台跳过，Linux270全过/0跳过。118份代码/测试/配置原始Hash一致。早期Windows系统Node24.12低于项目要求的日志保留，最终用已有bundled24.19补跑；未改系统环境。原始失败及修复见[本轮机器摘要](evaluations/s0-skills-validation.json)，根目录E:/AgentWork/validation/personal-agent-s0-skills-20261023。Linux无宿主挂载，装依赖后断网，容器已停。
+- 本轮收费API、真实GitHub Observer/飞书/手机、正式.env/正式数据/历史数据库操作均0。SKILLS_ENABLED、GOAL_ENABLED、PROACTIVE_ENABLED默认false，Formation不启用；测试用本机模型HTTP桩、虚构数据、真实SQLite及原版Pi。真实Skills语义/渠道/正式主动执行、Windows ACL、原生Mac和长期运行未验；同账户恶意进程不在白名单隔离保证内，崩溃可留私有副本但不会扫描执行。通知可能迟到/重复/失败，已有非抢占边界不变。
 
 ## 已完成功能
 
@@ -30,12 +30,13 @@
 - Memory 正文原子替换，索引可重建，启动和读取前修复；目录/文件0700/0600，宿主独占 Memory 锁，拒绝符号链接和凭据。通过 Pi 1.3.0 公开内联扩展和 context 返回本轮投影，工具只留收据，不把注入正文反复追加 Session；Context 异常公开 abort 并报错。
 - Formation只在明确开启的测试进程发现待审批候选，没有未经批准的自动保存；未新增依赖、Embedding/向量库、Skills、WebUI、外部队列或VPS配置。
 - V3.0长期Goal完整隔离闭环：四表/版本CAS/不可变Plan与Checkpoint、独立有界执行、自然语言控制、多目标澄清、计划调整、用户完成确认、等待与重启恢复；V3.1–V3.3另外加入明确策略下的定时、只读GitHub观察、有界text_only续段与有限重投Outbox，正式双开关仍关闭，没有外部执行工具。
+- S0通过原生SDK加载批准Skill，Chat按需受限read、额度不足只拒绝读取；手动/主动Goal绑定包Hash并显式展开，审批、恢复、控制与通知仍走原服务。产品包agent-notes/interview-practice默认未安装到正式目录，安装和自动化演示见README。
 
 ## 最近关键修改（最多5项）
 
 | 日期 | 修改及位置 |
 | --- | --- |
-| 2026-10-23 | S0-A原生加载与Chat完成，Windows256项253通过/3原跳过，五关退出0；S0-B/C未完成，正式能力仍关闭 |
+| 2026-10-23 | S0-A/B/C完成并逐阶段过关；最终Node24.19 Windows267通过/3原跳过、断网Linux270全过，两边五关均0；118源码Hash一致，默认未启用，原始失败及阶段证据保留 |
 | 2026-10-23 | V3主要工程按用户确认收尾；[原生Skills设计](designs/skills-tools-architecture.md)及[SDK隔离验证9项通过](evaluations/pi-native-skills-spike.md)，无产品功能启用；V3.0.1两项真实失败仍为主动启用门槛 |
 | 2026-10-23 | 后台门修复7d02dd9：基线6项失败→18项专项通过，Windows246/249、Linux249全过，两边五检查均0；用户后授权合并推送main，发布只补STATE，未真实启用；[独立报告](evaluations/v3-background-lane-review.md) |
 | 2026-10-23 | V3.3=c9aa2b2，用户随后授权合并推送main=5c07ec7；每触发1～5段、限额/控制、最小通知Outbox；[原验证](evaluations/v3-proactive-validation.md)保留 |
@@ -468,10 +469,10 @@ V1 原有自动化证据：39项测试使用模拟模型/飞书服务和虚拟�
 
 ## 下一步与需要提供的信息
 
-1. 将[原生Skills设计](designs/skills-tools-architecture.md)与[SDK验证](evaluations/pi-native-skills-spike.md)交给ChatGPT审查，再决定是否一次性开发S0：Chat受限原生read、Goal绑定/原生展开；不一次性开放通用工具，本次没有直接实施产品。
+1. 将本分支S0代码、[实现设计](designs/skills-tools-architecture.md)、[完整报告](evaluations/s0-skills-validation.md)和[机器摘要](evaluations/s0-skills-validation.json)交给ChatGPT审查。主要工程及隔离验收已完成，后续提交推送须另行授权。
 2. 正式主动执行启用前，独立解决V3.0.1自然暂停和收据误解并做真实复验；保留原始失败，不用模拟测试或新增Skill提示词替代真实验证。
-3. V3主动执行真实模型/渠道与长跑仍待验；既有Console最多6请求/0.5元方案仅为历史建议，未实施新入口或联网，不复用旧额度。本轮不重复调度研究。
-4. GOAL_ENABLED、PROACTIVE_ENABLED及Formation保持关闭；原生Mac、Windows ACL尚未验。后续Web/文件/Sandbox/Computer Use/MCP须按设计分阶段明确范围，当前不安装、不连接、不开放新外部写能力。
+3. 审查后另行安排Skills Console真实自动选择/遵循与手动Goal验收，独立核算并授权新预算；本轮只模拟，不沿用旧账本。正式主动执行及真实渠道/长跑仍待验，不因本地MVP通过而启用。
+4. Skills/Goal/Proactive及Formation保持关闭；原生Mac、Windows ACL尚未验。后续Web/文件/Sandbox/Computer Use/MCP须按设计独立明确范围，当前不安装、不连接、不开放新外部写能力。
 
 ## V2.0.2 关键文件（主体及本轮修复）
 

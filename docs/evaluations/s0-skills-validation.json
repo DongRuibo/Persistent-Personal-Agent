@@ -1,0 +1,47 @@
+{
+  "baseCommit": "121e83e9a679bfccf646bca0597ccc2a274f34eb",
+  "evidenceRoot": "E:/AgentWork/validation/personal-agent-s0-skills-20261023",
+  "sourceFiles": 118,
+  "sourceManifestSha256": "93aa3e19ada4f84bcc1ee0563036d3d032bc485b5268578e9dc666399fe7ccf3",
+  "paidApiRequests": 0,
+  "productionDataAccess": false,
+  "windows": {
+    "node": "24.19.0",
+    "typecheck": 0,
+    "build": 0,
+    "test": 0,
+    "evalMemory": 0,
+    "evalFormation": 0,
+    "tests": 270,
+    "passed": 267,
+    "failed": 0,
+    "skipped": 3,
+    "testLogSha256": "74b9df846d383f3f94c54e10334acb1f842396ee1a47f916c6605aa131983a1c"
+  },
+  "linux": {
+    "node": "24.19.0",
+    "typecheck": 0,
+    "build": 0,
+    "test": 0,
+    "evalMemory": 0,
+    "evalFormation": 0,
+    "tests": 270,
+    "passed": 270,
+    "failed": 0,
+    "skipped": 0,
+    "testLogSha256": "e1cbbe02fe4e7eb86f4942d42499bfcc90ac868191c6db7d67d552832128f1f8",
+    "network": "disconnected_after_npm_ci",
+    "hostMounts": 0
+  },
+  "defaults": {
+    "SKILLS_ENABLED": false,
+    "GOAL_ENABLED": false,
+    "PROACTIVE_ENABLED": false
+  },
+  "knownOpen": [
+    "V3.0.1 natural pause live failure",
+    "V3.0.1 model receipt interpretation live failure",
+    "Skills live model and Feishu acceptance not performed",
+    "Windows ACL and native macOS not verified"
+  ]
+}

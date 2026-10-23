@@ -1,6 +1,6 @@
 # Personal Agent Skills 与 Tools 扩展设计
 
-日期：2026-10-23。状态：**供审查的设计建议，尚未编码或批准启用**。核对基线为本地与 GitHub main `553526038a44cf0c07091c604991ac1503b3b09d`，SDK 锁定 `@earendil-works/pi-coding-agent@1.3.0`。本文不设立新版本号，不重开 V3 调度开发。
+日期：2026-10-23。状态：**S0路线已获用户批准并完成代码实施；正式环境仍未启用**。初版设计基线5535260、发布121e83e；本次S0实施从121e83e开始，SDK锁定 `@earendil-works/pi-coding-agent@1.3.0`。前文保留设计依据，实际实现及与建议的差异见第12节，验收见[本轮记录](../evaluations/s0-skills-validation.md)。不重开V3调度开发。
 
 用户已认可 V3.0～V3.3 主要工程阶段性收尾；正式主动执行仍未验收。V3.0.1 的自然语言暂停失败及主模型误解操作收据，继续作为正式主动执行启用前的必解项，原始[复验报告](../evaluations/v3.0.1-live-retest.md)不改。它们不阻塞本文设计。
 
@@ -105,7 +105,7 @@ Chat 的 ResourceLoader 返回当前批准集合，工具白名单在既有工�
 
 建议每轮最多激活2个 Skill、读取2次，正文/参考合计最多8 KiB，候选目录最多2 KiB。超限报错并结束或澄清，不无限分页/递归跟随资源。不支持的脚本/网络要求明确说明，不能因为正文提到 bash 而注册工具。Chat 原有 Task/Memory 工具仍各自走 Guard；Skill 内容不进入授权解析器，不构成新的用户写入意图。
 
-Chat 持久Session会保存工具结果，不能每轮重新读取而无限堆积。首批采取保守限额：Session custom entry仅保存ID/Hash/来源Run及累计Skill输出字节，正文仍在原生工具结果中；同Hash且正文仍在有效上下文时，重复read只返回短收据，短收据也计字节。**每Session累计Skill输出最多8 KiB**，重启恢复计数，不自动清零；超限明确停止并让用户另开Session，不删历史、不做复杂压缩或第二套会话存储。新包Hash不能沿用旧激活记录。当前模型请求总容量仍独立检查；后续需要更长复用时再通过公开context事件设计投影，首批不重写Session裁剪机制。
+Chat持久Session保存原生工具结果，首批以累计额度限制正文增长：Session custom entry保存ID/Hash和累计正文读取字节。**每Session正文累计最多8 KiB**，重复读取也计额度，不因旧元数据存在就虚假宣称正文已经可用；重启恢复，不自动清零。额度不足仅返回Skill读取拒绝，正常对话与旧工具仍可用，用户可自行另开Session；不删历史或启用收费压缩。新包Hash不沿用旧激活权限，当前模型请求总容量另有硬检查，不重写Pi会话裁剪机制。
 
 原版 read 默认最多50 KiB/2000行，远大于上述产品上限，不能直接照搬；应在快照生成及 execute 外层先限额。不能把 SDK 的分页提示或“Use bash”建议视为授予 bash 权限。
 
@@ -257,7 +257,9 @@ MCP：协议提供连接和工具描述，不提供本产品的权限保证；[M
 
 正式启用前另设质量门槛：先解决 V3.0.1 自然暂停与操作收据误解，并用冻结原话做离线及另行批准的真实复验；再完成 S0 的真实选择/正文遵循/中断与收据验收、主动执行真实验收及适用渠道验收。Console 模拟成功不等于手机、真实模型或长期主动运行通过。两项 V3.0.1 问题不由 Skill 提示词“顺便修复”，必须保留原始失败与独立证据。
 
-## 10. 已执行的隔离技术验证
+## 10. 设计阶段的隔离技术验证（实施前历史）
+
+本节“本轮”指初版调研阶段，S0产品实施与新验收见第12节，不覆盖本节原始证据。
 
 使用[一次性脚本](../evaluations/fixtures/pi-native-skills-spike.mjs)，只创建临时虚构Skill/私有标记文件，运行原版SDK和127.0.0.1模拟模型。Windows Node24.19.0、Pi1.3.0最终运行9项通过、6次本机HTTP；两轮完成运行累计12次本机HTTP，收费0；没有接入正式Chat/Goal或SQLite。详见[独立报告](../evaluations/pi-native-skills-spike.md)。模拟模型按预置返回，不证明真实模型自动选择或遵循Skill的质量。
 
@@ -265,7 +267,7 @@ MCP：协议提供连接和工具描述，不提供本产品的权限保证；[M
 
 本轮没有新增产品源码、依赖、迁移、开关或正式工具，没有收费/正式账号/正式数据/.env操作。未运行整套typecheck/build/test/两个eval或Linux回归；本次仅设计与隔离SDK验证，不把历史249项当新测试。
 
-## 11. 需审查的取舍与下一任务
+## 11. 已批准的取舍与实施入口
 
 建议产品修改文件（均未实施）：
 
@@ -283,6 +285,20 @@ MCP：协议提供连接和工具描述，不提供本产品的权限保证；[M
 
 首批无需修改TaskScheduler、BackgroundLane、Memory/Formation核心、Pi包或node_modules。辅助模型请求的调用计数可在现有适配函数入口增量接入同一Chat计数对象，不另建计费平台。后续有界工具循环期间也不能随意释放执行门造成并行模型执行；先设总时长和工具超时，任务非抢占性质如实保留，本轮不据此扩展调度器。
 
-建议下一开发任务批准S0：两个自有纯文本包、Chat原生按需read、Goal审批绑定和原生显式展开，以及完整隔离验收。产品权限仍默认关闭。需要审查的产品取舍是：**接受Chat有界多轮读取、Goal只在审批范围内激活固定Skill**，还是要求后台执行中动态选读；后者影响原text_only/一次HTTP承诺，应独立决策，不默认实施。
+用户已批准S0：两个自有纯文本包、Chat原生按需read、Goal审批绑定和原生显式展开及完整隔离验收。产品权限仍默认关闭。采用**Chat有界多轮读取、Goal只在审批范围内激活固定Skill**；后台执行中动态选读影响原text_only/一次HTTP承诺，不默认实施。
 
-不需要新框架或持久化服务。首批可用现有JSON、Run Events与应用事务，目录批准清单用普通宿主文件；暂不做运行中全局热更新。MCP、脚本、Web和Computer Use都不能从此设计自动获得开发或启用授权。设计及验证报告交给ChatGPT审查后，再决定是否一次性开发S0；本轮不直接进入完整产品实现。
+不需要新框架或持久化服务。首批使用现有JSON、Run Events与应用事务，目录批准清单用普通宿主文件；无运行中全局热安装/启用。MCP、脚本、Web和Computer Use均未获得授权，仍后置。
+
+## 12. S0实际实现与核对
+
+S0-A由 `skill-service.ts` 校验宿主批准清单、普通文本资源、目录边界和Hash；`skill-tools.ts`复用原生loadSkills/parseFrontmatter/createReadToolDefinition/defineTool，前置参数检查避免原生read探测任意路径，ReadOperations只返回批准字节。`skills-admin.ts`是停服人工入口，Console支持只读/skills和/skill ID；模型无安装或清单写工具。两份自包含包已落盘，未安装到正式目录。
+
+Chat真正走原版Pi工具循环，目录先进入Context，read后下一请求才有正文；每轮read2次、累计正文8192字节、每轮主Loop及辅助模型HTTP共8次、最终payload65536字节。次数和额度超限不收费重试；正文额度不足只拒绝read，正常聊天仍能继续。与初稿“缓存命中即返回已加载”的建议不同，实际选择重复读取也扣额，以避免崩溃或缺失工具结果时假称正文仍可用。这不改变授权范围。
+
+S0-B在原Plan JSON新增可选skillBindings，模型proposedPlan每步仅增加可选skillId（null表示移除），宿主映射版本和Hash。用户明确指定的包不可被模型替换；待批与正式计划逐步显示绑定或无绑定，已有成功展示/TTL/owner/channel/revision/draftHash检查完整保留。当前步骤改绑或移除只是revise_plan草稿；完成Step禁止改绑定，旧JSON及Hash不回填。批准前在事务外核对包，再按原CAS事务批准。
+
+S0-C在门外准备批准包快照，门内保留Task优先与再次版本核对，claim原子保存SkillSnapshot到Execution.input并纳入inputHash。创建私有临时副本，loader仅登记该一包，公开session.prompt以/skill开头、时间和Goal输入放在参数部分，只为该宿主分支开启expandPromptTemplates。context中用公开parseSkillBlock/stripFrontmatter核对名称/位置/全文/参数，provider前再核对当前Hash和容量/次数，实际工具集合为空。执行后再次核对未禁用或变化；原Checkpoint和策略Outbox事务不变，不重放模型或外部工具。
+
+若领取前Skill不可用，则Goal进入既有blocked状态并清除ready授权；尚未领取Step继续pending，不虚构失败Execution或消耗Grant/预算，修复后需明确新计划/新授权。改包不能静默替换Hash。若运行中禁用/变更，结果不能成为新Checkpoint；用户pause/cancel/revoke版本仍优先。进程恢复不盲目重跑，临时Session与本段副本正常释放。
+
+无DDL、依赖或Pi源码修改；旧Task一次性与Memory/Formation语义不变。新增审核和读取是宿主能力，不构成OS沙箱，无法防御同账户恶意进程或管理员篡改；Windows ACL与正式渠道另验。Skill已展开的审计事件只证明进入本段Context，不证明真实模型正确遵循方法。Skills/Goal/Proactive默认仍false；V3.0.1两项真实失败及真实主动执行验收缺口保留。

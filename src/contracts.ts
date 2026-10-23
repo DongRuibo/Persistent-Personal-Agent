@@ -1,4 +1,4 @@
-import type { SkillCatalog } from './skill-service.js';
+import type { SkillCatalog, SkillSnapshot } from './skill-service.js';
 export type TaskStatus = 'pending' | 'running' | 'succeeded' | 'failed' | 'interrupted' | 'cancelled';
 export type RunStatus = 'running' | 'succeeded' | 'failed' | 'interrupted';
 
@@ -61,6 +61,8 @@ export interface ExecutionRequest {
   memoryQuery?: string;
   // 仅可信 GoalRunner 从已消费的宿主策略授权设置，不是模型工具参数。
   policyExecution?: boolean;
+  // 仅宿主从已批准Plan绑定和领取事务冻结，绝不是模型工具参数。
+  skill?: SkillSnapshot;
   signal: AbortSignal;
   observer: ExecutionObserver;
   source?: { channel: 'console' | 'feishu'; reference: string };

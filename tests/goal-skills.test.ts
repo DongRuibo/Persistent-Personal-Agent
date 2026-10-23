@@ -123,7 +123,7 @@ test('已完成Step的绑定、定义和成果不可被改写；新草稿可以�
   try {
     let goal = f.seed(undefined, 'agent-notes');
     goal = f.store.goals.approvePlan(f.command(goal, '批准并继续一段'), goal.id, goal.pendingAction!.hash, initialTime, true);
-    const execution = f.store.goals.claim(actor, goal.id, goal.revision, initialTime)!;
+    const execution = f.store.goals.claim(actor, goal.id, goal.revision, initialTime, f.skills.snapshot('agent-notes'))!;
     f.store.goals.commit(execution.run.id, { stepOutcome: 'complete', artifactText: '完成的成果', progressSummary: '完成', question: '请确认达成' }, initialTime);
     goal = f.goals.get(goal.id); const view = f.store.goals.view(actor, goal.id);
     const done = view.plan.spec.steps[0]!;
