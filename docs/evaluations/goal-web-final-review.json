@@ -173,5 +173,10 @@
     "V3.0.1 real natural pause and receipt interpretation failures remain open",
     "Old v1 ledger/stale lock/pending writes require manual reconciliation; no reset/refund/retry",
     "Windows ACL/native macOS and long-running live behavior remain unverified"
-  ]
+  ],
+  "diffCheck": {
+    "codeAndDocsExit": 0,
+    "rawRedLogKeptByteExact": true,
+    "rawLogHasTwoWhitespaceOnlyLines": true
+  }
 }

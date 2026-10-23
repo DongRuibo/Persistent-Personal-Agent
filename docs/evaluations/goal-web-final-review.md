@@ -42,6 +42,8 @@ Windows 三项原跳过为 POSIX 权限位、无权限创建符号链接、POSIX
 
 原始证据保留：red-web-budget.test.ts / red-web-budget.log、green-initial.log、green-web-budget.log、targeted-initial.log / targeted-final.log、两平台首轮和最终五关日志/结果及源码清单。本轮收费模型、真实验收网站、飞书/手机、正式配置/数据操作为 0；GitHub 核对和分支推送按本次单独授权执行。
 
+原始红测日志按字节保留，含终端输出的两个仅空格行，因此全差异空白检查会对该证据文件报告两项trailing whitespace；不为排版改写原始日志。排除这一原始捕获文件后的代码/文档差异检查退出0，日志SHA256与原文件一致。
+
 ## 结论与剩余限制
 
 **满足合并前的离线工程验收条件**：定点硬限制和恢复验证通过，最终双平台五关退出0；仅追加并推送feature/goal-web-snapshots，不合并或推送main。没有新增产品工具权限、框架、数据表或普通 Web 配额，也不开发 S2/Sandbox/Computer Use。
