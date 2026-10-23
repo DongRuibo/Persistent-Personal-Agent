@@ -4,14 +4,13 @@
 
 ## 当前阶段与进行中事项
 
-- V3.1时间策略、V3.2只读GitHub观察、V3.3有界自主推进与通知Outbox已连续完成，开发提交 `c9aa2b2`；用户随后明确授权合并main并推送GitHub。本地main已由ae2a820快进合并，发布步骤为推送main并独立核对远端SHA；本次只补STATE记录，未变更业务代码。恢复点31c798a，阶段提交V3.1=0736042、V3.2=708d297。
-- main在独立受管工作树 `C:/Users/Dongr/.codex/worktrees/v3-proactive/Persistent Personal Agent`；原E盘工作区切至 `local/preserve-workspace-20261023`，7份未提交复验文件及HANDOFF保持原文件内容与未提交状态。8份原文件Hash逐一核对不变，私有备份位于 `E:/AgentWork/validation/personal-agent-proactive-publish-20261023`，不提交备份或HANDOFF。
-- 默认 `GOAL_ENABLED=false`、`PROACTIVE_ENABLED=false`，每个Goal还需可信Console显式策略；无模型策略写工具、外部副作用工具或自动Memory写入。增量七表，兼容旧Goal/Run/Task/Session/Memory；计划/反馈审批、停止及预算由宿主检查。[设计](designs/v3-proactive-goals.md)、[README](../README.md)包含配置与本地模拟演示。
-- V3.1 Windows217项214通过/3平台跳过，断网Linux217全过；V3.2 Windows220项217通过/3跳过，Linux220全过；两阶段typecheck/build/test/两个eval均退出0，通过关卡后才推进。V3.3最终Windows231项228通过/3原平台跳过、Linux231全过，两边五个命令均退出0；18项新增专项通过，107份源码/测试/脚本/配置原始Hash一致。完整证据见[独立报告](evaluations/v3-proactive-validation.md)。
-- 证据根目录 `E:/AgentWork/validation/personal-agent-proactive-20261023`；分阶段日志保留，最终检查单独写release目录，不覆盖旧失败或V3.0.1验收。开发首轮SQL括号错误已修复；后续复核收紧低频退避和待反馈审批入口，均有回归。没有修改冻结测试预期。
-- 开发/本地验收及此次发布收费请求0、飞书/手机操作0、正式.env/正式数据/历史验收数据库读写0，无VPS部署或正式启用。新增SDK模型和Observer验收只使用本机HTTP桩，Linux容器断网且无宿主挂载。发布仅按新增授权推送GitHub，不开放其他外部操作。
-- V3.0.1真实复验的原结论保留：14请求/0.605440元预留后停服，数量与取消局部通过，自然暂停和主模型收据解释失败；不能完整收尾。原始[真实报告](evaluations/v3.0.1-live-retest.md)/[JSON](evaluations/v3.0.1-live-retest.json)未改。新主动能力尚无真实模型、正式GitHub或飞书验收，不复用旧额度。
-- 发布核对沿用c9aa2b2双平台检查：Git提交树代码相同，107份源码/测试/脚本/配置内容Hash一致（12份文件检出时LF转CRLF，归一化后相同）；仅STATE新增授权/工作区保护说明，因此未重复运行完整测试。后续继续审查及隔离真实模型/飞书验收。策略审批当前仅Console结构化命令；私有仓库认证、复杂触发、无界运行、工具扩权、Skills、Computer Use、WebUI、VPS不在本轮范围。通知可能重复或最终失败；模型语义判断仍有局限。
+- V3.1–V3.3已发布main `5c07ec79466a7c283e974f1eabac6d4369ef0d4f`；本轮从该本地/远端基线定点审查后台门，修复位于独立受管工作树的本地分支 `fix/v3-background-lane`，本轮不推送或启用正式主动执行。原E盘工作区仍在 `local/preserve-workspace-20261023`，7份未提交复验文件及HANDOFF状态和8份文件Hash均未变。
+- 基线六项竞争测试全部失败：慢Observer/执行前后Outbox挡住到期Task，网络后/健康检查后未重查Task优先级，以及延后领取Grant被误撤销。先保留原始失败，再最小修复；18项专项均通过。仅改GoalRunner持门范围、策略对同版本待领取Grant的识别，没有修改BackgroundLane、TaskScheduler、数据库DDL、权限、预算、Checkpoint或Outbox事务代码。
+- Goal网络前瞬时检查前台/在途后台准入并立即释放；网络等待在门外，返回再获取门，门内和同步健康检查后重查Task，才领取/消费预算。模型和聚合提交保持互斥，提交后释放一次再通知。待领取授权仍受暂停/取消/计划版本/撤销/有效期限制，合法授权跨重启只消费一次。
+- 最终Windows249项246通过/0失败/3原平台跳过，断网Linux249全过；两边typecheck、build、test、eval:memory、eval:formation均退出0。108份源码/测试/脚本/配置原始Hash一致。证据根目录 `E:/AgentWork/validation/personal-agent-background-lane-20261023`，原始六项失败和前台准入回归失败、首轮及release日志均独立保存；[审查与修复报告](evaluations/v3-background-lane-review.md)。
+- 本轮收费请求0、真实GitHub观察/飞书/手机操作0、正式.env/正式数据/历史验收数据库读写0；默认GOAL_ENABLED与PROACTIVE_ENABLED仍false。新测试只用真实SQLite、模拟时钟、原版Pi SDK、本机模型/GitHub HTTP桩；Linux断网且无宿主挂载。V3.0.1自然暂停和主模型收据解释真实失败保持开放，旧报告/结果不改。
+- 已运行Goal仍不抢占，Task后到期会等本段；同步CPU/文件/SQLite仍可能延迟调度，旧Task自身发送仍持门。慢网络仍会延后同一个GoalRunner，退出会等待不能强制取消的在途投递，历史通知可能迟到/重复/最终失败。正式主动执行及长期稳定性未验收。
+- 下一步先审查本地修复分支；本地真实模型最小建议为Console虚构预置Plan、模拟GitHub和投递屏障，预计4次、最多6请求/0.5元保守预留，需新独立预算入口先通过离线限额测试、核实费率后才联网；本轮仅提建议、不实现或执行收费入口，不复用旧账本。
 
 ## 已完成功能
 
@@ -37,11 +36,11 @@
 
 | 日期 | 修改及位置 |
 | --- | --- |
-| 2026-10-23 | V3.3=c9aa2b2：策略每触发1～5段、全局/每日限额、停止与迟到保护、最小通知Outbox；后获合并main/推送授权，原工作区留在保留分支，发布只补STATE，不扩大[验证](evaluations/v3-proactive-validation.md)结论或真实启用 |
+| 2026-10-23 | 基于5c07ec7定点修复Goal后台门/待领取Grant，基线6项失败→18项专项通过；Windows246/249、Linux249全过，两边五检查均0；[独立报告](evaluations/v3-background-lane-review.md)，本轮未推送或真实启用 |
+| 2026-10-23 | V3.3=c9aa2b2，用户随后授权合并推送main=5c07ec7；每触发1～5段、限额/控制、最小通知Outbox；[原验证](evaluations/v3-proactive-validation.md)保留 |
 | 2026-10-23 | V3.2=708d297：只读GitHub提交/差异、游标/Observation、去重/退避/版本二次核对，两平台220项关卡通过 |
-| 2026-10-23 | V3.1=0736042：持久时间策略、独立宿主Grant/消费账本、IANA/DST和停机合并，两平台217项关卡通过 |
-| 2026-10-23 | 保存V3.0.1复验成果31c798a：专用16/2入口、14请求后停服；自然暂停和收据解释缺口保留，原213项自动化通过不覆盖真实失败 |
-| 2026-10-23 | V3.0.1=ade995b：正式Step数量校验、安排拆解确认及指代回归；[离线报告](evaluations/v3.0.1-closeout.md)，已知main基线ae2a820 |
+| 2026-10-23 | V3.1=0736042：时间策略、独立宿主Grant/消费、IANA/DST及停机合并，两平台217项关卡通过 |
+| 2026-10-23 | 保存V3.0.1复验31c798a：14请求后停服，暂停和收据解释缺口保留；原213项模拟通过不覆盖真实失败 |
 
 ## 验证记录与证据边界
 
@@ -470,10 +469,10 @@ V1 原有自动化证据：39项测试使用模拟模型/飞书服务和虚拟�
 
 ## 下一步与需要提供的信息
 
-1. 审查main中的V3.1–V3.3开发提交c9aa2b2与[实现/验证报告](evaluations/v3-proactive-validation.md)；本次发布按用户授权推送main，远端SHA在交付时独立核对。原E盘工作区的未提交内容位于保留分支，阶段恢复点见顶部快照。
-2. 保持正式双开关关闭，下一轮先设计隔离真实模型/真实GitHub/飞书最小验收；本次不将模拟成绩当作真实模型、手机送达或长期稳定性通过，也不复用旧预算。
-3. 保留V3.0.1泛称自然暂停及主模型收据解释的真实缺口；后续需独立修复/复验，不修改旧失败。V2.1b手机/模型历史证据仍保持原范围，正式Formation继续关闭。
-4. 当前Windows228通过/3原平台跳过，断网Linux231全过；107份源码/测试/脚本/配置一致。原生Mac、Windows ACL及长期运行仍待验证；不扩展Skills、Computer Use、外部写工具、WebUI、复杂框架或VPS。
+1. 审查本地 `fix/v3-background-lane` 分支及[定点报告](evaluations/v3-background-lane-review.md)；main仍为5c07ec7，本轮修复未推送。原E盘工作区修改保持在保留分支。
+2. 审查后安排Console隔离真实模型最小验收，先落实新6请求/0.5元独立入口及费率/容量/重启限额；本轮仅给建议，收费0，不沿用旧额度或将模拟成绩计作真实通过。
+3. 保留V3.0.1泛称自然暂停和收据解释失败；后续独立修复/复验，不修改旧结果。正式双开关及Formation保持关闭。
+4. 本轮Windows246通过/3原平台跳过，断网Linux249全过；原生Mac、Windows ACL、真实主动执行和长跑仍待验。不扩展Skills、Computer Use、外部写工具、WebUI、复杂框架或VPS。
 
 ## V2.0.2 关键文件（主体及本轮修复）
 

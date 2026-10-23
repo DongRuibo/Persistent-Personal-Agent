@@ -115,16 +115,26 @@ export class GoalRunner {
   }
 
   private async runOne(): Promise<void> {
+    // 保留原有前台/在途后台优先级，只作瞬时准入探测，不跨网络持门。
+    const admission = this.lane.acquire(true);
+    if (!admission) return;
+    admission();
+    const accepts = (item: Goal) => item.ownerId === this.options.ownerId && this.options.accepts(item.target);
+    // 投递和只读观察不占模型执行门；等待期间旧Task仍可领取。
+    if (this.options.proactiveEnabled) {
+      await this.store.notifications.deliver(this.channel, this.options.ownerId, this.options.accepts, this.clock().toISOString());
+      if (this.shutdown.signal.aborted) return;
+      if (this.store.hasDueTasks(this.clock().toISOString())) return;
+      this.store.policies.scan(this.clock().toISOString(), accepts);
+      await this.store.policies.observe(this.clock().toISOString(), accepts, this.shutdown.signal);
+    }
+    if (this.shutdown.signal.aborted) return;
     const release = this.lane.acquire(true);
     if (!release) return;
+    let finished: { goal: Goal; actor: GoalActor; runId: string; policy: boolean } | undefined;
     try {
-      if (this.options.proactiveEnabled) await this.store.notifications.deliver(this.channel, this.options.ownerId, this.options.accepts, this.clock().toISOString());
+      // 网络等待之后重新检查；模型执行及聚合提交仍共用同一互斥门。
       if (this.store.hasDueTasks(this.clock().toISOString())) return;
-      const accepts = (item: Goal) => item.ownerId === this.options.ownerId && this.options.accepts(item.target);
-      if (this.options.proactiveEnabled) {
-        this.store.policies.scan(this.clock().toISOString(), accepts);
-        await this.store.policies.observe(this.clock().toISOString(), accepts, this.shutdown.signal);
-      }
       const goal = this.store.goals.readyForHost().find(item => accepts(item) && (item.readyInput?.kind !== 'policy' || this.options.proactiveEnabled));
       if (!goal) return;
       try { this.executor.checkReady?.(); }
@@ -134,7 +144,8 @@ export class GoalRunner {
         return;
       }
       this.blockedReason = undefined;
-      if (this.shutdown.signal.aborted) return;
+      // 同步健康检查也可能耗时；领取和消费预算前再核对到期Task。
+      if (this.shutdown.signal.aborted || this.store.hasDueTasks(this.clock().toISOString())) return;
       const actor: GoalActor = { ownerId: goal.ownerId, target: goal.target };
       const claimed = this.store.goals.claim(actor, goal.id, goal.revision, this.clock().toISOString());
       if (!claimed) return;
@@ -164,21 +175,25 @@ export class GoalRunner {
           else if (current.status !== 'committed' || technical?.status !== 'succeeded') throw error;
         } catch (readError) { this.halt(readError); return; }
       }
-      if (execution.input.authorization.kind === 'policy') {
-        if (this.options.proactiveEnabled) await this.store.notifications.deliver(this.channel, this.options.ownerId, this.options.accepts, this.clock().toISOString());
-        return;
-      }
-      try {
-        const displayed = this.store.goals.view(actor, goal.id);
-        await this.channel.sendMessage({ text: renderGoal(displayed), goalId: goal.id, runId: run.id, target: goal.target });
-        this.store.event(run.id, 'delivery_succeeded');
-        // 绑定实际发送的版本；网络等待期间的新计划不能冒充用户已经看到的内容。
-        this.options.delivered?.(displayed.goal, run.id);
-      } catch (error) {
-        try { this.store.deliveryFailed(run.id, String(error)); } catch (auditError) { this.halt(auditError); }
-        this.options.reportError(error);
-      }
+      finished = { goal, actor, runId: run.id, policy: execution.input.authorization.kind === 'policy' };
     } finally { this.active = undefined; release(); }
+    // 只释放一次执行门，再等待通知；stop仍等待在途工作，不遗留数据库写入。
+    if (!finished || this.shutdown.signal.aborted) return;
+    const { goal, actor, runId } = finished;
+    if (finished.policy) {
+      if (this.options.proactiveEnabled) await this.store.notifications.deliver(this.channel, this.options.ownerId, this.options.accepts, this.clock().toISOString());
+      return;
+    }
+    try {
+      const displayed = this.store.goals.view(actor, goal.id);
+      await this.channel.sendMessage({ text: renderGoal(displayed), goalId: goal.id, runId, target: goal.target });
+      this.store.event(runId, 'delivery_succeeded');
+      // 绑定实际发送的版本；网络等待期间的新计划不能冒充用户已经看到的内容。
+      this.options.delivered?.(displayed.goal, runId);
+    } catch (error) {
+      try { this.store.deliveryFailed(runId, String(error)); } catch (auditError) { this.halt(auditError); }
+      this.options.reportError(error);
+    }
   }
 
   async stop(): Promise<void> {

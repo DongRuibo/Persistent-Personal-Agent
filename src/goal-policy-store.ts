@@ -145,6 +145,12 @@ export class GoalPolicyStore {
     this.event(policy, 'stopped', now, { status, reason });
   }
 
+  private awaitingClaim(policy: GoalPolicy, goal: Goal): boolean {
+    const auth = goal.readyInput;
+    return goal.status === 'ready' && auth?.kind === 'policy' && auth.policyId === policy.id
+      && auth.policyVersion === policy.version && goal.revision === policy.expectedGoalRevision && goal.planRevision === policy.planRevision;
+  }
+
   // 只由宿主时钟调用。长停机合并为一个到期触发，下一次从当前时刻向前计算。
   scan(now: string, accepts: (goal: Goal) => boolean): void {
     this.tx.transaction(() => {
@@ -156,6 +162,8 @@ export class GoalPolicyStore {
         if (!accepts(current)) continue;
         if (policy.expiresAt <= now) { this.stop(policy, 'expired', 'expired', now); continue; }
         if (current.revision !== policy.expectedGoalRevision || current.planRevision !== policy.planRevision) { this.stop(policy, 'paused', 'goal_changed', now); continue; }
+        // 因Task优先而延后领取不是用户阻塞，保留已签发且尚未消费的同版本授权。
+        if (this.awaitingClaim(policy, current)) continue;
         if (policy.schedule.kind === 'github') continue;
         if (!policy.nextAt || policy.nextAt > now) continue;
         if (current.status !== 'waiting_user' || !current.currentStepId || current.pendingAction || current.controlRequested || current.blockedReason) {
@@ -193,7 +201,8 @@ export class GoalPolicyStore {
       const watch = policy.schedule;
       const raw = this.db.prepare('SELECT targetJson FROM goals WHERE id=?').get(policy.goalId)!;
       const actor = { ownerId: policy.ownerId, target: decode<GoalActor['target']>(raw.targetJson) };
-      if (!accepts(this.getGoal(actor, policy.goalId))) continue;
+      const goal = this.getGoal(actor, policy.goalId);
+      if (!accepts(goal) || this.awaitingClaim(policy, goal)) continue;
       // 事务外只读网络；返回时必须再次核对版本/目标/有效期，迟到快照不能授予权限。
       try {
         const data = await this.observer.poll(policy.schedule, row.head as string | null, signal);

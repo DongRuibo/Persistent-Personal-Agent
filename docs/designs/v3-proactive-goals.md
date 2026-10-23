@@ -12,6 +12,8 @@ Console `/policy approve JSON` 是确定性可信入口，不调用模型，不�
 
 `GoalRunner` 与旧 TaskScheduler 共享 BackgroundLane，仍尊重前台与到期 Task 优先级。每个 Execution 一个临时无工具 Pi Session。Checkpoint/Run/Goal/Step 原子提交后，策略检查是否可以等待下个触发；缺失或 true 的 `needsUserFeedback`、partial、blocked、草稿、计划结束、失败、中断均暂停。只有完成本段、还有已批准后续 Step、明确无需反馈，策略才保留。该标志不能授予或扩大执行权限。
 
+2026-10-23定点可靠性修复：Goal侧先瞬时检查前台/在途后台准入并立即释放门，再等待Outbox和只读Observer；网络后重新获取门，门内及同步健康检查后再次核对到期Task，随后才领取/消费预算、执行及提交。提交后先释放门再通知，不能在通知返回时二次释放其他Task的门。`work`仍串行化整个Goal tick，Observation游标/CAS、Grant和Execution的事务/唯一约束保持。合法同版本ready Grant代表等待领取，不能被后续时间/观察扫描误判为用户阻塞；到期、Goal/Plan版本变化和撤销仍有效。六项原始失败与完整回归见[独立审查报告](../evaluations/v3-background-lane-review.md)。
+
 单次未来触发或每日/每周固定本地时间；UTC 保存 nextAt，IANA 用 Temporal 解析。DST 重叠与缺口当天跳过，下一合法日期继续；不挪动当地时间。停机错过多个周期只合并一个触发，下一次从当前时刻计算。暂停、取消、手动继续或计划修改导致 Goal revision 不匹配，扫描/领取撤销旧策略；策略撤销对运行中 Goal 先落盘 pause/revision，迟到结果只记 discarded。running 崩溃恢复 blocked，绝不回放。
 
 ## V3.2 已实现

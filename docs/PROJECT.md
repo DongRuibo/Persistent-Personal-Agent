@@ -178,6 +178,8 @@ Checkpoint位于committed Execution，与Run/Step/Goal同事务提交；异常�
 
 增量七表：`goal_policies / goal_policy_events / goal_triggers / goal_grants / goal_observer_cursors / goal_observations / goal_notifications`。原四表不重建，旧JSON和Run/Task唯一约束保留。时间/观察Trigger与Grant持久化；技术来源Run只作审计，不能伪装聊天授权。领取事务消费Grant并预留预算，与新Run/Execution一起提交；Checkpoint及最小通知Outbox同事务，崩溃不补跑模型。`GoalRunner → GoalPolicyStore → GoalStore → AgentExecutor/Pi` 共用原后台门；只读GitHub网络在短事务外，返回再核对版本与游标。
 
+Goal侧Outbox/Observer及提交后通知不跨网络占用后台门；网络前保留瞬时准入检查，网络后重新获取门，并在领取前再次检查到期Task。已运行片段仍不抢占。延后领取的同版本Grant保留，消费时再次检查权限/版本/期限/预算；不因任务优先而丢授权。范围与实际证据见[调度定点审查](evaluations/v3-background-lane-review.md)。
+
 每日限额按UTC，所有策略共享宿主每日/总次数和人民币保守预留；未知费率阻塞，usage缺失或失败不退额。HTTP请求体至多32768字节、每段至多一次模型请求/4096输出Token。时间IANA/DST缺口或重复当天跳过；长停机只合并一次唤醒。Observer最短60秒、有限指数退避、首次只建基线、每批变化一个授权，SHA与游标跨重启核对；force push/窗口断裂/过大不猜进度。
 
 自动结果partial、缺失/true反馈标志、待审批草稿、计划末尾、权限/限额不足或失败/中断均停止策略。用户控制先撤销提交权，迟到结果discarded。`needsUserFeedback=false`只在已批准策略和其余宿主条件内允许后续，不能产生新权限；语义是否正确仍依赖模型，不把Schema当语义证明。通知最多3次、退避及恢复只重发消息；无严格exactly-once、必达或飞书分片幂等保证。自动产物只保存在Checkpoint，不进入长期Memory或Formation。

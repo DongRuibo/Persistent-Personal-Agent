@@ -12,6 +12,7 @@ import { BackgroundLane } from '../../src/background-lane.js';
 import type { GoalResult } from '../../src/goal-types.js';
 import type { PolicyProposal, ProactiveOptions } from '../../src/goal-policy-types.js';
 import { sseText } from './intent-stub.js';
+import type { Channel } from '../../src/contracts.js';
 
 export const actor = { ownerId: 'local-user', target: { channel: 'console' as const } };
 export const hostOptions: ProactiveOptions = { enabled: true, inputRate: 1, outputRate: 2,
@@ -41,7 +42,7 @@ export function approve(store: SqliteStore, spec: PolicyProposal, now = initialT
   store.finishRun(run.id, 'succeeded', now, '策略已批准');
   return policy;
 }
-export async function fixture() {
+export async function fixture(options: { lane?: BackgroundLane; channel?: Channel } = {}) {
   const root = mkdtempSync(join(tmpdir(), 'proactive-'));
   let now = initialTime;
   let result: GoalResult = { stepOutcome: 'complete', artifactText: '虚构练习题', progressSummary: '交付一题', question: '请回答后继续', needsUserFeedback: true };
@@ -61,11 +62,11 @@ export async function fixture() {
   let store = new SqliteStore(config.databasePath); store.policies.configure(hostOptions);
   let executor = await createPiExecutor(config, new TaskService(store, config.timeZone));
   let runner = makeRunner();
-  function makeRunner() { return new GoalRunner(store, executor, { sendMessage: async value => { sent.push(value.text); if (deliveryFailures-- > 0) throw new Error('模拟已发送但确认丢失'); } }, new BackgroundLane(), {
+  function makeRunner() { return new GoalRunner(store, executor, options.channel ?? { sendMessage: async value => { sent.push(value.text); if (deliveryFailures-- > 0) throw new Error('模拟已发送但确认丢失'); } }, options.lane ?? new BackgroundLane(), {
     ownerId: actor.ownerId, accepts: value => value.channel === 'console', pollIntervalMs: 10, proactiveEnabled: true,
     reportError: error => errors.push(error), fatal: () => errors.push('fatal'),
   }, () => new Date(now)); }
-  return { root, get store() { return store; }, get runner() { return runner; }, get executor() { return executor; }, get calls() { return calls; }, payloads, sent, errors,
+  return { root, get store() { return store; }, get runner() { return runner; }, get executor() { return executor; }, get calls() { return calls; }, get now() { return new Date(now); }, payloads, sent, errors,
     time(value: string) { now = value; }, result(value: GoalResult) { result = value; },
     holdResponse(gate: Promise<void> | undefined) { responseGate = gate; }, failDelivery(count: number) { deliveryFailures = count; },
     async restart() { await runner.stop(); await executor.close(); store.close();
