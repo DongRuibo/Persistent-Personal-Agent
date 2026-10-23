@@ -4,7 +4,7 @@
 
 ## 当前阶段与进行中事项
 
-- A～D最终审查收尾已完成，审查基线79c83d0、main仍为5285975a3354f778012999526ed587b7e1b5c573。独立工作树C:/Users/Dongr/.codex/worktrees/v3-proactive/Persistent Personal Agent，分支feature/goal-web-snapshots；本轮只追加提交并推审查分支，不合并或推main、不部署。
+- A～D最终修复已通过ChatGPT GitHub代码审查；用户本轮单独授权发布main。远端核对为main=5285975、feature/goal-web-snapshots=14e7bfc169aeb6d810453427f11a3db1de479bfb，在独立工作树C:/Users/Dongr/.codex/worktrees/v3-proactive/Persistent Personal Agent用--ff-only将main快进到该审查HEAD，完整包含修复1d658b0；本发布提交仅补本文件交接记录，审查分支保持14e7bfc，不强推、不部署。
 - A完成自然暂停泛称/具名交集及宿主操作收据修复：原话仍须唯一有效、成功投递的视图；身份/渠道/TTL/revision/显示版本不放宽。宿主状态进入ToolResult及原生Session，模型收尾失败不重做操作、不增加纠错调用，后台成果与临时Memory不混入交互Session。
 - B复用web_read_calls完成快照选择、Plan绑定/展示/审批、Execution冻结/inputHash和Checkpoint/重启恢复；每步一份Web资料可与Skill共存，4KiB及既有总容量限制，超限不自动裁剪。来源失效/损坏/错身份/错版本或Skill变化阻塞，Goal仍text_only、零工具、单片段单模型请求，无新增DDL或新缓存。
 - C真实SQLite/原版Pi/本机HTTP覆盖Chat资料整理、手动学习Goal、策略反馈/预算停止、暂停/撤销迟到结果、提交失败、通知重投及真实SIGKILL进程恢复。自审反例补齐具名目标漏词和未继承资料的审批显示，先红后绿，不改冻结预期或旧报告。
@@ -13,6 +13,7 @@
 - D的[统一Console冻结方案](evaluations/integrated-console-live-plan.md)现与入口硬限制一致：同一v2账本记录32模型请求/6元及整轮一次pi-skills-v1固定HTTPS预留，跨Run/Session/进程不重置，失败/中断不退额；旧v1/残留锁/未完成写入拒绝。普通产品Web授权/配额未改。另行批准、核实费率后才能执行预计28次的真实方案，本轮未执行，历史预算不沿用。
 - V3.0.1自然语言暂停与收据解释的两项历史真实失败仍是正式主动执行启用门槛：离线修复已通过，尚未新真实复验；[原始报告](evaluations/v3.0.1-live-retest.md)不改、不标成真实通过。S0/S1/V3真实模型、正式网站、飞书/手机和正式主动策略尚未统一验收。
 - WEB_READ_ENABLED、SKILLS_ENABLED、GOAL_ENABLED、PROACTIVE_ENABLED默认false，Formation关闭。本轮收费API/真实网站/账号/飞书/手机/正式.env与数据操作均0。原E盘分支local/preserve-workspace-20261023、HEAD ae2a820及8份已有文件（含HANDOFF）Hash保持不变；没有覆盖或混入提交。
+- 本次发布只检查远端SHA/祖先关系、快进、发布差异、原工作区分支/HEAD/8份文件Hash及文档；无新增产品代码，不重复运行已通过的Windows438通过/3原跳过、Linux441全过及双平台五关。发布检查证据位于E:/AgentWork/validation/personal-agent-goal-web-release-20261023。里程碑工程收尾后停止新功能；下一阶段仅准备S0+S1+Goal+V3.0.1统一Console真实验收，须用户另行批准模型/网站范围、先核实实际模型费率并再次离线验证独立预算入口，不能复用旧额度或因发布直接运行。
 
 ## 已完成功能
 
@@ -39,7 +40,7 @@
 
 | 日期 | 修改及位置 |
 | --- | --- |
-| 2026-10-23 | A～D最终审查：验收专用v2账本在DNS前硬限制整轮一次固定Web GET；收据持久化失败及快照失效Grant未消费自检通过。专项34/34，最终Windows438/441且3原跳过、断网Linux441/441，五关最终均0、145文件Hash一致；保留红测和评测输出故障，仅推审查分支，真实失败仍开放 |
+| 2026-10-23 | A～D通过ChatGPT审查，用户单独授权main发布：5285975以--ff-only快进包含14e7bfc及修复1d658b0，发布只补STATE，不重复全测；保留原工作区8文件/分支/HEAD、默认关闭和历史真实失败。既有专项34/34、Windows438/441且3原跳过、断网Linux441/441及双平台五关证据不改；下一步统一Console真实验收须新授权/费率核实/预算复核 |
 | 2026-10-23 | S1-A1/A2/A3连续完成：阶段Windows329/332→354/357，最终Windows384/387、断网Linux387/387；Web85/85，五关均0。固定来源、可信许可、单表恢复；原始失败保留，默认关闭；用户随后授权合并main及推送，发布仅补STATE |
 | 2026-10-23 | S0特殊包明确调用定点修复：先红后绿、专项53/53、Windows299/302且3原平台跳过；五关均0。新增Console16次/2元待授权方案、S1只读Web设计；用户随后授权提交推送，仅补发布交接状态，未收费，原真实失败保留 |
 | 2026-10-23 | S0-A/B/C完成并逐阶段过关；最终Node24.19 Windows267通过/3原跳过、断网Linux270全过，两边五关均0；118源码Hash一致。用户随后授权合并推送main，发布仅补STATE；默认未启用，原始失败及阶段证据保留 |
@@ -474,8 +475,8 @@ V1 原有自动化证据：39项测试使用模拟模型/飞书服务和虚拟�
 
 ## 下一步与需要提供的信息
 
-1. 交付feature/goal-web-snapshots最终追加提交和[审查报告](evaluations/goal-web-final-review.md)给ChatGPT；本次已授权推该分支，不授权合并或推main、部署或启用正式能力。
-2. 真实体验统一使用[Console冻结方案](evaluations/integrated-console-live-plan.md)：另行批准最多32模型HTTP/6元及一次固定Web GET，核实费率后用新隔离目录/v2账本，不沿用任何历史额度。当前真实模型、真实网站、飞书/手机均未执行。
+1. 本轮仅按已获授权完成main快进发布及远端SHA独立核对，审查分支保留14e7bfc。[审查报告](evaluations/goal-web-final-review.md)与原始失败不改；暂停新功能开发，不部署、不启用正式能力。
+2. 下一阶段集中进行S0+S1+Goal+V3.0.1真实Console综合验收，参考[冻结方案](evaluations/integrated-console-live-plan.md)；最多32模型HTTP/6元及一次固定Web GET仍只是待批准建议。须用户单独授权，先核实实际模型费率、再次离线验证独立预算入口，用新隔离目录/v2账本且不沿用旧额度。当前无新增收费模型或真实验收网站调用，飞书/手机仍未统一验收。
 3. 本地无Key演示见README和tests/goal-web*.test.ts，仅临时SQLite、本机模拟模型/HTTP与原版Pi。S1-B工程已完成，不继续开发主动动态Web、S2文件、搜索/HTML、Sandbox、Computer Use或其他工具。
 4. 正式主动执行启用前，仍须真实复验V3.0.1自然暂停与收据解释；历史失败保留。Web/Skills/Goal/Proactive及Formation保持关闭；离线工程通过不替代真实质量、原生Mac或Windows ACL验收。
 
