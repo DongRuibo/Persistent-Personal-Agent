@@ -4,6 +4,7 @@ import { GoalRunner } from '../../src/goal-runner.js';
 import { BackgroundLane } from '../../src/background-lane.js';
 import type { GoalResult } from '../../src/goal-types.js';
 import { hostOptions } from './proactive-fixture.js';
+import type { WebReadService } from '../../src/web-read-service.js';
 import { webFixture } from './web-fixture.js';
 import { content, reply, toolCall } from './skills-fixture.js';
 
@@ -47,7 +48,7 @@ export async function goalWebFixture(body = 'PI_SNAPSHOT_ONLY：原生Skill按�
     get goal() { return f.goals.list()[0]!; }, get view() { return f.goals.plan(f.goals.list()[0]!.id); },
     result(value: GoalResult) { result = value; }, hold(value?: Promise<void>) { gate = value; }, started() { return once(events, 'goal'); }, failNotification() { failNotifications++; },
     async seed() { await f.chat('请读取 Pi Skills 文档，并总结加载流程'); await f.chat('帮我逐步建立银杏Agent学习目标，使用Skill interview-practice，计划最多两步。'); await runner.tick(); },
-    async restart() { await runner.stop(); await f.restart(); f.store.recoverInterrupted(f.tasks.now().toISOString()); boot(); },
+    async restart(service?: WebReadService) { await runner.stop(); await f.restart(service); f.store.recoverInterrupted(f.tasks.now().toISOString()); boot(); },
     async close() { gate = undefined; await runner.stop(); await f.close(); },
   };
 }

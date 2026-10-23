@@ -37,3 +37,21 @@ test('真实收据误解回放：用户和下一轮/重启Session都有宿主结
     assert.equal(f.store.goals.list(f.goals.actor()).length, 1);
   } finally { await f.close(); }
 });
+
+test('Goal控制成功后模型收尾失败：返回真实宿主结果并留下上下文收据，不重试模型或操作', async () => {
+  const f = await webFixture(payload => {
+    const system = content(payload.messages.find(m => m.role === 'system')?.content);
+    if (system.includes('隔离的当前用户意图解析器')) {
+      const { message } = JSON.parse(content(payload.messages.at(-1)?.content));
+      return reply(JSON.stringify({ action: 'goal_manage', mode: 'request', evidence: message, goalAction: 'create' }));
+    }
+    const index = payload.messages.findLastIndex(m => m.role === 'user');
+    if (payload.messages.slice(index + 1).some(m => m.role === 'tool')) throw new Error('模拟模型收尾500');
+    return toolCall('goal_manage', {});
+  });
+  try {
+    const result = await f.chat('帮我逐步建立虚构学习目标');
+    assert.match(result.text, /已创建并排队/); assert.equal(f.goals.list().length, 1); assert.equal(f.payloads.length, 3);
+    assert.ok(f.store.events(result.run.id).some(e => e.type === 'goal_model_finalization_failed'));
+  } finally { await f.close(); }
+});
