@@ -14,6 +14,7 @@ export const consoleHelp = `Personal Agent
   /task <完整ID>                    查看任务、执行、用量及事件
   /cancel <完整ID>                  取消 pending 任务
   /runs                            查看最近100次执行（含对话）
+  /skills                          查看宿主已批准的Skill；/skill ID 查看版本和Hash（只读）
   /policies                        查看当前 Console 的执行策略（主动总开关开启时）
   /policy approve <JSON>           明确批准有界策略；show ID / pause|revoke JSON 查看或停用
   /quit                            停止服务
@@ -49,6 +50,10 @@ export class ConsoleChannel implements Channel {
           let output: unknown;
           let chatRunId: string | undefined;
           if (text === '/help') output = consoleHelp;
+          else if (text === '/skills' || text.startsWith('/skill ')) {
+            if (!executor.skills) throw new Error('SKILLS_ENABLED未开启');
+            const records = executor.skills.list(); output = text === '/skills' ? records : records.find(info => info.id === text.slice(7).trim()) ?? 'Skill未批准';
+          }
           else if (text === '/policies' || text.startsWith('/policy ')) {
             if (!this.proactiveEnabled) throw new Error('PROACTIVE_ENABLED 未开启');
             output = policyConsole(store, { ownerId: 'local-user', target: { channel: 'console' } }, text, new Date().toISOString());

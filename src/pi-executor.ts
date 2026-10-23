@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { AsyncLocalStorage } from 'node:async_hooks';
 import { chmod, mkdir, open } from 'node:fs/promises';
 import { join } from 'node:path';
 import { InMemoryCredentialStore } from '@earendil-works/pi-ai';
@@ -21,6 +22,8 @@ import type { FormationService } from './formation-service.js';
 import type { BackgroundLane } from './background-lane.js';
 import type { GoalService } from './goal-service.js';
 import { goalTools } from './goal-tools.js';
+import { SkillService, type SkillUsage } from './skill-service.js';
+import { skillReadTool } from './skill-tools.js';
 
 type SessionPort = Pick<AgentSession, 'prompt' | 'subscribe' | 'abort' | 'dispose' | 'getLastAssistantText'>;
 type SessionFactory = (scope: ExecutionRequest['scope'], policyExecution?: boolean) => Promise<SessionPort>;
@@ -101,7 +104,8 @@ export class PiExecutor implements AgentExecutor {
   private readonly active = new Set<SessionPort>();
   private chatBusy = false;
 
-  constructor(private readonly createSession: SessionFactory, private readonly timeoutMs: number, chat?: SessionPort, private readonly memory?: FileMemoryService, private readonly tasks?: TaskService, private readonly guard?: OperationGuard, private readonly formation?: FormationService, private readonly lane?: BackgroundLane) {
+  constructor(private readonly createSession: SessionFactory, private readonly timeoutMs: number, chat?: SessionPort, private readonly memory?: FileMemoryService, private readonly tasks?: TaskService, private readonly guard?: OperationGuard, private readonly formation?: FormationService, private readonly lane?: BackgroundLane,
+    readonly skills?: SkillService, private readonly withLimits?: (request: ExecutionRequest, run: () => Promise<{ text: string }>) => Promise<{ text: string }>) {
     this.chat = chat;
   }
 
@@ -119,7 +123,8 @@ export class PiExecutor implements AgentExecutor {
       const run = () => runPiSession(session!, request, this.timeoutMs);
       const withMemory = () => this.memory ? this.memory.withRequest(request.memoryQuery ? { ...request, prompt: request.memoryQuery } : request, run, this.guard ? null : undefined) : run();
       const withTasks = () => this.tasks ? this.tasks.withRequest(request, withMemory, this.guard ? null : undefined) : withMemory();
-      return await (this.guard ? this.guard.withRequest(request, withTasks, this.formation) : withTasks());
+      const guarded = () => this.guard ? this.guard.withRequest(request, withTasks, this.formation) : withTasks();
+      return await (this.withLimits ? this.withLimits(request, guarded) : guarded());
     } finally {
       if (session) {
         this.active.delete(session);
@@ -141,6 +146,9 @@ export class PiExecutor implements AgentExecutor {
 // chatKey 来自可信的启动配置，不能由模型或未经鉴权的消息指定。
 export async function createPiExecutor(config: Config, tasks: TaskService, chatKey = 'console', memory?: FileMemoryService, formation?: FormationService, lane?: BackgroundLane, goals?: GoalService): Promise<PiExecutor> {
   goals = config.goalEnabled ? goals : undefined;
+  const skills = config.skillsEnabled ? new SkillService(config.skillsDir ?? `${config.databasePath}.skills`) : undefined;
+  const limits = new AsyncLocalStorage<{ calls: number; request: ExecutionRequest }>();
+  const chargeChat = () => { const current = limits.getStore(); if (current && ++current.calls > 8) throw new Error('Chat本轮8次模型HTTP上限触发；不重试'); };
   if (!config.apiKey || config.apiKey === '<REDACTED>') throw new Error('请在本机环境变量或 .env 中配置 LLM_API_KEY');
   const runtime = await ModelRuntime.create({
     credentials: new InMemoryCredentialStore(), modelsPath: null,
@@ -192,6 +200,7 @@ export async function createPiExecutor(config: Config, tasks: TaskService, chatK
   const guard = new OperationGuard(tasks, memory, async (message, pending, request) => {
     const signal = AbortSignal.any([request.signal, AbortSignal.timeout(Math.min(config.executionTimeoutMs, 20000))]);
     request.observer.event('intent_parse_started');
+    chargeChat();
     // 独立公开模型请求：绝不传入历史、Memory、主模型工具参数或任务正文。
     const response = await runtime.completeSimple(model, {
       systemPrompt: '你是隔离的当前用户意图解析器。只能依据这条用户消息和宿主pending引用类型解析，返回一个符合schema的JSON对象，不使用工具。' +
@@ -217,17 +226,29 @@ export async function createPiExecutor(config: Config, tasks: TaskService, chatK
   }, references ?? {}, (value) => chatManager.appendCustomEntry('host-dialogue-references-v2', structuredClone(value)));
   goals?.setDisplaySink(display => { references.goalView = display; chatManager.appendCustomEntry('host-dialogue-references-v2', structuredClone(references)); });
   const tools = [...taskTools(tasks, guard), ...(memory ? memoryTools(memory, guard, formation) : []), ...(goals ? goalTools(goals, guard) : [])];
+  const savedUsage = chatManager.getBranch().findLast(entry => entry.type === 'custom' && entry.customType === 'host-skill-usage-v1');
+  const usage: SkillUsage = savedUsage?.type === 'custom' ? structuredClone(savedUsage.data) as SkillUsage : { bytes: 0, loaded: [] };
+  if (skills && (!Number.isSafeInteger(usage.bytes) || usage.bytes < 0 || usage.bytes > 8192 || !Array.isArray(usage.loaded))) throw new Error('Skill Session额度记录损坏');
   const createSession: SessionFactory = async (scope, policyExecution = false) => {
     if (scope === 'goal' && !config.goalEnabled) throw new Error('GOAL_ENABLED 未开启，不能执行长期目标片段');
     let memoryContextError: unknown;
+    let boundaryError: unknown;
+    const reader = scope === 'chat' && skills ? skillReadTool(skills, usage,
+      () => { chatManager.appendCustomEntry('host-skill-usage-v1', structuredClone(usage)); },
+      details => { limits.getStore()?.request.observer.event('skill_activated', details); }, () => limits.getStore()?.request.prompt ?? '') : undefined;
     // 仅通过公开内联扩展注册 context。私有空资源目录 + no* + 内存设置，避免发现本机 Pi 资源。
     const resourceDir = join(sessionDir, 'runtime-resources');
     let providerRequests = 0;
-    const extensions = memory || scope === 'goal' ? new DefaultResourceLoader({
+    const extensions = memory || scope === 'goal' || reader ? new DefaultResourceLoader({
       cwd: resourceDir, agentDir: resourceDir, settingsManager: SettingsManager.inMemory(),
       noExtensions: true, noSkills: true, noPromptTemplates: true, noThemes: true, noContextFiles: true,
+      additionalSkillPaths: reader ? skills!.list().map(info => info.filePath) : [],
       extensionFactories: [(pi) => {
         pi.on('before_provider_request', (event, sdkContext) => {
+          if (scope === 'chat' && skills) {
+            try { chargeChat(); if (Buffer.byteLength(JSON.stringify(event.payload)) > 65536) throw new Error('Chat请求超过65536字节'); }
+            catch (error) { boundaryError = error; sdkContext.abort(); }
+          }
           if (scope !== 'goal') return;
           providerRequests++;
           if (providerRequests > 1 || Buffer.byteLength(JSON.stringify(event.payload)) > 32768) {
@@ -239,6 +260,7 @@ export async function createPiExecutor(config: Config, tasks: TaskService, chatK
           if (!memory) return;
           try {
             if (config.memoryQueryRewrite && scope !== 'goal') await memory.prepareRetrieval(async (query, signal) => {
+              chargeChat();
               // 没有工具、历史、Memory 正文或授权状态；只扩大只读检索词，不产生能力。
               const response = await runtime.completeSimple(model, {
                 systemPrompt: rewritePrompt,
@@ -279,7 +301,7 @@ export async function createPiExecutor(config: Config, tasks: TaskService, chatK
     }
     const loader: ResourceLoader = {
       getExtensions: () => extensions?.getExtensions() ?? ({ extensions: [], errors: [], runtime: createExtensionRuntime() }),
-      getSkills: () => ({ skills: [], diagnostics: [] }),
+      getSkills: () => reader ? extensions!.getSkills() : ({ skills: [], diagnostics: [] }),
       getPrompts: () => ({ prompts: [], diagnostics: [] }),
       getThemes: () => ({ themes: [], diagnostics: [] }),
       getAgentsFiles: () => ({ agentsFiles: [] }),
@@ -297,7 +319,8 @@ export async function createPiExecutor(config: Config, tasks: TaskService, chatK
       getAppendSystemPrompt: () => [], getAppendSystemPromptSources: () => [],
       extendResources: () => {}, reload: async () => {},
     };
-    const allowed = scope === 'chat' ? tools.map((tool) => tool.name) : [];
+    const selected = [...tools, ...(reader ? [reader.tool] : [])];
+    const allowed = scope === 'chat' ? selected.map((tool) => tool.name) : [];
     const { session } = await createAgentSession({
       modelRuntime: runtime, model: scope === 'goal' ? { ...model, maxTokens: Math.min(model.maxTokens, 4096) } : model, resourceLoader: loader,
       sessionManager: scope === 'chat' ? chatManager : SessionManager.inMemory(),
@@ -305,7 +328,7 @@ export async function createPiExecutor(config: Config, tasks: TaskService, chatK
         compaction: { enabled: false }, retry: { enabled: false, provider: { maxRetries: 0 } },
         cacheWarming: 'off', enableAnalytics: false, enableInstallTelemetry: false, transport: 'sse',
       }),
-      thinkingLevel: 'off', tools: allowed, customTools: scope === 'chat' ? tools : [],
+      thinkingLevel: 'off', tools: allowed, customTools: scope === 'chat' ? selected : [],
     });
     const actual = session.getActiveToolNames().sort();
     if (JSON.stringify(actual) !== JSON.stringify([...allowed].sort())) {
@@ -318,15 +341,19 @@ export async function createPiExecutor(config: Config, tasks: TaskService, chatK
       dispose: session.dispose.bind(session), getLastAssistantText: session.getLastAssistantText.bind(session),
       prompt: async (text, options) => {
         memoryContextError = undefined;
+        boundaryError = undefined;
+        reader?.reset();
         providerRequests = 0;
         memory?.repair(); // 在写入新用户消息/调用模型之前先校验文件和索引。
         try {
           await session.prompt(`[当前用户时间：${Temporal.Now.zonedDateTimeISO(config.timeZone).toString()}]\n${text}`, options);
         } finally {
+          if (boundaryError) throw boundaryError;
           if (memoryContextError) throw new Error('Memory Context 读取失败，已中止本轮执行；请检查并修复记忆文件', { cause: memoryContextError });
         }
       },
     };
   };
-  return new PiExecutor(createSession, config.executionTimeoutMs, await createSession('chat'), memory, tasks, guard, formation, lane);
+  return new PiExecutor(createSession, config.executionTimeoutMs, await createSession('chat'), memory, tasks, guard, formation, lane, skills,
+    skills ? (request, run) => request.scope === 'chat' ? limits.run({ calls: 0, request }, run) : run() : undefined);
 }

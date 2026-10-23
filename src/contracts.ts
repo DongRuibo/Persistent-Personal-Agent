@@ -1,3 +1,4 @@
+import type { SkillCatalog } from './skill-service.js';
 export type TaskStatus = 'pending' | 'running' | 'succeeded' | 'failed' | 'interrupted' | 'cancelled';
 export type RunStatus = 'running' | 'succeeded' | 'failed' | 'interrupted';
 
@@ -67,6 +68,7 @@ export interface ExecutionRequest {
 
 // 业务层不接触 Pi Session、事件或模型对象。
 export interface AgentExecutor {
+  readonly skills?: SkillCatalog;
   // 只检查执行条件，不调用模型或产生业务副作用；失败时尚未领取任务。
   checkReady?(): void;
   execute(request: ExecutionRequest): Promise<{ text: string }>;
