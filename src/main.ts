@@ -17,6 +17,7 @@ import { FormationService } from './formation-service.js';
 import { BackgroundLane } from './background-lane.js';
 import { GoalRunner } from './goal-runner.js';
 import { GoalService } from './goal-service.js';
+import { GitHubObserver } from './github-observer.js';
 
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
@@ -55,6 +56,7 @@ async function main(): Promise<void> {
   try {
     store = new SqliteStore(config.databasePath, redact);
     if (config.proactive) store.policies.configure(config.proactive);
+    if (config.proactive?.enabled) store.policies.observer = new GitHubObserver();
     if (!feishuConfig && store.hasPendingFeishuTasks()) {
       throw new Error('数据库中有待执行的飞书任务，请使用 --feishu 启动；Console 调试请使用独立 DATABASE_PATH');
     }

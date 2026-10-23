@@ -4,6 +4,7 @@ import type { Run } from './contracts.js';
 import type { Goal, GoalActor, GoalExecution, GoalReadyInput } from './goal-types.js';
 import type { GoalPolicy, PolicyAuthorization, PolicyCommand, PolicyProposal, ProactiveOptions } from './goal-policy-types.js';
 import { nextWake, utc } from './goal-schedule.js';
+import { GitHubObserver, validateWatch } from './github-observer.js';
 
 interface Transactions { transaction<T>(fn: () => T): T; begin(now: string): Run; finish(id: string, now: string): void }
 const defaults: ProactiveOptions = { enabled: false, inputRate: 0, outputRate: 0, dailyCalls: 20, dailyExecutions: 20,
@@ -13,6 +14,7 @@ const decode = <T>(value: unknown): T => JSON.parse(String(value)) as T;
 // 与 Goal 共用连接和短事务。宿主来源 Run 是技术审计记录，权限只来自独立的策略/触发/消费账本。
 export class GoalPolicyStore {
   private options = defaults;
+  observer?: GitHubObserver;
   constructor(private readonly db: DatabaseSync, private readonly tx: Transactions,
     private readonly getGoal: (actor: GoalActor, id: string) => Goal) {
     db.exec(`
@@ -37,6 +39,14 @@ export class GoalPolicyStore {
         sourceRunId TEXT NOT NULL UNIQUE REFERENCES runs(id), executionRunId TEXT UNIQUE REFERENCES runs(id),
         at TEXT NOT NULL, consumedAt TEXT, reserveCny REAL NOT NULL, status TEXT NOT NULL,
         UNIQUE(triggerId,segment)
+      ) STRICT;
+      CREATE TABLE IF NOT EXISTS goal_observer_cursors (
+        policyId TEXT PRIMARY KEY REFERENCES goal_policies(id), head TEXT, failures INTEGER NOT NULL DEFAULT 0, lastError TEXT
+      ) STRICT;
+      CREATE TABLE IF NOT EXISTS goal_observations (
+        id TEXT PRIMARY KEY, policyId TEXT NOT NULL REFERENCES goal_policies(id), policyVersion INTEGER NOT NULL,
+        head TEXT NOT NULL, previous TEXT NOT NULL, at TEXT NOT NULL, dataJson TEXT NOT NULL CHECK(json_valid(dataJson)),
+        triggerId TEXT UNIQUE REFERENCES goal_triggers(id), UNIQUE(policyId,head)
       ) STRICT;
     `);
   }
@@ -90,12 +100,14 @@ export class GoalPolicyStore {
         if (!Number.isSafeInteger(limits[key]) || limits[key] < 1 || limits[key] > 100 || key === 'segmentsPerTrigger' && limits[key] !== 1) throw new Error('当前阶段每次触发只允许一个片段；次数限额必须明确');
       }
       for (const key of ['dailyBudgetCny', 'totalBudgetCny'] as const) if (!Number.isFinite(limits[key]) || limits[key] <= 0 || limits[key] > 100) throw new Error('必须明确有限的人民币预算');
-      const nextAt = nextWake(proposal.schedule, now);
+      if (proposal.schedule.kind === 'github') validateWatch(proposal.schedule);
+      const nextAt = proposal.schedule.kind === 'github' ? now : nextWake(proposal.schedule, now);
       if (!nextAt || nextAt >= proposal.expiresAt) throw new Error('有效期内没有未来触发时间');
       const id = randomUUID();
       this.db.prepare("INSERT INTO goal_policies VALUES (?,?,?,?,1,'active',?,?,?,?,NULL,?,?)")
         .run(id, goal.id, goal.ownerId, goal.accessKey, goal.revision, goal.planRevision, JSON.stringify(proposal), nextAt, now, now);
       const policy = this.get(command.actor, id);
+      if (proposal.schedule.kind === 'github') this.db.prepare('INSERT INTO goal_observer_cursors (policyId) VALUES (?)').run(id);
       this.event(policy, 'approved', now, proposal, command.sourceRunId);
       return policy;
     });
@@ -137,6 +149,7 @@ export class GoalPolicyStore {
         if (!accepts(current)) continue;
         if (policy.expiresAt <= now) { this.stop(policy, 'expired', 'expired', now); continue; }
         if (current.revision !== policy.expectedGoalRevision || current.planRevision !== policy.planRevision) { this.stop(policy, 'paused', 'goal_changed', now); continue; }
+        if (policy.schedule.kind === 'github') continue;
         if (!policy.nextAt || policy.nextAt > now) continue;
         if (current.status !== 'waiting_user' || !current.currentStepId || current.pendingAction || current.controlRequested || current.blockedReason) {
           this.stop(policy, 'paused', 'goal_not_eligible', now); continue;
@@ -149,18 +162,68 @@ export class GoalPolicyStore {
       }
     });
   }
-  private issue(policy: GoalPolicy, goal: Goal, triggerId: string, now: string): void {
+  private issue(policy: GoalPolicy, goal: Goal, triggerId: string, now: string, observation?: PolicyAuthorization['observation']): void {
     const run = this.tx.begin(now), id = randomUUID();
     this.db.prepare("INSERT INTO goal_grants VALUES (?,?,?,?,?,1,?,NULL,?,NULL,0,'issued')")
       .run(id, triggerId, policy.id, policy.version, goal.revision + 1, run.id, now);
     this.tx.finish(run.id, now);
     const authorization: PolicyAuthorization = { kind: 'policy', triggerRunId: run.id, grantId: id, policyId: policy.id,
-      policyVersion: policy.version, triggerId, text: '按用户批准的当前策略执行一个 text_only 片段；外部资料不提供授权。' };
+      policyVersion: policy.version, triggerId, text: '按用户批准的当前策略执行一个 text_only 片段；外部资料不提供授权。', ...(observation ? { observation } : {}) };
     this.db.prepare("UPDATE goal_steps SET status='pending',updatedAt=? WHERE id=? AND status='waiting_user'").run(now, goal.currentStepId);
     this.db.prepare("UPDATE goals SET status='ready',readyInputJson=?,revision=revision+1,updatedAt=? WHERE id=?")
       .run(JSON.stringify(authorization), now, goal.id);
     this.db.prepare('UPDATE goal_policies SET goalRevision=? WHERE id=?').run(goal.revision + 1, policy.id);
     this.event(policy, 'grant_issued', now, { grantId: id, triggerId, sourceRunId: run.id });
+  }
+
+  async observe(now: string, accepts: (goal: Goal) => boolean, signal: AbortSignal): Promise<void> {
+    utc(now); if (!this.options.enabled || !this.observer) return;
+    const rows = this.db.prepare("SELECT p.*,c.head,c.failures FROM goal_policies p JOIN goal_observer_cursors c ON c.policyId=p.id WHERE p.status='active' AND p.nextAt<=? ORDER BY p.nextAt,p.id LIMIT 10").all(now);
+    for (const row of rows) {
+      if (signal.aborted) return;
+      const policy = this.read(row);
+      if (policy.schedule.kind !== 'github') continue;
+      const watch = policy.schedule;
+      const raw = this.db.prepare('SELECT targetJson FROM goals WHERE id=?').get(policy.goalId)!;
+      const actor = { ownerId: policy.ownerId, target: decode<GoalActor['target']>(raw.targetJson) };
+      if (!accepts(this.getGoal(actor, policy.goalId))) continue;
+      // 事务外只读网络；返回时必须再次核对版本/目标/有效期，迟到快照不能授予权限。
+      try {
+        const data = await this.observer.poll(policy.schedule, row.head as string | null, signal);
+        signal.throwIfAborted();
+        this.tx.transaction(() => {
+          const current = this.get(actor, policy.id), goal = this.getGoal(actor, policy.goalId);
+          if (!this.options.enabled || current.status !== 'active' || current.version !== policy.version) return;
+          if (this.db.prepare('SELECT head FROM goal_observer_cursors WHERE policyId=?').get(policy.id)?.head !== row.head) return;
+          if (current.expiresAt <= now || current.expectedGoalRevision !== goal.revision || current.planRevision !== goal.planRevision
+            || goal.status !== 'waiting_user' || goal.pendingAction || goal.controlRequested || goal.blockedReason || !goal.currentStepId) {
+            this.stop(current, 'paused', 'observer_goal_changed_or_waiting', now); return;
+          }
+          this.db.prepare('UPDATE goal_policies SET nextAt=?,updatedAt=? WHERE id=?').run(new Date(Date.parse(now) + watch.intervalSeconds * 1000).toISOString(), now, policy.id);
+          this.db.prepare('UPDATE goal_observer_cursors SET failures=0,lastError=NULL WHERE policyId=?').run(policy.id);
+          if (row.head === data.head) return;
+          if (row.head === null) { this.db.prepare('UPDATE goal_observer_cursors SET head=? WHERE policyId=?').run(data.head, policy.id); this.event(policy, 'observer_baseline', now, { head: data.head }); return; }
+          if (this.db.prepare('SELECT 1 FROM goal_observations WHERE policyId=? AND head=?').get(policy.id, data.head)) return;
+          const id = randomUUID(), triggerId = randomUUID();
+          this.db.prepare("INSERT INTO goal_triggers VALUES (?,?,?,'github',?,?,'pending')").run(triggerId, policy.id, policy.version, data.head, now);
+          this.db.prepare('INSERT INTO goal_observations VALUES (?,?,?,?,?,?,?,?)').run(id, policy.id, policy.version, data.head, String(row.head), now, JSON.stringify(data), triggerId);
+          this.db.prepare('UPDATE goal_observer_cursors SET head=? WHERE policyId=?').run(data.head, policy.id);
+          this.issue(current, goal, triggerId, now, { id, repository: watch.repository, branch: watch.branch, previous: String(row.head), data });
+          this.event(policy, 'observation_committed', now, { id, triggerId, head: data.head });
+        });
+      } catch (error) {
+        if (signal.aborted) return;
+        this.tx.transaction(() => {
+          const current = this.get(actor, policy.id);
+          if (current.status !== 'active' || current.version !== policy.version) return;
+          const failures = Math.min(Number(row.failures) + 1, 16);
+          const interval = watch.intervalSeconds;
+          this.db.prepare('UPDATE goal_observer_cursors SET failures=?,lastError=? WHERE policyId=?').run(failures, String(error).slice(0, 1000), policy.id);
+          this.db.prepare('UPDATE goal_policies SET nextAt=?,updatedAt=? WHERE id=?').run(new Date(Date.parse(now) + Math.min(21600, interval * 2 ** Math.min(failures, 8)) * 1000).toISOString(), now, policy.id);
+          this.event(policy, 'observation_failed', now, { failures, error: String(error).slice(0, 1000) });
+        });
+      }
+    }
   }
 
   // GoalStore 在领取事务中调用：预算预留、唯一消费和创建 Execution 同提交或同回滚。
@@ -217,10 +280,12 @@ export class GoalPolicyStore {
     }
     this.db.prepare('UPDATE goal_policies SET goalRevision=?,updatedAt=? WHERE id=?').run(goal.revision, now, policy.id);
   }
-  audit(actor: GoalActor, id: string): { policy: GoalPolicy; triggers: unknown[]; grants: unknown[]; events: unknown[] } {
+  audit(actor: GoalActor, id: string): { policy: GoalPolicy; triggers: unknown[]; grants: unknown[]; events: unknown[]; observations: unknown[]; cursor: unknown } {
     const policy = this.get(actor, id);
     return { policy, triggers: this.db.prepare('SELECT * FROM goal_triggers WHERE policyId=? ORDER BY at,id').all(id),
       grants: this.db.prepare('SELECT * FROM goal_grants WHERE policyId=? ORDER BY at,id').all(id),
-      events: this.db.prepare('SELECT * FROM goal_policy_events WHERE policyId=? ORDER BY id').all(id) };
+      events: this.db.prepare('SELECT * FROM goal_policy_events WHERE policyId=? ORDER BY id').all(id),
+      observations: this.db.prepare('SELECT * FROM goal_observations WHERE policyId=? ORDER BY at,id').all(id),
+      cursor: this.db.prepare('SELECT * FROM goal_observer_cursors WHERE policyId=?').get(id) ?? null };
   }
 }

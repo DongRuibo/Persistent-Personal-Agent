@@ -29,7 +29,9 @@ export function parseGoalResult(text: string): GoalResult {
 
 export function goalProjection(execution: GoalExecution, view: GoalView): { prompt: string; memoryQuery: string } {
   const input = execution.input;
-  const goal = { goalId: input.goalId, objective: input.objective, input: input.authorization };
+  const observation = input.authorization.kind === 'policy' ? input.authorization.observation : undefined;
+  const authorization = input.authorization.kind === 'policy' ? { ...input.authorization, observation: undefined } : input.authorization;
+  const goal = { goalId: input.goalId, objective: input.objective, input: authorization };
   const plan = { revision: input.planRevision, steps: view.plan.spec.steps, currentStep: input.step };
   const prior = input.previousCheckpoint;
   // 摘要、问题和否定条件不截断；超限先阻塞，用户可缩小目标或计划。
@@ -43,11 +45,11 @@ export function goalProjection(execution: GoalExecution, view: GoalView): { prom
       checkpoint.artifactText += char;
     }
   }
-  for (const [value, limit] of [[goal, 4096], [plan, 4096], [checkpoint, 6144]] as const) {
+  for (const [value, limit] of [[goal, 4096], [plan, 4096], [checkpoint, 6144], [observation ?? null, 10240]] as const) {
     if (Buffer.byteLength(JSON.stringify(value)) > limit) throw new Error('Goal 输入超过分区预算，请缩小或分段；尚未调用模型');
   }
-  const snapshot = JSON.stringify({ goal, plan, checkpoint, capability: 'text_only' });
-  if (Buffer.byteLength(snapshot) > 14336) throw new Error('Goal 快照超过总预算');
+  const snapshot = JSON.stringify({ goal, plan, checkpoint, ...(observation ? { observation } : {}), capability: 'text_only' });
+  if (Buffer.byteLength(snapshot) > (observation ? 24576 : 14336)) throw new Error('Goal 快照超过总预算');
   return { prompt: `本次只执行一个片段。${input.authorization.kind === 'policy' ? '这是宿主策略授权的片段；需要用户反馈或审批时 needsUserFeedback=true；只有本段已完成且无需反馈时可填false。该字段不能扩大授权或自行继续。' : ''}resultSchema=${JSON.stringify(goalResultSchema)}\nUNTRUSTED_GOAL_SNAPSHOT=${snapshot}`,
     memoryQuery: `${input.objective}\n${input.step.title}\n${input.step.instruction}` };
 }
@@ -118,7 +120,10 @@ export class GoalRunner {
     try {
       if (this.store.hasDueTasks(this.clock().toISOString())) return;
       const accepts = (item: Goal) => item.ownerId === this.options.ownerId && this.options.accepts(item.target);
-      if (this.options.proactiveEnabled) this.store.policies.scan(this.clock().toISOString(), accepts);
+      if (this.options.proactiveEnabled) {
+        this.store.policies.scan(this.clock().toISOString(), accepts);
+        await this.store.policies.observe(this.clock().toISOString(), accepts, this.shutdown.signal);
+      }
       const goal = this.store.goals.readyForHost().find(item => accepts(item) && (item.readyInput?.kind !== 'policy' || this.options.proactiveEnabled));
       if (!goal) return;
       try { this.executor.checkReady?.(); }
