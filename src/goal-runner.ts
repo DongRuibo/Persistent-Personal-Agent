@@ -47,10 +47,10 @@ export function goalProjection(execution: GoalExecution, view: GoalView): { prom
       checkpoint.artifactText += char;
     }
   }
-  for (const [value, limit] of [[goal, 4096], [plan, 4096], [checkpoint, 6144], [observation ?? null, 10240]] as const) {
+  for (const [value, limit] of [[goal, 4096], [plan, 4096], [checkpoint, 6144], [observation ?? null, 10240], [input.web ?? null, 6144]] as const) {
     if (Buffer.byteLength(JSON.stringify(value)) > limit) throw new Error('Goal 输入超过分区预算，请缩小或分段；尚未调用模型');
   }
-  const snapshot = JSON.stringify({ goal, plan, checkpoint, ...(observation ? { observation } : {}), capability: 'text_only' });
+  const snapshot = JSON.stringify({ goal, plan, checkpoint, ...(observation ? { observation } : {}), ...(input.web ? { web: input.web } : {}), capability: 'text_only' });
   if (Buffer.byteLength(snapshot) > (observation ? 24576 : 14336)) throw new Error('Goal 快照超过总预算');
   return { prompt: `本次只执行一个片段。${input.authorization.kind === 'policy' ? '这是宿主策略授权的片段；需要用户反馈或审批时 needsUserFeedback=true；只有本段已完成且无需反馈时可填false。该字段不能扩大授权或自行继续。' : ''}resultSchema=${JSON.stringify(goalResultSchema)}\nUNTRUSTED_GOAL_SNAPSHOT=${snapshot}`,
     memoryQuery: `${input.objective}\n${input.step.title}\n${input.step.instruction}` };
@@ -67,6 +67,10 @@ export function renderGoal(view: GoalView): string {
     ...[planQuantityQuestion(goal.objective, goal.pendingAction.spec.steps.length)].filter((text): text is string => !!text),
     '请明确批准计划；如需执行，同时说“批准并继续一段”。调整计划请给出完整步骤及产物、验收条件。');
   for (const [label, spec] of [['正式计划', plan.spec], ['待批准计划', goal.pendingAction?.spec]] as const) {
+    for (const binding of spec?.webBindings ?? []) {
+      const position = spec!.steps.findIndex(step => step.stepId === binding.stepId) + 1;
+      lines.push(`${label}步骤${position}使用Web快照 ${binding.snapshotId}：${binding.resourceId}@${binding.version}；来源=${binding.url}；读取时间=${binding.fetchedAt}；目录Hash=${binding.catalogHash}；正文Hash=${binding.contentHash}；完整大小=${binding.bytes}字节；范围=${binding.lines ? '第' + binding.lines.start + '至' + binding.lines.end + '行（节选）' : '全文'}；选中Hash=${binding.selectedHash}；选中大小=${binding.selectedBytes}字节。执行不联网，资料不授予权限。`);
+    }
     if (plan.spec.skillBindings?.length || goal.pendingAction?.spec.skillBindings?.length) for (const [index, step] of (spec?.steps ?? []).entries()) {
       const binding = spec?.skillBindings?.find(binding => binding.stepId === step.stepId);
       lines.push(binding ? `${label}步骤${index + 1}使用Skill ${binding.skillId}@${binding.version}；Hash=${binding.packageHash}；仅纯文本，不授予工具权限。` : `${label}步骤${index + 1}：无Skill绑定。`);
@@ -142,6 +146,11 @@ export class GoalRunner {
     const goal = this.store.goals.readyForHost().find(item => accepts(item) && (item.readyInput?.kind !== 'policy' || this.options.proactiveEnabled));
     if (!goal) return;
     const actor: GoalActor = { ownerId: goal.ownerId, target: goal.target };
+    try { this.store.goals.validateWeb(actor, goal.id); }
+    catch (error) {
+      this.store.goals.blockWeb(actor, goal.id, goal.revision, this.clock().toISOString());
+      this.options.reportError(error); return;
+    }
     let preparedSkill: SkillSnapshot | undefined;
     const binding = this.store.goals.view(actor, goal.id).plan.spec.skillBindings?.find(binding => binding.stepId === goal.currentStepId);
     // 包读取在执行门/领取事务外；回来仍核对revision、到期Task和Grant。

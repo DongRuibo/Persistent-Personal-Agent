@@ -27,3 +27,10 @@ export interface WebActor { owner: string; channel: string }
 export interface WebPermit extends WebActor { id: string; runId: string; resourceId: string; catalogHash: string; expires: number }
 export interface WebView extends WebActor { resourceId: string; catalogHash: string; expires: number; displayRunId: string; displayHash: string; purpose: string }
 export interface WebUsage { bytes: number }
+export interface GoalWebSelection { resourceId: string; latest: boolean; lines?: { start: number; end: number } }
+export interface WebSnapshotBinding {
+  stepId: string; snapshotId: string; resourceId: string; url: string; version: string; catalogHash: string;
+  fetchedAt: string; contentHash: string; bytes: number;
+  lines: { start: number; end: number } | null; selectedHash: string; selectedBytes: number;
+}
+export interface FrozenWebInput { binding: WebSnapshotBinding; text: string; trust: 'UNTRUSTED_WEB_SNAPSHOT_V1' }

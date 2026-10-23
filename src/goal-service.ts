@@ -4,6 +4,7 @@ import type { SqliteStore } from './sqlite-store.js';
 import type { TaskService } from './task-service.js';
 import { renderGoal } from './goal-runner.js';
 import type { SkillCatalog } from './skill-service.js';
+import type { GoalWebSelection } from './web-read-types.js';
 
 export type GoalAction = 'create' | 'list' | 'view' | 'continue' | 'pause' | 'cancel' | 'approve_plan' | 'revise_plan' | 'complete';
 export interface GoalDisplay {
@@ -47,6 +48,7 @@ export class GoalService {
 
   apply(request: ExecutionRequest, action: GoalAction, goal?: Goal, options: {
     executeNext?: boolean; regenerate?: boolean; prepend?: string; steps?: GoalStepProposal[]; skillId?: string | null;
+    webSelection?: GoalWebSelection | null; webPosition?: number;
   } = {}): Goal {
     request.signal.throwIfAborted();
     if (request.scope !== 'chat' || !request.source || request.source.channel !== this.actor().target.channel) throw new Error('Goal 需要当前可信交互来源');
@@ -63,6 +65,11 @@ export class GoalService {
       updated = this.store.goals.approvePlan(command, goal.id, goal.pendingAction?.hash ?? '', now, options.executeNext);
     }
     else if (action === 'revise_plan') {
+      if (options.webSelection !== undefined) {
+        updated = this.store.goals.proposeWebBinding(command, goal.id, options.webSelection, options.webPosition, now);
+        if (updated.controlRequested) this.interrupt(updated.id);
+        return updated;
+      }
       const view = this.plan(goal.id);
       const completed = view.plan.spec.steps.filter(step => view.steps.find(item => item.id === step.stepId)?.status === 'completed');
       const pending = view.plan.spec.steps.filter(step => !completed.includes(step));

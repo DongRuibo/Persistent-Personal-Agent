@@ -11,6 +11,14 @@
 - Windows Node24.19：typecheck、build、test、eval:memory、eval:formation 全部退出0；397项，394通过、0失败、3原平台跳过。a-test.log 等原失败和 a-*-02.log 最终日志位于 E:/AgentWork/validation/personal-agent-goal-web-20261023-195458。
 - 这只证明离线机制修复；历史真实暂停/收据失败仍开放，须独立真实复验。
 
+## 阶段 B：快照绑定与执行
+
+- WebReadStore复用原表，只读验证成功Run/投递、owner和完整渠道、资源URL/版本/目录Hash、正文Hash/字节。Plan JSON增加webBindings；旧计划省略字段仍兼容，无新增表或缓存。
+- GoalService/Guard只接受当前明确资料标题、Goal、步骤及全文或行范围；模型没有来源ID/Hash参数。资料变更生成新草稿，保留Skill绑定，展示来源时间/Hash/范围后走原审批。已完成步骤不可改写。
+- 领取时冻结选中文本并进入Execution inputHash；Goal投影包含低信任标记，零工具/单模型请求。来源损坏时先阻塞未领取Goal，不消费模型或重新联网；执行后再校验，旧Checkpoint不覆盖。
+- 新增9项真实Pi/SQLite/本机HTTP测试，包含完整闭环、全文超限拒绝、明确节选、多份来源澄清、跨渠道/Hash/版本/丢失、已完成Step与旧Plan保持不变。首轮两项失败为SQLite无原型对象与structuredClone比较的测试表示差异，改为原数据/JSON字节比对；后续模拟路由误把绑定中的“读取”当新Web请求，以及一个反例先命中Step ID校验，均修正测试编排，业务预期不变；原日志保留。
+- Windows五关全部退出0；406项，403通过、0失败、3原平台跳过。最终日志b-*-final.log；未付费或访问真实网站。
+
 ## 后续阶段
 
-B：成功快照引用与 Plan 审批/Execution 冻结；C：跨模块端到端及双平台最终回归；D：统一 Console 验收入口和冻结方案。完成后补充实际结果，不以计划代替证据。
+C：跨模块端到端及双平台最终回归；D：统一 Console 验收入口和冻结方案。完成后补充实际结果，不以计划代替证据。

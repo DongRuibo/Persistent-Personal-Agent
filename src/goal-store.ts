@@ -1,6 +1,8 @@
 import { createHash, randomUUID } from 'node:crypto';
 import type { DatabaseSync } from 'node:sqlite';
 import type { SkillCatalog, SkillSnapshot } from './skill-service.js';
+import type { WebReadStore } from './web-read-store.js';
+import type { GoalWebSelection } from './web-read-types.js';
 import type { Run, RunStatus } from './contracts.js';
 import { validatePlanQuantity, validateQuantityApproval } from './goal-plan-quantity.js';
 import type {
@@ -23,6 +25,7 @@ const binding = (actor: GoalActor): string => hash([actor.ownerId, actor.target.
 
 // 仅负责同连接的短事务；没有调度、模型调用或自然语言授权能力。
 export class GoalStore {
+  web?: WebReadStore;
   private skills?: SkillCatalog;
   setSkills(skills?: SkillCatalog): void { this.skills = skills; }
   policy?: {
@@ -223,6 +226,22 @@ export class GoalStore {
     });
   }
 
+  validateWeb(actor: GoalActor, id: string): void {
+    const goal = this.get(actor, id);
+    const binding = this.plan(goal).spec.webBindings?.find(item => item.stepId === goal.currentStepId);
+    if (binding && !this.web) throw new Error('Goal Web快照校验服务不可用');
+    if (binding) this.web!.freezeForGoal(actor, binding);
+  }
+
+  blockWeb(actor: GoalActor, id: string, expectedRevision: number, now: string): void {
+    this.tx.transaction(() => {
+      const goal = this.get(actor, id);
+      if (goal.status !== 'ready' || goal.revision !== expectedRevision) return;
+      this.db.prepare("UPDATE goals SET status='blocked',blockedReason='web_snapshot_unavailable',readyInputJson=NULL,revision=revision+1,updatedAt=? WHERE id=?").run(now, id);
+      if (goal.readyInput) this.tx.event(goal.readyInput.triggerRunId, 'goal_web_blocked', JSON.stringify({ goalId: id }), now);
+    });
+  }
+
   claim(actor: GoalActor, id: string, expectedRevision: number, now: string, skill?: SkillSnapshot): { goal: Goal; execution: GoalExecution; run: Run } | undefined {
     return this.tx.transaction(() => {
       this.time(now);
@@ -241,6 +260,11 @@ export class GoalStore {
       if (bound ? !skill || skill.id !== bound.skillId || skill.hash !== bound.packageHash || skill.version !== bound.version
         || !skill.text || Buffer.byteLength(skill.text) > 4096 : !!skill) throw new Error('Skill执行快照与已批准Plan绑定不一致');
       if (skill) input.skill = structuredClone(skill);
+      const webBinding = this.plan(goal).spec.webBindings?.find(binding => binding.stepId === step.stepId);
+      if (webBinding) {
+        if (!this.web) throw new Error('Goal Web快照校验服务不可用');
+        input.web = this.web.freezeForGoal(actor, webBinding);
+      }
       const run = authorization.kind === 'policy' ? this.policy?.consume(goal, authorization, now) : this.tx.begin(now);
       if (!run) return undefined;
       const sequence = Number(this.db.prepare('SELECT coalesce(max(sequence),0)+1 AS n FROM goal_executions WHERE goalId=?').get(id)!.n);
@@ -276,10 +300,10 @@ export class GoalStore {
     });
   }
 
-  private draft(goal: Goal, runId: string, proposed: NonNullable<GoalResult['proposedPlan']>, userText = goal.objective): GoalPlanDraft {
+  private draft(goal: Goal, runId: string, proposed: NonNullable<GoalResult['proposedPlan']>, userText = goal.objective, previousOverride?: GoalPlanSpec): GoalPlanDraft {
     if (!Array.isArray(proposed.steps) || proposed.steps.length < 1 || proposed.steps.length > 12) throw new Error('计划步骤必须为1至12项');
     validatePlanQuantity(goal.objective, proposed.steps.length);
-    const previous = this.plan(goal).spec, current = previous.steps;
+    const previous = previousOverride ?? this.plan(goal).spec, current = previous.steps;
     const bindings: NonNullable<GoalPlanSpec['skillBindings']> = [];
     const catalog = this.skills?.list() ?? [];
     const explicitIds = [...userText.matchAll(/(?:使用|采用|改用|选用|绑定)\s*(?:Skill|技能)\s*[:：]?\s*([a-z0-9-]+)/giu)].map(match => match[1]!);
@@ -309,6 +333,8 @@ export class GoalStore {
       return definition;
     }) };
     if (bindings.length) spec.skillBindings = bindings;
+    const webBindings = previous.webBindings?.filter(binding => spec.steps.some(step => step.stepId === binding.stepId));
+    if (webBindings?.length) spec.webBindings = structuredClone(webBindings);
     if (new Set(spec.steps.map(step => step.stepId)).size !== spec.steps.length) throw new Error('计划步骤重复');
     const body = { baseRevision: goal.planRevision, revision: goal.planRevision + 1, spec, sourceRunId: runId,
       changeReason: this.text(proposed.changeReason, 2000) };
@@ -334,6 +360,10 @@ export class GoalStore {
         this.stopExecution(execution, goal, 'discarded', 'stale_result', now);
       } else {
         if (goal.status !== 'running' || !['partial', 'complete', 'blocked'].includes(result.stepOutcome)) throw new Error('Goal 结果状态无效');
+        if (execution.input.web) {
+          const frozen = this.web?.freezeForGoal({ ownerId: goal.ownerId, target: goal.target }, execution.input.web.binding);
+          if (!frozen || hash(frozen) !== hash(execution.input.web)) throw new Error('Goal Web执行资料已损坏，拒绝提交');
+        }
         if (goal.planRevision === 0 && result.stepOutcome === 'complete' && !result.proposedPlan) throw new Error('bootstrap 完成必须提交计划草稿');
         if (result.stepOutcome === 'blocked' && result.proposedPlan) throw new Error('阻塞结果不能同时申请计划批准');
         const proposedPlan = result.proposedPlan ? this.draft(goal, runId, result.proposedPlan) : null;
@@ -380,6 +410,11 @@ export class GoalStore {
       const { hash: draftFingerprint, ...body } = draft;
       if (hash(body) !== draftFingerprint) throw new Error('计划草稿 Hash 不一致');
       validateQuantityApproval(goal.objective, draft.spec.steps.length, command.text);
+      for (const binding of draft.spec.webBindings ?? []) {
+        if (this.db.prepare('SELECT status FROM goal_steps WHERE id=? AND goalId=?').get(binding.stepId, goal.id)?.status === 'completed') continue;
+        if (!this.web) throw new Error('Goal Web快照校验服务不可用');
+        this.web.freezeForGoal(command.actor, binding);
+      }
       for (const binding of draft.spec.skillBindings ?? []) {
         if (this.db.prepare('SELECT status FROM goal_steps WHERE id=? AND goalId=?').get(binding.stepId, goal.id)?.status === 'completed') continue;
         if (!this.skills?.list().some(info => info.id === binding.skillId && info.hash === binding.packageHash && info.goalCompatible && info.enabled)) throw new Error('Skill批准版本已变化，请重新调整并展示计划');
@@ -417,6 +452,33 @@ export class GoalStore {
       this.db.prepare(`UPDATE goals SET pendingActionJson=?,readyInputJson=NULL,status=?,controlRequested=?,
         revision=revision+1,updatedAt=? WHERE id=?`).run(JSON.stringify(draft), goal.status === 'running' ? 'running' : 'waiting_user',
           goal.status === 'running' ? 'pause' : null, now, id);
+      return this.receipt(this.get(command.actor, id), command.sourceRunId, 'revise_plan', now);
+    });
+  }
+
+  proposeWebBinding(command: GoalCommand, id: string, selection: GoalWebSelection | null, position: number | undefined, now: string): Goal {
+    return this.tx.transaction(() => {
+      const goal = this.command(command, id, now);
+      if (['completed', 'cancelled'].includes(goal.status) || goal.controlRequested || goal.blockedReason === 'invariant_violation') throw new Error('当前Goal不能调整资料');
+      if (goal.pendingAction) {
+        const { hash: fingerprint, ...body } = goal.pendingAction;
+        if (hash(body) !== fingerprint || body.baseRevision !== goal.planRevision) throw new Error('原计划草稿Hash或版本不符');
+      }
+      const previous = goal.pendingAction?.spec ?? this.plan(goal).spec;
+      const target = position === undefined ? previous.steps.find(step => step.stepId === goal.currentStepId)
+        ?? (previous.steps.length === 1 ? previous.steps[0] : undefined) : previous.steps[position - 1];
+      if (!target || position !== undefined && (!Number.isSafeInteger(position) || position < 1)
+        || this.db.prepare('SELECT status FROM goal_steps WHERE id=? AND goalId=?').get(target.stepId, id)?.status === 'completed') throw new Error('请明确一个未完成步骤；已完成Step资料不可改写');
+      const draft = this.draft(goal, command.sourceRunId, { steps: previous.steps, changeReason: command.text }, command.text, previous);
+      const bindings = draft.spec.webBindings?.filter(binding => binding.stepId !== target.stepId) ?? [];
+      if (selection) {
+        if (!this.web) throw new Error('Goal Web快照校验服务不可用');
+        bindings.push(this.web.selectForGoal(command.actor, target.stepId, selection));
+      }
+      if (bindings.length) draft.spec.webBindings = bindings; else delete draft.spec.webBindings;
+      const { hash: _oldHash, ...body } = draft; draft.hash = hash(body);
+      this.db.prepare("UPDATE goals SET pendingActionJson=?,readyInputJson=NULL,status=?,controlRequested=?,revision=revision+1,updatedAt=? WHERE id=?")
+        .run(JSON.stringify(draft), goal.status === 'running' ? 'running' : 'waiting_user', goal.status === 'running' ? 'pause' : null, now, id);
       return this.receipt(this.get(command.actor, id), command.sourceRunId, 'revise_plan', now);
     });
   }

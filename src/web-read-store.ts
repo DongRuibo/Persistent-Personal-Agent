@@ -1,7 +1,9 @@
 import { randomUUID, createHash } from 'node:crypto';
 import type { DatabaseSync } from 'node:sqlite';
-import { webHash } from './web-read-types.js';
+import { defaultWebResources, webHash } from './web-read-types.js';
 import type { WebActor, WebPermit, WebSnapshot, WebView } from './web-read-types.js';
+import type { FrozenWebInput, GoalWebSelection, WebSnapshotBinding } from './web-read-types.js';
+import type { GoalActor } from './goal-types.js';
 
 export class WebReadStore {
   constructor(private readonly db: DatabaseSync, private readonly transaction: <T>(fn: () => T) => T) {
@@ -89,4 +91,55 @@ export class WebReadStore {
       && !!this.db.prepare("SELECT 1 FROM run_events WHERE runId=? AND type='delivery_succeeded'").get(view.displayRunId);
   }
   calls(): Record<string, unknown>[] { return this.db.prepare('SELECT * FROM web_read_calls ORDER BY createdAt,id LIMIT 1000').all(); }
+
+  private goalActor(actor: GoalActor): WebActor {
+    // 与main的可信chatKey一致；还核对完整投递渠道，不以模型或Session正文中的身份匹配。
+    const target = actor.target;
+    const key = target.channel === 'console' ? 'console' : JSON.stringify(['feishu', target.appId, target.userOpenId]);
+    return { owner: createHash('sha256').update(key).digest('hex'), channel: JSON.stringify(target) };
+  }
+
+  private goalSource(actor: GoalActor, id: string): WebSnapshot {
+    const identity = this.goalActor(actor);
+    const row = this.db.prepare("SELECT w.*,r.status AS runStatus,r.deliveryError FROM web_read_calls w JOIN runs r ON r.id=w.runId WHERE w.id=? AND w.owner=? AND w.channel=?")
+      .get(id, identity.owner, identity.channel);
+    if (!row || row.status !== 'succeeded' || row.runStatus !== 'succeeded' || row.deliveryError !== null
+      || !this.db.prepare("SELECT 1 FROM run_events WHERE runId=? AND type='delivery_succeeded'").get(String(row.runId))) throw new Error('Goal Web快照缺失、未成功投递或身份/渠道不符，不重新联网');
+    const snapshot = this.snapshot(String(row.snapshotJson));
+    const resource = defaultWebResources.find(item => item.id === snapshot.resourceId);
+    if (!resource?.enabled || resource.hash !== snapshot.catalogHash || resource.version !== snapshot.version || resource.url !== snapshot.url
+      || row.resourceId !== snapshot.resourceId || row.catalogHash !== snapshot.catalogHash) throw new Error('Goal Web快照资源版本或目录已失效');
+    return snapshot;
+  }
+
+  private selected(snapshot: WebSnapshot, lines: WebSnapshotBinding['lines']): string {
+    let text = snapshot.text;
+    if (lines) {
+      const parts = text.split('\n');
+      if (!Number.isSafeInteger(lines.start) || !Number.isSafeInteger(lines.end) || lines.start < 1 || lines.end < lines.start || lines.end > parts.length) throw new Error('资料行范围无效；不自动节选');
+      text = parts.slice(lines.start - 1, lines.end).join('\n');
+    }
+    if (!text.trim() || Buffer.byteLength(text) > 4096) throw new Error('Goal Web资料超过4096字节或为空；请明确选择行范围，不自动裁剪');
+    return text;
+  }
+
+  selectForGoal(actor: GoalActor, stepId: string, selection: GoalWebSelection): WebSnapshotBinding {
+    const identity = this.goalActor(actor);
+    const rows = this.db.prepare("SELECT id FROM web_read_calls WHERE owner=? AND channel=? AND resourceId=? AND status='succeeded' ORDER BY createdAt DESC,rowid DESC LIMIT 2")
+      .all(identity.owner, identity.channel, selection.resourceId);
+    if (!rows.length || rows.length > 1 && !selection.latest) throw new Error('资料来源不唯一或不存在，请明确选择最近成功读取的一份');
+    const snapshotId = String(rows[0]!.id), snapshot = this.goalSource(actor, snapshotId);
+    const lines = selection.lines ? structuredClone(selection.lines) : null, text = this.selected(snapshot, lines);
+    const { text: _body, ...metadata } = snapshot;
+    return { stepId, snapshotId, ...metadata, lines, selectedHash: createHash('sha256').update(text).digest('hex'), selectedBytes: Buffer.byteLength(text) };
+  }
+
+  freezeForGoal(actor: GoalActor, binding: WebSnapshotBinding): FrozenWebInput {
+    const snapshot = this.goalSource(actor, binding.snapshotId), text = this.selected(snapshot, binding.lines);
+    const { text: _body, ...metadata } = snapshot;
+    const expected: WebSnapshotBinding = { stepId: binding.stepId, snapshotId: binding.snapshotId, ...metadata, lines: binding.lines,
+      selectedHash: createHash('sha256').update(text).digest('hex'), selectedBytes: Buffer.byteLength(text) };
+    if (webHash(expected) !== webHash(binding)) throw new Error('Goal Web批准绑定的元数据/正文Hash或节选已变化');
+    return { binding: structuredClone(binding), text, trust: 'UNTRUSTED_WEB_SNAPSHOT_V1' };
+  }
 }

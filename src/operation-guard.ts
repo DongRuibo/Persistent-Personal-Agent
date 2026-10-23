@@ -14,7 +14,7 @@ import type { GoalService, GoalDisplay, GoalAction } from './goal-service.js';
 import type { Goal } from './goal-types.js';
 import type { WebReadService } from './web-read-service.js';
 import type { WebReadStore } from './web-read-store.js';
-import { webHash } from './web-read-types.js';
+import { defaultWebResources, webHash } from './web-read-types.js';
 import type { WebView } from './web-read-types.js';
 import { confirmsWebRequest, rejectsWebRequest, webPreview, webRequestSelection } from './web-read-authorization.js';
 
@@ -339,7 +339,9 @@ export class OperationGuard {
     const selectionOnly = /^(?:第[0-9零〇一二两三四五六七八九十百]+(?:个|项|条|号)|[0-9零〇一二两三四五六七八九十百]+号|刚才那个|上一个)[。！!]?$/u.test(activeText.trim());
     const bindingRequest = action === 'revise_plan' && intent.skillId !== undefined && /当前步骤|这一步/u.test(activeText)
       && /(?:使用|改用|绑定|移除|停用).{0,30}(?:Skill|技能)/iu.test(activeText);
-    if (verbs[action] && !verbs[action]!.test(activeText) && !bindingRequest && !(selectionOnly && reference && display?.action === action)) throw new Error('原话中没有对应操作依据');
+    const webBindingRequest = action === 'revise_plan' && /资料|文档|Web快照/iu.test(activeText)
+      && /绑定|用于|用作|移除/u.test(activeText) && /当前步骤|这一步|第[0-9一二三四五六七八九十]+步/u.test(activeText);
+    if (verbs[action] && !verbs[action]!.test(activeText) && !bindingRequest && !webBindingRequest && !(selectionOnly && reference && display?.action === action)) throw new Error('原话中没有对应操作依据');
     const options: Parameters<GoalService['apply']>[3] = {};
     if (action === 'approve_plan' || action === 'complete') {
       if (!display?.details || !display.items.some(item => item.id === goal.id)) return show([goal], action, '请先核对下面当前内容，再明确确认。\n');
@@ -361,7 +363,26 @@ export class OperationGuard {
     }
     if (action === 'revise_plan') {
       const evidence = intent.bodyEvidence?.trim();
-      if (intent.skillId !== undefined && /当前步骤|这一步/u.test(activeText)) {
+      if (webBindingRequest) {
+        if (rejectsWebRequest(request.prompt) || intent.skillId !== undefined) throw new Error('资料绑定需要独立、明确的当前请求，不能混合改变Skill');
+        const positions = [...activeText.matchAll(/第([0-9一二三四五六七八九十]+)步/gu)];
+        if (positions.length > 1) throw new Error('资料绑定只能选择一个步骤');
+        if (positions.length) {
+          const word = positions[0]![1]!, digits = '零一二三四五六七八九';
+          options.webPosition = /^\d+$/u.test(word) ? Number(word) : word.includes('十')
+            ? (word.startsWith('十') ? 1 : digits.indexOf(word[0]!)) * 10 + (word.endsWith('十') ? 0 : digits.indexOf(word.at(-1)!)) : digits.indexOf(word);
+          if (!Number.isSafeInteger(options.webPosition) || options.webPosition < 1 || options.webPosition > 12) throw new Error('步骤编号无效');
+        }
+        if (/移除/u.test(activeText)) options.webSelection = null;
+        else {
+          const sources = webRequestSelection(activeText, [...defaultWebResources]);
+          const ranges = [...activeText.matchAll(/第(\d+)(?:至|到|-)(\d+)行/gu)];
+          if (sources.ids.length !== 1 || ranges.length > 1 || ranges.length && /全文|完整正文/u.test(activeText)
+            || !ranges.length && !/全文|完整正文/u.test(activeText)) throw new Error('请明确一份已获取文档及全文或第N至M行范围；不自动节选');
+          options.webSelection = { resourceId: sources.ids[0]!, latest: /(?:最近(?:一次)?|刚才)(?:成功)?(?:读取|获取)的/u.test(activeText),
+            ...(ranges.length ? { lines: { start: Number(ranges[0]![1]), end: Number(ranges[0]![2]) } } : {}) };
+        }
+      } else if (intent.skillId !== undefined && /当前步骤|这一步/u.test(activeText)) {
         if (intent.skillId === null ? !/(?:移除|停用).{0,20}(?:Skill|技能)/iu.test(activeText)
           : !activeText.includes(intent.skillId) || !/(?:使用|改用|绑定).{0,30}(?:Skill|技能)/iu.test(activeText)) throw new Error('Skill绑定变更必须来自当前原话');
         options.skillId = intent.skillId;

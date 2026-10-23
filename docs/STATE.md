@@ -4,7 +4,7 @@
 
 ## 当前阶段与进行中事项
 
-- 新任务A～D基线5285975，独立分支feature/goal-web-snapshots。A已完成两项真实失败的最小离线修复及Windows五关：397项394通过/3原平台跳过。B/C/D继续实施，不停在小批次；设计见[快照集成](designs/goal-web-snapshot-integration.md)，证据见[本轮报告](evaluations/goal-web-milestone.md)。本轮仅可推审查分支，禁止改远端main；不使用旧收费额度。
+- 新任务A～D基线5285975，独立分支feature/goal-web-snapshots。A已完成两项真实失败的最小离线修复及Windows五关：397项394通过/3原平台跳过；B完成快照Plan绑定/审批、Execution冻结和恢复，Windows五关406项403通过/3原平台跳过。C/D继续实施，不停在小批次；设计见[快照集成](designs/goal-web-snapshot-integration.md)，证据见[本轮报告](evaluations/goal-web-milestone.md)。本轮仅可推审查分支，禁止改远端main；不使用旧收费额度。
 - S1-A开发及发布基线为fd4bc856ef26e7482c05d251e39af4773eb40707。S0及特殊包权限修复已由用户确认通过ChatGPT代码审查；S1-A1/A2/A3已完成，本轮按用户追加授权合并main并推送GitHub，不开发S1-B或扩大Goal/Policy。
 - S1-A1/A2/A3工程及隔离自动化已连续完成：固定资源/安全网络、原版Pi Chat工具、当前原话与成功展示确认、单次持久许可/预算/快照、取消/强杀恢复、共用模型额度及Session正文额度。仅增量web_read_calls一表，不扩大Task/Memory/Goal/Policy权限，见[完整报告](evaluations/s1-web-validation.md)及[机器摘要](evaluations/s1-web-validation.json)。
 - 发布使用独立工作树 `C:/Users/Dongr/.codex/worktrees/v3-proactive/Persistent Personal Agent`，main快进合并feature/s1-readonly-web，保留A1=36dca0c、A2=a77c729、A3=f70c68c三个阶段提交；本次另补发布交接，最终远端SHA以GitHub refs/heads/main为准。原E盘保留分支local/preserve-workspace-20261023及8份已有文件（含HANDOFF）Hash未变，不覆盖或混入提交。

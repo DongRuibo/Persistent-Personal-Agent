@@ -62,6 +62,7 @@ export class SqliteStore {
     (actor, id) => this.goals.get(actor, id));
     this.notifications = new GoalNotificationStore(this.db, fn => this.transaction(fn));
     this.web = new WebReadStore(this.db, fn => this.transaction(fn));
+    this.goals.web = this.web;
     this.goals.policy = {
       consume: (goal, auth, now) => this.policies.consume(goal, auth, now),
       current: (execution, now) => this.policies.current(execution, now),
