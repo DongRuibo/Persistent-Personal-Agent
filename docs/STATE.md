@@ -4,11 +4,12 @@
 
 ## 当前阶段与进行中事项
 
-- 本轮已核对本地及GitHub main基线fd4bc856ef26e7482c05d251e39af4773eb40707。S0及特殊包权限修复已由用户确认通过ChatGPT代码审查；当前按授权连续实施S1-A1/A2/A3，不开发S1-B或扩大Goal/Policy。
+- S1-A开发及发布基线为fd4bc856ef26e7482c05d251e39af4773eb40707。S0及特殊包权限修复已由用户确认通过ChatGPT代码审查；S1-A1/A2/A3已完成，本轮按用户追加授权合并main并推送GitHub，不开发S1-B或扩大Goal/Policy。
 - S1-A1/A2/A3工程及隔离自动化已连续完成：固定资源/安全网络、原版Pi Chat工具、当前原话与成功展示确认、单次持久许可/预算/快照、取消/强杀恢复、共用模型额度及Session正文额度。仅增量web_read_calls一表，不扩大Task/Memory/Goal/Policy权限，见[完整报告](evaluations/s1-web-validation.md)及[机器摘要](evaluations/s1-web-validation.json)。
-- 工作在独立工作树 `C:/Users/Dongr/.codex/worktrees/v3-proactive/Persistent Personal Agent`，分支feature/s1-readonly-web；本地A1=36dca0c、A2=a77c729，A3见本分支最终Git记录，未推送。原E盘保留分支local/preserve-workspace-20261023及8份已有文件（含HANDOFF）Hash未变，不覆盖或混入提交。
+- 发布使用独立工作树 `C:/Users/Dongr/.codex/worktrees/v3-proactive/Persistent Personal Agent`，main快进合并feature/s1-readonly-web，保留A1=36dca0c、A2=a77c729、A3=f70c68c三个阶段提交；本次另补发布交接，最终远端SHA以GitHub refs/heads/main为准。原E盘保留分支local/preserve-workspace-20261023及8份已有文件（含HANDOFF）Hash未变，不覆盖或混入提交。
 - V3.0.1自然语言暂停与主模型操作收据误解两项真实失败列为**正式主动执行启用前必解项**，须独立修复并真实复验；[原始报告](evaluations/v3.0.1-live-retest.md)不改，不因V3工程收尾或Skills设计而标记通过。
 - 最终两平台均Node24.19.0，typecheck/build/npm test/两个eval全部退出0；Windows387项384通过/0失败/3原平台跳过，Linux387全过/0跳过，Web专项85/85。137份项目/SDK文件Hash一致，检查后再次复核。首轮385项及新增竞争反例的失败/修复日志均保留；证据根目录E:/AgentWork/validation/personal-agent-s1-web-20261023-180629。Linux新容器全程network=none、无宿主挂载，同lockfile依赖仅从既有停止测试容器复制，未新安装；容器已停。Formation输出新路径，历史报告不改。
+- 本次合并发布仅更新STATE；重新核对137份源码/SDK和43份验收日志Hash、27份发布文件范围及原工作区8份文件Hash，检查文档与Git差异，不重复执行上述产品回归。未修改正式配置、数据、历史验收结果或启用功能。
 - WEB_READ_ENABLED、SKILLS_ENABLED、GOAL_ENABLED、PROACTIVE_ENABLED默认false，Formation不启用。本轮收费API、正式网站/真实账号、飞书/手机、正式.env/数据/历史验收库操作均0。[S0 Console体验方案](evaluations/s0-console-live-experience-plan.md)仍未获收费执行授权，不沿用旧预算。
 
 ## 已完成功能
@@ -36,7 +37,7 @@
 
 | 日期 | 修改及位置 |
 | --- | --- |
-| 2026-10-23 | S1-A1/A2/A3连续完成：阶段Windows329/332→354/357，最终Windows384/387、断网Linux387/387；Web85/85，五关均0。固定来源、可信许可、单表恢复；原始权限/确认竞争及网络时机失败保留，默认关闭、未推送 |
+| 2026-10-23 | S1-A1/A2/A3连续完成：阶段Windows329/332→354/357，最终Windows384/387、断网Linux387/387；Web85/85，五关均0。固定来源、可信许可、单表恢复；原始失败保留，默认关闭；用户随后授权合并main及推送，发布仅补STATE |
 | 2026-10-23 | S0特殊包明确调用定点修复：先红后绿、专项53/53、Windows299/302且3原平台跳过；五关均0。新增Console16次/2元待授权方案、S1只读Web设计；用户随后授权提交推送，仅补发布交接状态，未收费，原真实失败保留 |
 | 2026-10-23 | S0-A/B/C完成并逐阶段过关；最终Node24.19 Windows267通过/3原跳过、断网Linux270全过，两边五关均0；118源码Hash一致。用户随后授权合并推送main，发布仅补STATE；默认未启用，原始失败及阶段证据保留 |
 | 2026-10-23 | V3主要工程按用户确认收尾；[原生Skills设计](designs/skills-tools-architecture.md)及[SDK隔离验证9项通过](evaluations/pi-native-skills-spike.md)，无产品功能启用；V3.0.1两项真实失败仍为主动启用门槛 |
