@@ -186,6 +186,8 @@ Goal侧Outbox/Observer及提交后通知不跨网络占用后台门；网络前�
 
 接口、数据迁移和边界详见[设计](designs/v3-proactive-goals.md)，[本地验收](evaluations/v3-proactive-validation.md)仅证明隔离模拟机制；真实模型、GitHub正式仓库和飞书尚未验收。V3.0.1原真实暂停与收据误解失败保留。
 
+用户已确认V3.0～V3.3主要工程阶段性收尾；V3.0.1自然语言暂停及操作收据误解仍须在正式主动执行启用前独立解决并真实复验。当前仅开展[Pi原生Skills调研与设计](designs/skills-tools-architecture.md)及[隔离技术验证](evaluations/pi-native-skills-spike.md)，不自建Skills解析/Agent Loop；方案待审查，不代表已实施产品、批准新工具权限或启用正式能力，当前运行架构及默认关闭边界不变。
+
 ## V2.1b 候选与正式知识的边界
 
 - `formation-types.ts`定义来源、候选、视图与严格输出Schema；`formation-store.ts`在应用库新增Job/候选两表；`formation-service.ts`负责有界Worker、去重/保守冲突、快照失效与审批状态。Pi相关调用仅在适配器，用公开completeSimple，不创建另一套Agent Loop。
