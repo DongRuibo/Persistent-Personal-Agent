@@ -6,7 +6,7 @@ import { readConfig, redactor } from '../src/config.js';
 import { approveSkill } from '../src/skills-admin.js';
 import { SkillService } from '../src/skill-service.js';
 import { WebReadService } from '../src/web-read-service.js';
-import type { WebResolver, WebTransport } from '../src/web-read-service.js';
+import type { WebResolver, WebTransport, WebPhaseReporter } from '../src/web-read-service.js';
 import { defaultWebResources } from '../src/web-read-types.js';
 import { recordAcceptanceResponse } from './feishu-formation-acceptance.js';
 
@@ -94,12 +94,12 @@ export function integratedAcceptanceWeb(session: ReturnType<typeof openIntegrate
   const resource = defaultWebResources.find(item => item.id === integratedWebLimit.resourceId);
   if (!resource || resource.url !== integratedWebLimit.url) throw new Error('统一验收固定Web目录已改变，需要重新审查方案');
   return new class extends WebReadService {
-    override async fetch(id: string, hash: string, signal: AbortSignal) {
+    override async fetch(id: string, hash: string, signal: AbortSignal, report?: WebPhaseReporter) {
       signal.throwIfAborted();
       const approved = this.current(id, hash);
       session.budget.reserveWeb(approved.id, approved.url, approved.hash);
       session.persist(); // 同步落盘完成前不得调用父类；失败、取消和未知结果不释放预留。
-      return super.fetch(id, hash, signal);
+      return super.fetch(id, hash, signal, report);
     }
   }([resource], resolver, transport);
 }

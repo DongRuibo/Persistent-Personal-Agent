@@ -1,9 +1,10 @@
 import { randomUUID, createHash } from 'node:crypto';
 import type { DatabaseSync } from 'node:sqlite';
-import { defaultWebResources, webHash } from './web-read-types.js';
+import { defaultWebResources, webHash, WebSnapshotError } from './web-read-types.js';
 import type { WebActor, WebPermit, WebSnapshot, WebView } from './web-read-types.js';
 import type { FrozenWebInput, GoalWebSelection, WebSnapshotBinding } from './web-read-types.js';
 import type { GoalActor } from './goal-types.js';
+import type { WebReadPhase } from './web-read-service.js';
 
 export class WebReadStore {
   constructor(private readonly db: DatabaseSync, private readonly transaction: <T>(fn: () => T) => T) {
@@ -18,17 +19,17 @@ export class WebReadStore {
     CREATE INDEX IF NOT EXISTS web_read_daily ON web_read_calls(createdAt);`);
   }
   private snapshot(json: string): WebSnapshot {
-    if (Buffer.byteLength(json) > 262144) throw new Error('Web冻结元数据容量损坏');
+    if (Buffer.byteLength(json) > 262144) throw new WebSnapshotError('Web冻结元数据容量损坏');
     const value = JSON.parse(json) as WebSnapshot;
     const fields = ['resourceId', 'url', 'version', 'catalogHash', 'fetchedAt', 'contentHash', 'bytes', 'text'];
     if (!value || typeof value !== 'object' || Object.keys(value).length !== fields.length || Object.keys(value).some(key => !fields.includes(key))
       || typeof value.text !== 'string' || typeof value.resourceId !== 'string' || !/^[a-z][a-z0-9-]{0,63}$/u.test(value.resourceId)
       || typeof value.url !== 'string' || value.url.length > 2048 || typeof value.version !== 'string' || !value.version || value.version.length > 64
       || !/^[a-f0-9]{64}$/u.test(value.catalogHash) || !/^[a-f0-9]{64}$/u.test(value.contentHash)
-      || !Number.isFinite(Date.parse(value.fetchedAt)) || !Number.isSafeInteger(value.bytes)) throw new Error('Web冻结元数据损坏');
+      || !Number.isFinite(Date.parse(value.fetchedAt)) || !Number.isSafeInteger(value.bytes)) throw new WebSnapshotError('Web冻结元数据损坏');
     const bytes = Buffer.from(value.text, 'utf8');
     if (!bytes.length || bytes.length > 32768 || bytes.length !== value.bytes
-      || createHash('sha256').update(bytes).digest('hex') !== value.contentHash) throw new Error('Web快照Hash或容量损坏');
+      || createHash('sha256').update(bytes).digest('hex') !== value.contentHash) throw new WebSnapshotError('Web快照Hash或容量损坏');
     return value;
   }
   reserve(permit: WebPermit, now: string): { id: string; snapshot?: WebSnapshot } {
@@ -72,6 +73,12 @@ export class WebReadStore {
     });
     if (!accepted) throw new Error('Web结果迟到、许可已撤销或Run结束，拒绝提交');
   }
+  phase(id: string, phase: WebReadPhase, now: string): void {
+    // 阶段只属于仍在途的调用；不记录IP、原始异常或正文，不产生新的网络许可。
+    this.db.prepare(`INSERT INTO run_events(runId,at,type,details)
+      SELECT runId,?,'web_read_phase',? FROM web_read_calls WHERE id=? AND status='reserved'`)
+      .run(now, JSON.stringify({ id, phase }), id);
+  }
   fail(id: string, error: string, now: string, interrupted = false): void {
     this.db.prepare("UPDATE web_read_calls SET status=?,finishedAt=?,error=? WHERE id=? AND status='reserved'")
       .run(interrupted ? 'interrupted' : 'failed', now, error.slice(0, 200), id);
@@ -104,11 +111,11 @@ export class WebReadStore {
     const row = this.db.prepare("SELECT w.*,r.status AS runStatus,r.deliveryError FROM web_read_calls w JOIN runs r ON r.id=w.runId WHERE w.id=? AND w.owner=? AND w.channel=?")
       .get(id, identity.owner, identity.channel);
     if (!row || row.status !== 'succeeded' || row.runStatus !== 'succeeded' || row.deliveryError !== null
-      || !this.db.prepare("SELECT 1 FROM run_events WHERE runId=? AND type='delivery_succeeded'").get(String(row.runId))) throw new Error('Goal Web快照缺失、未成功投递或身份/渠道不符，不重新联网');
+      || !this.db.prepare("SELECT 1 FROM run_events WHERE runId=? AND type='delivery_succeeded'").get(String(row.runId))) throw new WebSnapshotError('Goal Web快照缺失、未成功投递或身份/渠道不符，不重新联网');
     const snapshot = this.snapshot(String(row.snapshotJson));
     const resource = defaultWebResources.find(item => item.id === snapshot.resourceId);
     if (!resource?.enabled || resource.hash !== snapshot.catalogHash || resource.version !== snapshot.version || resource.url !== snapshot.url
-      || row.resourceId !== snapshot.resourceId || row.catalogHash !== snapshot.catalogHash) throw new Error('Goal Web快照资源版本或目录已失效');
+      || row.resourceId !== snapshot.resourceId || row.catalogHash !== snapshot.catalogHash) throw new WebSnapshotError('Goal Web快照资源版本或目录已失效');
     return snapshot;
   }
 
@@ -116,10 +123,10 @@ export class WebReadStore {
     let text = snapshot.text;
     if (lines) {
       const parts = text.split('\n');
-      if (!Number.isSafeInteger(lines.start) || !Number.isSafeInteger(lines.end) || lines.start < 1 || lines.end < lines.start || lines.end > parts.length) throw new Error('资料行范围无效；不自动节选');
+      if (!Number.isSafeInteger(lines.start) || !Number.isSafeInteger(lines.end) || lines.start < 1 || lines.end < lines.start || lines.end > parts.length) throw new WebSnapshotError('资料行范围无效；不自动节选');
       text = parts.slice(lines.start - 1, lines.end).join('\n');
     }
-    if (!text.trim() || Buffer.byteLength(text) > 4096) throw new Error('Goal Web资料超过4096字节或为空；请明确选择行范围，不自动裁剪');
+    if (!text.trim() || Buffer.byteLength(text) > 4096) throw new WebSnapshotError('Goal Web资料超过4096字节或为空；请明确选择行范围，不自动裁剪');
     return text;
   }
 
@@ -139,7 +146,7 @@ export class WebReadStore {
     const { text: _body, ...metadata } = snapshot;
     const expected: WebSnapshotBinding = { stepId: binding.stepId, snapshotId: binding.snapshotId, ...metadata, lines: binding.lines,
       selectedHash: createHash('sha256').update(text).digest('hex'), selectedBytes: Buffer.byteLength(text) };
-    if (webHash(expected) !== webHash(binding)) throw new Error('Goal Web批准绑定的元数据/正文Hash或节选已变化');
+    if (webHash(expected) !== webHash(binding)) throw new WebSnapshotError('Goal Web批准绑定的元数据/正文Hash或节选已变化');
     return { binding: structuredClone(binding), text, trust: 'UNTRUSTED_WEB_SNAPSHOT_V1' };
   }
 }

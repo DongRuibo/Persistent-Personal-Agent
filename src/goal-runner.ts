@@ -6,7 +6,8 @@ import type { AgentExecutor, Channel, MessageTarget } from './contracts.js';
 import type { Goal, GoalActor, GoalExecution, GoalResult, GoalView } from './goal-types.js';
 import { SqliteStore } from './sqlite-store.js';
 import { BackgroundLane } from './background-lane.js';
-import { GoalPlanQuantityError, planQuantityQuestion } from './goal-plan-quantity.js';
+import { planQuantityQuestion } from './goal-plan-quantity.js';
+import { GoalCommitError, isGoalCommitFailureCode, safeGoalCommitFailure } from './goal-commit-error.js';
 import type { SkillSnapshot } from './skill-service.js';
 
 const bounded = (maxLength: number) => Type.String({ minLength: 1, maxLength });
@@ -23,9 +24,10 @@ export const goalResultSchema = Type.Object({
 }, { additionalProperties: false });
 
 export function parseGoalResult(text: string): GoalResult {
-  if (Buffer.byteLength(text) > 64000) throw new Error('Goal 输出超过容量');
-  const value: unknown = JSON.parse(text);
-  if (!Value.Check(goalResultSchema, value)) throw new Error('Goal 输出不符合结果 Schema');
+  if (Buffer.byteLength(text) > 64000) throw new GoalCommitError('goal_output_capacity');
+  let value: unknown;
+  try { value = JSON.parse(text); } catch { throw new GoalCommitError('goal_output_json'); }
+  if (!Value.Check(goalResultSchema, value)) throw new GoalCommitError('goal_output_schema');
   return value as GoalResult;
 }
 
@@ -34,7 +36,12 @@ export function goalProjection(execution: GoalExecution, view: GoalView): { prom
   const observation = input.authorization.kind === 'policy' ? input.authorization.observation : undefined;
   const authorization = input.authorization.kind === 'policy' ? { ...input.authorization, observation: undefined } : input.authorization;
   const goal = { goalId: input.goalId, objective: input.objective, input: authorization };
-  const plan = { revision: input.planRevision, steps: view.plan.spec.steps, currentStep: input.step };
+  const initial = input.planRevision === 0 && execution.sequence === 1 && input.authorization.kind === 'create' && !input.previousCheckpoint;
+  const withoutId = ({ stepId: _id, ...text }: typeof input.step) => text;
+  const plan = { revision: input.planRevision, steps: initial ? view.plan.spec.steps.map(withoutId) : view.plan.spec.steps,
+    currentStep: initial ? withoutId(input.step) : input.step };
+  const schema = structuredClone(goalResultSchema);
+  if (initial) delete (schema.properties.proposedPlan.properties.steps.items.properties as Record<string, unknown>).stepId;
   const prior = input.previousCheckpoint;
   // 摘要、问题和否定条件不截断；超限先阻塞，用户可缩小目标或计划。
   const checkpoint = prior ? { runId: prior.executionRunId, progressSummary: prior.progressSummary,
@@ -48,11 +55,11 @@ export function goalProjection(execution: GoalExecution, view: GoalView): { prom
     }
   }
   for (const [value, limit] of [[goal, 4096], [plan, 4096], [checkpoint, 6144], [observation ?? null, 10240], [input.web ?? null, 6144]] as const) {
-    if (Buffer.byteLength(JSON.stringify(value)) > limit) throw new Error('Goal 输入超过分区预算，请缩小或分段；尚未调用模型');
+    if (Buffer.byteLength(JSON.stringify(value)) > limit) throw new GoalCommitError('goal_input_budget');
   }
   const snapshot = JSON.stringify({ goal, plan, checkpoint, ...(observation ? { observation } : {}), ...(input.web ? { web: input.web } : {}), capability: 'text_only' });
-  if (Buffer.byteLength(snapshot) > (observation ? 24576 : 14336)) throw new Error('Goal 快照超过总预算');
-  return { prompt: `本次只执行一个片段。${input.authorization.kind === 'policy' ? '这是宿主策略授权的片段；需要用户反馈或审批时 needsUserFeedback=true；只有本段已完成且无需反馈时可填false。该字段不能扩大授权或自行继续。' : ''}resultSchema=${JSON.stringify(goalResultSchema)}\nUNTRUSTED_GOAL_SNAPSHOT=${snapshot}`,
+  if (Buffer.byteLength(snapshot) > (observation ? 24576 : 14336)) throw new GoalCommitError('goal_snapshot_budget');
+  return { prompt: `本次只执行一个片段。${input.authorization.kind === 'policy' ? '这是宿主策略授权的片段；需要用户反馈或审批时 needsUserFeedback=true；只有本段已完成且无需反馈时可填false。该字段不能扩大授权或自行继续。' : ''}resultSchema=${JSON.stringify(schema)}\nUNTRUSTED_GOAL_SNAPSHOT=${snapshot}`,
     memoryQuery: `${input.objective}\n${input.step.title}\n${input.step.instruction}` };
 }
 
@@ -60,6 +67,7 @@ export function renderGoal(view: GoalView): string {
   const { goal, plan, checkpoint } = view;
   const status = goal.controlRequested ? `正在${goal.controlRequested === 'cancel' ? '取消' : '暂停'}，等待执行停止` : goal.status;
   const lines = [`目标：${goal.objective}`, `状态：${status}；版本：${goal.revision}；计划：v${goal.planRevision}`,
+    `计划状态：${goal.planRevision === 0 ? '初始化占位，尚无已批准正式计划' : '正式计划已批准'}；待批准草稿：${goal.pendingAction ? '已持久化' : '无'}；Checkpoint：${checkpoint ? '已提交' : '无'}。模型口头建议不是保存或批准凭据。`,
     ...plan.spec.steps.map((step, i) => `${i + 1}. ${step.title}；${view.steps.find(item => item.id === step.stepId)?.status}`)];
   if (checkpoint) lines.push(`已提交成果（${checkpoint.executionRunId}）：\n${checkpoint.artifactText}`, `进度：${checkpoint.progressSummary}`, `等待：${checkpoint.question}`);
   if (goal.pendingAction) lines.push(`待批准计划 v${goal.pendingAction.revision}（理由：${goal.pendingAction.changeReason}）：`,
@@ -79,7 +87,7 @@ export function renderGoal(view: GoalView): string {
   }
   if (goal.blockedReason) lines.push(`阻塞：${goal.blockedReason}；核实原因后可明确要求重新生成纯文本片段。`);
   const lastError = view.executions.at(-1)?.run.error;
-  if (lastError?.startsWith('计划数量约束不符：')) lines.push(lastError);
+  if (lastError?.startsWith('计划数量约束不符：') || goal.blockedReason && isGoalCommitFailureCode(goal.blockedReason) && lastError) lines.push(lastError!);
   if (!goal.currentStepId && !goal.pendingAction && goal.status === 'waiting_user') lines.push('计划产物已交付，请确认目标是否达成；模型不会自行完成目标。');
   if (view.executions.some(item => item.run.deliveryError)) lines.push('有历史通知投递失败；以上为数据库已提交成果，查询不会重新执行。');
   return lines.join('\n');
@@ -193,22 +201,27 @@ export class GoalRunner {
         if (signal.aborted) throw new ExecutionInterrupted('Goal 执行中断');
         if (execution.input.skill) {
           const current = this.executor.skills?.snapshot(execution.input.skill.id, execution.input.skill.hash);
-          if (!current || current.text !== execution.input.skill.text) throw new Error('Skill执行后已禁用或变更，拒绝提交进度');
+          if (!current || current.text !== execution.input.skill.text) throw new GoalCommitError('goal_skill_changed');
         }
         result = parseGoalResult(response.text);
       } catch (error) { failure = error; }
       try {
         if (result) this.store.goals.commit(run.id, result, this.clock().toISOString());
-        else this.store.goals.finishFailure(run.id, signal.aborted || failure instanceof ExecutionInterrupted ? 'interrupted' : 'failed',
-          (failure instanceof Error ? failure.message : String(failure)).slice(0, 600), this.clock().toISOString());
+        else {
+          const interrupted = signal.aborted || failure instanceof ExecutionInterrupted, safeFailure = safeGoalCommitFailure(failure);
+          this.store.goals.finishFailure(run.id, interrupted ? 'interrupted' : 'failed',
+            interrupted ? 'Goal 执行中断' : safeFailure?.message ?? 'goal_execution_failed', this.clock().toISOString(),
+            interrupted ? undefined : safeFailure?.code);
+        }
       } catch (error) {
         // 提交返回异常先按 Run 重读，绝不再请求模型补交或覆盖已提交成果。
         try {
           const current = this.store.goals.executionForHost(run.id);
           this.store.goals.view(actor, goal.id);
           const technical = this.store.getRun(run.id);
+          const safeFailure = safeGoalCommitFailure(error);
           if (current.status === 'running' && technical?.status === 'running') this.store.goals.finishFailure(run.id, 'failed',
-            error instanceof GoalPlanQuantityError ? error.message : 'checkpoint_commit_failed', this.clock().toISOString());
+            safeFailure?.message ?? 'checkpoint_commit_failed', this.clock().toISOString(), safeFailure?.code);
           else if (current.status !== 'committed' || technical?.status !== 'succeeded') throw error;
         } catch (readError) { this.halt(readError); return; }
       }

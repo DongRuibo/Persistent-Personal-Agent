@@ -3,8 +3,11 @@ import type { DatabaseSync } from 'node:sqlite';
 import type { SkillCatalog, SkillSnapshot } from './skill-service.js';
 import type { WebReadStore } from './web-read-store.js';
 import type { GoalWebSelection } from './web-read-types.js';
+import { WebSnapshotError } from './web-read-types.js';
 import type { Run, RunStatus } from './contracts.js';
 import { validatePlanQuantity, validateQuantityApproval } from './goal-plan-quantity.js';
+import { GoalCommitError } from './goal-commit-error.js';
+import type { GoalCommitFailureCode } from './goal-commit-error.js';
 import type {
   Goal, GoalActor, GoalCheckpoint, GoalCommand, GoalControlReceipt, GoalExecution,
   GoalExecutionInput, GoalPlan, GoalPlanDraft, GoalPlanSpec, GoalResult, GoalStep, GoalView,
@@ -95,7 +98,7 @@ export class GoalStore {
   }
 
   private text(value: string, limit: number): string {
-    if (typeof value !== 'string' || !value.trim() || Buffer.byteLength(value, 'utf8') > limit) throw new Error('Goal 文本为空或超出容量');
+    if (typeof value !== 'string' || !value.trim() || Buffer.byteLength(value, 'utf8') > limit) throw new GoalCommitError('goal_result_text');
     return this.tx.redact(value.trim());
   }
 
@@ -300,42 +303,46 @@ export class GoalStore {
     });
   }
 
-  private draft(goal: Goal, runId: string, proposed: NonNullable<GoalResult['proposedPlan']>, userText = goal.objective, previousOverride?: GoalPlanSpec): GoalPlanDraft {
-    if (!Array.isArray(proposed.steps) || proposed.steps.length < 1 || proposed.steps.length > 12) throw new Error('计划步骤必须为1至12项');
+  private draft(goal: Goal, runId: string, proposed: NonNullable<GoalResult['proposedPlan']>, userText = goal.objective, previousOverride?: GoalPlanSpec, initialStepId?: string): GoalPlanDraft {
+    if (!Array.isArray(proposed.steps) || proposed.steps.length < 1 || proposed.steps.length > 12) throw new GoalCommitError('goal_plan_shape');
     validatePlanQuantity(goal.objective, proposed.steps.length);
+    const ids = proposed.steps.flatMap(step => step.stepId === undefined ? [] : [step.stepId]);
+    if (new Set(ids).size !== ids.length) throw new GoalCommitError('goal_plan_duplicate_step');
     const previous = previousOverride ?? this.plan(goal).spec, current = previous.steps;
     const bindings: NonNullable<GoalPlanSpec['skillBindings']> = [];
     const catalog = this.skills?.list() ?? [];
     const explicitIds = [...userText.matchAll(/(?:使用|采用|改用|选用|绑定)\s*(?:Skill|技能)\s*[:：]?\s*([a-z0-9-]+)/giu)].map(match => match[1]!);
-    if (explicitIds.some(id => !catalog.some(info => info.id === id))) throw new Error('用户指定的Skill未批准或不可用');
+    if (explicitIds.some(id => !catalog.some(info => info.id === id))) throw new GoalCommitError('goal_skill_unavailable');
     const named = catalog.filter(info => new RegExp(`(?:使用|采用|改用|选用|绑定)\\s*(?:Skill|技能)?\\s*[:：]?\\s*${info.id}(?![a-z0-9-])`, 'iu').test(userText));
-    if (named.length > 1) throw new Error('指定了多个Skill，请明确每步选择');
+    if (named.length > 1) throw new GoalCommitError('goal_skill_ambiguous');
     const spec: GoalPlanSpec = { objectiveHash: hash(goal.objective), steps: proposed.steps.map(item => {
-      const definition = { stepId: item.stepId ?? randomUUID(), title: this.text(item.title, 512),
+      // 仅首次create片段可把本Goal的bootstrap引用解释为新正式步骤，绝不复用其身份。
+      const bootstrapReference = initialStepId !== undefined && item.stepId === initialStepId;
+      const definition = { stepId: bootstrapReference ? randomUUID() : item.stepId ?? randomUUID(), title: this.text(item.title, 512),
         instruction: this.text(item.instruction, 4000), deliverable: this.text(item.deliverable, 2000), doneWhen: this.text(item.doneWhen, 2000) };
-      if (item.stepId && !current.some(old => JSON.stringify(old) === JSON.stringify(definition))) throw new Error('计划 Step ID 跨目标或定义已变化，需新建步骤');
-      if (Object.keys(item).some(key => !['stepId', 'title', 'instruction', 'deliverable', 'doneWhen', 'skillId'].includes(key))) throw new Error('模型不能提供Skill路径或可信Hash');
+      if (item.stepId && !bootstrapReference && !current.some(old => JSON.stringify(old) === JSON.stringify(definition))) throw new GoalCommitError('goal_plan_step_identity');
+      if (Object.keys(item).some(key => !['stepId', 'title', 'instruction', 'deliverable', 'doneWhen', 'skillId'].includes(key))) throw new GoalCommitError('goal_plan_fields');
       const old = previous.skillBindings?.find(binding => binding.stepId === definition.stepId);
       const completed = this.db.prepare('SELECT status FROM goal_steps WHERE id=? AND goalId=?').get(definition.stepId, goal.id)?.status === 'completed';
       if (completed) {
-        if (item.skillId !== undefined && item.skillId !== (old?.skillId ?? null)) throw new Error('已完成Step不能修改Skill绑定');
+        if (item.skillId !== undefined && item.skillId !== (old?.skillId ?? null)) throw new GoalCommitError('goal_completed_skill');
         if (old) bindings.push(old);
       } else {
         const selected = item.skillId === undefined ? old?.skillId ?? named[0]?.id : item.skillId;
-        if (named[0] && item.skillId !== undefined && item.skillId !== named[0].id) throw new Error('模型Skill提议违反用户明确选择');
+        if (named[0] && item.skillId !== undefined && item.skillId !== named[0].id) throw new GoalCommitError('goal_skill_selection');
         if (selected) {
           const info = catalog.find(info => info.id === selected && info.enabled && info.goalCompatible);
-          if (!info || info.disableModelInvocation && !named.some(item => item.id === selected)) throw new Error('Skill未批准、不兼容或需要用户明确指定');
-          if (old && item.skillId === undefined && old.packageHash !== info.hash) throw new Error('Skill已升级，需明确改选并重新批准');
+          if (!info || info.disableModelInvocation && !named.some(item => item.id === selected)) throw new GoalCommitError('goal_skill_approval');
+          if (old && item.skillId === undefined && old.packageHash !== info.hash) throw new GoalCommitError('goal_skill_version');
           bindings.push({ stepId: definition.stepId, skillId: info.id, packageHash: info.hash, version: info.version });
-        } else if (item.skillId !== undefined && item.skillId !== null) throw new Error('Skill ID无效');
+        } else if (item.skillId !== undefined && item.skillId !== null) throw new GoalCommitError('goal_skill_id');
       }
       return definition;
     }) };
     if (bindings.length) spec.skillBindings = bindings;
     const webBindings = previous.webBindings?.filter(binding => spec.steps.some(step => step.stepId === binding.stepId));
     if (webBindings?.length) spec.webBindings = structuredClone(webBindings);
-    if (new Set(spec.steps.map(step => step.stepId)).size !== spec.steps.length) throw new Error('计划步骤重复');
+    if (new Set(spec.steps.map(step => step.stepId)).size !== spec.steps.length) throw new GoalCommitError('goal_plan_duplicate_step');
     const body = { baseRevision: goal.planRevision, revision: goal.planRevision + 1, spec, sourceRunId: runId,
       changeReason: this.text(proposed.changeReason, 2000) };
     return { ...body, hash: hash(body) };
@@ -359,14 +366,25 @@ export class GoalStore {
         this.tx.finish(runId, 'succeeded', now, this.text(result.artifactText, 32_000));
         this.stopExecution(execution, goal, 'discarded', 'stale_result', now);
       } else {
-        if (goal.status !== 'running' || !['partial', 'complete', 'blocked'].includes(result.stepOutcome)) throw new Error('Goal 结果状态无效');
+        if (goal.status !== 'running' || !['partial', 'complete', 'blocked'].includes(result.stepOutcome)) throw new GoalCommitError('goal_result_state');
         if (execution.input.web) {
-          const frozen = this.web?.freezeForGoal({ ownerId: goal.ownerId, target: goal.target }, execution.input.web.binding);
-          if (!frozen || hash(frozen) !== hash(execution.input.web)) throw new Error('Goal Web执行资料已损坏，拒绝提交');
+          try {
+            const frozen = this.web?.freezeForGoal({ ownerId: goal.ownerId, target: goal.target }, execution.input.web.binding);
+            if (!frozen || hash(frozen) !== hash(execution.input.web)) throw new GoalCommitError('goal_web_snapshot_invalid');
+          } catch (error) {
+            if (error instanceof WebSnapshotError) throw new GoalCommitError('goal_web_snapshot_invalid');
+            throw error;
+          }
         }
-        if (goal.planRevision === 0 && result.stepOutcome === 'complete' && !result.proposedPlan) throw new Error('bootstrap 完成必须提交计划草稿');
-        if (result.stepOutcome === 'blocked' && result.proposedPlan) throw new Error('阻塞结果不能同时申请计划批准');
-        const proposedPlan = result.proposedPlan ? this.draft(goal, runId, result.proposedPlan) : null;
+        if (goal.planRevision === 0 && result.stepOutcome === 'complete' && !result.proposedPlan) throw new GoalCommitError('goal_bootstrap_plan_required');
+        if (result.stepOutcome === 'blocked' && result.proposedPlan) throw new GoalCommitError('goal_blocked_plan_conflict');
+        const initialStepId = execution.sequence === 1 && execution.planRevision === 0 && execution.input.authorization.kind === 'create'
+          && execution.baseCheckpointRunId === null && this.plan(goal).spec.steps.length === 1 ? execution.stepId : undefined;
+        const proposedPlan = result.proposedPlan ? this.draft(goal, runId, result.proposedPlan, goal.objective, undefined, initialStepId) : null;
+        if (initialStepId && proposedPlan && result.proposedPlan!.steps.some(step => step.stepId === initialStepId)) {
+          this.tx.event(runId, 'goal_initial_step_identity_assigned', JSON.stringify({ basis: 'first_create_bootstrap_reference',
+            bootstrapStepId: initialStepId, assignedStepIds: proposedPlan.spec.steps.map(step => step.stepId) }), now);
+        }
         const checkpoint: GoalCheckpoint = { schemaVersion: 1, goalId: goal.id, planRevision: goal.planRevision,
           stepId: execution.stepId, executionRunId: runId, previousCheckpointRunId: execution.baseCheckpointRunId,
           inputSourceRunId: execution.triggerRunId, stepOutcome: result.stepOutcome,
@@ -499,12 +517,12 @@ export class GoalStore {
     });
   }
 
-  finishFailure(runId: string, kind: 'failed' | 'interrupted', reason: string, now: string): void {
+  finishFailure(runId: string, kind: 'failed' | 'interrupted', reason: string, now: string, reasonCode?: GoalCommitFailureCode): void {
     this.tx.transaction(() => {
       this.time(now);
       const { execution, goal } = this.running(runId);
       this.tx.finish(runId, kind, now, undefined, this.text(reason, 2000));
-      this.stopExecution(execution, goal, kind, kind, now);
+      this.stopExecution(execution, goal, kind, reasonCode ?? kind, now);
     });
   }
 

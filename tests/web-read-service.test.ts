@@ -92,8 +92,14 @@ test('真实本机TLS：证书链/主机名、固定请求头、重定向、类�
   proxy.listen(0, '127.0.0.1'); await once(proxy, 'listening'); const proxyAddress = proxy.address(); assert.ok(proxyAddress && typeof proxyAddress !== 'string');
   const restoreProxy = setGlobalProxyFromEnv({ HTTP_PROXY: `http://127.0.0.1:${proxyAddress.port}`, HTTPS_PROXY: `http://127.0.0.1:${proxyAddress.port}` });
   try {
-    assert.equal((await transport.get(target('ok'), signal())).toString(), '虚构正文');
-    await assert.rejects(new NodeWebTransport().get(target('ok'), signal()), /self.signed|certificate/iu);
+    const phases: string[] = [];
+    assert.equal((await transport.get(target('ok'), signal(), phase => phases.push(phase))).toString(), '虚构正文');
+    for (const phase of ['connection_started', 'tcp_connected', 'tls_verified', 'request_created', 'request_finished_local', 'response_headers', 'response_body_started', 'response_complete']) assert.ok(phases.includes(phase), phase);
+    assert.ok(phases.indexOf('tls_verified') < phases.indexOf('request_finished_local'));
+    assert.ok(phases.indexOf('response_headers') < phases.indexOf('response_complete'));
+    const rejected: string[] = [];
+    await assert.rejects(new NodeWebTransport().get(target('ok'), signal(), phase => rejected.push(phase)), /self.signed|certificate/iu);
+    assert.ok(rejected.includes('request_created')); assert.ok(!rejected.includes('request_finished_local'));
     await assert.rejects(transport.get(target('ok', 'other.example.test'), signal()), /hostname|altname|certificate/iu);
     for (const path of ['redirect', 'html', 'gzip', 'large', 'length']) await assert.rejects(transport.get(target(path), signal()), /Web/);
     await assert.rejects(transport.get(target('header'), signal()), /Header|header/);

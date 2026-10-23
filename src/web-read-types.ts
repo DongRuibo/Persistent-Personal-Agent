@@ -1,5 +1,8 @@
 import { createHash } from 'node:crypto';
 
+// 标记宿主已识别的快照校验失败；调用方仍只呈现自己的固定安全说明。
+export class WebSnapshotError extends Error {}
+
 export interface WebResource {
   id: string; title: string; aliases: string[]; url: string; version: string; enabled: boolean; hash: string;
 }

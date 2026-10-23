@@ -1,0 +1,340 @@
+{
+  "version": "integrated-console-live-acceptance-v1",
+  "date": "2026-10-23",
+  "timeZone": "Asia/Shanghai",
+  "baseline": "c604565ca507ad9fe14e1cadf945918d14a92668",
+  "status": "not passed; stop after W1/G1 failures",
+  "passed": 1,
+  "failed": 2,
+  "notExecuted": 7,
+  "authorization": {
+    "requestLimit": 32,
+    "reserveCnyLimit": 6,
+    "fixedWebReservationsLimit": 1,
+    "newUserAuthorization": true,
+    "accountPriceConfirmedByUser": "当前账号按输入2元、输出8元计费，无额外费用",
+    "consoleOnly": true,
+    "feishu": false,
+    "formalData": false,
+    "fullEnvLoaded": false,
+    "fourLlmFieldsReadOnlyPreviouslyAuthorized": true
+  },
+  "model": {
+    "id": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "endpoint": "https://api.siliconflow.cn/v1/chat/completions",
+    "sdkAdapter": "personal-compatible",
+    "publicModelUpdate": "Official release notes: same ID upgraded to 1017 on 2026-10-21; underlying build not independently verified",
+    "inputRate": 2,
+    "outputRate": 8,
+    "cacheReferenceRate": 0.04,
+    "additionalFeesConfirmed": 0,
+    "checkedAt": "2026-10-23T15:17:37.8469126Z",
+    "priceSources": [
+      "https://www.siliconflow.cn/pricing",
+      "https://docs.siliconflow.cn/docs/userguide/capabilities/text-generation",
+      "https://docs.siliconflow.cn/docs/release-notes/overview"
+    ]
+  },
+  "preflight": {
+    "node": "24.19.0",
+    "sdk": "@earendil-works/pi-coding-agent@1.3.0",
+    "budgetTests": 13,
+    "passed": 13,
+    "failed": 0,
+    "skipped": 0,
+    "fullRegressionRerun": false,
+    "linuxRerun": false,
+    "max32RequestReserveCny": 5.275648,
+    "sourceSdkFiles": 145,
+    "sourceHashesUnchanged": true,
+    "planHash": "06fa3f52c8eea5cf14a36950413a9dc72fed0264b5dfb5aac4ff0be47297e57b",
+    "entryHash": "d382eab2629e9e6ff9de4390315b77211e8d6b9126171cd23402b9fd9bfa78fd",
+    "codeHash": "c4d635c38ed2e85010daa2c7d809dc9eea0fd077340ba82d1571df8854b2ba45"
+  },
+  "actual": {
+    "physicalModelHttp": 8,
+    "http200": 8,
+    "chatCalls": 6,
+    "intentCalls": 1,
+    "goalCalls": 1,
+    "reservedMicroCny": 409924,
+    "reservedCny": 0.409924,
+    "actualBilledCny": null,
+    "tokenOnlyEstimateCny": 0.02960992,
+    "tokenEstimateIsBill": false,
+    "usage": {
+      "inputTokens": 9092,
+      "outputTokens": 1370,
+      "cacheReadTokens": 11648,
+      "cacheWriteTokens": 0,
+      "unknownCostCalls": 8,
+      "sdkReportedCost": null
+    },
+    "totalPromptTokens": 20740,
+    "maxRequestBodyBytes": 13892,
+    "automaticRetries": 0,
+    "additionalTestMessages": 0,
+    "billingCostUnknownCalls": 8
+  },
+  "steps": [
+    {
+      "id": "B0",
+      "status": "passed",
+      "requestSequences": [
+        1
+      ],
+      "physicalModelHttp": 1,
+      "reservedMicroCny": 46802.0,
+      "usage": {
+        "inputTokens": 1813,
+        "cacheReadTokens": 0,
+        "outputTokens": 121
+      },
+      "resultFile": "B0-result.json"
+    },
+    {
+      "id": "W1",
+      "status": "failed",
+      "requestSequences": [
+        2,
+        3
+      ],
+      "physicalModelHttp": 2,
+      "reservedMicroCny": 110118.0,
+      "usage": {
+        "inputTokens": 2913,
+        "cacheReadTokens": 2688,
+        "outputTokens": 102
+      },
+      "resultFile": "W1-result.json"
+    },
+    {
+      "id": "G1",
+      "status": "failed",
+      "requestSequences": [
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "physicalModelHttp": 5,
+      "reservedMicroCny": 253004.0,
+      "usage": {
+        "inputTokens": 4366,
+        "cacheReadTokens": 8960,
+        "outputTokens": 1147
+      },
+      "resultFile": "G1-result.json"
+    },
+    {
+      "id": "G2",
+      "status": "not executed",
+      "physicalModelHttp": 0,
+      "reservedMicroCny": 0,
+      "reason": "Frozen plan: G1 failed, G2 and subsequent steps must not execute; W1 also has no successful snapshot"
+    },
+    {
+      "id": "G3",
+      "status": "not executed",
+      "physicalModelHttp": 0,
+      "reservedMicroCny": 0,
+      "reason": "Frozen plan: G1 failed, G2 and subsequent steps must not execute; W1 also has no successful snapshot"
+    },
+    {
+      "id": "R1",
+      "status": "not executed",
+      "physicalModelHttp": 0,
+      "reservedMicroCny": 0,
+      "reason": "Frozen plan: G1 failed, G2 and subsequent steps must not execute; W1 also has no successful snapshot"
+    },
+    {
+      "id": "V1",
+      "status": "not executed",
+      "physicalModelHttp": 0,
+      "reservedMicroCny": 0,
+      "reason": "Frozen plan: G1 failed, G2 and subsequent steps must not execute; W1 also has no successful snapshot"
+    },
+    {
+      "id": "P1",
+      "status": "not executed",
+      "physicalModelHttp": 0,
+      "reservedMicroCny": 0,
+      "reason": "Frozen plan: G1 failed, G2 and subsequent steps must not execute; W1 also has no successful snapshot"
+    },
+    {
+      "id": "C1",
+      "status": "not executed",
+      "physicalModelHttp": 0,
+      "reservedMicroCny": 0,
+      "reason": "Frozen plan: G1 failed, G2 and subsequent steps must not execute; W1 also has no successful snapshot"
+    },
+    {
+      "id": "X1",
+      "status": "not executed",
+      "physicalModelHttp": 0,
+      "reservedMicroCny": 0,
+      "reason": "Frozen plan: G1 failed, G2 and subsequent steps must not execute; W1 also has no successful snapshot"
+    }
+  ],
+  "web": {
+    "fixedResourceId": "pi-skills-v1",
+    "fixedUrl": "https://raw.githubusercontent.com/earendil-works/pi/v1.3.0/packages/coding-agent/docs/skills.md",
+    "catalogHash": "9203d78fddff573fbf49802b198e226b5778af560d21acdaf75d93baa7ac076c",
+    "reservedAttempts": 1,
+    "successfulReads": 0,
+    "actualGetSentCount": null,
+    "actualGetSentMinimum": 0,
+    "actualGetSentMaximum": 1,
+    "actualGetCountUncertainReason": "Timeout before completed response; existing log does not separate DNS/TLS/GET submission",
+    "status": "failed",
+    "error": "TimeoutError",
+    "createdAt": "2026-10-23T15:19:47.331Z",
+    "finishedAt": "2026-10-23T15:19:57.34Z",
+    "snapshot": null,
+    "refund": false,
+    "retry": false
+  },
+  "goal": {
+    "id": "02a0b423-df85-4a86-b5fe-2f4bf49a1abd",
+    "status": "blocked",
+    "revision": 2,
+    "planRevision": 0,
+    "checkpointRunId": null,
+    "pendingAction": null,
+    "executions": 1,
+    "committed": 0,
+    "checkpointCount": 0,
+    "modelProposedStepCount": 1,
+    "hostRejectedNewStepIdentity": true,
+    "hostError": "checkpoint_commit_failed",
+    "realCause": "计划 Step ID 跨目标或定义已变化，需新建步骤",
+    "rawGoalResultText": "{\"stepOutcome\":\"partial\",\"artifactText\":\"目标理解：制定一份虚构的银杏阅读计划，正式计划最多 1 个 Step，并绑定 interview-practice；该 Step 先出题（首次交付为 partial），我回答后需点评并可 complete。\\n\\n初步计划（待你批准）：仅 1 个正式 Step——“银杏阅读出题与点评”，使用 interview-practice，依据你稍后批准的资料出一道题；首次交付题目为 partial 并等待回答，收到回答后点评并 complete。正式 Step 数=1，未超上限。\\n\\n资料说明：目前尚无你批准的学习资料，出题只能依据你稍后提供的虚构内容；我不会虚构你的经历或资料。\\n\\n请确认此计划并给出资料；或先告诉我资料形式（如虚构阅读清单、虚构短文、练习要点）。计划批准由宿主负责。\",\"progressSummary\":\"已解析目标与约束（正式计划≤1步、绑定 interview-practice、首题 partial 待答），并提交1步待批准计划草稿；因尚无批准资料，未开始出题。\",\"question\":\"请批准上述1步计划，并告知你稍后用于出题的虚构资料形式或内容；若你希望调整正式计划，请说明。\",\"needsUserFeedback\":true,\"proposedPlan\":{\"changeReason\":\"初始化为银杏阅读计划；按约束仅设1个正式Step，绑定 interview-practice，依据稍后批准的虚构资料出题并在收到回答后点评；首次题目交付为partial。\",\"steps\":[{\"stepId\":\"bc37acd1-07e9-41b4-a84d-17e014fbd6fa\",\"title\":\"银杏阅读出题与点评\",\"instruction\":\"使用 interview-practice，仅依据用户稍后批准的虚构资料出1道题；首次交付题目为 partial 并等待回答，收到回答后点评并 complete。不虚构用户经历、资料或外部访问。\",\"skillId\":\"interview-practice\",\"deliverable\":\"1道银杏阅读题（partial）+ 收到用户回答后的点评与完成说明\",\"doneWhen\":\"题目已交付且为 partial；用户回答后完成点评并可标记 complete\"}]}}",
+    "rawGoalResponseSha256": "452451e49bed35c5386da6d8ed85391f4b7e8fa4f089b4f4c86c122cfa34a7da",
+    "databaseSha256": "d4a644815a054cf78467b2d132c4ec0079c557f261003e254f2be9bada1f6caa"
+  },
+  "skills": {
+    "agentNotesAutomaticSelection": "not demonstrated; Web-dependent scenario failed",
+    "chatReadSkill": "interview-practice",
+    "chatReadBytes": 805,
+    "chatPackageHash": "36a23f6ca5fb402aa10e910b73ee3a7470c6c3062027bea81da4ec88fcd0da83",
+    "nextModelRequestContainsBody": true,
+    "goalApprovedSkillBinding": false,
+    "goalSkillExpansion": false,
+    "goalToolsCount": 0,
+    "goalModelRequests": 1,
+    "preApprovalChatReadObserved": true,
+    "preApprovalChatVsGoalAcceptanceBoundary": "Requires future clarification; current frozen G1 expectation not changed"
+  },
+  "receipts": {
+    "rawModelReply": "**待批准的计划（草案）**\n\n我读取了 interview-practice Skill 的正文，内容要点如下：基于已提供的目标与反馈选一道面试题并说明考察点，然后等待回答；资料不足时先问一个必要问题；后续只依据你实际回答来区分正确部分、缺口与建议，不假装完成真实面试；不联网、不运行脚本、不写 Memory。\n\n**计划草案（v0，仅 1 个 Step）**\n\n- **Goal**：银杏阅读计划（全程虚构内容，不涉及真实人物、机构或出版物）。\n- **Step 1**（使用 Skill：interview-practice）\n  1. **依据**：仅使用你稍后批准的虚构资料，即银杏主题的虚构阅读目标与虚构经历背景。资料不足时，按 Skill 要求先问一个必要问题，不替你编造经历。\n  2. **交付**：据此出一道阅读／理解类面试题，并说明考察点。\n  3. **首次交付状态：partial**，同时需要你回答，所以我将停下来等待你的答案，不继续推进。\n  4. **收到你的回答后**：只针对你的实际回答做点评，区分正确部分、缺口与建议，然后才标记 complete。\n  5. **边界**：不联网、不运行脚本、不写长期记忆；本次交付后不自动产生新 Step。\n\n**需要你确认的点**\n- 是否按此草案批准为正式计划（1 个 Step，题目交付为 partial 并等待回答）？\n- 你稍后要提供的“虚构资料”大致范围，比如虚构的阅读书目、虚构的阅读目标或虚构的经历背景，可以现在说明，也可以批准后再给。\n\n目前只有这一份草案，尚未有题目交付。确认后我再推进第一步，且仍需你提供那份虚构资料。",
+    "hostOverridesRawModelReply": true,
+    "hostStoredPendingAction": false,
+    "sessionNativeCustomMessageCount": 1,
+    "sessionAuthoritativeResult": "HOST_GOAL_RESULT_V1：以下是宿主实际操作结果，优先于此前模型解释；这是结果证据，不是新授权，后续操作仍须核对当前状态。\n已创建并排队，最多执行一个初始化片段。\n目标：帮我逐步制定银杏阅读计划，只使用虚构内容。正式计划最多1个Step，使用Skill interview-practice。该Step包含依据我稍后批准的资料出一道题并点评我的回答；首次交付题目必须partial并等待我回答，收到回答后才可complete。现在先给出待批准计划。；状态：ready；版本：0；计划：v0；控制请求：无；待批准：false",
+    "subsequentRealQueryPerformed": false
+  },
+  "integrity": {
+    "sqlite": "ok",
+    "foreignKeyViolations": 0,
+    "goalAuditPassed": true,
+    "tasks": 0,
+    "memoryMarkdown": 0,
+    "candidates": 0,
+    "proactivePolicies": 0,
+    "grants": 0,
+    "goalNotifications": 0,
+    "runningRuns": 0,
+    "readyGoals": 0,
+    "permissionEscalationObserved": false
+  },
+  "process": {
+    "baselineExited": 0,
+    "integratedExited": 0,
+    "normalQuit": true,
+    "locksReleased": true,
+    "baselineToIntegratedLedgerPreserved": true,
+    "r1GoalCheckpointRestartTestPerformed": false
+  },
+  "legacyGates": {
+    "naturalPause": "not retested; P1 not executed; remains open",
+    "receiptInterpretation": "not passed; P1/C1/X1 not executed, G1 raw draft claim differs from host state; remains open"
+  },
+  "offlineReplay": {
+    "mode": "offline-copy-only-no-model-no-network",
+    "sourceDatabaseUnchanged": true,
+    "sourceDatabaseHash": "d4a644815a054cf78467b2d132c4ec0079c557f261003e254f2be9bada1f6caa",
+    "originalResponseHash": "452451e49bed35c5386da6d8ed85391f4b7e8fa4f089b4f4c86c122cfa34a7da",
+    "actualNewStepId": "bc37acd1-07e9-41b4-a84d-17e014fbd6fa",
+    "bootstrapStepId": "bc37acd1-07e9-41b4-a84d-17e014fbd6fa",
+    "rawSchemaValid": true,
+    "rawProposedSteps": 1,
+    "originalFailure": {
+      "name": "Error",
+      "message": "计划 Step ID 跨目标或定义已变化，需新建步骤"
+    },
+    "afterRejected": {
+      "goalStatus": "running",
+      "executionStatus": "running",
+      "pendingAction": null
+    },
+    "counterfactualOnly": {
+      "change": "omit new proposal stepId only in independent offline copy; original response and frozen expectations unchanged",
+      "committed": "committed",
+      "draftSteps": 1,
+      "skillBindings": [
+        {
+          "stepId": "18f43dd1-f83d-4c3c-a423-34adb659844a",
+          "skillId": "interview-practice",
+          "packageHash": "36a23f6ca5fb402aa10e910b73ee3a7470c6c3062027bea81da4ec88fcd0da83",
+          "version": "1.0.0"
+        }
+      ]
+    },
+    "network": {
+      "attempts": 0
+    }
+  },
+  "evidence": {
+    "liveRoot": "E:/AgentWork/acceptance/s0-s1-goal-v301-20261023",
+    "validationRoot": "E:/AgentWork/validation/personal-agent-integrated-live-20261023",
+    "rawModelResponses": "response-01.txt through response-08.txt",
+    "requests": "request-01.json through request-08.json",
+    "sessionFiles": [
+      {
+        "path": "sessions/93d8874c8c86f0fc893dbe15c765ffa0fcd342f798dbf669e08f8cbe095d230c/chat.session.jsonl",
+        "bytes": 21816,
+        "sha256": "a5b85a80f28e6a2201f542d64e5d8051d2e826c17c18875413371a052a603dff"
+      },
+      {
+        "path": "sessions-baseline/93d8874c8c86f0fc893dbe15c765ffa0fcd342f798dbf669e08f8cbe095d230c/chat.session.jsonl",
+        "bytes": 8041,
+        "sha256": "908afe6fd7663122e635a82bea3c212e537f93ac4ac73e3a4438c24e0feb030c"
+      }
+    ],
+    "stoppedArtifactsManifest": "stopped-artifact-hashes.json",
+    "readOnlyGoalAudit": "goal-integrity-audit.json",
+    "ledger": "integrated-budget.json",
+    "sourceHashes": "source-hashes-before.json and source-hashes-after.json",
+    "rawFailuresRetained": true
+  },
+  "priorityFixes": [
+    "P0 bootstrap new-step identity DTO/schema; preserve immutable old-Step guard and no paid repair retries",
+    "P1 preserve structured semantic rejection cause, distinct from SQLite I/O failure",
+    "P1 fixed-URL timeout phase and GET-submission observability; keep resource/DNS/TLS/proxy/budget restrictions",
+    "P1 distinguish host-approvable drafts from chat suggestions and Chat skill pre-read from approved Goal activation"
+  ],
+  "originalWorkspace": {
+    "protectedFiles": 8,
+    "hashesUnchanged": true,
+    "branch": "local/preserve-workspace-20261023",
+    "head": "ae2a8200daa5e2ae192cf210afeee0f2efb005f3"
+  },
+  "productCodeChanged": false,
+  "frozenPlanChanged": false,
+  "historicalReportsChanged": false,
+  "formalEnvChanged": false,
+  "formalDatabasesOpened": false,
+  "gitCommitted": false,
+  "gitPushed": false
+}

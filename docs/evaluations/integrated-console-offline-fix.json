@@ -1,0 +1,218 @@
+{
+  "date": "2026-10-24",
+  "mode": "offline-targeted-fixes-not-live-acceptance",
+  "baseline": "c604565ca507ad9fe14e1cadf945918d14a92668",
+  "worktree": "C:\\Users\\Dongr\\.codex\\worktrees\\console-offline-fix\\Persistent Personal Agent",
+  "branch": "codex/console-offline-fix",
+  "head": "c604565ca507ad9fe14e1cadf945918d14a92668",
+  "gitCommitted": false,
+  "gitPushed": false,
+  "gitMerged": false,
+  "changedCodeTestsAndState": [
+    "scripts/integrated-console-acceptance.ts",
+    "src/goal-commit-error.ts",
+    "src/goal-runner.ts",
+    "src/goal-store.ts",
+    "src/operation-guard.ts",
+    "src/pi-executor.ts",
+    "src/web-read-service.ts",
+    "src/web-read-store.ts",
+    "src/web-read-types.ts",
+    "tests/console-offline-repair.test.ts",
+    "tests/fixtures/integrated-live-g1.json",
+    "tests/goal-initial-identity.test.ts",
+    "tests/web-read-phases.test.ts",
+    "tests/web-read-service.test.ts",
+    "docs/STATE.md"
+  ],
+  "sourceFiles": 145,
+  "sourceManifestSha256": "914ce3d72e0b7b0ff2ee1a2692dcfcce3b42c6ce1c9c7ff78f6257f8ff3da294",
+  "repairPatchSha256": "9235a9f442ad093cbaf63c8cca87090249fbc3d8d1098eeced371a9b39386615",
+  "evidenceManifestSha256": "19797275801bdcc646fe55cbcb1791d72f5b18cb71889f02e8fcece34a19c496",
+  "fixtureSha256": "4d5ea40c977dc4868268219541d40a4d205cd476aff6a29e1e5198da6484ed57",
+  "preservationSha256": "f0ce6b54b99238ff6ece5de7c2fc51e42f292bdc0a3ff65721de625762983bd2",
+  "evidenceDirectory": "E:\\AgentWork\\validation\\personal-agent-console-offline-fix-20261024",
+  "preservation": {
+    "protectedEvidenceFiles": 78,
+    "evidenceMismatches": [],
+    "protectedWorkingDocs": 3,
+    "workingDocsMismatches": [],
+    "originalEightFiles": 8,
+    "originalEightMismatches": [],
+    "originalModernSourceFiles": 145,
+    "modernSourceMismatches": [],
+    "sdk": [
+      {
+        "path": "node_modules/@earendil-works/pi-coding-agent/dist/core/agent-session.js",
+        "sha256": "d0b4545a5da7fe97aa699269e64e27b37ee2fb5b7985efb1c0a66fc3d1883b52",
+        "matches": true
+      },
+      {
+        "path": "node_modules/@earendil-works/pi-coding-agent/dist/core/tools/read.js",
+        "sha256": "a5493a6cc7a3a03ba23d345f603bc7ee839ead2fe0ea79a096107fb9ebaa03eb",
+        "matches": true
+      },
+      {
+        "path": "node_modules/@earendil-works/pi-coding-agent/dist/index.d.ts",
+        "sha256": "2f2c87d877a6502a11bcdbaf3be62c12a154ab87d795e954d44c50833d0efbcd",
+        "matches": true
+      },
+      {
+        "path": "node_modules/@earendil-works/pi-coding-agent/package.json",
+        "sha256": "83c3bb7619f590c213cc96a24216eb29a819a3ef6dc548607cc037ed276e8dc5",
+        "matches": true
+      }
+    ],
+    "copiedReports": [
+      {
+        "file": "integrated-console-live-acceptance.md",
+        "same": true
+      },
+      {
+        "file": "integrated-console-live-acceptance.json",
+        "same": true
+      }
+    ],
+    "modernHead": "c604565ca507ad9fe14e1cadf945918d14a92668",
+    "modernBranch": "main",
+    "modernStatus": [
+      "M docs/STATE.md",
+      "?? docs/evaluations/integrated-console-live-acceptance.json",
+      "?? docs/evaluations/integrated-console-live-acceptance.md"
+    ],
+    "originalHead": "ae2a8200daa5e2ae192cf210afeee0f2efb005f3",
+    "originalBranch": "local/preserve-workspace-20261023",
+    "originalStatus": [
+      "M README.md",
+      " M docs/PROJECT.md",
+      " M docs/STATE.md",
+      "?? HANDOFF.md",
+      "?? docs/evaluations/v3.0.1-live-retest.json",
+      "?? docs/evaluations/v3.0.1-live-retest.md",
+      "?? scripts/goal-console-retest.ts",
+      "?? tests/goal-console-retest.test.ts"
+    ],
+    "originalModelRequests": 8,
+    "originalReservedMicroCny": 409924,
+    "originalWebReservations": 1,
+    "originalWebActualSent": null,
+    "originalWebActualSentRange": [
+      0,
+      1
+    ],
+    "rawDbHash": "d4a644815a054cf78467b2d132c4ec0079c557f261003e254f2be9bada1f6caa",
+    "rawResponse08Hash": "452451e49bed35c5386da6d8ed85391f4b7e8fa4f089b4f4c86c122cfa34a7da",
+    "rawLedgerHash": "29eda343bd44d0f8df4508b633773dab8b47fcf36375ce5c9b990b66d1ad1f87",
+    "frozenPlanHash": "06fa3f52c8eea5cf14a36950413a9dc72fed0264b5dfb5aac4ff0be47297e57b"
+  },
+  "originalLiveResult": {
+    "B0": "passed",
+    "W1": "failed",
+    "G1": "failed",
+    "G2": "not-executed",
+    "G3": "not-executed",
+    "R1": "not-executed",
+    "V1": "not-executed",
+    "P1": "not-executed",
+    "C1": "not-executed",
+    "X1": "not-executed"
+  },
+  "currentRealCalls": {
+    "modelHttp": 0,
+    "publicDns": 0,
+    "publicWebGet": 0,
+    "paidEvaluation": 0,
+    "feishu": 0
+  },
+  "windows": {
+    "node": "24.19.0",
+    "gates": [
+      {
+        "gate": "typecheck",
+        "exitCode": 0,
+        "seconds": 3.0412466,
+        "log": "E:\\AgentWork\\validation\\personal-agent-console-offline-fix-20261024\\windows-final-typecheck.log"
+      },
+      {
+        "gate": "build",
+        "exitCode": 0,
+        "seconds": 1.5266759,
+        "log": "E:\\AgentWork\\validation\\personal-agent-console-offline-fix-20261024\\windows-final-build.log"
+      },
+      {
+        "gate": "test",
+        "exitCode": 0,
+        "seconds": 32.1232191,
+        "log": "E:\\AgentWork\\validation\\personal-agent-console-offline-fix-20261024\\windows-final-test.log"
+      },
+      {
+        "gate": "eval:memory",
+        "exitCode": 0,
+        "seconds": 3.5661352,
+        "log": "E:\\AgentWork\\validation\\personal-agent-console-offline-fix-20261024\\windows-final-eval-memory.log"
+      },
+      {
+        "gate": "eval:formation",
+        "exitCode": 0,
+        "seconds": 11.6347613,
+        "log": "E:\\AgentWork\\validation\\personal-agent-console-offline-fix-20261024\\windows-final-eval-formation.log"
+      }
+    ],
+    "testCounts": {
+      "tests": 467,
+      "pass": 464,
+      "fail": 0,
+      "skipped": 3
+    },
+    "targetedFinal": {
+      "tests": 83,
+      "pass": 83,
+      "fail": 0,
+      "skip": 0
+    },
+    "skips": [
+      "﹣ POSIX 私有权限位 (0.4038ms) # Windows mode 不代表 ACL；ACL 隔离未验证",
+      "﹣ 拒绝符号链接且不触碰外部文件 (1.4134ms) # Windows 当前账户无创建符号链接权限，本项未验证",
+      "﹣ 进程级：交互 Session 重启恢复，daemon 隔离调度，拒绝双启动，SIGTERM 标记中断 (1.2257ms) # Windows child.kill(SIGTERM) 强杀，无法验证 POSIX 优雅退出；需在 Mac/Linux 重跑"
+    ]
+  },
+  "linux": {
+    "executed": false,
+    "reason": "Docker daemon unavailable; only stopped docker-desktop WSL distribution; no installation or service start",
+    "historicalResultsReused": false
+  },
+  "redGreen": {
+    "validRedLog": "red-targeted-valid-fixture.log",
+    "validRedFailed": 4,
+    "firstGreenLog": "green-initial.log",
+    "firstGreenPass": 4,
+    "baselineStack": "baseline-g1-stack.json",
+    "setupFailuresRetained": [
+      "red-targeted.log",
+      "targeted-expanded.log",
+      "baseline-g1-setup-failure.log"
+    ]
+  },
+  "constraints": {
+    "noNewDependencies": true,
+    "noSdkChange": true,
+    "noMigration": true,
+    "timeoutMaxMs": 10000,
+    "integratedMaxModelHttp": 32,
+    "integratedMaxMicroCny": 6000000,
+    "integratedMaxWebReservations": 1,
+    "allDefaultSwitchesOff": true,
+    "originalEvidenceChanged": false,
+    "frozenPlanChanged": false,
+    "v301NaturalPauseLiveGate": "open",
+    "v301ReceiptUnderstandingLiveGate": "open"
+  },
+  "remaining": [
+    "Actual historical W1 DNS/TLS/HTTP stage and GET send count remain unknown",
+    "Real agent-notes automatic selection not validated",
+    "Real approved Goal Skill plus Web and Checkpoint lifecycle not validated",
+    "Chat Skill pre-read versus frozen G1 activation wording unchanged",
+    "Current Linux/Mac/Windows ACL and POSIX termination not validated",
+    "Independent code/evidence review still pending"
+  ]
+}

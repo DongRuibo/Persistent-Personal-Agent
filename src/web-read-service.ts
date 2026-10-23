@@ -9,7 +9,11 @@ import type { WebReadStore } from './web-read-store.js';
 
 export interface WebAddress { address: string; family: number }
 export interface WebTarget { url: string; address: WebAddress }
-export interface WebTransport { get(target: WebTarget, signal: AbortSignal): Promise<Buffer> }
+export type WebReadPhase = 'dns_started' | 'dns_resolved' | 'connection_started' | 'tcp_connected' | 'tls_verified'
+  | 'request_created' | 'request_finished_local' | 'response_headers' | 'response_body_started' | 'response_complete'
+  | 'timeout' | 'aborted' | 'failed';
+export type WebPhaseReporter = (phase: WebReadPhase) => void;
+export interface WebTransport { get(target: WebTarget, signal: AbortSignal, report?: WebPhaseReporter): Promise<Buffer> }
 export type WebResolver = (hostname: string) => Promise<WebAddress[]>;
 const blocked = new BlockList();
 for (const [address, prefix] of [['0.0.0.0', 8], ['10.0.0.0', 8], ['100.64.0.0', 10], ['127.0.0.0', 8], ['169.254.0.0', 16],
@@ -26,13 +30,14 @@ export function publicWebAddress(value: WebAddress): boolean {
 // 仅接受服务已经校验的固定目标。测试可直接验证本机TLS，产品没有内网开关。
 export class NodeWebTransport implements WebTransport {
   constructor(private readonly send: typeof request = request) {}
-  async get(target: WebTarget, signal: AbortSignal): Promise<Buffer> {
+  async get(target: WebTarget, signal: AbortSignal, report?: WebPhaseReporter): Promise<Buffer> {
     signal.throwIfAborted();
     const url = new URL(target.url), { address, family } = target.address;
     const agent = new Agent({ keepAlive: false, maxSockets: 1, maxCachedSessions: 0, proxyEnv: {} });
     const connect = agent.createConnection.bind(agent);
     // 通过公开异步Agent接口，TLS及实际IP通过前不把socket交给HTTP层，防止先发GET再拒绝。
     agent.createConnection = (options, callback) => {
+      report?.('connection_started'); signal.throwIfAborted();
       const socket = connect(options);
       if (!(socket instanceof TLSSocket) || !callback) { socket?.destroy(); throw new Error('Web TLS连接不可验证'); }
       let completed = false;
@@ -42,11 +47,12 @@ export class NodeWebTransport implements WebTransport {
         if (error) socket.destroy(); callback(error ?? null, socket);
       };
       socket.once('error', error => done(error));
+      socket.once('connect', () => report?.('tcp_connected'));
       socket.once('secureConnect', () => {
         const allowed = new BlockList(); allowed.addAddress(address, family === 4 ? 'ipv4' : 'ipv6');
         const remote = socket.remoteAddress;
         if (!remote || !allowed.check(remote, isIP(remote) === 4 ? 'ipv4' : 'ipv6')) done(new Error('Web连接地址与已验证DNS不符'));
-        else done();
+        else { report?.('tls_verified'); done(); }
       });
       signal.addEventListener('abort', abort, { once: true }); if (signal.aborted) abort();
       return undefined;
@@ -59,6 +65,7 @@ export class NodeWebTransport implements WebTransport {
           minVersion: 'TLSv1.2',
           lookup: (_host, _options, callback) => callback(null, address, family),
           headers: { Accept: 'text/plain, text/markdown', 'Accept-Encoding': 'identity', 'User-Agent': 'Personal-Agent-Readonly/1' } }, res => {
+          report?.('response_headers');
           const fail = (message: string) => { res.destroy(); req.destroy(); reject(new Error(message)); };
           const type = res.headers['content-type'] ?? '', encoding = res.headers['content-encoding'];
           if (res.statusCode !== 200 || !/^text\/(?:plain|markdown)(?:\s*;\s*charset=utf-8)?$/iu.test(type)
@@ -66,11 +73,13 @@ export class NodeWebTransport implements WebTransport {
           const length = res.headers['content-length'];
           if (length !== undefined && (!/^\d+$/u.test(length) || Number(length) > 32768)) { fail('Web响应超过32768字节'); return; }
           const chunks: Buffer[] = []; let bytes = 0;
-          res.on('data', (chunk: Buffer) => { bytes += chunk.length; if (bytes > 32768) fail('Web响应超过32768字节'); else chunks.push(chunk); });
+          res.on('data', (chunk: Buffer) => { if (!bytes) report?.('response_body_started'); bytes += chunk.length; if (bytes > 32768) fail('Web响应超过32768字节'); else chunks.push(chunk); });
           res.on('error', reject); res.on('aborted', () => reject(new Error('Web响应未完整结束')));
-          res.on('end', () => { if (res.complete) resolve(Buffer.concat(chunks)); else reject(new Error('Web响应未完整结束')); });
+          res.on('end', () => { if (res.complete) { report?.('response_complete'); resolve(Buffer.concat(chunks)); } else reject(new Error('Web响应未完整结束')); });
         });
-        req.on('error', reject); req.end();
+        // 本地finish只证明数据交给了本机流；不能据此断言远端收到GET。
+        req.on('error', reject); req.once('finish', () => report?.('request_finished_local'));
+        report?.('request_created'); if (signal.aborted) req.destroy(); else req.end();
       });
     } finally { agent.destroy(); }
   }
@@ -107,7 +116,8 @@ export class WebReadService {
       return call.snapshot;
     }
     try {
-      const snapshot = await this.fetch(permit.resourceId, permit.catalogHash, signal);
+      const snapshot = await this.fetch(permit.resourceId, permit.catalogHash, signal,
+        phase => store.phase(call.id, phase, clock().toISOString()));
       signal.throwIfAborted(); this.current(permit.resourceId, permit.catalogHash);
       store.finish(call.id, snapshot, clock().toISOString()); return snapshot;
     } catch (error) {
@@ -115,18 +125,33 @@ export class WebReadService {
       throw error;
     }
   }
-  async fetch(id: string, hash: string, parent: AbortSignal): Promise<WebSnapshot> {
+  async fetch(id: string, hash: string, parent: AbortSignal, report?: WebPhaseReporter): Promise<WebSnapshot> {
     parent.throwIfAborted();
-    const resource = this.current(id, hash), signal = AbortSignal.any([parent, AbortSignal.timeout(this.timeoutMs)]);
-    const addresses = await abortable(this.resolver(new URL(resource.url).hostname), signal);
-    signal.throwIfAborted();
-    if (!addresses.length || addresses.length > 16 || addresses.some(address => !publicWebAddress(address))) throw new Error('Web DNS包含非公网或无效地址');
-    const bytes = await abortable(this.transport.get({ url: resource.url, address: addresses[0]! }, signal), signal);
-    signal.throwIfAborted();
-    if (!bytes.length || bytes.length > 32768) throw new Error('Web响应为空或超过32768字节');
-    const text = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(bytes);
-    if (/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/u.test(text)) throw new Error('Web响应不是允许的纯文本');
-    return { resourceId: id, url: resource.url, version: resource.version, catalogHash: resource.hash, fetchedAt: new Date().toISOString(),
-      bytes: bytes.length, contentHash: createHash('sha256').update(bytes).digest('hex'), text };
+    const resource = this.current(id, hash), audit = new AbortController();
+    const signal = AbortSignal.any([parent, AbortSignal.timeout(this.timeoutMs), audit.signal]);
+    const phases = new Set<WebReadPhase>(); let finished = false;
+    // 单阶段只记一次；晚到网络事件不能追加到已结束调用。审计写失败则中止，不放行网络。
+    const trace: WebPhaseReporter = phase => {
+      if (finished || phases.has(phase) || signal.aborted && !['timeout', 'aborted', 'failed'].includes(phase)) return;
+      phases.add(phase);
+      try { report?.(phase); } catch (error) { audit.abort(error); }
+    };
+    try {
+      trace('dns_started'); signal.throwIfAborted();
+      const addresses = await abortable(this.resolver(new URL(resource.url).hostname), signal);
+      signal.throwIfAborted();
+      if (!addresses.length || addresses.length > 16 || addresses.some(address => !publicWebAddress(address))) throw new Error('Web DNS包含非公网或无效地址');
+      trace('dns_resolved'); signal.throwIfAborted();
+      const bytes = await abortable(this.transport.get({ url: resource.url, address: addresses[0]! }, signal, trace), signal);
+      signal.throwIfAborted();
+      if (!bytes.length || bytes.length > 32768) throw new Error('Web响应为空或超过32768字节');
+      const text = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(bytes);
+      if (/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/u.test(text)) throw new Error('Web响应不是允许的纯文本');
+      return { resourceId: id, url: resource.url, version: resource.version, catalogHash: resource.hash, fetchedAt: new Date().toISOString(),
+        bytes: bytes.length, contentHash: createHash('sha256').update(bytes).digest('hex'), text };
+    } catch (error) {
+      trace(signal.reason instanceof Error && signal.reason.name === 'TimeoutError' ? 'timeout' : parent.aborted ? 'aborted' : 'failed');
+      throw error;
+    } finally { finished = true; }
   }
 }
