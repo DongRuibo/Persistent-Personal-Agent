@@ -16,6 +16,7 @@ export interface Config {
   memoryQueryRewrite?: boolean;
   goalEnabled?: boolean;
   skillsEnabled?: boolean;
+  webReadEnabled?: boolean;
   skillsDir?: string;
   proactive?: ProactiveOptions;
   pollIntervalMs: number;
@@ -78,6 +79,7 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env): Config {
   if (env.MEMORY_FORMATION_ENABLED && !['true', 'false'].includes(env.MEMORY_FORMATION_ENABLED)) throw new Error('MEMORY_FORMATION_ENABLED 必须为 true 或 false');
   if (env.GOAL_ENABLED !== undefined && !['true', 'false'].includes(env.GOAL_ENABLED)) throw new Error('GOAL_ENABLED 必须为 true 或 false');
   if (env.SKILLS_ENABLED !== undefined && !['true', 'false'].includes(env.SKILLS_ENABLED)) throw new Error('SKILLS_ENABLED 必须为 true 或 false');
+  if (env.WEB_READ_ENABLED !== undefined && !['true', 'false'].includes(env.WEB_READ_ENABLED)) throw new Error('WEB_READ_ENABLED 必须为 true 或 false');
   const skillsDir = resolve(env.SKILLS_DIR || `${databasePath}.skills`);
   if (env.SKILLS_ENABLED === 'true' && (skillsDir === dirname(skillsDir) || contains(skillsDir, process.cwd())
     || [databasePath, sessionDir, memoryDir].some(path => contains(skillsDir, path) || contains(path, skillsDir)))) throw new Error('SKILLS_DIR必须是独立受管目录');
@@ -108,6 +110,7 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env): Config {
     memoryQueryRewrite: env.MEMORY_QUERY_REWRITE === 'true',
     goalEnabled: env.GOAL_ENABLED === 'true',
     skillsEnabled: env.SKILLS_ENABLED === 'true', skillsDir,
+    webReadEnabled: env.WEB_READ_ENABLED === 'true',
     proactive: { enabled: proactiveEnabled, inputRate: proactiveNumber('PROACTIVE_INPUT_CNY_PER_MILLION', 0),
       outputRate: proactiveNumber('PROACTIVE_OUTPUT_CNY_PER_MILLION', 0), dailyCalls: proactiveNumber('PROACTIVE_DAILY_CALLS', 20, true),
       dailyExecutions: proactiveNumber('PROACTIVE_DAILY_EXECUTIONS', 20, true), dailyBudgetCny: proactiveNumber('PROACTIVE_DAILY_BUDGET_CNY', 1),

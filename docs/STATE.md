@@ -4,12 +4,12 @@
 
 ## 当前阶段与进行中事项
 
-- 本轮修复实施及发布前已核对本地与GitHub main基线均为fb5201c637cea86c9e8c8733d909859d50b72c99。用户确认S0-A/B/C已通过ChatGPT代码审查，可以阶段性收尾；V3.0～V3.3主要工程亦已收尾，本轮不扩大框架或调度器。
-- 本轮仅修disable-model-invocation特殊包：当前原话必须是完整独立的明确调用句，不以包含ID、否定、引文、假设、复合句或历史调用推断授权。普通包自动选择、原生加载/read、Goal审批/Hash及后台零工具语义不变，见[独立修复与回归](evaluations/s0-invocation-fix.md)。
-- 修复及文档在独立工作树 `C:/Users/Dongr/.codex/worktrees/v3-proactive/Persistent Personal Agent` 的fix/s0-explicit-skill-invocation分支完成；用户随后明确授权提交、合并并推送GitHub main，发布结果以Git记录为准。已发布S0阶段A=9a8fa84、B=9d6c541、C=edda483，前次main发布=fb5201c。原E盘保留分支local/preserve-workspace-20261023及8份已有文件（含HANDOFF）SHA256未变，不覆盖、不混入变更。
+- 本轮已核对本地及GitHub main基线fd4bc856ef26e7482c05d251e39af4773eb40707。S0及特殊包权限修复已由用户确认通过ChatGPT代码审查；当前按授权连续实施S1-A1/A2/A3，不开发S1-B或扩大Goal/Policy。
+- S1-A1网络服务已完成并通过质量关：固定资源ID/目录Hash、默认关闭配置、DNS公网校验/固定连接、标准TLS、自有无代理Agent、类型/字节/总超时/取消控制。A2 Chat授权/Pi接入及A3持久账本/恢复尚未交付，当前不能称完整Web MVP，见[阶段记录](evaluations/s1-web-validation.md)。
+- 工作在独立工作树 `C:/Users/Dongr/.codex/worktrees/v3-proactive/Persistent Personal Agent`，分支feature/s1-readonly-web；允许本地阶段提交，不推送。原E盘保留分支local/preserve-workspace-20261023及8份已有文件（含HANDOFF），不覆盖或混入变更。
 - V3.0.1自然语言暂停与主模型操作收据误解两项真实失败列为**正式主动执行启用前必解项**，须独立修复并真实复验；[原始报告](evaluations/v3.0.1-live-retest.md)不改，不因V3工程收尾或Skills设计而标记通过。
-- 本轮Windows Node24.19.0五关全部退出0，302项299通过/0失败/3原平台跳过；Skills专项53/53。先补测试复现两项顶层失败，日志原样保留，机器证据见[新摘要](evaluations/s0-invocation-fix.json)。本轮未重跑Linux；已发布S0的Windows267/270及断网Linux270/270仍只是[历史报告](evaluations/s0-skills-validation.md)，不冒充新增用例跨平台通过。
-- 已交付[Console真实体验方案](evaluations/s0-console-live-experience-plan.md)：独立16次/2元建议限额、冻结话术和联网前入口验证，尚未授权/执行；[S1最小只读Web设计](designs/s1-readonly-web-tools.md)推荐Chat固定资源ID，Goal先用批准快照，未开发Web或扩大text_only。SKILLS_ENABLED、GOAL_ENABLED、PROACTIVE_ENABLED默认false，Formation不启用。本轮收费API、真实GitHub Observer/飞书/手机、正式.env/正式数据/历史数据库操作均0；原版Pi、真实SQLite和本机模型桩验证，不等于真实语义或渠道验收。
+- A1 Windows Node24.19.0五关全部退出0，332项329通过/0失败/3原平台跳过；新增网络专项30/30，Linux完整回归留最终阶段。首轮类型错误及修复日志保留，证据根目录E:/AgentWork/validation/personal-agent-s1-web-20261023-180629；Formation输出使用新路径，不覆盖旧报告。
+- WEB_READ_ENABLED、SKILLS_ENABLED、GOAL_ENABLED、PROACTIVE_ENABLED默认false，Formation不启用。本轮收费API、正式网站/真实账号、飞书/手机、正式.env/数据/历史验收库操作均0。[S0 Console体验方案](evaluations/s0-console-live-experience-plan.md)仍未获收费执行授权，不沿用旧预算。
 
 ## 已完成功能
 

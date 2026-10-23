@@ -1,0 +1,4 @@
+# 仅用于生成本机模拟TLS证书，不读取正式OpenSSL配置。
+[req]
+distinguished_name = dn
+[dn]

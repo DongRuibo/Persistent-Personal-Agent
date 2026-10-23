@@ -1,6 +1,6 @@
 # S1 受控只读 Tools：最小 Web 获取设计
 
-日期：2026-10-23。状态：**设计建议，尚未批准实施；本轮没有注册 Web 工具、修改能力枚举或做数据库迁移**。基线 `fb5201c637cea86c9e8c8733d909859d50b72c99`，承接[S0原生Skills设计](skills-tools-architecture.md)。保留原版 Pi 1.3.0 SDK/Loop；Skill 是方法，Tool 才是宿主 I/O 能力，二者的批准不能相互替代。
+日期：2026-10-23。状态：**S1-A路线已获用户批准，按A1/A2/A3连续实施；A1已通过自动化，完整交付待后续阶段**。原设计基线fb5201c，实施基线 `fd4bc856ef26e7482c05d251e39af4773eb40707`；进展见[阶段记录](../evaluations/s1-web-validation.md)。承接[S0原生Skills设计](skills-tools-architecture.md)，保留原版 Pi 1.3.0 SDK/Loop；Skill 是方法，Tool 才是宿主 I/O 能力，二者的批准不能相互替代。正文保留原设计取舍，实施差异最终单列。
 
 ## 1. 推荐范围与取舍
 
