@@ -4,18 +4,15 @@
 
 ## 当前阶段与进行中事项
 
-- 发布交接：用户随后单独授权提交并推送本轮修复，发布目标仅为审查分支`codex/console-offline-fix`，不合并或推送main；发布前独立读取远端main=c604565，未有同名远端分支。145份源码/测试Hash与最终验证版本一致，沿用Windows467项464通过/0失败/3原平台跳过及五关退出0，不重复全测；Linux本轮未运行。离线修复报告/JSON保留提交前冻结快照，其中HEAD及未提交/推送字段记录的是离线交付时状态，不覆盖原始验收结论；发布后的实际SHA以Git与独立远端核对为准。原工作树三份文档、E盘8项改动及78份原始数据/证据保持不变，不上传数据库、原生Session、账本、密钥或HANDOFF，不产生新模型/验收网站调用。
-- 本轮仅离线定点修复，基线c604565；独立工作树C:/Users/Dongr/.codex/worktrees/console-offline-fix/Persistent Personal Agent，分支codex/console-offline-fix。首次create的模型投影不暴露bootstrap ID，宿主仅为首次本Goal的bootstrap引用分配新正式ID并记事务依据；非法ID/后续修订不重映射。已知业务错误在Run、Execution、阻塞原因和Session收据一致，未知异常不回显；Web复用Run Events补DNS/TLS/本地发送/响应阶段，10秒总超时及一次GET预留不变。详见[独立离线修复报告](evaluations/integrated-console-offline-fix.md)/[JSON](evaluations/integrated-console-offline-fix.json)。Windows最终关卡结果见报告；Docker daemon不可用，本轮Linux未运行。未提交/合并/推送，无真实模型或公网DNS/GET，不读取正式.env/数据；以下真实失败事实保持不变。
-- 本轮综合Console真实验收已按32模型HTTP/6元/一次固定Web预留的新授权执行，基线main=c604565ca507ad9fe14e1cadf945918d14a92668。核对官方公开价后，用户确认当前账号输入2/输出8元每百万Token、无额外费用；重新通过13项离线预算闸后，以原入口、新根目录执行冻结B0/W1/G1。结果未通过：B0通过，W1取数超时，G1初始化计划因非法复用Step ID被宿主拒绝；G2及后续7项未执行。实际8请求均HTTP200，预留0.409924/6元，不是实际账单；未使用剩余额度。见[真实报告](evaluations/integrated-console-live-acceptance.md)/[机器证据](evaluations/integrated-console-live-acceptance.json)。
-- A完成自然暂停泛称/具名交集及宿主操作收据修复：原话仍须唯一有效、成功投递的视图；身份/渠道/TTL/revision/显示版本不放宽。宿主状态进入ToolResult及原生Session，模型收尾失败不重做操作、不增加纠错调用，后台成果与临时Memory不混入交互Session。
-- B复用web_read_calls完成快照选择、Plan绑定/展示/审批、Execution冻结/inputHash和Checkpoint/重启恢复；每步一份Web资料可与Skill共存，4KiB及既有总容量限制，超限不自动裁剪。来源失效/损坏/错身份/错版本或Skill变化阻塞，Goal仍text_only、零工具、单片段单模型请求，无新增DDL或新缓存。
-- C真实SQLite/原版Pi/本机HTTP覆盖Chat资料整理、手动学习Goal、策略反馈/预算停止、暂停/撤销迟到结果、提交失败、通知重投及真实SIGKILL进程恢复。自审反例补齐具名目标漏词和未继承资料的审批显示，先红后绿，不改冻结预期或旧报告。
-- A/B/C/D历史提交c058579、accfb28、0586228、79c83d0、最终审查14e7bfc及原报告均保持不变；main此前以--ff-only发布c604565，仅发布记录有额外变化。上轮最终专项34/34、Windows438/441且3原平台跳过、断网Linux441/441及双平台五关全0，见[审查报告](evaluations/goal-web-final-review.md)。本轮只重跑13项预算专项，未重跑全量或Linux；不能将上轮离线通过改成真实业务成功。
-- 本轮真实根目录E:/AgentWork/acceptance/s0-s1-goal-v301-20261023，证据目录E:/AgentWork/validation/personal-agent-integrated-live-20261023。B0与集成进程均/quit正常退出0，预算/数据库/Memory锁释放；原请求/响应、Session、SQLite、账本及失败日志保留。145份代码/SDK Hash不变，SQLite完整性/外键/只读Goal审计通过，正式数据和历史验收库未打开。
-- [统一冻结方案](evaluations/integrated-console-live-plan.md)源文件不改：本次有效执行授权来自用户新消息及账号核价确认。v2同根预算保留8次模型预留及唯一一次pi-skills-v1取数预留，未退额、重置或重取。Web失败为TimeoutError，无成功快照；没有分阶段发送证据，实际GET是否已发出未知（0至1），不把预留1冒充成功GET1。G1的模型输出1步但用bootstrap ID改定义；仅在全新离线副本重放确认拒绝原因，反事实对照不计真实通过，未改产品代码。
-- V3.0.1自然语言暂停与收据解释的两项历史真实失败仍是正式主动执行启用门槛：离线修复已通过，尚未新真实复验；[原始报告](evaluations/v3.0.1-live-retest.md)不改、不标成真实通过。S0/S1/V3真实模型、正式网站、飞书/手机和正式主动策略尚未统一验收。
-- 正式WEB_READ_ENABLED、SKILLS_ENABLED、GOAL_ENABLED、PROACTIVE_ENABLED默认false，Formation关闭。本轮只在新隔离进程开Chat/Skill/Web/Goal，Proactive和Formation均关闭；沿用已有授权只读四个LLM字段注入，不显示/落盘密钥、不修改正式.env。原E盘分支local/preserve-workspace-20261023、HEAD ae2a820及8份原文件（含HANDOFF）Hash不变；飞书/手机与正式业务数据操作0。
-- 本轮有一次真实Chat受限read interview-practice（805字节）并进入下一模型请求；agent-notes自动选择、Goal批准后/skill展开、快照绑定、Checkpoint及R1恢复均未验成。原生Session保留主模型口头草稿与宿主创建收据，用户最终看到宿主ready/blocked真实状态。P1/C1/X1未执行，V3.0.1暂停/收据解释历史失败继续开放。仅新增真实报告/JSON和更新STATE，未提交或推送；停止新功能，也不继续收费补测。
+- 发布交接：用户已单独授权提交并推送验收准备，目标仅审查分支`codex/staged-console-prep`，不合并或推送main。发布前独立核对远端main仍c604565、修复分支仍aad7，本审查分支尚不存在；146份源码/测试/依赖文件Hash及两份准备报告Hash与最终验证版本一致，沿用下述474项和五关结果，不重复运行完整测试。只补STATE发布记录，冻结方案、入口、Case和报告/JSON不改；报告中的HEAD、未提交/未推送字段属于发布前冻结快照，发布后的SHA以Git和远端独立核对为准。此授权不包括第二轮真实模型、固定文档GET或费用。
+- 第二轮分阶段Console真实验收**仅完成准备和离线验证，尚未执行、收费或访问验收公网端点**。独立工作树 `C:/Users/Dongr/.codex/worktrees/staged-console-prep/Persistent Personal Agent`，分支 `codex/staged-console-prep`，基于已审查修复 `aad7edbc38da2ee93985e4c10e118283431ea823`；main保持c604565，本次只发布独立分支。
+- 新[冻结方案](evaluations/staged-console-live-plan.md)包含12个Case：A独立Goal/Skill/自然暂停/收据解释；B独立agent-notes及唯一固定Web读取；C仅在A/B证据全部通过后验证Skill+快照Goal。A目标“青桐阅读计划”及创建原话不含“学习计划”，A5保留历史“暂停那个学习计划”，不以改名绕过泛称问题。A结束取消，C新建“杜鹃资料练习”。
+- 新专用入口/Case表和7项离线测试不改src、Pi SDK、产品权限、旧入口/冻结话术或正式开关。每Case只发一次冻结消息、跨进程不可重发；A3/C4零请求重启；B关闭GoalRunner，不会推进A残留授权。C需操作者审阅声明及真实SQLite源状态，缺失/损坏/跨身份/错版本快照和Skill Hash不符均拒绝。
+- **待批准建议**：预计35、最多46次物理模型HTTP；整轮¥8保守预留，A/B/C另限28/4/14次与¥4.62/0.66/2.32；整轮最多一次固定pi-skills-v1 Web预留，仅B1可用。新绝对根/新scope账本，次数/费用/容量在发送前fsync；失败不退、锁/pending/配置变化拒绝恢复。历史32/6账本剩余24次及旧Web预留不复用。未来必须重新核实官方与账号费率、附加费并安全注入环境变量，当前不读取正式.env。
+- Windows Node24.19.0完整离线关卡通过：474项471通过、0失败、3原平台跳过，typecheck/build/eval:memory/eval:formation均退出0；新增7项覆盖原版Pi+真实SQLite+本机模拟模型/HTTP、正常跨进程恢复、失败不重发。机械statePass不代替模型语义/收据解释验收；原始调试失败日志均保留。Docker daemon不可用、唯一WSL发行版已停止，本轮Linux未运行，未安装/启动新环境。详见[准备验证报告](evaluations/staged-console-preparation.md)/[JSON](evaluations/staged-console-preparation.json)。
+- 旧综合真实验收仍为**未通过**：c604565上B0通过、W1超时无快照、G1复用bootstrap Step ID被拒绝，其余7项未执行；8次模型HTTP200、保守预留¥0.409924，实际账单未知；Web唯一预留消费、实际GET只能确认0～1。aad7离线修复不改变这项真实结论。V3.0.1自然暂停与操作收据解释两项历史失败继续开放，正式主动执行不得据本轮模拟结果启用。
+- 原E盘保存分支ae2a820及8项改动、原main工作树三份未提交文档、审查修复工作树、78份原验收数据/证据和原报告Hash保持不变。未打开历史SQLite或迁移重放，仅读取文件Hash；无模型Key、正式数据、Session或账本进入Git。正式WEB_READ_ENABLED/SKILLS_ENABLED/GOAL_ENABLED/PROACTIVE_ENABLED默认false不改，Formation关闭。
+- 下一步先交ChatGPT审查方案与入口，再等待用户一次性批准A/B/C、46次/¥8及一次固定GET；获批且新核价/离线闸/安全注入检查全部通过后才作为完整执行里程碑运行。真实飞书/手机、正式主动策略、S2/Sandbox/Computer Use不在本轮。
 
 ## 已完成功能
 
@@ -42,12 +39,11 @@
 
 | 日期 | 修改及位置 |
 | --- | --- |
+| 2026-10-24 | 第二轮Console分阶段准备：新增A/B/C十二个冻结Case、新46/8独立账本/一次GET硬闸、逐Case自动停服和跨重启审计；Windows474项471通过/3原平台跳过及五关0，新增7项模拟回归；Linux不可用，历史失败/额度/数据不变，真实执行待新授权。用户随后授权仅向独立分支提交推送，发布只补STATE，冻结验证快照不改 |
 | 2026-10-24 | 综合真实失败后离线修复：首次Plan身份契约、固定安全失败原因、Web阶段证据、Pi/SQLite/Session联合回归。原始G1反例先红后绿，历史W1 GET仍0～1；Windows结果和Linux限制见独立修复报告；不改变旧真实结论、不消费额度、不提交推送 |
 | 2026-10-23 | c604565综合Console真实验收未通过：13项预算闸先过，8/32真实模型请求、0.409924/6元预留；B0通过，W1唯一Web预留超时、无快照，G1模型复用bootstrap Step ID被拒绝，后续7项未执行。Chat原生read正文805字节进入下一请求属有限实证，Goal绑定/Checkpoint仍未验成；原始失败保留，V3.0.1两项真实失败仍开放，无产品修改/提交/推送 |
 | 2026-10-23 | S1-A1/A2/A3连续完成：阶段Windows329/332→354/357，最终Windows384/387、断网Linux387/387；Web85/85，五关均0。固定来源、可信许可、单表恢复；原始失败保留，默认关闭；用户随后授权合并main及推送，发布仅补STATE |
 | 2026-10-23 | S0特殊包明确调用定点修复：先红后绿、专项53/53、Windows299/302且3原平台跳过；五关均0。新增Console16次/2元待授权方案、S1只读Web设计；用户随后授权提交推送，仅补发布交接状态，未收费，原真实失败保留 |
-| 2026-10-23 | S0-A/B/C完成并逐阶段过关；最终Node24.19 Windows267通过/3原跳过、断网Linux270全过，两边五关均0；118源码Hash一致。用户随后授权合并推送main，发布仅补STATE；默认未启用，原始失败及阶段证据保留 |
-
 
 ## 验证记录与证据边界
 

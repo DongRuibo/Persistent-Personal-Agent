@@ -1,0 +1,351 @@
+{
+  "scope": "second-staged-console-preparation-only",
+  "date": "2026-10-24",
+  "baseline": "aad7edbc38da2ee93985e4c10e118283431ea823",
+  "worktree": "C:\\Users\\Dongr\\.codex\\worktrees\\staged-console-prep\\Persistent Personal Agent",
+  "branch": "codex/staged-console-prep",
+  "head": "aad7edbc38da2ee93985e4c10e118283431ea823",
+  "localMain": "c604565ca507ad9fe14e1cadf945918d14a92668",
+  "trackingOriginMain": "c604565ca507ad9fe14e1cadf945918d14a92668",
+  "remoteRefreshed": false,
+  "liveActivity": {
+    "modelHttp": 0,
+    "publicDns": 0,
+    "publicGet": 0,
+    "feesCny": 0,
+    "officialConfigRead": false,
+    "credentialsRead": false,
+    "secondLiveRoundStarted": false
+  },
+  "proposedAuthorization": {
+    "approved": false,
+    "expectedHttp": 35,
+    "maxHttp": 46,
+    "maxReservedMicroCny": 8000000,
+    "stageLimits": {
+      "A": {
+        "requests": 28,
+        "microCny": 4620000
+      },
+      "B": {
+        "requests": 4,
+        "microCny": 660000
+      },
+      "C": {
+        "requests": 14,
+        "microCny": 2320000
+      }
+    },
+    "webReservations": 1,
+    "resourceId": "pi-skills-v1",
+    "url": "https://raw.githubusercontent.com/earendil-works/pi/v1.3.0/packages/coding-agent/docs/skills.md",
+    "ratesCurrentlyVerified": false
+  },
+  "productAndHistoricalTrackedFilesUnchanged": true,
+  "files": [
+    {
+      "path": "docs/STATE.md",
+      "sha256": "25d939eabfb967711f4e930d73522934ac80391aea88c6ecf6ea6868f09a0e92"
+    },
+    {
+      "path": "docs/evaluations/staged-console-live-plan.md",
+      "sha256": "5001128432f01bcaca04a261782c2586dda21693b2fe8e6663b8dbed89cbb627"
+    },
+    {
+      "path": "scripts/staged-console-acceptance.ts",
+      "sha256": "a9a0c61180b09710cf52635c21d67d295eb07a5533f3844dc2ddffadbdc9431d"
+    },
+    {
+      "path": "scripts/staged-console-cases.ts",
+      "sha256": "d4702cc08a0c1e1a390833812b6b272906e85713aca9cd6dff62036d0b3cc6bd"
+    },
+    {
+      "path": "tests/staged-console-acceptance.test.ts",
+      "sha256": "f50f5e4a297c5471b72dc09e479ad73d3f0ac7a12c59bb58e2a8d3a560396815"
+    },
+    {
+      "path": "tests/staged-console-flow.test.ts",
+      "sha256": "9e37f27416f67a123d652c03a10bd08a64a181c60c4fa511695cad642e45ba14"
+    }
+  ],
+  "runtimeProfileFromOfflineFixture": {
+    "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "endpoint": "https://api.siliconflow.cn/v1/chat/completions",
+    "inputRate": 2,
+    "outputRate": 8,
+    "checkedAt": "2026-10-23T17:58:08.643Z",
+    "planHash": "5001128432f01bcaca04a261782c2586dda21693b2fe8e6663b8dbed89cbb627",
+    "entryHash": "a9a0c61180b09710cf52635c21d67d295eb07a5533f3844dc2ddffadbdc9431d",
+    "casesHash": "aa5ee0b5429baaa560b62d37646ca7f2b8b90c5feaa46527e01698baf367e66a",
+    "codeHash": "ce885d9205fcb396256408ccd3ce9de95001d92d44d63daaed1d0631c0cbdd88",
+    "nodeVersion": "v24.19.0"
+  },
+  "runtimeSourceHashMatchesCurrentFiles": true,
+  "sourceManifest": {
+    "path": "E:\\AgentWork\\validation\\personal-agent-staged-console-prep-20261024\\source-manifest.json",
+    "files": 146,
+    "sha256": "e0f8642bcbc0edab5939b6d9c1f2868a3a892e0c3417716201599fd47a6c7fcf"
+  },
+  "windows": {
+    "node": "v24.19.0",
+    "piSdk": "1.3.0",
+    "tests": 474,
+    "pass": 471,
+    "fail": 0,
+    "skipped": 3,
+    "targetedTests": 7,
+    "targetedPass": 7,
+    "gates": [
+      {
+        "log": "E:\\AgentWork\\validation\\personal-agent-staged-console-prep-20261024\\typecheck-frozen.log",
+        "name": "typecheck",
+        "exit": 0,
+        "elapsedSeconds": 3.083
+      },
+      {
+        "log": "E:\\AgentWork\\validation\\personal-agent-staged-console-prep-20261024\\build-frozen.log",
+        "name": "build",
+        "exit": 0,
+        "elapsedSeconds": 1.636
+      },
+      {
+        "log": "E:\\AgentWork\\validation\\personal-agent-staged-console-prep-20261024\\test-frozen.log",
+        "name": "test",
+        "exit": 0,
+        "elapsedSeconds": 51.149
+      },
+      {
+        "log": "E:\\AgentWork\\validation\\personal-agent-staged-console-prep-20261024\\eval-memory-frozen.log",
+        "name": "eval-memory",
+        "exit": 0,
+        "elapsedSeconds": 3.636
+      },
+      {
+        "log": "E:\\AgentWork\\validation\\personal-agent-staged-console-prep-20261024\\eval-formation-frozen.log",
+        "name": "eval-formation",
+        "exit": 0,
+        "elapsedSeconds": 6.773
+      }
+    ]
+  },
+  "linux": {
+    "run": false,
+    "dockerExit": 1,
+    "reason": "Docker Linux engine unavailable; sole WSL distro docker-desktop Stopped",
+    "environmentInstalledOrStarted": false
+  },
+  "offlineFlow": {
+    "fixtures": [
+      {
+        "mockModelHttp": 36,
+        "mockWebGets": 1,
+        "cases": 12,
+        "root": "C:\\Users\\Dongr\\AppData\\Local\\Temp\\staged-flow-1FFZKx\\round"
+      },
+      {
+        "mockModelHttp": 36,
+        "mockWebGets": 1,
+        "cases": 12,
+        "root": "C:\\Users\\Dongr\\AppData\\Local\\Temp\\staged-flow-TryJb8\\round"
+      }
+    ],
+    "modelHttp": 36,
+    "webGets": 1,
+    "cases": 12,
+    "caseIds": [
+      "A1",
+      "A2",
+      "A3",
+      "A4",
+      "A5",
+      "A6",
+      "A7",
+      "B1",
+      "C1",
+      "C2",
+      "C3",
+      "C4"
+    ],
+    "allMechanicalStatePass": true,
+    "stageHttp": {
+      "A": 22,
+      "B": 3,
+      "C": 11
+    },
+    "reservedMicroCny": 2131962,
+    "currencyIsMockReservationOnly": true,
+    "webReservations": 1,
+    "zeroRequestRestarts": true,
+    "sqliteCounts": {
+      "goals": 2,
+      "goal_plans": 4,
+      "goal_steps": 4,
+      "goal_executions": 5,
+      "runs": 15,
+      "model_calls": 36,
+      "web_read_calls": 1,
+      "tasks": 0
+    },
+    "sqliteChecks": {
+      "integrity": [
+        [
+          "ok"
+        ]
+      ],
+      "foreignKeys": [],
+      "runningRuns": 0,
+      "runningExecutions": 0,
+      "locks": {
+        "staged.lock": false,
+        "staged-budget.json.pending": false,
+        "agent.db.lock": false,
+        "memory.lock": false
+      },
+      "walBytes": 0
+    },
+    "sessions": [
+      {
+        "path": "C:\\Users\\Dongr\\AppData\\Local\\Temp\\staged-flow-1FFZKx\\round\\sessions\\93d8874c8c86f0fc893dbe15c765ffa0fcd342f798dbf669e08f8cbe095d230c\\chat.session.jsonl",
+        "sha256": "0966fb7817c53b76dbd3d45ca4d1bf541faaa5391cded212e9f9f503e0708433"
+      }
+    ],
+    "databaseSha256": "abcd9fa938da9d5f3e2a46fa8919867b2ca702c13c3ed59193b65d4b39d83177",
+    "ledgerSha256": "a1ac30d664edad7bc7c8c682fc326aab257fd95efff66261b08e838eeb225339",
+    "coverage": "A1-A7 and C4 actual Console child processes; B1/C1/C2/C3 in-process Pi and host services",
+    "goals": [
+      {
+        "id": "a3c1383c-0df2-4d8f-8b94-0b24718a24ef",
+        "status": "cancelled",
+        "planRevision": 1,
+        "revision": 10,
+        "checkpointRunId": "084eed06-410c-4398-b4e7-b819ab6a5303"
+      },
+      {
+        "id": "b317cb1b-7cbd-4212-ac11-8cc21747bae3",
+        "status": "waiting_user",
+        "planRevision": 1,
+        "revision": 6,
+        "checkpointRunId": "5b5ca831-c27a-4d20-8521-9df7e7da905a"
+      }
+    ],
+    "executions": [
+      {
+        "goalId": "a3c1383c-0df2-4d8f-8b94-0b24718a24ef",
+        "planRevision": 0,
+        "status": "committed",
+        "checkpointHash": "6179b89749ce189ffef0c31b3fdb9a81db972bc61c57f4577717466948895aec",
+        "inputHash": "8a33ffad9f57871830fbe9f5eb637c3f5ea85d3f12c5fc7282e0cea2088a743a"
+      },
+      {
+        "goalId": "a3c1383c-0df2-4d8f-8b94-0b24718a24ef",
+        "planRevision": 1,
+        "status": "committed",
+        "checkpointHash": "258044a1f1f46dd8f4f4f530bce6ae17b87d317fe5cf92f1dd7097e9b384e626",
+        "inputHash": "305d2d10d4d5b993e28242722f6501977fe7c688fdb383e275d826c35180251a"
+      },
+      {
+        "goalId": "a3c1383c-0df2-4d8f-8b94-0b24718a24ef",
+        "planRevision": 1,
+        "status": "committed",
+        "checkpointHash": "d8f661790e8ae5ee12f476213be4114d0963011aaa6996c8d652e974d007cf46",
+        "inputHash": "d3f26e0d801ae637c49f7f5250e1a46038d82f6161899352c72e902abd14a915"
+      },
+      {
+        "goalId": "b317cb1b-7cbd-4212-ac11-8cc21747bae3",
+        "planRevision": 0,
+        "status": "committed",
+        "checkpointHash": "263f4fd62726210b4ae6f788611ecbd11a7544376e80a4a2711d51caba6dc03c",
+        "inputHash": "2231549ccb51009877a5eea10a52231c5f687fa0d1eb864f9b2c738ab00c9000"
+      },
+      {
+        "goalId": "b317cb1b-7cbd-4212-ac11-8cc21747bae3",
+        "planRevision": 1,
+        "status": "committed",
+        "checkpointHash": "00fbd062fb4b8cae860e44ce07ad3e4821031b91962ca86a1c6b80f024c97d25",
+        "inputHash": "9b5ab60e686f4fe8d2491bee115dd352f4f7a896ef885cfe2c0eaf03913063b4"
+      }
+    ]
+  },
+  "preservation": {
+    "path": "E:\\AgentWork\\validation\\personal-agent-staged-console-prep-20261024\\preservation-check.json",
+    "sha256": "e7d2520652ab4301dcdec2941dd0f9a6e5d98dde0f3b0ad89bfc3ec6b4703bb6",
+    "allUnchanged": true,
+    "counts": [
+      8,
+      78,
+      8,
+      3
+    ]
+  },
+  "logs": [
+    {
+      "path": "E:\\AgentWork\\validation\\personal-agent-staged-console-prep-20261024\\typecheck-frozen.log",
+      "sha256": "699652f8619ee52da14fb0d84af7969b326299e4b49f523e93030f3cde58fc08"
+    },
+    {
+      "path": "E:\\AgentWork\\validation\\personal-agent-staged-console-prep-20261024\\build-frozen.log",
+      "sha256": "fdc16e80a5b96fbee30cf5babf5c8d35e7435b7643f31a1b1a46499536d16d92"
+    },
+    {
+      "path": "E:\\AgentWork\\validation\\personal-agent-staged-console-prep-20261024\\test-frozen.log",
+      "sha256": "89ad58b67c1cf231a5dd1560f53ae2a418451410369a3de7e384882697b1fe0d"
+    },
+    {
+      "path": "E:\\AgentWork\\validation\\personal-agent-staged-console-prep-20261024\\eval-memory-frozen.log",
+      "sha256": "013c440eab3a687526a78bf25dfee80d7b7a44ea51fe9ed13c4013dfe13179df"
+    },
+    {
+      "path": "E:\\AgentWork\\validation\\personal-agent-staged-console-prep-20261024\\eval-formation-frozen.log",
+      "sha256": "a43c4af158a4781563c21a2a86fce7e7e2c239264ecb64bb997086b0ddf25649"
+    },
+    {
+      "path": "E:\\AgentWork\\validation\\personal-agent-staged-console-prep-20261024\\frozen-targeted.log",
+      "sha256": "621b16f4c0cedc30ad4129abca6d93f578cb7b5a198f9837b1047bfe1a7c94a2"
+    },
+    {
+      "path": "E:\\AgentWork\\validation\\personal-agent-staged-console-prep-20261024\\linux-environment.log",
+      "sha256": "d35821e95d271e58d9feb068d0831d6600ba999d12c6c32cf81d8bf530c81d7e"
+    },
+    {
+      "path": "E:\\AgentWork\\validation\\personal-agent-staged-console-prep-20261024\\typecheck-tests.log",
+      "sha256": "cd160c038e601d891d580b2264d23eac6a5d15a2952e0852b8966d1de516ca0b"
+    },
+    {
+      "path": "E:\\AgentWork\\validation\\personal-agent-staged-console-prep-20261024\\targeted-second.log",
+      "sha256": "b273763208564ea9527b45cb141b91ba08eac5d6f3847628228f552ef9ec32fb"
+    },
+    {
+      "path": "E:\\AgentWork\\validation\\personal-agent-staged-console-prep-20261024\\typecheck-final.log",
+      "sha256": "2c3335a10f6f674689bb0994258e8b6c265e6cc3f6989ae02f2a68eea0295e6d"
+    }
+  ],
+  "historicalRealAcceptance": {
+    "result": "not passed",
+    "B0": "passed",
+    "W1": "timeout; no snapshot; actual GET 0..1",
+    "G1": "rejected bootstrap Step ID rewrite",
+    "remainingSeven": "not executed",
+    "modelHttp": 8,
+    "reservedMicroCny": 409924,
+    "realInvoice": null,
+    "v301NaturalPause": "still open",
+    "v301ReceiptExplanation": "still open"
+  },
+  "knownLimits": [
+    "statePass is mechanical only; independent semantic and raw receipt review mandatory",
+    "no current rate or account verification",
+    "Linux not run",
+    "public document reachability, line content, real model native Skill choice and bounded context still unverified"
+  ],
+  "reportMarkdownSha256": "3fededaf135d24279a0a3cdb2ef4283aaac0ee479de3aaa432fb4afb6ade1869",
+  "gitStatus": [
+    " M docs/STATE.md",
+    "?? docs/evaluations/staged-console-live-plan.md",
+    "?? docs/evaluations/staged-console-preparation.json",
+    "?? docs/evaluations/staged-console-preparation.md",
+    "?? scripts/staged-console-acceptance.ts",
+    "?? scripts/staged-console-cases.ts",
+    "?? tests/staged-console-acceptance.test.ts",
+    "?? tests/staged-console-flow.test.ts"
+  ]
+}
