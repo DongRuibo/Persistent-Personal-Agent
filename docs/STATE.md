@@ -4,7 +4,7 @@
 
 ## 当前阶段与进行中事项
 
-- V3.0.1仅收尾计划数量与暂停指代，基线本地/远端main为 `3353ddbcc41fffa999871c506ee69d74e304e933`。本轮改动随当前本地提交交付审查，不推送GitHub；保持GOAL_ENABLED默认false、原四表/Task/Memory/Pi架构与权限边界，不开发V3.1等能力。
+- V3.0.1仅收尾计划数量与暂停指代，开发基线为 `3353ddbcc41fffa999871c506ee69d74e304e933`，已本地提交 `ade995b277948e2c3cf41c9af8a777f556eed2cb`。用户随后另行明确授权，将该提交及本次发布状态说明推送GitHub main；代码与上轮验证一致，本次仅更新发布状态。保持GOAL_ENABLED默认false、原四表/Task/Memory/Pi架构与权限边界，不开发V3.1等能力。
 - 明确正式Step数量在草稿/审批事务校验，含已完成Step；数量错误不裁剪、不提交半个Checkpoint、不补模型重试。安排数量不强转Step，多Step口径未明确则保留草稿并要求明确拆解确认；一个任务/一道题/内部子步骤不作为整个Plan总步数。规则仅覆盖限定语法，不能证明全部产物语义。
 - 原45/47响应及waiting_user/revision2/Planv0/三Step草稿状态在新库离线重建；自然暂停通过，旧/过期/未投递/跨渠道/多目标/错指代均不获权限。新增发现并修复多重指向、二选一或同时暂停取消按唯一视图误操作的问题；未改历史Goal状态或旧Batch5结论。
 - 最终Node24.19.0、Pi1.3.0：Windows207项204通过/0失败/3原有平台跳过，断网Linux207通过/0失败/0跳过；两平台typecheck/build、两个eval均退出0。完整范围与失败前后见[独立修复报告](evaluations/v3.0.1-closeout.md)/[机器证据](evaluations/v3.0.1-validation.json)。
@@ -35,7 +35,7 @@
 
 | 日期 | 修改及位置 |
 | --- | --- |
-| 2026-10-23 | V3.0.1：正式Step数量事务校验、安排拆解确认、原45/47及多指代回归；207项与两平台检查通过；[独立报告](evaluations/v3.0.1-closeout.md)和[14次预计复验方案](evaluations/v3.0.1-live-retest-plan.md)，新增收费0、不推送 |
+| 2026-10-23 | V3.0.1：正式Step数量事务校验、安排拆解确认、原45/47及多指代回归；207项与两平台检查通过；[独立报告](evaluations/v3.0.1-closeout.md)和[14次预计复验方案](evaluations/v3.0.1-live-retest-plan.md)，新增收费0；已提交ade995b，用户随后授权发布main |
 | 2026-10-23 | GOAL_ENABLED默认关闭；电脑核心闭环经真实模型通过，48请求/2.337244元预留后停服；计划粒度及暂停失败保留，暂停仅离线修复，最终198项及两平台检查通过；[报告](evaluations/v3-batch5-acceptance.md)不记全项通过；用户随后授权提交推送main |
 | 2026-10-22 | V3.0 Batch 2–4：GoalRunner/Pi、共享后台互斥、Service/Guard自然语言控制与完整集成；Windows188/191通过、3平台跳过，Linux191全过；两个eval均通过。[证据](evaluations/v3-mvp-validation.md)及[待批准手机方案](evaluations/v3-live-acceptance-plan.md)已准备，无收费/正式数据操作；用户后续授权提交推送main供审查 |
 | 2026-10-22 | V2.1b.4真实手机核心链路通过：24请求/保守预留0.977334元，H02真实错误恢复、批准及空Session命中，已停服；139项136通过/3平台跳过 |
