@@ -5,6 +5,7 @@ import { FormationStore } from './formation-store.js';
 import { GoalStore } from './goal-store.js';
 import { GoalPolicyStore } from './goal-policy-store.js';
 import { GoalNotificationStore } from './goal-notification-store.js';
+import { WebReadStore } from './web-read-store.js';
 
 export class SqliteStore {
   private readonly db: DatabaseSync;
@@ -12,6 +13,7 @@ export class SqliteStore {
   readonly goals: GoalStore;
   readonly policies: GoalPolicyStore;
   readonly notifications: GoalNotificationStore;
+  readonly web: WebReadStore;
 
   constructor(path: string, private readonly redact: (value: unknown) => string = String) {
     this.db = new DatabaseSync(path);
@@ -59,6 +61,7 @@ export class SqliteStore {
       begin: now => this.beginRunInTransaction(null, now), finish: (id, now) => { this.finishRunInTransaction(id, 'succeeded', now, '宿主策略触发审计，非聊天授权'); } },
     (actor, id) => this.goals.get(actor, id));
     this.notifications = new GoalNotificationStore(this.db, fn => this.transaction(fn));
+    this.web = new WebReadStore(this.db, fn => this.transaction(fn));
     this.goals.policy = {
       consume: (goal, auth, now) => this.policies.consume(goal, auth, now),
       current: (execution, now) => this.policies.current(execution, now),
@@ -197,6 +200,7 @@ export class SqliteStore {
       this.db.prepare("UPDATE tasks SET status = 'interrupted', updatedAt = ? WHERE status = 'running'").run(now);
       this.goals.recoverInTransaction(now);
       this.notifications.recoverInTransaction(now);
+      this.web.recoverInTransaction(now);
       return runs.length;
     });
   }

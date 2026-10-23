@@ -3,7 +3,8 @@ import { Agent, request } from 'node:https';
 import { BlockList, isIP } from 'node:net';
 import { createHash } from 'node:crypto';
 import { defaultWebResources, webResource } from './web-read-types.js';
-import type { WebResource, WebSnapshot } from './web-read-types.js';
+import type { WebPermit, WebResource, WebSnapshot } from './web-read-types.js';
+import type { WebReadStore } from './web-read-store.js';
 
 export interface WebAddress { address: string; family: number }
 export interface WebTarget { url: string; address: WebAddress }
@@ -74,6 +75,23 @@ export class WebReadService {
     const resource = this.resources.find(item => item.id === id && item.enabled);
     if (!resource || hash && resource.hash !== hash) throw new Error('Web资源未批准、已禁用或版本变化');
     return structuredClone(resource);
+  }
+  async read(store: WebReadStore, permit: WebPermit, signal: AbortSignal, clock: () => Date): Promise<WebSnapshot> {
+    signal.throwIfAborted(); const resource = this.current(permit.resourceId, permit.catalogHash);
+    // 先完成短事务预留，再进行DNS/TLS；重复许可只可读取同一冻结结果。
+    const call = store.reserve(permit, clock().toISOString());
+    if (call.snapshot) {
+      if (call.snapshot.url !== resource.url || call.snapshot.version !== resource.version) throw new Error('Web冻结来源与批准目录不一致');
+      return call.snapshot;
+    }
+    try {
+      const snapshot = await this.fetch(permit.resourceId, permit.catalogHash, signal);
+      signal.throwIfAborted(); this.current(permit.resourceId, permit.catalogHash);
+      store.finish(call.id, snapshot, clock().toISOString()); return snapshot;
+    } catch (error) {
+      store.fail(call.id, error instanceof Error ? error.name : 'Web读取失败', clock().toISOString(), signal.aborted);
+      throw error;
+    }
   }
   async fetch(id: string, hash: string, parent: AbortSignal): Promise<WebSnapshot> {
     parent.throwIfAborted();

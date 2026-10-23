@@ -12,6 +12,11 @@ import type { FormationService } from './formation-service.js';
 import type { CandidateView } from './formation-types.js';
 import type { GoalService, GoalDisplay, GoalAction } from './goal-service.js';
 import type { Goal } from './goal-types.js';
+import type { WebReadService } from './web-read-service.js';
+import type { WebReadStore } from './web-read-store.js';
+import { webHash } from './web-read-types.js';
+import type { WebView } from './web-read-types.js';
+import { confirmsWebRequest, rejectsWebRequest, webPreview, webRequestSelection } from './web-read-authorization.js';
 
 const text = Type.String({ maxLength: 12000 });
 export const intentSchema = Type.Object({
@@ -44,6 +49,7 @@ export interface DialogueReferences {
   choices?: Choices; confirmation?: { operation: WriteOperation; expires: number };
   candidateReview?: CandidateView;
   goalView?: GoalDisplay;
+  webView?: WebView;
 }
 interface Frame { request: ExecutionRequest; references: DialogueReferences; plan?: Promise<WriteOperation | string>; used: boolean; answer?: string }
 export type Interpret = (message: string, pending: { tool?: Tool | 'memory_review' | 'goal_manage'; count?: number; confirmation?: boolean; goalAction?: GoalAction }, request: ExecutionRequest) => Promise<unknown>;
@@ -123,10 +129,12 @@ export class OperationGuard {
   private readonly context = new AsyncLocalStorage<Frame>();
   constructor(private readonly tasks: TaskService, private readonly memory: FileMemoryService | undefined,
     private readonly interpret: Interpret, private readonly state: DialogueReferences,
-    private readonly saveState: (value: DialogueReferences) => void = () => {}) {}
+    private readonly saveState: (value: DialogueReferences) => void = () => {},
+    private readonly web?: { service: WebReadService; store: WebReadStore; owner: string }) {}
 
   async withRequest<T extends { text: string }>(request: ExecutionRequest, action: () => Promise<T>, formation?: FormationService): Promise<T> {
     if (request.scope !== 'chat') return action();
+    if (this.web && this.state.webView && !confirmsWebRequest(request.prompt)) { delete this.state.webView; this.saveState(this.state); }
     const frame: Frame = { request, references: structuredClone(this.state), used: false };
     return this.context.run(frame, async () => {
       try {
@@ -144,6 +152,36 @@ export class OperationGuard {
     const frame = this.context.getStore(); frame?.request.signal.throwIfAborted();
     if (!frame || frame.request.scope !== 'chat') throw new Error('写工具需要当前已鉴权的交互请求，后台不能写入');
     return frame;
+  }
+
+  async readWeb(resourceId: string, remainingBytes: number, signal?: AbortSignal) {
+    const frame = this.frame(), web = this.web;
+    if (!web || frame.used || frame.plan) throw new Error('本轮没有可用的独立Web读取许可');
+    frame.used = true;
+    const request = frame.request, target = this.tasks.currentTarget();
+    const actor = { owner: web.owner, channel: JSON.stringify(target) }, now = this.tasks.now();
+    const reject = (message: string) => { delete this.state.webView; this.saveState(this.state); frame.answer = message; return { message }; };
+    if (!request.source || request.source.channel !== target.channel || rejectsWebRequest(request.prompt)) return reject('本轮没有明确Web读取授权；未联网。');
+    const resource = web.service.current(resourceId), selection = webRequestSelection(request.prompt, web.service.list());
+    if (!confirmsWebRequest(request.prompt) && !selection.ids.length && !/文档|资料|网页|查阅|documentation|web/iu.test(request.prompt)) return reject('当前未提出读取公开资料的需求；未联网。');
+    if (selection.ids.length > 1 || selection.ids.length === 1 && selection.ids[0] !== resourceId) return reject('资源不唯一或模型提议与当前原话不符；请明确一份文档，未联网。');
+    let permitId = webHash(['direct', request.source.reference, actor, resource.hash]);
+    if (confirmsWebRequest(request.prompt)) {
+      const view = frame.references.webView;
+      if (!view || view.resourceId !== resourceId || view.catalogHash !== resource.hash || !web.store.displayed(view, actor, now.getTime())) return reject('没有当前用户已成功收到且仍有效的Web确认清单；请重新说明读取需求，未联网。');
+      permitId = webHash(['confirmed', view.displayRunId, actor, view.catalogHash]);
+    } else if (!selection.direct || selection.ids.length !== 1) {
+      const text = webPreview(resource, request.prompt);
+      const view: WebView = { ...actor, resourceId, catalogHash: resource.hash, expires: now.getTime() + ttl,
+        displayRunId: request.source.reference, displayHash: webHash(text), purpose: request.prompt };
+      this.state.webView = view; this.saveState(this.state); request.observer.event('web_read_preview', webHash(view)); frame.answer = text;
+      return { message: text };
+    }
+    if (!Number.isSafeInteger(remainingBytes) || remainingBytes <= 0) return reject('本Session Web正文额度已用尽；未联网，普通聊天仍可继续。');
+    delete this.state.webView; this.saveState(this.state);
+    request.observer.event('operation_authorized', JSON.stringify({ tool: 'web_get', resourceId, catalogHash: resource.hash }));
+    return web.service.read(web.store, { ...actor, id: permitId, runId: request.source.reference, resourceId, catalogHash: resource.hash, expires: now.getTime() + ttl },
+      signal ? AbortSignal.any([request.signal, signal]) : request.signal, () => this.tasks.now());
   }
 
   // 查询的显示顺序由宿主固定，防止模型重排后“第二个”对应了错误任务。

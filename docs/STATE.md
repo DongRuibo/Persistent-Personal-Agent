@@ -5,10 +5,10 @@
 ## 当前阶段与进行中事项
 
 - 本轮已核对本地及GitHub main基线fd4bc856ef26e7482c05d251e39af4773eb40707。S0及特殊包权限修复已由用户确认通过ChatGPT代码审查；当前按授权连续实施S1-A1/A2/A3，不开发S1-B或扩大Goal/Policy。
-- S1-A1网络服务已完成并通过质量关：固定资源ID/目录Hash、默认关闭配置、DNS公网校验/固定连接、标准TLS、自有无代理Agent、类型/字节/总超时/取消控制。A2 Chat授权/Pi接入及A3持久账本/恢复尚未交付，当前不能称完整Web MVP，见[阶段记录](evaluations/s1-web-validation.md)。
+- S1-A1/A2已通过阶段质量关：固定资源与网络边界、原版Pi Chat工具、当前原话许可/成功展示确认、零工具后台、共用8次模型额度、Session正文额度。为确保A2不会先联网后补权限，最小web_read_calls预留事务已同步接入；A3并发、故障/恢复及最终双平台关卡尚未完成，见[阶段记录](evaluations/s1-web-validation.md)。
 - 工作在独立工作树 `C:/Users/Dongr/.codex/worktrees/v3-proactive/Persistent Personal Agent`，分支feature/s1-readonly-web；允许本地阶段提交，不推送。原E盘保留分支local/preserve-workspace-20261023及8份已有文件（含HANDOFF），不覆盖或混入变更。
 - V3.0.1自然语言暂停与主模型操作收据误解两项真实失败列为**正式主动执行启用前必解项**，须独立修复并真实复验；[原始报告](evaluations/v3.0.1-live-retest.md)不改，不因V3工程收尾或Skills设计而标记通过。
-- A1 Windows Node24.19.0五关全部退出0，332项329通过/0失败/3原平台跳过；新增网络专项30/30，Linux完整回归留最终阶段。首轮类型错误及修复日志保留，证据根目录E:/AgentWork/validation/personal-agent-s1-web-20261023-180629；Formation输出使用新路径，不覆盖旧报告。
+- A1/A2 Windows Node24.19.0分别332项329通过、357项354通过，均0失败/3原平台跳过；两阶段五关均0，最新Web专项55/55。已保留原始类型错误、复合句漏识别与用途后缀“只是演示”误放行的本机失败及修复日志；Linux完整回归留最终阶段。证据根目录E:/AgentWork/validation/personal-agent-s1-web-20261023-180629；Formation输出用新路径，不覆盖旧报告。
 - WEB_READ_ENABLED、SKILLS_ENABLED、GOAL_ENABLED、PROACTIVE_ENABLED默认false，Formation不启用。本轮收费API、正式网站/真实账号、飞书/手机、正式.env/数据/历史验收库操作均0。[S0 Console体验方案](evaluations/s0-console-live-experience-plan.md)仍未获收费执行授权，不沿用旧预算。
 
 ## 已完成功能
