@@ -16,6 +16,7 @@ export const goalResultSchema = Type.Object({
   needsUserFeedback: Type.Optional(Type.Boolean()),
   proposedPlan: Type.Optional(Type.Object({ changeReason: bounded(2000), steps: Type.Array(Type.Object({
     stepId: Type.Optional(bounded(64)), title: bounded(512), instruction: bounded(4000),
+    skillId: Type.Optional(Type.Union([bounded(64), Type.Null()])),
     deliverable: bounded(2000), doneWhen: bounded(2000),
   }, { additionalProperties: false }), { minItems: 1, maxItems: 12 }) }, { additionalProperties: false })),
 }, { additionalProperties: false });
@@ -64,6 +65,9 @@ export function renderGoal(view: GoalView): string {
     ...goal.pendingAction.spec.steps.map((step, i) => `${i + 1}. ${step.title}\n说明：${step.instruction}\n产物：${step.deliverable}\n验收：${step.doneWhen}`),
     ...[planQuantityQuestion(goal.objective, goal.pendingAction.spec.steps.length)].filter((text): text is string => !!text),
     '请明确批准计划；如需执行，同时说“批准并继续一段”。调整计划请给出完整步骤及产物、验收条件。');
+  for (const [label, spec] of [['正式计划', plan.spec], ['待批准计划', goal.pendingAction?.spec]] as const) {
+    for (const binding of spec?.skillBindings ?? []) lines.push(`${label}步骤${spec!.steps.findIndex(step => step.stepId === binding.stepId) + 1}使用Skill ${binding.skillId}@${binding.version}；Hash=${binding.packageHash}；仅纯文本，不授予工具权限。`);
+  }
   if (goal.blockedReason) lines.push(`阻塞：${goal.blockedReason}；核实原因后可明确要求重新生成纯文本片段。`);
   const lastError = view.executions.at(-1)?.run.error;
   if (lastError?.startsWith('计划数量约束不符：')) lines.push(lastError);

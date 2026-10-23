@@ -26,7 +26,9 @@ export const intentSchema = Type.Object({
   goalAction: Type.Optional(Type.Union(['create', 'list', 'view', 'continue', 'pause', 'cancel', 'approve_plan', 'revise_plan', 'complete'].map(value => Type.Literal(value)))),
   executeNext: Type.Optional(Type.Boolean()), regenerate: Type.Optional(Type.Boolean()),
   revisionMode: Type.Optional(Type.Union([Type.Literal('prepend'), Type.Literal('replace')])),
-  planSteps: Type.Optional(Type.Array(Type.Object({ title: text, instruction: text, deliverable: text, doneWhen: text }, { additionalProperties: false }), { minItems: 1, maxItems: 12 })),
+  skillId: Type.Optional(Type.Union([Type.String({ minLength: 1, maxLength: 64 }), Type.Null()])),
+  planSteps: Type.Optional(Type.Array(Type.Object({ title: text, instruction: text, deliverable: text, doneWhen: text,
+    skillId: Type.Optional(Type.Union([Type.String({ minLength: 1, maxLength: 64 }), Type.Null()])) }, { additionalProperties: false }), { minItems: 1, maxItems: 12 })),
   selector: Type.Optional(Type.Object({
     keywords: Type.Array(Type.String({ minLength: 1, maxLength: 100 }), { maxItems: 8 }),
     when: Type.Optional(text), reference: Type.Optional(Type.Union([Type.Literal('latest'), Type.Literal('last'), Type.Literal('choice')])),
@@ -254,7 +256,9 @@ export class OperationGuard {
       cancel: /取消|终止|放弃|不用做了/u, complete: /(?:确认|确定).{0,25}(?:完成|达成)/u, revise_plan: /调整|改成|改为|先补|增加|新增|替换|重排/u };
     // 待选操作只能由纯选择短句延续；“查看刚才/第二个”不能被模型变成暂停或取消。
     const selectionOnly = /^(?:第[0-9零〇一二两三四五六七八九十百]+(?:个|项|条|号)|[0-9零〇一二两三四五六七八九十百]+号|刚才那个|上一个)[。！!]?$/u.test(activeText.trim());
-    if (verbs[action] && !verbs[action]!.test(activeText) && !(selectionOnly && reference && display?.action === action)) throw new Error('原话中没有对应操作依据');
+    const bindingRequest = action === 'revise_plan' && intent.skillId !== undefined && /当前步骤|这一步/u.test(activeText)
+      && /(?:使用|改用|绑定|移除|停用).{0,30}(?:Skill|技能)/iu.test(activeText);
+    if (verbs[action] && !verbs[action]!.test(activeText) && !bindingRequest && !(selectionOnly && reference && display?.action === action)) throw new Error('原话中没有对应操作依据');
     const options: Parameters<GoalService['apply']>[3] = {};
     if (action === 'approve_plan' || action === 'complete') {
       if (!display?.details || !display.items.some(item => item.id === goal.id)) return show([goal], action, '请先核对下面当前内容，再明确确认。\n');
@@ -276,10 +280,14 @@ export class OperationGuard {
     }
     if (action === 'revise_plan') {
       const evidence = intent.bodyEvidence?.trim();
-      if (!evidence || !request.prompt.includes(evidence)) throw new Error('计划调整必须保留本轮原文');
-      if (intent.revisionMode === 'prepend' && /先补|增加|新增/u.test(activeText)) options.prepend = evidence;
+      if (intent.skillId !== undefined && /当前步骤|这一步/u.test(activeText)) {
+        if (intent.skillId === null ? !/(?:移除|停用).{0,20}(?:Skill|技能)/iu.test(activeText)
+          : !activeText.includes(intent.skillId) || !/(?:使用|改用|绑定).{0,30}(?:Skill|技能)/iu.test(activeText)) throw new Error('Skill绑定变更必须来自当前原话');
+        options.skillId = intent.skillId;
+      } else if (!evidence || !request.prompt.includes(evidence)) throw new Error('计划调整必须保留本轮原文');
+      else if (intent.revisionMode === 'prepend' && /先补|增加|新增/u.test(activeText)) options.prepend = evidence;
       else if (intent.revisionMode === 'replace' && intent.planSteps?.length) {
-        if (intent.planSteps.some(step => Object.values(step).some(value => !evidence.includes(value) || !value.trim()))) throw new Error('完整计划字段须逐字来自当前用户输入，不允许模型扩写');
+        if (intent.planSteps.some(step => Object.values(step).some(value => value !== null && (!evidence.includes(value) || !value.trim())))) throw new Error('完整计划字段须逐字来自当前用户输入，不允许模型扩写');
         options.steps = intent.planSteps;
       } else { frame.answer = '可说“先补某项内容”，或给出完整的新步骤、说明、产物和验收条件；调整只生成待批准草稿。'; return { status: 'clarification' }; }
     }

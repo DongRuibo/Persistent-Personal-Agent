@@ -1,5 +1,6 @@
 import { createHash, randomUUID } from 'node:crypto';
 import type { DatabaseSync } from 'node:sqlite';
+import type { SkillCatalog } from './skill-service.js';
 import type { Run, RunStatus } from './contracts.js';
 import { validatePlanQuantity, validateQuantityApproval } from './goal-plan-quantity.js';
 import type {
@@ -22,6 +23,8 @@ const binding = (actor: GoalActor): string => hash([actor.ownerId, actor.target.
 
 // 仅负责同连接的短事务；没有调度、模型调用或自然语言授权能力。
 export class GoalStore {
+  private skills?: SkillCatalog;
+  setSkills(skills?: SkillCatalog): void { this.skills = skills; }
   policy?: {
     consume(goal: Goal, authorization: NonNullable<Goal['readyInput']>, now: string): Run | undefined;
     current(execution: GoalExecution, now: string): boolean;
@@ -258,16 +261,39 @@ export class GoalStore {
     });
   }
 
-  private draft(goal: Goal, runId: string, proposed: NonNullable<GoalResult['proposedPlan']>): GoalPlanDraft {
+  private draft(goal: Goal, runId: string, proposed: NonNullable<GoalResult['proposedPlan']>, userText = goal.objective): GoalPlanDraft {
     if (!Array.isArray(proposed.steps) || proposed.steps.length < 1 || proposed.steps.length > 12) throw new Error('计划步骤必须为1至12项');
     validatePlanQuantity(goal.objective, proposed.steps.length);
-    const current = this.plan(goal).spec.steps;
+    const previous = this.plan(goal).spec, current = previous.steps;
+    const bindings: NonNullable<GoalPlanSpec['skillBindings']> = [];
+    const catalog = this.skills?.list() ?? [];
+    const explicitIds = [...userText.matchAll(/(?:使用|采用|改用|选用|绑定)\s*(?:Skill|技能)\s*[:：]?\s*([a-z0-9-]+)/giu)].map(match => match[1]!);
+    if (explicitIds.some(id => !catalog.some(info => info.id === id))) throw new Error('用户指定的Skill未批准或不可用');
+    const named = catalog.filter(info => new RegExp(`(?:使用|采用|改用|选用|绑定)\\s*(?:Skill|技能)?\\s*[:：]?\\s*${info.id}(?![a-z0-9-])`, 'iu').test(userText));
+    if (named.length > 1) throw new Error('指定了多个Skill，请明确每步选择');
     const spec: GoalPlanSpec = { objectiveHash: hash(goal.objective), steps: proposed.steps.map(item => {
       const definition = { stepId: item.stepId ?? randomUUID(), title: this.text(item.title, 512),
         instruction: this.text(item.instruction, 4000), deliverable: this.text(item.deliverable, 2000), doneWhen: this.text(item.doneWhen, 2000) };
       if (item.stepId && !current.some(old => JSON.stringify(old) === JSON.stringify(definition))) throw new Error('计划 Step ID 跨目标或定义已变化，需新建步骤');
+      if (Object.keys(item).some(key => !['stepId', 'title', 'instruction', 'deliverable', 'doneWhen', 'skillId'].includes(key))) throw new Error('模型不能提供Skill路径或可信Hash');
+      const old = previous.skillBindings?.find(binding => binding.stepId === definition.stepId);
+      const completed = this.db.prepare('SELECT status FROM goal_steps WHERE id=? AND goalId=?').get(definition.stepId, goal.id)?.status === 'completed';
+      if (completed) {
+        if (item.skillId !== undefined && item.skillId !== (old?.skillId ?? null)) throw new Error('已完成Step不能修改Skill绑定');
+        if (old) bindings.push(old);
+      } else {
+        const selected = item.skillId === undefined ? old?.skillId ?? named[0]?.id : item.skillId;
+        if (named[0] && item.skillId !== undefined && item.skillId !== named[0].id) throw new Error('模型Skill提议违反用户明确选择');
+        if (selected) {
+          const info = catalog.find(info => info.id === selected && info.enabled && info.goalCompatible);
+          if (!info || info.disableModelInvocation && !named.some(item => item.id === selected)) throw new Error('Skill未批准、不兼容或需要用户明确指定');
+          if (old && item.skillId === undefined && old.packageHash !== info.hash) throw new Error('Skill已升级，需明确改选并重新批准');
+          bindings.push({ stepId: definition.stepId, skillId: info.id, packageHash: info.hash, version: info.version });
+        } else if (item.skillId !== undefined && item.skillId !== null) throw new Error('Skill ID无效');
+      }
       return definition;
     }) };
+    if (bindings.length) spec.skillBindings = bindings;
     if (new Set(spec.steps.map(step => step.stepId)).size !== spec.steps.length) throw new Error('计划步骤重复');
     const body = { baseRevision: goal.planRevision, revision: goal.planRevision + 1, spec, sourceRunId: runId,
       changeReason: this.text(proposed.changeReason, 2000) };
@@ -326,12 +352,23 @@ export class GoalStore {
   }
 
   approvePlan(command: GoalCommand, id: string, draftHash: string, now: string, executeNext = false): Goal {
+    // 包校验在事务外完成；进入事务后仍以原revision/draftHash进行CAS，不跨事务扫描目录。
+    const preview = this.get(command.actor, id).pendingAction;
+    for (const binding of preview?.spec.skillBindings ?? []) {
+      if (this.db.prepare('SELECT status FROM goal_steps WHERE id=? AND goalId=?').get(binding.stepId, id)?.status === 'completed') continue;
+      if (!this.skills) throw new Error('SKILLS_ENABLED未开启，不能批准Skill绑定');
+      this.skills.snapshot(binding.skillId, binding.packageHash);
+    }
     return this.tx.transaction(() => {
       const goal = this.command(command, id, now), draft = goal.pendingAction;
       if (goal.status !== 'waiting_user' || !draft || draft.hash !== draftHash || draft.baseRevision !== goal.planRevision) throw new Error('计划草稿或审批状态已变化');
       const { hash: draftFingerprint, ...body } = draft;
       if (hash(body) !== draftFingerprint) throw new Error('计划草稿 Hash 不一致');
       validateQuantityApproval(goal.objective, draft.spec.steps.length, command.text);
+      for (const binding of draft.spec.skillBindings ?? []) {
+        if (this.db.prepare('SELECT status FROM goal_steps WHERE id=? AND goalId=?').get(binding.stepId, goal.id)?.status === 'completed') continue;
+        if (!this.skills?.list().some(info => info.id === binding.skillId && info.hash === binding.packageHash && info.goalCompatible && info.enabled)) throw new Error('Skill批准版本已变化，请重新调整并展示计划');
+      }
       const current = this.plan(goal).spec.steps;
       let incomplete = false;
       for (const step of draft.spec.steps) {
@@ -360,7 +397,7 @@ export class GoalStore {
     return this.tx.transaction(() => {
       const goal = this.command(command, id, now);
       if (['completed', 'cancelled'].includes(goal.status) || goal.controlRequested === 'cancel' || goal.blockedReason === 'invariant_violation') throw new Error('当前 Goal 不能调整计划');
-      const draft = this.draft(goal, command.sourceRunId, proposed);
+      const draft = this.draft(goal, command.sourceRunId, proposed, command.text);
       // 调整先撤销未领取授权；运行中先登记暂停，迟到结果不能成为进度。
       this.db.prepare(`UPDATE goals SET pendingActionJson=?,readyInputJson=NULL,status=?,controlRequested=?,
         revision=revision+1,updatedAt=? WHERE id=?`).run(JSON.stringify(draft), goal.status === 'running' ? 'running' : 'waiting_user',

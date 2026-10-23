@@ -1,5 +1,6 @@
 import type { MessageTarget, Run } from './contracts.js';
 import type { PolicyAuthorization } from './goal-policy-types.js';
+import type { SkillSnapshot } from './skill-service.js';
 
 export type GoalStatus = 'ready' | 'running' | 'waiting_user' | 'paused' | 'blocked' | 'completed' | 'cancelled';
 export type GoalStepStatus = 'pending' | 'running' | 'waiting_user' | 'completed' | 'failed' | 'blocked' | 'superseded';
@@ -21,8 +22,9 @@ export interface GoalStepSpec {
   deliverable: string;
   doneWhen: string;
 }
-export type GoalStepProposal = Omit<GoalStepSpec, 'stepId'> & { stepId?: string };
-export interface GoalPlanSpec { objectiveHash: string; steps: GoalStepSpec[] }
+export type GoalStepProposal = Omit<GoalStepSpec, 'stepId'> & { stepId?: string; skillId?: string | null };
+export interface SkillBinding { stepId: string; skillId: string; packageHash: string; version: string }
+export interface GoalPlanSpec { objectiveHash: string; steps: GoalStepSpec[]; skillBindings?: SkillBinding[] }
 export interface GoalPlan {
   goalId: string; revision: number; baseRevision: number | null;
   sourceRunId: string; approvedByRunId: string | null;
@@ -48,6 +50,7 @@ export interface GoalStep {
 export interface GoalExecutionInput {
   goalId: string; objective: string; planRevision: number; step: GoalStepSpec;
   authorization: GoalReadyInput; previousCheckpoint: GoalCheckpoint | null;
+  skill?: SkillSnapshot;
 }
 export interface GoalCheckpoint {
   schemaVersion: 1; goalId: string; planRevision: number; stepId: string; executionRunId: string;

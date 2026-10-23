@@ -147,6 +147,7 @@ export class PiExecutor implements AgentExecutor {
 export async function createPiExecutor(config: Config, tasks: TaskService, chatKey = 'console', memory?: FileMemoryService, formation?: FormationService, lane?: BackgroundLane, goals?: GoalService): Promise<PiExecutor> {
   goals = config.goalEnabled ? goals : undefined;
   const skills = config.skillsEnabled ? new SkillService(config.skillsDir ?? `${config.databasePath}.skills`) : undefined;
+  goals?.setSkills(skills);
   const limits = new AsyncLocalStorage<{ calls: number; request: ExecutionRequest }>();
   const chargeChat = () => { const current = limits.getStore(); if (current && ++current.calls > 8) throw new Error('Chat本轮8次模型HTTP上限触发；不重试'); };
   if (!config.apiKey || config.apiKey === '<REDACTED>') throw new Error('请在本机环境变量或 .env 中配置 LLM_API_KEY');
@@ -212,6 +213,7 @@ export async function createPiExecutor(config: Config, tasks: TaskService, chatK
         'pending.confirmation=true时，用户明确同意刚才展示的内容且不附加新修改，可返回该pending.tool/action、mode=request、confirmation=true，不返回bodyEvidence。新的修改不能当确认处理。没有pending不得把一句同意变成操作。' +
         (formation?.options.enabled ? '用户询问有什么建议记住/查看候选时action=memory_review、review=list、mode=query；用户对已展示候选批准、拒绝、修改、澄清时也用memory_review，review分别为approve/reject/edit/clarify，selector严格保留原话序号choice/position。这些先不保存用reject_view。修改草稿的bodyEvidence/body逐字复制用户新正文，不能同时批准；pending.confirmation表示改后草稿已经展示，明确同意才approve。候选审批不能变成普通memory_remember。' : '') +
         (goals ? '长期目标操作action=goal_manage，goalAction为create/list/view/continue/pause/cancel/approve_plan/revise_plan/complete。普通知识提问不是Goal创建；用户明确要求逐步、持续、分阶段准备才创建。继续之前的面试准备任务、暂停学习计划等用selector.keywords保留原话中用于指认既有目标的全部具名条件，排除任务/目标等泛词；补充说明、新反馈、角色、期望产物不作为筛选词。不能给ID或凭相似度擅选。例如“继续松柏面试验收任务这一段。补充说明：练习Agent Loop”只以松柏、面试、验收筛选；反馈保留在原话中交给执行器。reference只在原话有刚才/上次、最新或编号时给出，“之前”和“继续”本身不等于last。序号选择严格choice/position，延续pending.goalAction；查看用mode=query。只有明确批准计划用approve_plan；executeNext只有同时要求继续一段为true。明确“继续”并补充场景或回答上一轮问题仍用continue，整条原话作为反馈；请求执行器先拟待批准计划不等于要求替换既有计划，不能生成planSteps。只有明确调整/增补/替换已有计划才用revise_plan。失败后只有明确重新生成才regenerate=true。完成须用户确认达成。计划调整“先补某项”用revise_plan/revisionMode=prepend、bodyEvidence为该项原文；完整替换用replace、planSteps四字段逐字来自本轮正文，不能模型扩写。自动/定时推进不支持。' : '') +
+        (skills && goals ? '用户要求当前步骤使用/改用/绑定某Skill时goalAction=revise_plan，skillId仅复制当前原话ID；移除当前步骤Skill时skillId=null，不改目标或步骤正文，不指定路径或Hash。' : '') +
         '用户指定kind/key时保留，没有指定可选择合适kind和稳定key。schema=' + JSON.stringify(intentSchema),
       messages: [{ role: 'user', content: JSON.stringify({ message, pending }), timestamp: Date.now() }],
     }, { signal, maxTokens: 1000, maxRetries: 0, temperature: 0, reasoning: undefined, timeoutMs: 20000 });

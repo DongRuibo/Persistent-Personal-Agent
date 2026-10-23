@@ -5,7 +5,7 @@
 ## 当前阶段与进行中事项
 
 - 调研开始及本次发布前已独立核对本地main、origin/main与GitHub远端main，基线均为 `553526038a44cf0c07091c604991ac1503b3b09d`，包含后台门修复7d02dd9。用户确认该修复通过ChatGPT审查，V3.0～V3.3主要工程阶段性收尾；不继续扩展调度器或重复同类模拟研究。正式主动执行及长期稳定性尚未验收。
-- 用户已批准从121e83e连续完成S0-A/B/C，在独立分支feature/s0-native-skills开发，不推送、不使用正式环境。S0-A已通过五关：默认关闭SKILLS_ENABLED、宿主批准Hash与原生加载、Chat受限read、Session累计额度跨重启保留、两份纯文本Skill及停服批准入口。当前进入S0-B计划审批绑定；S0-C和Linux最终回归尚待完成，详见[本轮验证](evaluations/s0-skills-validation.md)。
+- 用户已批准从121e83e连续完成S0-A/B/C，在独立分支feature/s0-native-skills开发，不推送、不使用正式环境。S0-A与S0-B均通过五关：Chat原生受限read/累计额度、两份纯文本包，以及Goal审批绑定/改绑/移除、Plan Hash与完成Step保留；B阶段Windows261项258通过/3原跳过。当前进入S0-C后台原生展开，Linux最终回归未完成，详见[本轮验证](evaluations/s0-skills-validation.md)。
 - 设计与验证材料位于独立工作树 `C:/Users/Dongr/.codex/worktrees/v3-proactive/Persistent Personal Agent`，从 `design/skills-tools-20261023` 准备发布。用户随后明确授权提交并推送GitHub；发布仅包含设计、验证报告、一次性脚本、PROJECT和STATE共5份文件，快进main后推送并核对远端SHA，不涉及产品功能启用。原E盘工作区仍在 `local/preserve-workspace-20261023`，已有7份未提交文件及HANDOFF均保留，不加入本次提交。
 - V3.0.1自然语言暂停与主模型操作收据误解两项真实失败列为**正式主动执行启用前必解项**，须独立修复并真实复验；[原始报告](evaluations/v3.0.1-live-retest.md)不改，不因V3工程收尾或Skills设计而标记通过。
 - 已阅读AGENTS/PROJECT/STATE/README及V3/Pi1.3.0实际源码、公开声明和官方文档；[隔离技术验证](evaluations/pi-native-skills-spike.md)最终9项全过、6次本机模拟HTTP，两轮完成运行累计12次本机HTTP，收费0。保留首次ESM导入方式错误原始失败；真实模型语义、产品Chat/Goal/SQLite集成尚未验证。4份文档171个本地链接及UTF-8、脚本node --check、git diff --check通过；原工作区8份已有文件SHA256未变。未运行整套typecheck/build/test/两个eval或Linux回归；历史后台门Windows246通过/3跳过、Linux249全过仅作[既有证据](evaluations/v3-background-lane-review.md)。
