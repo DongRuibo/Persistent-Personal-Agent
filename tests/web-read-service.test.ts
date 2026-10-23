@@ -77,8 +77,9 @@ test('真实本机TLS：证书链/主机名、固定请求头、重定向、类�
     if (req.url === '/length.md') { res.writeHead(200, { 'Content-Type': 'text/plain', 'Content-Length': '32769' }); res.end(); return; }
     if (req.url === '/html.md') { res.writeHead(200, { 'Content-Type': 'text/html' }); res.end('html'); return; }
     if (req.url === '/gzip.md') { res.writeHead(200, { 'Content-Type': 'text/plain', 'Content-Encoding': 'gzip' }); res.end('not supported'); return; }
+    if (req.url === '/header.md') { res.writeHead(200, { 'Content-Type': 'text/plain', 'X-Oversized': 'x'.repeat(9000) }); res.end('拒绝'); return; }
     res.writeHead(200, { 'Content-Type': 'text/markdown; charset=utf-8' }); res.write('虚构');
-    if (req.url !== '/slow.md') res.end('正文');
+    if (req.url !== '/slow.md') res.end('正文'); else server.emit('slow-started');
   });
   server.listen(0, '127.0.0.1'); await once(server, 'listening'); const address = server.address(); assert.ok(address && typeof address !== 'string');
   const url = (path: string, host = 'docs.example.test') => `https://${host}:${address.port}/${path}.md`;
@@ -95,8 +96,17 @@ test('真实本机TLS：证书链/主机名、固定请求头、重定向、类�
     await assert.rejects(new NodeWebTransport().get(target('ok'), signal()), /self.signed|certificate/iu);
     await assert.rejects(transport.get(target('ok', 'other.example.test'), signal()), /hostname|altname|certificate/iu);
     for (const path of ['redirect', 'html', 'gzip', 'large', 'length']) await assert.rejects(transport.get(target(path), signal()), /Web/);
-    await assert.rejects(transport.get(target('slow'), AbortSignal.timeout(35)));
-    assert.equal(requests, 7, 'TLS失败不发送GET，重定向不跟随，其他每次仅一个GET');
+    await assert.rejects(transport.get(target('header'), signal()), /Header|header/);
+    const slow = new AbortController(), started = once(server, 'slow-started', { signal: AbortSignal.timeout(10000) });
+    const interrupted = assert.rejects(transport.get(target('slow'), slow.signal));
+    await started;
+    const deadline = setTimeout(() => slow.abort(), 15);
+    try { await interrupted; } finally { clearTimeout(deadline); }
+    assert.equal(requests, 8, 'TLS失败不发送GET，重定向不跟随，其他每次仅一个GET');
+    const changedLookup = ((input: URL, options: RequestOptions, callback: (res: IncomingMessage) => void) => request(input, { ...options, ca: cert,
+      lookup: (_host, _options, callback) => callback(null, '127.0.0.1', 4) }, callback)) as typeof request;
+    await assert.rejects(new NodeWebTransport(changedLookup).get({ url: url('ok'), address: { address: '8.8.8.8', family: 4 } }, signal()), /DNS/);
+    assert.equal(requests, 8, '连接地址不符必须在GET之前拒绝');
     assert.equal(proxies, 0, '自有Agent不继承环境或全局代理');
   } finally { restoreProxy(); server.closeAllConnections(); proxy.closeAllConnections(); await Promise.all([
     new Promise<void>(done => server.close(() => done())), new Promise<void>(done => proxy.close(() => done())),

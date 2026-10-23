@@ -1,0 +1,265 @@
+{
+  "baseCommit": "fd4bc856ef26e7482c05d251e39af4773eb40707",
+  "date": "2026-10-23",
+  "scope": "s1-a-controlled-web-chat",
+  "evidenceRoot": "E:/AgentWork/validation/personal-agent-s1-web-20261023-180629",
+  "sdk": "@earendil-works/pi-coding-agent@1.3.0",
+  "node": "24.19.0",
+  "stageCommits": {
+    "A1": "36dca0c",
+    "A2": "a77c729",
+    "A3": "see final branch Git history"
+  },
+  "sourceFiles": 137,
+  "projectFiles": 133,
+  "sdkFiles": 4,
+  "sourceManifestSha256": "7b5d06b69cbb9022761fd54e8e378a80a92d2c62d35b3aebf6c3de6b859d8f01",
+  "windows": {
+    "typecheck": 0,
+    "build": 0,
+    "test": 0,
+    "evalMemory": 0,
+    "evalFormation": 0,
+    "tests": 387,
+    "passed": 384,
+    "failed": 0,
+    "skipped": 3,
+    "logDirectory": "windows-final-2"
+  },
+  "linux": {
+    "typecheck": 0,
+    "build": 0,
+    "test": 0,
+    "evalMemory": 0,
+    "evalFormation": 0,
+    "tests": 387,
+    "passed": 387,
+    "failed": 0,
+    "skipped": 0,
+    "network": "none",
+    "hostMounts": 0,
+    "cpus": 2,
+    "memoryBytes": 3221225472,
+    "containerStopped": true,
+    "dependencies": "existing stopped test container node_modules; package-lock matched; no install/network",
+    "sourceHashesMatched": true,
+    "logDirectory": "linux-final"
+  },
+  "webTargeted": {
+    "tests": 85,
+    "passed": 85
+  },
+  "priorFinalSnapshot": {
+    "tests": 385,
+    "windowsPassed": 382,
+    "windowsSkipped": 3,
+    "linuxPassed": 385,
+    "reason": "added and fixed late Goal notification confirmation race; prior logs and source manifest retained"
+  },
+  "paidModelRequests": 0,
+  "productionWebsiteRequests": 0,
+  "realAccountRequests": 0,
+  "productionConfigOrDataModified": false,
+  "historicalAcceptanceModified": false,
+  "defaults": {
+    "WEB_READ_ENABLED": false,
+    "SKILLS_ENABLED": false,
+    "GOAL_ENABLED": false,
+    "PROACTIVE_ENABLED": false,
+    "formation": false
+  },
+  "limits": {
+    "webGetPerRun": 1,
+    "utcDailyAttempts": 20,
+    "utcDailyReservedBytes": 655360,
+    "perAttemptReservedBytes": 32768,
+    "totalTimeoutMs": 10000,
+    "responseHeaderBytes": 8192,
+    "sessionWebBytes": 8192,
+    "sharedChatModelRequests": 8,
+    "chatPayloadBytes": 65536
+  },
+  "stageLogHashes": [
+    {
+      "file": "a1-build-final.log",
+      "sha256": "fdc16e80a5b96fbee30cf5babf5c8d35e7435b7643f31a1b1a46499536d16d92"
+    },
+    {
+      "file": "a1-certificate-generation.log",
+      "sha256": "36e189784f4d1d1f168644f6a313109ae5b1bd439e3c4202299d43ef96ec505f"
+    },
+    {
+      "file": "a1-eval-formation-final.log",
+      "sha256": "67898dbd6a3a745a8cb8c1a561c9110bd899329fdc8ec6f3272ea2e3a80658e9"
+    },
+    {
+      "file": "a1-eval-memory-final.log",
+      "sha256": "28db03b65ec87804352301dad2a0b1cd880d91038d85aa91c91f39bee7ef20a9"
+    },
+    {
+      "file": "a1-test-01.log",
+      "sha256": "0011e08538313f4c07602f2bc1ed337517e655f1b7f1369cff4a69825198e484"
+    },
+    {
+      "file": "a1-test-final.log",
+      "sha256": "54a605d78409b9ae9ee2326bd8de87eea89cef71100f2d237ac771626f40eea9"
+    },
+    {
+      "file": "a1-typecheck-01.log",
+      "sha256": "e1c96f0c87b6d055a1ac0d75f13ecb832a39fbd963208dfc7418e29d9fcd59ad"
+    },
+    {
+      "file": "a1-typecheck-02.log",
+      "sha256": "699652f8619ee52da14fb0d84af7969b326299e4b49f523e93030f3cde58fc08"
+    },
+    {
+      "file": "a1-typecheck-final.log",
+      "sha256": "699652f8619ee52da14fb0d84af7969b326299e4b49f523e93030f3cde58fc08"
+    },
+    {
+      "file": "a2-authorization-before.log",
+      "sha256": "b687b6fca488721c317f69ff84eaa351c21e0bb2b85db027e4dd87e6a47159c5"
+    },
+    {
+      "file": "a2-build-final.log",
+      "sha256": "fdc16e80a5b96fbee30cf5babf5c8d35e7435b7643f31a1b1a46499536d16d92"
+    },
+    {
+      "file": "a2-eval-formation-final.log",
+      "sha256": "224f19315a7e8eff532f311855abef5548431d3bed364d0ee170a28e1a652d64"
+    },
+    {
+      "file": "a2-eval-memory-final.log",
+      "sha256": "1892dd52c91d12abf462eb21a06f1239015ada1eaa262606a718506dfb2e5e8f"
+    },
+    {
+      "file": "a2-test-01.log",
+      "sha256": "7fec0e7c7b109afffcf6274115847f2933d003b6b148f7f26b9d909ac9cb3394"
+    },
+    {
+      "file": "a2-test-02.log",
+      "sha256": "ae6966d66f7807addf480532cc9ea72d2a539130192dcee8ea8056703c974b67"
+    },
+    {
+      "file": "a2-test-03.log",
+      "sha256": "873f9e80867ad834a409aee8603ba041d8716f1fa189abff8139cd6688f20e6b"
+    },
+    {
+      "file": "a2-test-final.log",
+      "sha256": "2db052ff3ffc6fd1b430a6c92760b0b4e6ee4d654ca6b5957a68070ca8b110a1"
+    },
+    {
+      "file": "a2-typecheck-01.log",
+      "sha256": "a26981f2c96e608ffd408daa3ba6de2cb9a37752b19c28a8ad3f0e8a395cad35"
+    },
+    {
+      "file": "a2-typecheck-02.log",
+      "sha256": "699652f8619ee52da14fb0d84af7969b326299e4b49f523e93030f3cde58fc08"
+    },
+    {
+      "file": "a2-typecheck-final.log",
+      "sha256": "699652f8619ee52da14fb0d84af7969b326299e4b49f523e93030f3cde58fc08"
+    },
+    {
+      "file": "a3-cross-confirmation-before.log",
+      "sha256": "377e4d0adfb18f89aabf8186f824dc76dbbfea3fc0a52fe4de4b8493839db792"
+    },
+    {
+      "file": "a3-late-confirmation-before.log",
+      "sha256": "392047e44c3c58fe9af6de98d949b128c619ffbf5ed9ae02d6ac5c32b2225cf1"
+    },
+    {
+      "file": "a3-network-recovery-01.log",
+      "sha256": "b7abfc74f779e339456a772eed583fce755f211b252bac3db4e88124a0a13af0"
+    },
+    {
+      "file": "a3-recovery-01.log",
+      "sha256": "e06f5f2c725a923c9bc05b894d10b024f9f7d684b2e73f64a9cbd29e3ef56cc2"
+    },
+    {
+      "file": "a3-recovery-02.log",
+      "sha256": "1ac9f2dc34018b28ac9905247a47ae994856efe31882ecd912e61be57870583f"
+    },
+    {
+      "file": "a3-tls-before.log",
+      "sha256": "200c190e006dd1a07e005d765ba80ff7c930fc53e54c936ad789fac20385d2d5"
+    },
+    {
+      "file": "a3-typecheck-01.log",
+      "sha256": "699652f8619ee52da14fb0d84af7969b326299e4b49f523e93030f3cde58fc08"
+    },
+    {
+      "file": "a3-typecheck-02.log",
+      "sha256": "699652f8619ee52da14fb0d84af7969b326299e4b49f523e93030f3cde58fc08"
+    },
+    {
+      "file": "a3-typecheck-03.log",
+      "sha256": "699652f8619ee52da14fb0d84af7969b326299e4b49f523e93030f3cde58fc08"
+    },
+    {
+      "file": "a3-web-01.log",
+      "sha256": "d048865991cf9824a573dfdccbace1df08ef8f7ad11287df6b4f09bc4a9dacd4"
+    },
+    {
+      "file": "a3-web-02.log",
+      "sha256": "c28ea77d5037ceb1e673e74d30564d3a44ed9ce5024c0c25aa108f6b26db54b8"
+    },
+    {
+      "file": "a3-web-03.log",
+      "sha256": "051f8cc10fcf9aeb32269136a218d223ed662c300b7eeef95e7eb6f707fe71e9"
+    },
+    {
+      "file": "a3-web-04.log",
+      "sha256": "095a241b4374d8a8b10c649abf2c438ce03604ff8005c79c0c4792518e7bc2cb"
+    }
+  ],
+  "finalLogHashes": [
+    {
+      "file": "windows-final-2/typecheck.log",
+      "sha256": "699652f8619ee52da14fb0d84af7969b326299e4b49f523e93030f3cde58fc08"
+    },
+    {
+      "file": "windows-final-2/build.log",
+      "sha256": "fdc16e80a5b96fbee30cf5babf5c8d35e7435b7643f31a1b1a46499536d16d92"
+    },
+    {
+      "file": "windows-final-2/test.log",
+      "sha256": "fe186858e21a3a8c848a30951b047952ad855c4a047efdfb1b5c4cc238e78190"
+    },
+    {
+      "file": "windows-final-2/eval-memory.log",
+      "sha256": "ce938525a129f424adbb8288955d36b56afb78001f5c1225d6cd1b7e8b55c8c2"
+    },
+    {
+      "file": "windows-final-2/eval-formation.log",
+      "sha256": "e23f97f6707b6a391b93184d12835f735f730ee9f94c006c14199931b9597e65"
+    },
+    {
+      "file": "linux-final/typecheck.log",
+      "sha256": "74c2686ec5fb9e7a7767eeed52bec6570c232765b21ee68a7733d6b9a8267ff3"
+    },
+    {
+      "file": "linux-final/build.log",
+      "sha256": "30760990998950e1eafcc0f67c5f05db68d7cdff6124e624ed2b53804c421cd6"
+    },
+    {
+      "file": "linux-final/test.log",
+      "sha256": "46ef94360709a3851457d2f16a67f8de67536e43e3206b48d11be43a612c978a"
+    },
+    {
+      "file": "linux-final/eval-memory.log",
+      "sha256": "68d527b331d21356a187fba00c25604cb45de03f14cae47f8a9feecfc1ec52c5"
+    },
+    {
+      "file": "linux-final/eval-formation.log",
+      "sha256": "b5b048cf910c806f5e20108eef94e6db558ddd637e4fc60a3674a3d371917a6f"
+    }
+  ],
+  "knownOpen": [
+    "V3.0.1 natural pause and receipt interpretation live failures",
+    "No real model/site/Feishu/mobile validation; no Windows ACL or native macOS validation",
+    "Bounded title/phrase recognition; other requests require source confirmation",
+    "Session keeps existing Web body; disabled flag does not erase history",
+    "No S1-B, dynamic active fetch, search, HTML, arbitrary URL or external writes"
+  ]
+}

@@ -81,7 +81,7 @@ Pi SDK 使用公开 API，不 Fork、不修改内部源码和 Agent Loop。宿�
 - 重启继续等待中的任务；遗留 running 标记 interrupted；失败、中断和投递失败不自动重跑任务。有外部副作用时须人工核实，不能保证恰好一次。
 - `message_end` 记录模型响应与用量；`agent_settled` 后仍检查 aborted、模型与工具错误、截断及最终文本。执行结束、数据库成功提交、渠道投递成功互相区分。
 - UTC 持久化、IANA 用户时区解析。支持的中文时间语法见 README，歧义或 DST 无效时间要求用户明确，不让模型或服务器时区决定。
-- 交互白名单为三项任务工具及 `memory_search/get/remember/update/forget`；显式开启Formation后增加memory_review，显式开启S0后增加仅批准Skill文件的受限原生read。后台始终无工具，可由宿主只读检索Memory。禁止默认Shell、任意文件读写和通用网络；数据库/模型请求不等于OS沙箱。
+- 交互白名单为三项任务工具及 `memory_search/get/remember/update/forget`；显式开启Formation后增加memory_review，显式开启S0后增加仅批准Skill文件的受限原生read，显式开启S1-A后增加固定资源web_get。后台始终无工具，可由宿主只读检索Memory。禁止默认Shell、任意文件读写和通用网络；数据库/模型请求不等于OS沙箱。
 - 飞书只允许配置的应用内 open_id 和文本私聊；`(appId, message_id)` 持久化去重后再安排执行，不自动重放中断消息。模型执行和发送均不阻塞事件接收；旧Task/聊天/手动Goal发送失败不重跑Agent。V3.3策略Goal具有最小持久通知Outbox，有限重投也可能重复或最终失败。
 
 ## V2.0 四类长期 Memory
@@ -194,13 +194,27 @@ Goal侧Outbox/Observer及提交后通知不跨网络占用后台门；网络前�
 
 Chat附加同名覆盖内置实现的受限原生read，操作只映射批准包；原有Task/Memory工具依旧经过当前原话Guard。每轮read2次，正文累计8KiB跨原生Session重启保留，重复正文照样计额；用尽只拒绝Skill读取，正常聊天可继续。开启Skills时主Loop和辅助解析/改写共享每轮8次HTTP上限，65536字节payload，无重试，不宣称账单硬限制。两份自有包为agent-notes与interview-practice。
 
-特殊字段disable-model-invocation只接受当前原话中完整独立的明确调用句，不以包含ID、引用、否定、假设或历史会话推断权限。它不改变普通包自动选择、宿主目录批准或Goal Plan审批。限制与回归见[定点报告](evaluations/s0-invocation-fix.md)。S1只读Web仍为[设计建议](designs/s1-readonly-web-tools.md)，没有注册工具、迁移或扩大Goal/Policy能力。
+特殊字段disable-model-invocation只接受当前原话中完整独立的明确调用句，不以包含ID、引用、否定、假设或历史会话推断权限。它不改变普通包自动选择、宿主目录批准或Goal Plan审批，见[定点报告](evaluations/s0-invocation-fix.md)。S1-A已另行批准实施如下，Goal/Policy仍保持text_only。
 
 GoalPlanSpec新增可选skillBindings，模型仅可提议每步skillId；宿主映射ID/版本/Hash并纳入草稿和Plan Hash。成功展示后明确批准才生效，改绑/移除需新Plan；旧JSON不回填，完成Step及Checkpoint不变。原四表、Task/Run唯一约束与Policy/Grant权限/限额不变，无新增DDL。
 
 Runner在门外准备包快照，重新入门后复核Task优先、Goal/Plan/Grant版本，再随claim冻结Execution输入。原生/skill显式展开只用于该一份冻结副本，联网前校验全文与参数、零工具、一次HTTP；执行后再次核对包未禁用/变化。Skill不可用时沿用blocked语义，尚未领取Step保留pending、授权不被消费；修复后需重新批准/授权。临时Session和副本释放，不从历史恢复工具。结果仍由原Checkpoint聚合事务提交，原Outbox只重投消息，不重跑模型。产物不自动进Memory或Formation。
 
 `skill-service.ts`负责宿主管理边界，`skill-tools.ts`集中公开Pi Skill/read适配，`skills-admin.ts`仅为停服人工批准入口。业务服务只传宿主DTO，Pi类型不进入Goal/Policy。安全限制依靠宿主验证与工具白名单，不把Skill提示词当权限保证，也不声称同账户恶意进程隔离。真实语义、渠道与长期稳定性另验，S0不开放任何其他工具能力。
+
+## S1-A Chat固定资源只读Web
+
+`WEB_READ_ENABLED=false`独立控制服务和工具注册。宿主代码目录批准固定HTTPS/443文本资源，稳定ID/标题别名/版本/启用状态/Hash与响应正文Hash分离；不接受模型URL或请求选项。当前两项来源为Pi1.3.0 Skills/SDK公开文档，停服修改目录并复核代码后更新，不扫描全局资源或配置。Web不属于Skill权限，也不激活任何Goal或主动策略。
+
+OperationGuard只依据当前原话、可信身份/渠道和宿主目录，明确唯一读取短句可直接授权，其他请求先展示具体范围再确认；否定/引用/假设、未知ID/URL或多目标不联网。确认需要5分钟内同身份/渠道、同目录Hash、Run结果Hash、宿主展示事件及成功投递；Web界面使冲突的旧审批清单失效，后台Goal通知也不能让“同意读取”借权批准计划。
+
+`web-tools.ts`以Pi公开defineTool/customTools接入原版Loop，仅一个resourceId参数；网页作为低信任ToolResult进入下一模型请求。Chat共用Skills/Web每轮8次模型HTTP额度，包含辅助解析；Web Session正文累计8KiB、节选标记及恢复账本保留。既有Task/Memory/Goal写权限不扩大，后台零工具/单Goal请求保持原样，产物不自动进Memory或Formation。
+
+`web-read-service.ts`验证DNS所有地址，固定所选公网IP；公开异步HTTPS Agent在TLS和实际远端IP通过前不交付socket，禁重定向/环境代理/认证/压缩/HTML，单次10秒、响应32KiB/头8KiB，仅UTF-8文本。测试Resolver/Transport仅由宿主代码注入，生产无localhost绕过开关。
+
+增量一张`web_read_calls`，复用现有SQLite/Run/Events，无独立数据库或队列。Run和permit唯一；许可及32KiB预留先事务提交，网络在事务外，成功快照记录来源、时间、正文Hash/大小。UTC日20次/640KiB预留，失败/取消不退款，重启reserved转interrupted，不自动重放。缓存只返回已验证的原快照，不通过联网修复；发送或模型失败不重取，不保证外部网络恰好一次。
+
+S1-A不包含S1-B Goal网页快照绑定、主动Web更新、任意网址、搜索、HTML解析、登录、文件/Shell、MCP、Sandbox或Computer Use。实现与自动化证据见[报告](evaluations/s1-web-validation.md)，设计取舍见[S1说明](designs/s1-readonly-web-tools.md)，本轮没有真实网站/模型/飞书验收。
 
 ## V2.1b 候选与正式知识的边界
 

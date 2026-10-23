@@ -1,6 +1,6 @@
 # S1 受控只读 Tools：最小 Web 获取设计
 
-日期：2026-10-23。状态：**S1-A路线已获用户批准，按A1/A2/A3连续实施；A1已通过自动化，完整交付待后续阶段**。原设计基线fb5201c，实施基线 `fd4bc856ef26e7482c05d251e39af4773eb40707`；进展见[阶段记录](../evaluations/s1-web-validation.md)。承接[S0原生Skills设计](skills-tools-architecture.md)，保留原版 Pi 1.3.0 SDK/Loop；Skill 是方法，Tool 才是宿主 I/O 能力，二者的批准不能相互替代。正文保留原设计取舍，实施差异最终单列。
+日期：2026-10-23。状态：**S1-A1/A2/A3已连续实施；最终双平台验收见独立报告，正式未启用**。原设计基线fb5201c，实施基线 `fd4bc856ef26e7482c05d251e39af4773eb40707`；进展见[阶段记录](../evaluations/s1-web-validation.md)。承接[S0原生Skills设计](skills-tools-architecture.md)，保留原版 Pi 1.3.0 SDK/Loop；Skill 是方法，Tool 才是宿主 I/O 能力，二者的批准不能相互替代。正文保留原设计取舍，实施差异最终单列。
 
 ## 1. 推荐范围与取舍
 
@@ -44,7 +44,7 @@ sequenceDiagram
 
 ## 3. 目录与当前请求授权
 
-增加独立默认关闭的 `WEB_READ_ENABLED=false`（拟议，不是本轮配置变更）。打开开关只允许创建服务，不等于批准所有资源。资源目录由停服操作者维护：稳定 ID、目录版本/Hash、确切 HTTPS URL、来源说明、内容类型/大小、启用状态。不能从 Skill、Memory、网页、重定向、模型建议或全局 MCP 配置自动安装资源。
+已实现独立默认关闭的 `WEB_READ_ENABLED=false`。打开开关只允许创建服务，不等于批准当前请求读取所有资源。资源目录由停服操作者维护：稳定 ID、目录版本/Hash、确切 HTTPS URL、来源说明、内容类型/大小、启用状态；当前实际采用第8节的宿主代码目录。不能从 Skill、Memory、网页、重定向、模型建议或全局 MCP 配置自动安装资源。
 
 OperationGuard 新增独立的只读许可路径，复用它的当前请求、已鉴权身份、渠道、成功展示记录、5分钟 TTL、版本/Hash 和一次操作消费规则；不把 web_get 塞进 Memory 写操作，也不扩大原有 Task/Memory/Goal 权限。模型仅提议资源 ID，不能填写 owner、Run、trustedHash、预算或 permit。
 
@@ -100,9 +100,9 @@ S1-B 推荐先支持用户在 Chat 已批准并成功获取的快照，经明确
 
 未来若确实需要“每次触发实时获取”，须另行批准新的显式数据读取范围：来源目录版本、次数/字节/过期/取消版本写入 Plan/Policy/Grant，增加可恢复调用账本；若让模型主动调工具，还需新 `web_readonly` 能力及逐模型请求预算。涉及现有 text_only CHECK 时必须兼容迁移和备份，不能静默升级旧策略。当前推荐先不承担这部分复杂度，也不改写原 Goal 状态语义。
 
-## 7. 拟议文件与实施关卡
+## 7. 原设计的文件与实施关卡（实际实现见第8节）
 
-| 批次 | 最小文件/接口（均未实施） | 通过后才能推进 |
+| 批次 | 最小文件/接口（设计时拟议） | 通过后才能推进 |
 | --- | --- | --- |
 | S1-A1 宿主网络服务 | `web-read-service.ts`、`web-read-types.ts`；固定目录、`authorize/read/snapshot`，可注入 Resolver/Transport | 离线URL/DNS/TLS/容量/超时/代理旁路及取消全部通过，无Pi/收费调用 |
 | S1-A2 Chat 接入 | `web-tools.ts`公开defineTool；`pi-executor.ts`白名单/原生Loop/共享预算；`operation-guard.ts`只读许可；config/.env.example默认关闭 | 真实Pi+模拟模型+本机HTTP完成工具→下一模型上下文，越权零联网，其他工具权限不变 |
@@ -113,4 +113,29 @@ A1～A3作为一个可验收最小 Chat 产品批次，不把只有网络 helper
 
 测试至少包括：默认关闭不建服务/不解析DNS；引用/否定/假设/错误ID/跨渠道/过期无权限；原生Tool参数与嵌套调用均检查；全部IP编码/地址族与混合答案、DNS重绑定、代理、重定向、证书错误；无Content-Length/慢流/压缩/UTF-8损坏/超大；重复领取唯一、断点恢复、取消迟到；网页提示注入不能授予Task/Memory/Policy写权限。真实SQLite、原版Pi和模拟模型完成端到端；Windows和隔离Linux运行typecheck/build/test及两个eval，收费/真实账号验收独立授权。
 
-本轮没有需要用户立即决策的阻塞。推荐后续先批准固定公开Markdown资源的Chat批次，再根据体验决定快照Goal集成；是否支持任意网址、HTML、动态主动获取或其他工具需要独立范围确认。[V3.0.1自然暂停与操作收据真实失败](../evaluations/v3.0.1-live-retest.md)仍是正式主动执行启用前的门槛，不因S1设计或S0审查通过而关闭。
+S1-A已获后续明确批准并按下节实施。S1-B快照Goal集成、任意网址、HTML、动态主动获取或其他工具仍需独立范围确认。[V3.0.1自然暂停与操作收据真实失败](../evaluations/v3.0.1-live-retest.md)仍是正式主动执行启用前的门槛，不因S1工程或S0审查通过而关闭。
+
+## 8. S1-A实际实现与边界
+
+实施基线fd4bc85，原版Pi1.3.0、Node24.19，未修改依赖、SDK或Loop。A1=36dca0c，A2=a77c729；A3最终提交及实际关卡见[验证报告](../evaluations/s1-web-validation.md)。第1～7节是设计过程，下面记录最终产品接口，不把曾经拟议的S1-B当作已开发。
+
+| 模块 | 实际职责 |
+| --- | --- |
+| web-read-types.ts | 宿主DTO及两项固定资源；目录元数据Hash和正文contentHash分离 |
+| web-read-service.ts | current/list/read；DNS/IP、TLS、实际IP前置校验、单GET、总超时和容量；Resolver/Transport测试注入 |
+| web-read-store.ts | 单表许可/预留/快照/恢复；所有权、Run及permit唯一、UTC预算，校验成功展示 |
+| web-read-authorization.ts + OperationGuard | 当前原话选择、保守澄清、确认、有效展示引用、冲突清单失效；不调用新授权模型 |
+| web-tools.ts + PiExecutor | 公开defineTool/customTools、低信任ToolResult、下一原生请求、共享模型预算、Session正文额度 |
+| main.ts/SqliteStore | 总开关条件初始化，复用同一数据库/锁，在既有recoverInterrupted中保守恢复 |
+
+固定目录在宿主代码中维护，不增加安装器或任意URL清单编辑工具。两项公开Pi文档启用状态是目录批准，WEB_READ_ENABLED仍默认false；停服更新目录需通过webResource生成新Hash、复核版本并重启。旧待确认Hash失效，不热换来源。
+
+常见“读取＋唯一文档标题”及封闭用途短句可直接授权，不要求内部ID；其他复合表达先展示真实URL/范围/用途再确认，否定/引文/假设不授权。特殊确认只接受独立“确认读取/同意读取”；5分钟内核对owner/channel、目录Hash、Run输出Hash、宿主web_read_preview及delivery_succeeded，不能凭模型自述展示。Web流程清除冲突的旧写操作清单；后台Goal通知到达后也在建立新请求上下文前重新隔离，不能借“同意读取”批准Goal。
+
+最小web_read_calls在A2一起落库，避免为接Pi临时使用非持久许可；A3补足并发/强杀/取消/恢复审计。每Run和permit唯一，预留32768字节后发网；UTC每日20尝试/640KiB预留，失败不退。合法完整文本以snapshotJson保存来源/时间/Hash/大小；缓存元数据也严格验证，不联网修复。reserved在获得主进程独占锁后的原恢复流程转interrupted，终态不重试。模型或投递失败保留调用结果，不重做获取。
+
+TLS最低1.2，专用Agent显式proxyEnv={}，先完成证书/主机名和实际IP校验再把socket交给HTTP；不只是收到响应后检查。IPv4特殊网段及IPv6非允许公网范围拒绝，全部DNS答案均须合格，唯一lookup结果不回退，不跟3xx。仅200、UTF-8 plain/markdown、identity编码，头8KiB、正文32KiB、总10秒，用户信号可中断；本轮不保证真实站点可达或正式DNS环境质量。
+
+提供给模型的正文在UTF-8边界明确节选，Session累计8KiB；完整原文留在SQLite。普通聊天可在额度耗尽后继续，停服/重启不能清额，关闭开关不会抹去已持久化正文。Skills/Web共用每轮8次模型请求与64KiB实际payload上限，含辅助解析，不能叠加两份预算。后台Task/Goal不注册Web，Policy/Grant仍是text_only，未开发S1-B。
+
+证据仅为真实SQLite、原版Pi、虚构内容、本机模拟模型/DNS/HTTP/TLS。测试CA/私钥是公开虚构材料，不安装系统证书；生产无内网/localhost绕过配置。完整源代码及4份SDK文件Hash跨平台核对，默认关闭、不联网验收正式站点或收费模型。模型可能不选工具或误述收据，实际读取以账本/ToolResult为准；不能把模拟成功当真实模型或飞书体验通过。

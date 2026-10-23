@@ -2,6 +2,7 @@ import { lookup } from 'node:dns/promises';
 import { Agent, request } from 'node:https';
 import { BlockList, isIP } from 'node:net';
 import { createHash } from 'node:crypto';
+import { TLSSocket } from 'node:tls';
 import { defaultWebResources, webResource } from './web-read-types.js';
 import type { WebPermit, WebResource, WebSnapshot } from './web-read-types.js';
 import type { WebReadStore } from './web-read-store.js';
@@ -29,15 +30,36 @@ export class NodeWebTransport implements WebTransport {
     signal.throwIfAborted();
     const url = new URL(target.url), { address, family } = target.address;
     const agent = new Agent({ keepAlive: false, maxSockets: 1, maxCachedSessions: 0, proxyEnv: {} });
+    const connect = agent.createConnection.bind(agent);
+    // 通过公开异步Agent接口，TLS及实际IP通过前不把socket交给HTTP层，防止先发GET再拒绝。
+    agent.createConnection = (options, callback) => {
+      const socket = connect(options);
+      if (!(socket instanceof TLSSocket) || !callback) { socket?.destroy(); throw new Error('Web TLS连接不可验证'); }
+      let completed = false;
+      const abort = () => done(signal.reason instanceof Error ? signal.reason : new Error('Web读取中断'));
+      const done = (error?: Error) => {
+        if (completed) return; completed = true; signal.removeEventListener('abort', abort);
+        if (error) socket.destroy(); callback(error ?? null, socket);
+      };
+      socket.once('error', error => done(error));
+      socket.once('secureConnect', () => {
+        const allowed = new BlockList(); allowed.addAddress(address, family === 4 ? 'ipv4' : 'ipv6');
+        const remote = socket.remoteAddress;
+        if (!remote || !allowed.check(remote, isIP(remote) === 4 ? 'ipv4' : 'ipv6')) done(new Error('Web连接地址与已验证DNS不符'));
+        else done();
+      });
+      signal.addEventListener('abort', abort, { once: true }); if (signal.aborted) abort();
+      return undefined;
+    };
     try {
       return await new Promise<Buffer>((resolve, reject) => {
         // 固定family=4/6和唯一lookup结果，不使用自动地址族选择或DNS回退。
         const req = this.send(url, { agent, method: 'GET', signal, maxHeaderSize: 8192, family,
           servername: url.hostname, rejectUnauthorized: true,
+          minVersion: 'TLSv1.2',
           lookup: (_host, _options, callback) => callback(null, address, family),
           headers: { Accept: 'text/plain, text/markdown', 'Accept-Encoding': 'identity', 'User-Agent': 'Personal-Agent-Readonly/1' } }, res => {
           const fail = (message: string) => { res.destroy(); req.destroy(); reject(new Error(message)); };
-          if (req.socket?.remoteAddress !== address && !(family === 4 && req.socket?.remoteAddress === `::ffff:${address}`)) { fail('Web连接地址与已验证DNS不符'); return; }
           const type = res.headers['content-type'] ?? '', encoding = res.headers['content-encoding'];
           if (res.statusCode !== 200 || !/^text\/(?:plain|markdown)(?:\s*;\s*charset=utf-8)?$/iu.test(type)
             || encoding !== undefined && encoding !== 'identity') { fail('Web状态、重定向、编码或内容类型不允许'); return; }

@@ -90,6 +90,33 @@ Chat自动匹配目录并通过受限原生read按需读取正文和references�
 
 实现与故障边界见[设计](docs/designs/skills-tools-architecture.md)与[本轮验证](docs/evaluations/s0-skills-validation.md)。真实模型的自动选择/遵循质量、真实主动执行、飞书及长期运行尚未验收；V3.0.1自然暂停和收据解释原始失败继续保留。S0没有Shell、Web、Browser、MCP、Sandbox、Computer Use或外部写工具。
 
+## S1-A：Chat 受控只读 Web（默认关闭）
+
+`WEB_READ_ENABLED=false`，独立于Skills/Goal/Proactive；开启开关也不能代替当前用户读取许可。首批宿主目录仅包含Pi1.3.0的“Pi Skills 文档”和“Pi SDK 文档”，资源的固定HTTPS地址、版本、启用状态及目录Hash由代码维护，不支持模型提交URL、在线安装或热更新。目录Hash约束来源配置；抓取后的contentHash另行记录正文，不把网页内容当已批准指令。
+
+在已明确开启的新隔离进程中，可说“请读取 Pi Skills 文档，并总结加载流程”或“读取 Pi SDK 文档”。无需知道内部ID。不能确定资源或用途的表达先展示具体地址、范围与用途，成功投递后5分钟内单独回复“确认读取”或“同意读取”才会读取。否定、引用、假设和任意URL不授权；多资源须澄清，其他复合表达保守确认。只看见模型说“已读取”不算证据，应核对web_read_calls及下一模型请求的ToolResult。
+
+每个Run/许可最多一次实际GET；HTTP错误、超时、模型失败或发送失败都不自动重取。DNS全部地址须合格，固定IP和TLS校验在HTTP发送前完成；不跟重定向、不继承代理、不发送Cookie/鉴权头或用户提问，只接受UTF-8公开纯文本/Markdown。单次10秒、头部8KiB、响应32KiB，宿主UTC日20次尝试/640KiB预留，失败不退款，跨重启保留。读取与写操作不在同轮混用，切换Web界面后旧审批须重新查看。
+
+Chat的Skills/Web共用每轮8次模型HTTP上限，含辅助解析；Web正文在原生Session内累计8KiB，超额只拒绝新获取，普通聊天仍可继续。完整合法正文保存在SQLite快照，提供给模型的节选明确标注。既有正文仍保留在Session，关闭开关不会清除历史。Web不写Memory，不向Task/Goal/Policy开放工具，也不开发Goal网页快照绑定。
+
+安全的本地演示无需Key、不加载.env、不访问真实站点：
+
+```sh
+node --import tsx --test tests/web-read-service.test.ts
+node --import tsx --test tests/web-chat.test.ts tests/web-read-recovery.test.ts tests/web-process-recovery.test.ts
+```
+
+第一步验证本机TLS、模拟DNS和网络边界；第二步用真实SQLite/原版Pi/本机模拟模型及HTTP演示自然授权、展示后确认、正文进入下一请求、重启/取消/强杀恢复及预算。产物只在新临时目录；测试私钥仅用于虚构域名，不安装系统证书。正式运行依旧需要另行配置模型和批准读取，**本轮没有真实站点、收费模型、飞书或手机验收**。实现、失败记录及双平台结果见[报告](docs/evaluations/s1-web-validation.md)和[设计](docs/designs/s1-readonly-web-tools.md)。
+
+升级会在原SQLite增量创建web_read_calls，即使Web开关关闭也会创建表；正式升级前需停服备份，本轮未操作正式库。隔离库的只读核对SQL：
+
+```sql
+SELECT runId,resourceId,catalogHash,status,reservedBytes,createdAt,finishedAt,
+       json_extract(snapshotJson,'$.contentHash') AS contentHash,
+       json_extract(snapshotJson,'$.bytes') AS actualBytes FROM web_read_calls;
+```
+
 ## V2.1b 候选形成（默认关闭）
 
 正式 Formation 未开启；隔离验收仅使用临时虚构数据。审查并修复已发现的问题后如决定试用，请先备份并使用独立的 `DATABASE_PATH`、`SESSION_DIR`、`MEMORY_DIR`，再在本机配置：
@@ -502,7 +529,7 @@ Console 输入 → Task Service / AgentExecutor → Pi 交互 Session
                  Channel.sendMessage()
 ```
 
-- `contracts.ts` 定义业务接口；Pi 类型只存在于 Pi 适配层 `pi-executor.ts` 和 `task-tools.ts`。V1.2 在适配层接入原生 Session 文件，未修改 Pi SDK。
+- `contracts.ts`及各业务DTO定义宿主接口；Pi类型集中于`pi-executor.ts`及Task/Memory/Skill/Web工具适配层，业务服务不操作Pi内部对象。V1.2在适配层接入原生Session文件，未修改Pi SDK。
 - Task 状态由 SQLite 管理，Pi Session 只保存当前对话上下文。交互 Session 在进程内复用并跨重启恢复，每次后台任务使用独立内存 Session 并释放，二者不混入对话历史。
 - Scheduler 只依赖 `AgentExecutor`、存储和 `Channel.sendMessage()`；ChannelRouter 根据任务的持久化目标路由到 Console 或 FeishuChannel，飞书官方 SDK 仅封装在 FeishuSdkTransport 中。
 - 独立 FileMemoryService 管理四类长期知识与可重建索引，通过公开 Context 临时注入；Memory、Session、Task 均独立。Goal的已授权周期策略见前节；没有WebUI或复杂工作流框架。
@@ -517,7 +544,7 @@ Console 输入 → Task Service / AgentExecutor → Pi 交互 Session
 
 ## 安全与日志
 
-- 交互白名单为create_task/list_tasks/cancel_task及五项Memory工具；显式开启Formation后另加memory_review，SKILLS_ENABLED开启后另加仅批准Skill文件的受限read。后台Session/形成请求无工具，允许宿主只读检索。没有Shell、任意文件读写、浏览器或通用网络工具。
+- 交互白名单为create_task/list_tasks/cancel_task及五项Memory工具；显式开启Formation后另加memory_review，SKILLS_ENABLED开启后另加仅批准Skill文件的受限read，WEB_READ_ENABLED开启后另加固定资源web_get。后台Session/形成请求无工具，允许宿主只读检索。没有Shell、任意文件读写、浏览器或通用网络工具。
 - SDK使用内存凭据和设置；交互Session使用宿主指定私有文件。资源加载器只注册宿主内联扩展，关闭本机扩展、AGENTS、模板及MCP自动发现；Skills也不自动发现，只有SKILLS_ENABLED显式开启后加载受管批准包。不读取全局Pi配置，不保存Key到Pi认证文件。
 - 关闭 Agent 自动重试、Provider HTTP 重试、自动压缩、缓存预热和 SDK 可配置的分析功能。保留原版 Pi SDK 及 Agent Loop。
 - 服务自身仍会写 SQLite，并向指定 LLM API 和启用的飞书服务发请求。工具白名单属于应用能力边界，不是操作系统沙箱。模型会收到对话和当前任务内容。

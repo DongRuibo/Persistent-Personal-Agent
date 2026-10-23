@@ -51,7 +51,7 @@ export interface DialogueReferences {
   goalView?: GoalDisplay;
   webView?: WebView;
 }
-interface Frame { request: ExecutionRequest; references: DialogueReferences; plan?: Promise<WriteOperation | string>; used: boolean; answer?: string }
+interface Frame { request: ExecutionRequest; references: DialogueReferences; plan?: Promise<WriteOperation | string>; used: boolean; webUsed?: boolean; answer?: string }
 export type Interpret = (message: string, pending: { tool?: Tool | 'memory_review' | 'goal_manage'; count?: number; confirmation?: boolean; goalAction?: GoalAction }, request: ExecutionRequest) => Promise<unknown>;
 const normalize = (value: string) => value.normalize('NFKC').toLowerCase().replace(/\s+/gu, '');
 const segmenter = new Intl.Segmenter('zh', { granularity: 'word' });
@@ -134,13 +134,18 @@ export class OperationGuard {
 
   async withRequest<T extends { text: string }>(request: ExecutionRequest, action: () => Promise<T>, formation?: FormationService): Promise<T> {
     if (request.scope !== 'chat') return action();
-    if (this.web && this.state.webView && !confirmsWebRequest(request.prompt)) { delete this.state.webView; this.saveState(this.state); }
+    if (this.web && this.state.webView) {
+      // 后台Goal通知可能在Web等待确认时到达；先清理冲突视图，再建立本轮授权上下文。
+      this.clearWebConflicts();
+      if (!confirmsWebRequest(request.prompt)) delete this.state.webView;
+      this.saveState(this.state);
+    }
     const frame: Frame = { request, references: structuredClone(this.state), used: false };
     return this.context.run(frame, async () => {
       try {
         const result = await action();
         // 主模型可能只口头答应拒绝；仅对当前原话中的有界拒绝补执行，仍走原显示/序号/版本校验。
-        if (!frame.plan && formation?.options.enabled && frame.references.candidateReview && candidateRejection(request.prompt)) await this.reviewCandidates(formation);
+        if (!frame.plan && !frame.webUsed && formation?.options.enabled && frame.references.candidateReview && candidateRejection(request.prompt)) await this.reviewCandidates(formation);
         return frame.answer ? { ...result, text: frame.answer } : result;
       } finally {
         if (!frame.plan && (this.state.choices || this.state.confirmation || this.state.candidateReview)) { delete this.state.choices; delete this.state.confirmation; delete this.state.candidateReview; this.saveState(this.state); }
@@ -154,15 +159,23 @@ export class OperationGuard {
     return frame;
   }
 
+  private clearWebConflicts(): void {
+    // Web界面不与旧写操作的清单/确认并存，避免一句“确认”跨操作借权。
+    delete this.state.goalView; delete this.state.candidateReview; delete this.state.choices; delete this.state.confirmation;
+  }
+
   async readWeb(resourceId: string, remainingBytes: number, signal?: AbortSignal) {
     const frame = this.frame(), web = this.web;
     if (!web || frame.used || frame.plan) throw new Error('本轮没有可用的独立Web读取许可');
-    frame.used = true;
+    frame.used = true; frame.webUsed = true;
+    this.clearWebConflicts(); delete this.state.webView; this.saveState(this.state);
     const request = frame.request, target = this.tasks.currentTarget();
     const actor = { owner: web.owner, channel: JSON.stringify(target) }, now = this.tasks.now();
     const reject = (message: string) => { delete this.state.webView; this.saveState(this.state); frame.answer = message; return { message }; };
     if (!request.source || request.source.channel !== target.channel || rejectsWebRequest(request.prompt)) return reject('本轮没有明确Web读取授权；未联网。');
-    const resource = web.service.current(resourceId), selection = webRequestSelection(request.prompt, web.service.list());
+    let resource;
+    try { resource = web.service.current(resourceId); } catch { return reject('Web资源未批准、已禁用或目录变化；未联网。'); }
+    const selection = webRequestSelection(request.prompt, web.service.list());
     if (!confirmsWebRequest(request.prompt) && !selection.ids.length && !/文档|资料|网页|查阅|documentation|web/iu.test(request.prompt)) return reject('当前未提出读取公开资料的需求；未联网。');
     if (selection.ids.length > 1 || selection.ids.length === 1 && selection.ids[0] !== resourceId) return reject('资源不唯一或模型提议与当前原话不符；请明确一份文档，未联网。');
     let permitId = webHash(['direct', request.source.reference, actor, resource.hash]);

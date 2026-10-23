@@ -12,6 +12,7 @@ export function webTool(guard: OperationGuard, usage: WebUsage, save: () => void
       try {
         if (Object.keys(args).length !== 1 || typeof args.resourceId !== 'string') throw new Error('Web参数不允许URL或额外字段');
         const result = await guard.readWeb(args.resourceId, 8192 - usage.bytes, signal);
+        signal?.throwIfAborted();
         if ('message' in result) return { content: [{ type: 'text', text: result.message }], details: {} };
         const raw = Buffer.from(result.text), remaining = 8192 - usage.bytes;
         // 只在完整UTF-8边界截取，并明确标记；完整原文/Hash仍在SQLite快照中。

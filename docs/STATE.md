@@ -5,10 +5,10 @@
 ## 当前阶段与进行中事项
 
 - 本轮已核对本地及GitHub main基线fd4bc856ef26e7482c05d251e39af4773eb40707。S0及特殊包权限修复已由用户确认通过ChatGPT代码审查；当前按授权连续实施S1-A1/A2/A3，不开发S1-B或扩大Goal/Policy。
-- S1-A1/A2已通过阶段质量关：固定资源与网络边界、原版Pi Chat工具、当前原话许可/成功展示确认、零工具后台、共用8次模型额度、Session正文额度。为确保A2不会先联网后补权限，最小web_read_calls预留事务已同步接入；A3并发、故障/恢复及最终双平台关卡尚未完成，见[阶段记录](evaluations/s1-web-validation.md)。
-- 工作在独立工作树 `C:/Users/Dongr/.codex/worktrees/v3-proactive/Persistent Personal Agent`，分支feature/s1-readonly-web；允许本地阶段提交，不推送。原E盘保留分支local/preserve-workspace-20261023及8份已有文件（含HANDOFF），不覆盖或混入变更。
+- S1-A1/A2/A3工程及隔离自动化已连续完成：固定资源/安全网络、原版Pi Chat工具、当前原话与成功展示确认、单次持久许可/预算/快照、取消/强杀恢复、共用模型额度及Session正文额度。仅增量web_read_calls一表，不扩大Task/Memory/Goal/Policy权限，见[完整报告](evaluations/s1-web-validation.md)及[机器摘要](evaluations/s1-web-validation.json)。
+- 工作在独立工作树 `C:/Users/Dongr/.codex/worktrees/v3-proactive/Persistent Personal Agent`，分支feature/s1-readonly-web；本地A1=36dca0c、A2=a77c729，A3见本分支最终Git记录，未推送。原E盘保留分支local/preserve-workspace-20261023及8份已有文件（含HANDOFF）Hash未变，不覆盖或混入提交。
 - V3.0.1自然语言暂停与主模型操作收据误解两项真实失败列为**正式主动执行启用前必解项**，须独立修复并真实复验；[原始报告](evaluations/v3.0.1-live-retest.md)不改，不因V3工程收尾或Skills设计而标记通过。
-- A1/A2 Windows Node24.19.0分别332项329通过、357项354通过，均0失败/3原平台跳过；两阶段五关均0，最新Web专项55/55。已保留原始类型错误、复合句漏识别与用途后缀“只是演示”误放行的本机失败及修复日志；Linux完整回归留最终阶段。证据根目录E:/AgentWork/validation/personal-agent-s1-web-20261023-180629；Formation输出用新路径，不覆盖旧报告。
+- 最终两平台均Node24.19.0，typecheck/build/npm test/两个eval全部退出0；Windows387项384通过/0失败/3原平台跳过，Linux387全过/0跳过，Web专项85/85。137份项目/SDK文件Hash一致，检查后再次复核。首轮385项及新增竞争反例的失败/修复日志均保留；证据根目录E:/AgentWork/validation/personal-agent-s1-web-20261023-180629。Linux新容器全程network=none、无宿主挂载，同lockfile依赖仅从既有停止测试容器复制，未新安装；容器已停。Formation输出新路径，历史报告不改。
 - WEB_READ_ENABLED、SKILLS_ENABLED、GOAL_ENABLED、PROACTIVE_ENABLED默认false，Formation不启用。本轮收费API、正式网站/真实账号、飞书/手机、正式.env/数据/历史验收库操作均0。[S0 Console体验方案](evaluations/s0-console-live-experience-plan.md)仍未获收费执行授权，不沿用旧预算。
 
 ## 已完成功能
@@ -36,11 +36,11 @@
 
 | 日期 | 修改及位置 |
 | --- | --- |
+| 2026-10-23 | S1-A1/A2/A3连续完成：阶段Windows329/332→354/357，最终Windows384/387、断网Linux387/387；Web85/85，五关均0。固定来源、可信许可、单表恢复；原始权限/确认竞争及网络时机失败保留，默认关闭、未推送 |
 | 2026-10-23 | S0特殊包明确调用定点修复：先红后绿、专项53/53、Windows299/302且3原平台跳过；五关均0。新增Console16次/2元待授权方案、S1只读Web设计；用户随后授权提交推送，仅补发布交接状态，未收费，原真实失败保留 |
 | 2026-10-23 | S0-A/B/C完成并逐阶段过关；最终Node24.19 Windows267通过/3原跳过、断网Linux270全过，两边五关均0；118源码Hash一致。用户随后授权合并推送main，发布仅补STATE；默认未启用，原始失败及阶段证据保留 |
 | 2026-10-23 | V3主要工程按用户确认收尾；[原生Skills设计](designs/skills-tools-architecture.md)及[SDK隔离验证9项通过](evaluations/pi-native-skills-spike.md)，无产品功能启用；V3.0.1两项真实失败仍为主动启用门槛 |
 | 2026-10-23 | 后台门修复7d02dd9：基线6项失败→18项专项通过，Windows246/249、Linux249全过，两边五检查均0；用户后授权合并推送main，发布只补STATE，未真实启用；[独立报告](evaluations/v3-background-lane-review.md) |
-| 2026-10-23 | V3.3=c9aa2b2，用户随后授权合并推送main=5c07ec7；每触发1～5段、限额/控制、最小通知Outbox；[原验证](evaluations/v3-proactive-validation.md)保留 |
 
 ## 验证记录与证据边界
 
@@ -436,6 +436,8 @@ V1 原有自动化证据：39项测试使用模拟模型/飞书服务和虚拟�
 
 ## 已知问题与限制
 
+- S1-A仅Chat固定公开文本，常见标题/短句可直接读取，其他复合表达先确认；无搜索/HTML/账号/任意URL或S1-B。Session/SQLite保留正文和记录，暂无自动清理；只读GET也可能被服务端记录，不保证外部恰好一次。真实模型选工具/遵循与收据质量、真实站点/飞书/手机、Windows ACL、原生Mac和长跑未验，按[报告](evaluations/s1-web-validation.md)边界交付，不能因模拟绿灯启用正式能力。
+
 - V3.0电脑真实模型核心闭环已验证，V3.0.1仍有自然暂停及主模型收据解释失败；手机Goal、原生Mac/Windows ACL和长期运行未验。V3.1–V3.3仅本地模拟通过，策略审批当前仅Console命令；模型可能误判完成/反馈需要。目标原义不变，换目标需新建；超预算目标/计划/摘要阻塞，长成果显式节选，完整成果留在SQLite。view暂无历史分页，uncertain需人工核对。策略Goal已有定时/观察/有界推进和最小Outbox，仍无exactly-once或必达保证。
 
 - V2.1b.3针对已知三项有离线红绿证据和Pi模拟回归，新真实模型/手机复测尚未执行。拒绝补执行是有界短句路径，不覆盖所有自然语言；否定恢复只接受能在原文逐字证明的一次遗漏，复杂歧义仍保守拒绝/澄清。正式Formation保持关闭。
@@ -469,10 +471,10 @@ V1 原有自动化证据：39项测试使用模拟模型/飞书服务和虚拟�
 
 ## 下一步与需要提供的信息
 
-1. 将本轮[权限修复](evaluations/s0-invocation-fix.md)、[Console体验方案](evaluations/s0-console-live-experience-plan.md)和[S1只读Web建议](designs/s1-readonly-web-tools.md)交付审查；原S0-A/B/C审查已通过，不重新开发Skills框架。用户已另行授权本轮提交推送，但未授权执行收费体验或实施S1。
-2. 如批准Console体验，先落实独立scope的新入口与16次/2元账本、容量/重启离线门槛并核实费率，再联网；不复用旧验收入口或余额。真实飞书留重要里程碑，手机/正式主动执行仍未验收。
-3. S1建议下一批先实现Chat固定公开文本资源+当前请求只读许可+最小持久审计，再考虑手动Goal的批准快照。任意URL、HTML、动态主动读取等另行决定；本轮没有新增Web默认开关或迁移。
-4. 正式主动执行启用前，仍须独立解决V3.0.1自然暂停与收据误解并真实复验。Skills/Goal/Proactive及Formation保持关闭；原生Mac、Windows ACL未验，不用模拟成功或新增Skill提示词替代真实验证。
+1. 将S1-A分支代码、[设计](designs/s1-readonly-web-tools.md)、[完整报告](evaluations/s1-web-validation.md)及[JSON证据](evaluations/s1-web-validation.json)交给ChatGPT审查。按本次授权只创建本地阶段提交，推送须另行批准；不继续扩展S1-B或工具生态。
+2. 本地无Key演示见README，运行tests/web-*.test.ts，仅临时库和本机模拟服务。真实模型/站点体验须另行明确场景、独立费用与网络范围；旧[S0 Console16次/2元方案](evaluations/s0-console-live-experience-plan.md)仍未执行授权，不复用旧账本或余额。
+3. S1-B Goal网页快照绑定、主动动态Web、HTML/搜索/任意地址及其他工具均未开发。真实飞书留重要里程碑；本轮不部署或启用正式功能。
+4. 正式主动执行启用前，仍须独立解决V3.0.1自然暂停与收据误解并真实复验。Web/Skills/Goal/Proactive及Formation保持关闭；不以本轮模拟成功替代真实质量、原生Mac或Windows ACL验收。
 
 ## V2.0.2 关键文件（主体及本轮修复）
 

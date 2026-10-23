@@ -16,12 +16,21 @@ export class WebReadStore {
     CREATE INDEX IF NOT EXISTS web_read_daily ON web_read_calls(createdAt);`);
   }
   private snapshot(json: string): WebSnapshot {
-    const value = JSON.parse(json) as WebSnapshot, bytes = Buffer.from(value.text, 'utf8');
+    if (Buffer.byteLength(json) > 262144) throw new Error('Web冻结元数据容量损坏');
+    const value = JSON.parse(json) as WebSnapshot;
+    const fields = ['resourceId', 'url', 'version', 'catalogHash', 'fetchedAt', 'contentHash', 'bytes', 'text'];
+    if (!value || typeof value !== 'object' || Object.keys(value).length !== fields.length || Object.keys(value).some(key => !fields.includes(key))
+      || typeof value.text !== 'string' || typeof value.resourceId !== 'string' || !/^[a-z][a-z0-9-]{0,63}$/u.test(value.resourceId)
+      || typeof value.url !== 'string' || value.url.length > 2048 || typeof value.version !== 'string' || !value.version || value.version.length > 64
+      || !/^[a-f0-9]{64}$/u.test(value.catalogHash) || !/^[a-f0-9]{64}$/u.test(value.contentHash)
+      || !Number.isFinite(Date.parse(value.fetchedAt)) || !Number.isSafeInteger(value.bytes)) throw new Error('Web冻结元数据损坏');
+    const bytes = Buffer.from(value.text, 'utf8');
     if (!bytes.length || bytes.length > 32768 || bytes.length !== value.bytes
       || createHash('sha256').update(bytes).digest('hex') !== value.contentHash) throw new Error('Web快照Hash或容量损坏');
     return value;
   }
   reserve(permit: WebPermit, now: string): { id: string; snapshot?: WebSnapshot } {
+    if (!Number.isFinite(Date.parse(now)) || new Date(now).toISOString() !== now) throw new Error('Web宿主时间无效');
     return this.transaction(() => {
       if (!permit.owner || permit.owner.length > 200 || !permit.channel || permit.channel.length > 1000
         || !permit.id || permit.id.length > 200 || !/^[a-f0-9]{64}$/u.test(permit.catalogHash)
@@ -46,6 +55,7 @@ export class WebReadStore {
     });
   }
   finish(id: string, snapshot: WebSnapshot, now: string): void {
+    if (!Number.isFinite(Date.parse(now)) || new Date(now).toISOString() !== now) throw new Error('Web宿主时间无效');
     const accepted = this.transaction(() => {
       const row = this.db.prepare("SELECT w.*,r.status AS runStatus FROM web_read_calls w JOIN runs r ON r.id=w.runId WHERE w.id=?").get(id);
       if (!row || row.status !== 'reserved') return false;
@@ -72,7 +82,7 @@ export class WebReadStore {
     this.db.prepare("UPDATE web_read_calls SET status='interrupted',finishedAt=?,error='process_interrupted_no_retry' WHERE status='reserved'").run(now);
   }
   displayed(view: WebView, actor: WebActor, now: number): boolean {
-    if (view.owner !== actor.owner || view.channel !== actor.channel || view.expires <= now || view.expires > now + 300000) return false;
+    if (!Number.isFinite(now) || !Number.isSafeInteger(view.expires) || view.owner !== actor.owner || view.channel !== actor.channel || view.expires <= now || view.expires > now + 300000) return false;
     const run = this.db.prepare("SELECT output FROM runs WHERE id=? AND status='succeeded' AND deliveryError IS NULL").get(view.displayRunId);
     return !!run && webHash(run.output) === view.displayHash
       && !!this.db.prepare("SELECT 1 FROM run_events WHERE runId=? AND type='web_read_preview' AND details=?").get(view.displayRunId, webHash(view))

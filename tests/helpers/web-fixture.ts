@@ -2,7 +2,7 @@ import { mkdtempSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { createServer, request } from 'node:http';
-import { once } from 'node:events';
+import { EventEmitter, once } from 'node:events';
 import { readConfig } from '../../src/config.js';
 import { SqliteStore } from '../../src/sqlite-store.js';
 import { TaskService } from '../../src/task-service.js';
@@ -17,8 +17,9 @@ import type { Payload } from './skills-fixture.js';
 
 export async function webFixture(handle: (payload: Payload, count: number) => string | Promise<string>, options: { enabled?: boolean; skills?: boolean; body?: string; hold?: Promise<void> } = {}) {
   const root = mkdtempSync(join(tmpdir(), 'web-e2e-')); const payloads: Payload[] = [], errors: unknown[] = [], fetched: string[] = [];
+  const events = new EventEmitter();
   let dns = 0, requests = 0, now = Date.now();
-  const http = createServer(async (req, res) => { requests++; fetched.push(req.url!); await options.hold;
+  const http = createServer(async (req, res) => { requests++; fetched.push(req.url!); events.emit('get'); await options.hold;
     res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' }); res.end(options.body ?? 'MOCK_WEB_BODY：这是虚构文档，整理原生加载流程。'); });
   http.listen(0, '127.0.0.1'); await once(http, 'listening'); const httpAddress = http.address(); if (!httpAddress || typeof httpAddress === 'string') throw new Error('本机HTTP端口不可用');
   const model = createServer(async (req, res) => {
@@ -32,7 +33,7 @@ export async function webFixture(handle: (payload: Payload, count: number) => st
     LLM_API_KEY: 'fake-web', LLM_MODEL: 'local-stub', LLM_BASE_URL: `http://127.0.0.1:${modelAddress.port}/v1` });
   if (options.skills) installSkill(config.skillsDir!);
   let store: SqliteStore, tasks: TaskService, memory: FileMemoryService, goals: GoalService, executor: Awaited<ReturnType<typeof createPiExecutor>>;
-  const service = new WebReadService(defaultWebResources, async () => { dns++; return [{ address: '8.8.8.8', family: 4 }]; }, {
+  let service = new WebReadService(defaultWebResources, async () => { dns++; return [{ address: '8.8.8.8', family: 4 }]; }, {
     get: async (target, signal) => {
       const id = defaultWebResources.find(item => item.url === target.url)?.id; if (!id || target.address.address !== '8.8.8.8') throw new Error('测试Transport收到非批准目标');
       return new Promise<Buffer>((resolve, reject) => {
@@ -48,7 +49,7 @@ export async function webFixture(handle: (payload: Payload, count: number) => st
     executor = await createPiExecutor(config, tasks, 'console', memory, undefined, undefined, goals, { service, store: store.web });
   }
   await boot();
-  return { root, config, service, payloads, errors, fetched, get store() { return store; }, get executor() { return executor; }, get tasks() { return tasks; }, get memory() { return memory; }, get goals() { return goals; },
+  return { root, config, service, payloads, errors, fetched, events, httpUrl: `http://127.0.0.1:${httpAddress.port}`, get store() { return store; }, get executor() { return executor; }, get tasks() { return tasks; }, get memory() { return memory; }, get goals() { return goals; },
     get dns() { return dns; }, get requests() { return requests; }, advance(ms: number) { now += ms; },
     async chat(prompt = '请读取 Pi Skills 文档，并总结加载流程', delivered = true, target: MessageTarget = { channel: 'console' }) {
       const run = store.beginRun(null, new Date(now).toISOString());
@@ -59,7 +60,7 @@ export async function webFixture(handle: (payload: Payload, count: number) => st
         return { ...result, run };
       } catch (error) { store.finishRun(run.id, 'failed', new Date(now).toISOString(), undefined, String(error)); throw error; }
     },
-    async restart() { await executor.close(); memory.close(); store.close(); await boot(); },
+    async restart(nextService?: WebReadService) { await executor.close(); memory.close(); store.close(); if (nextService) service = nextService; await boot(); },
     async close() { await executor.close(); memory.close(); store.close(); http.closeAllConnections(); model.closeAllConnections(); await Promise.all([
       new Promise<void>(done => http.close(() => done())), new Promise<void>(done => model.close(() => done())),
     ]); },
