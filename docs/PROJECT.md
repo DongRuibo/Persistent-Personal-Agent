@@ -164,6 +164,8 @@ V3.0 采用“持久Goal + 多次短生命周期text_only Pi片段”，已在�
 
 后台Goal与旧Task共用进程内执行门：旧到期Task优先，Goal在无前台排队时领取；已运行片段不抢占，慢Goal可能延迟新到期提醒。每段新建无工具内存Pi Session，Memory只读且不改写查询；投影14 KiB + Memory至多2 KiB，输出至多4096 Token。完整目标/反馈/计划/摘要超限阻塞，长成果明确标记摘录并保留数据库原文，不保证任意长历史都能放入模型。
 
+V3.0.1增加有界原话数量校验：明确正式Step边界约束整个计划（含已完成Step），在草稿与审批事务核对；安排数量和单Step内部动作不直接等同于正式Step数，口径不明时完整展示并需明确确认。数量错误不裁剪、不补收费请求，保留旧Checkpoint；多重/二选一自然指代只澄清。规则不是通用语义证明，新提示/自然暂停/取消仍需单独真实复验；[独立报告](evaluations/v3.0.1-closeout.md)不改旧Batch5结论。
+
 Checkpoint位于committed Execution，与Run/Step/Goal同事务提交；异常先重读，无法核对则停止新领取并停服，不请求模型补交。运行中pause/cancel先持久化、再abort；恢复以cancel、pause、普通中断阻塞的优先级落点。通知无Outbox，不保证送达；查询可重展示，不重跑成果。失败仅在明确重新生成文本时新建尝试；uncertain无强制重试入口。
 
 计划增补或完整替换仅形成待批准草稿；已完成步骤和旧成果保留。运行中调整先暂停，停止后恢复审批；不原地改变目标原文，换目标新建Goal。Task/Run一次性唯一约束、Memory写入授权及Session隔离保留；Goal控制聊天和执行不进入Formation。原版Pi源码、node_modules、权限框架和依赖均未修改。完整[设计](designs/v3-persistent-goals.md)、[自动化证据](evaluations/v3-mvp-validation.md)和[待授权真实验收](evaluations/v3-live-acceptance-plan.md)明确区分机制通过与真实语义未验收。

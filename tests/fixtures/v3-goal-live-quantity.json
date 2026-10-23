@@ -1,0 +1,58 @@
+{
+  "createMessage": "帮我逐步制定青杉学习计划，只使用虚构安排。计划一项：阅读一段TypeScript入门说明；每次推进一段，先给出待批准计划，保持简短。",
+  "result": {
+    "stepOutcome": "complete",
+    "artifactText": "青杉学习计划（虚构安排，草案）\n\n计划范围：仅一项——阅读一段 TypeScript 入门说明。\n推进方式：每次只推进一段，下一步开始前先提交待批准计划。\n\n初步安排（均为虚构设定）：\n1. 选定一段虚构的 TypeScript 入门说明（例如“变量与基本类型”一节），确认长度适合一次读完。\n2. 阅读该段说明，标出 3 个关键要点（虚构示例：类型注解、类型推断、字符串与数字类型）。\n3. 用两三句话复述该段内容，形成简短阅读记录。\n\n说明：本段未使用任何真实课程、教材或外部资料，仅为虚构安排框架。",
+    "progressSummary": "已按初始化要求给出初步计划草案，聚焦单一计划项“阅读一段 TypeScript 入门说明”，并明确每段推进前需先批准。计划已提交，等待用户决定是否采用该草案及首段虚构阅读主题。",
+    "question": "是否批准这份初步计划？若批准，请确认第一段虚构阅读主题（如“变量与基本类型”或你偏好的其他入门小节）。",
+    "proposedPlan": {
+      "changeReason": "目标明确且已限定为单一虚构计划项，可给出简短可执行的分段计划。",
+      "steps": [
+        {
+          "title": "确认计划与首段主题",
+          "instruction": "提交上述初步计划供用户批准，并请用户确认第一段的虚构 TypeScript 入门主题。",
+          "deliverable": "经用户确认的计划与首段主题",
+          "doneWhen": "用户明确批准计划并选定首段主题"
+        },
+        {
+          "title": "阅读首段 TypeScript 入门说明",
+          "instruction": "按批准的主题，以虚构内容呈现一段简短入门说明，供用户阅读。",
+          "deliverable": "一段虚构的 TypeScript 入门说明文本",
+          "doneWhen": "说明已呈现，等待用户阅读反馈"
+        },
+        {
+          "title": "提炼要点并形成阅读记录",
+          "instruction": "基于已读段落，提炼 3 个关键要点并用简短语句复述，形成阅读记录。",
+          "deliverable": "简短阅读记录（要点与复述）",
+          "doneWhen": "阅读记录已提交，等待用户确认或调整"
+        }
+      ]
+    }
+  },
+  "pauseMessage": "暂停那个学习计划",
+  "pauseIntent": {
+    "action": "goal_manage",
+    "mode": "request",
+    "evidence": "暂停那个学习计划",
+    "goalAction": "pause",
+    "selector": {
+      "keywords": [
+        "学习计划"
+      ],
+      "reference": "last"
+    }
+  },
+  "originalState": {
+    "status": "waiting_user",
+    "revision": 2,
+    "planRevision": 0,
+    "currentStepId": null,
+    "executions": 1,
+    "draftSteps": 3
+  },
+  "provenance": {
+    "response45Sha256": "2c8812883cec3e08cbc3863a04e0a8b3bc0ca85e7c86258f51c36bcba2638641",
+    "response47Sha256": "36497b5c1c5ba63ee8e1430949b4f770209c9e0e8d9a49ea7d013d022c2a25bb",
+    "snapshot45Sha256": "7ed43e956da7b46904ddeb4341e16142ef89c861fced12679163b67b6f9bfb3c"
+  }
+}

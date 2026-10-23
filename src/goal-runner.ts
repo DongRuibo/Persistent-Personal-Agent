@@ -6,6 +6,7 @@ import type { AgentExecutor, Channel, MessageTarget } from './contracts.js';
 import type { Goal, GoalActor, GoalExecution, GoalResult, GoalView } from './goal-types.js';
 import { SqliteStore } from './sqlite-store.js';
 import { BackgroundLane } from './background-lane.js';
+import { GoalPlanQuantityError, planQuantityQuestion } from './goal-plan-quantity.js';
 
 const bounded = (maxLength: number) => Type.String({ minLength: 1, maxLength });
 export const goalResultSchema = Type.Object({
@@ -58,8 +59,11 @@ export function renderGoal(view: GoalView): string {
   if (checkpoint) lines.push(`已提交成果（${checkpoint.executionRunId}）：\n${checkpoint.artifactText}`, `进度：${checkpoint.progressSummary}`, `等待：${checkpoint.question}`);
   if (goal.pendingAction) lines.push(`待批准计划 v${goal.pendingAction.revision}（理由：${goal.pendingAction.changeReason}）：`,
     ...goal.pendingAction.spec.steps.map((step, i) => `${i + 1}. ${step.title}\n说明：${step.instruction}\n产物：${step.deliverable}\n验收：${step.doneWhen}`),
+    ...[planQuantityQuestion(goal.objective, goal.pendingAction.spec.steps.length)].filter((text): text is string => !!text),
     '请明确批准计划；如需执行，同时说“批准并继续一段”。调整计划请给出完整步骤及产物、验收条件。');
   if (goal.blockedReason) lines.push(`阻塞：${goal.blockedReason}；核实原因后可明确要求重新生成纯文本片段。`);
+  const lastError = view.executions.at(-1)?.run.error;
+  if (lastError?.startsWith('计划数量约束不符：')) lines.push(lastError);
   if (!goal.currentStepId && !goal.pendingAction && goal.status === 'waiting_user') lines.push('计划产物已交付，请确认目标是否达成；模型不会自行完成目标。');
   if (view.executions.some(item => item.run.deliveryError)) lines.push('有历史通知投递失败；以上为数据库已提交成果，查询不会重新执行。');
   return lines.join('\n');
@@ -146,7 +150,8 @@ export class GoalRunner {
           const current = this.store.goals.executionForHost(run.id);
           this.store.goals.view(actor, goal.id);
           const technical = this.store.getRun(run.id);
-          if (current.status === 'running' && technical?.status === 'running') this.store.goals.finishFailure(run.id, 'failed', 'checkpoint_commit_failed', this.clock().toISOString());
+          if (current.status === 'running' && technical?.status === 'running') this.store.goals.finishFailure(run.id, 'failed',
+            error instanceof GoalPlanQuantityError ? error.message : 'checkpoint_commit_failed', this.clock().toISOString());
           else if (current.status !== 'committed' || technical?.status !== 'succeeded') throw error;
         } catch (readError) { this.halt(readError); return; }
       }

@@ -1,4 +1,5 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
+import { GoalPlanQuantityError, validateQuantityApproval } from './goal-plan-quantity.js';
 import { createHash } from 'node:crypto';
 import { Type } from 'typebox';
 import type { Static } from 'typebox';
@@ -212,6 +213,11 @@ export class OperationGuard {
     const selector = intent.selector ?? { keywords: [] };
     if (selector.when || selector.keywords.some(term => !request.prompt.includes(term))) throw new Error('目标筛选条件必须来自当前原话；Goal没有时间筛选');
     let reference = referenceFromMessage(request.prompt);
+    const pointing = [...activeText.matchAll(/那个|这个/gu)];
+    if (pointing.length && (pointing.length > 1 || /还是|或者|另一个|其他|别的|它们|这两个|那两个/u.test(activeText)
+      || /暂停|先停|停一下/u.test(activeText) && /取消|终止|放弃/u.test(activeText))) {
+      frame.answer = '指代存在歧义，请明确一个目标或重新查看并选择编号；本轮未操作。'; return { status: 'clarification' };
+    }
     // “那个计划”只指向宿主刚完整展示的唯一Goal；不能仅凭模型last标签选择数据库记录。
     const demonstrative = reference === undefined && /(?:那个|这个)(?:学习计划|长期目标|长期任务|目标|计划)/u.test(activeText);
     if (demonstrative) {
@@ -253,6 +259,13 @@ export class OperationGuard {
     if (action === 'approve_plan' || action === 'complete') {
       if (!display?.details || !display.items.some(item => item.id === goal.id)) return show([goal], action, '请先核对下面当前内容，再明确确认。\n');
       goals.validateDisplay(display, true);
+      if (action === 'approve_plan' && goal.pendingAction) {
+        try { validateQuantityApproval(goal.objective, goal.pendingAction.spec.steps.length, request.prompt); }
+        catch (error) {
+          if (!(error instanceof GoalPlanQuantityError)) throw error;
+          return show([goal], action, `${error.message}\n本轮未批准或执行。\n`);
+        }
+      }
       if (action === 'approve_plan' && !shortConfirm && !/批准|同意|按.{0,12}计划/u.test(activeText)) throw new Error('继续不能代替计划批准');
       options.executeNext = !shortConfirm && /继续|执行.{0,3}(?:一段|一步|下一)/u.test(activeText);
       if (intent.executeNext && !options.executeNext) throw new Error('模型不能扩大为批准并执行');

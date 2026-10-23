@@ -1,6 +1,7 @@
 import { createHash, randomUUID } from 'node:crypto';
 import type { DatabaseSync } from 'node:sqlite';
 import type { Run, RunStatus } from './contracts.js';
+import { validatePlanQuantity, validateQuantityApproval } from './goal-plan-quantity.js';
 import type {
   Goal, GoalActor, GoalCheckpoint, GoalCommand, GoalControlReceipt, GoalExecution,
   GoalExecutionInput, GoalPlan, GoalPlanDraft, GoalPlanSpec, GoalResult, GoalStep, GoalView,
@@ -251,6 +252,7 @@ export class GoalStore {
 
   private draft(goal: Goal, runId: string, proposed: NonNullable<GoalResult['proposedPlan']>): GoalPlanDraft {
     if (!Array.isArray(proposed.steps) || proposed.steps.length < 1 || proposed.steps.length > 12) throw new Error('计划步骤必须为1至12项');
+    validatePlanQuantity(goal.objective, proposed.steps.length);
     const current = this.plan(goal).spec.steps;
     const spec: GoalPlanSpec = { objectiveHash: hash(goal.objective), steps: proposed.steps.map(item => {
       const definition = { stepId: item.stepId ?? randomUUID(), title: this.text(item.title, 512),
@@ -320,6 +322,7 @@ export class GoalStore {
       if (goal.status !== 'waiting_user' || !draft || draft.hash !== draftHash || draft.baseRevision !== goal.planRevision) throw new Error('计划草稿或审批状态已变化');
       const { hash: draftFingerprint, ...body } = draft;
       if (hash(body) !== draftFingerprint) throw new Error('计划草稿 Hash 不一致');
+      validateQuantityApproval(goal.objective, draft.spec.steps.length, command.text);
       const current = this.plan(goal).spec.steps;
       let incomplete = false;
       for (const step of draft.spec.steps) {

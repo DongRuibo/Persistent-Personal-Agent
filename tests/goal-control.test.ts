@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
+import { readFileSync } from 'node:fs';
 import { SqliteStore } from '../src/sqlite-store.js';
 import { TaskService } from '../src/task-service.js';
 import { OperationGuard } from '../src/operation-guard.js';
@@ -147,6 +148,90 @@ test('真实暂停47回放：那个绑定唯一有效完整视图，具名与指
       expectedRevision: secondBefore.revision, text: '暂停' }, second.id, 'pause', start);
     await assert.rejects(f.execute('暂停那个学习计划', raw), /版本/);
   } finally { f.close(); }
+});
+
+test('真实45/47原样回放：一项安排的三Step草稿需明确拆解确认，自然暂停不改Checkpoint', async () => {
+  const raw = JSON.parse(readFileSync(new URL('./fixtures/v3-goal-live-quantity.json', import.meta.url), 'utf8'));
+  const f = fixture();
+  try {
+    await f.execute(raw.createMessage, { goalAction: 'create' });
+    const goal = f.goals.list()[0]!;
+    const claimed = f.store.goals.claim(f.goals.actor(), goal.id, goal.revision, start)!;
+    f.store.goals.commit(claimed.run.id, raw.result, start);
+    const before = f.goals.get(goal.id), view = f.goals.plan(goal.id);
+    assert.deepEqual({ status: before.status, revision: before.revision, planRevision: before.planRevision,
+      currentStepId: before.currentStepId, executions: view.executions.length, draftSteps: before.pendingAction!.spec.steps.length }, raw.originalState);
+    const shown = await f.view('青杉');
+    assert.match(shown.text, /数量口径待确认/);
+    const confirmation = await f.execute('确认', { goalAction: 'approve_plan' });
+    assert.match(confirmation.text, /数量口径待确认/);
+    assert.deepEqual(f.goals.get(goal.id), before);
+    await f.execute(raw.pauseMessage, raw.pauseIntent);
+    assert.equal(f.goals.get(goal.id).status, 'paused');
+    assert.equal(f.goals.get(goal.id).checkpointRunId, before.checkpointRunId);
+    assert.deepEqual(f.goals.plan(goal.id).executions, view.executions);
+    await f.execute('继续青杉学习计划', { goalAction: 'continue', selector: { keywords: ['青杉'] } });
+    await f.view('青杉');
+    await f.execute('批准青杉计划，允许将一项安排拆成三步', { goalAction: 'approve_plan', selector: { keywords: ['青杉'] } });
+    assert.equal(f.goals.get(goal.id).planRevision, 1);
+    assert.equal(f.goals.get(goal.id).readyInput, null);
+    assert.equal(f.goals.get(goal.id).checkpointRunId, before.checkpointRunId);
+  } finally { f.close(); }
+});
+
+test('自然指代含多个指向或二选一时仅澄清，不扩大暂停和取消', async () => {
+  const f = fixture();
+  try {
+    const goal = f.bootstrap(await f.create('白杉学习计划'));
+    for (const action of ['pause', 'cancel']) for (const text of ['那个学习计划还是这个学习计划', '那个学习计划和另一个计划',
+      '那个白杉学习计划还是那个云杉学习计划', `那个学习计划并${action === 'pause' ? '取消' : '暂停'}它`]) {
+      await f.view('白杉');
+      const before = f.goals.get(goal.id);
+      assert.match((await f.execute(`${action === 'pause' ? '暂停' : '取消'}${text}`, {
+        goalAction: action, selector: { keywords: ['学习计划'], reference: 'last' } })).text, /指代.*歧义/);
+      assert.deepEqual(f.goals.get(goal.id), before);
+    }
+  } finally { f.close(); }
+});
+
+test('真实45状态与47意图的离线边界矩阵：旧/未投递/过期/跨渠道/多目标/错指代均不变更', async () => {
+  const raw = JSON.parse(readFileSync(new URL('./fixtures/v3-goal-live-quantity.json', import.meta.url), 'utf8'));
+  const cases: { name: string; prepare(f: ReturnType<typeof fixture>): Promise<unknown>; expected: RegExp;
+    prompt?: string; intent?: Record<string, unknown>; target?: MessageTarget }[] = [
+    { name: '无视图', prepare: async f => { delete f.state.goalView; }, expected: /唯一/ },
+    { name: '过期', prepare: async f => { await f.view('青杉'); f.advance(); }, expected: /过期/ },
+    { name: '未投递', prepare: f => f.execute('查看青杉学习计划', { goalAction: 'view', mode: 'query', selector: { keywords: ['青杉'] } }, false), expected: /投递/ },
+    { name: '版本变化', prepare: async f => { await f.view('青杉'); const g = f.goals.list()[0]!;
+      f.store.goals.control({ actor: f.goals.actor(), sourceRunId: f.store.beginRun(null, start).id, expectedRevision: g.revision, text: '暂停' }, g.id, 'pause', start); }, expected: /版本/ },
+    { name: '多目标', prepare: async f => { await f.create('云杉学习计划'); await f.view('学习计划'); }, expected: /唯一/ },
+    { name: '具名交集为空', prepare: async f => { await f.create('云杉学习计划'); await f.view('云杉'); }, expected: /未找到目标/,
+      prompt: '暂停刚才的青杉学习计划', intent: { goalAction: 'pause', selector: { keywords: ['青杉'], reference: 'last' } } },
+    { name: '错误latest', prepare: f => f.view('青杉'), expected: /引用与原话不一致/,
+      intent: { goalAction: 'pause', selector: { keywords: ['学习计划'], reference: 'latest' } } },
+    { name: '引用不授权', prepare: f => f.view('青杉'), expected: /引用与原话不一致/, prompt: '暂停“那个学习计划”' },
+    { name: '暂停不能变取消', prepare: f => f.view('青杉'), expected: /操作依据/,
+      intent: { ...raw.pauseIntent, goalAction: 'cancel' } },
+    { name: '跨渠道', prepare: f => f.view('青杉'), expected: /无权/,
+      target: { channel: 'feishu', appId: 'fake-app', chatId: 'fake-chat', userOpenId: 'fake-user' } },
+    { name: '多个指向', prepare: f => f.view('青杉'), expected: /指代.*歧义/, prompt: '暂停那个学习计划和这个计划' },
+  ];
+  for (const item of cases) {
+    const f = fixture();
+    try {
+      await f.execute(raw.createMessage, { goalAction: 'create' }); const g = f.goals.list()[0]!;
+      const claimed = f.store.goals.claim(f.goals.actor(), g.id, g.revision, start)!;
+      f.store.goals.commit(claimed.run.id, raw.result, start);
+      assert.equal(f.goals.get(g.id).revision, raw.originalState.revision);
+      await item.prepare(f);
+      const before = f.goals.list().map(goal => f.goals.plan(goal.id));
+      let text: string;
+      try { text = (await f.execute(item.prompt ?? raw.pauseMessage,
+        item.intent ?? { ...raw.pauseIntent, evidence: item.prompt ?? raw.pauseMessage }, true, item.target)).text; }
+      catch (error) { text = String(error); }
+      assert.match(text, item.expected, item.name);
+      assert.deepEqual(f.goals.list().map(goal => f.goals.plan(goal.id)), before, item.name);
+    } finally { f.close(); }
+  }
 });
 
 test('计划必须成功显示并绑定Hash/版本；短确认只批准，不被模型扩大为执行；继续不能跳过审批', async () => {

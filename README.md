@@ -14,6 +14,8 @@ V2.1b.3 按授权定点修复上述三个问题：有成功显示的候选时，
 
 ## V3.0：可手动继续的长期目标（默认关闭，电脑核心验收通过）
 
+V3.0.1只做Batch5定点收尾：明确的正式计划步数会在草稿/审批时核对；“一项安排”拆成多个正式Step时保留完整草稿并要求确认口径，不静默裁剪。多重或二选一指代只澄清。详见[离线修复报告](docs/evaluations/v3.0.1-closeout.md)；[最小真实复验](docs/evaluations/v3.0.1-live-retest-plan.md)预计14次、拟上限16次/2元，尚未授权或执行。
+
 `GOAL_ENABLED` 默认 `false`，只接受显式 `true`/`false`。关闭时不注册Goal工具/提示、不启动Runner，不领取已有ready目标；数据不删除，启动时仍做原有保守崩溃恢复。仅在独立的 `DATABASE_PATH`、`SESSION_DIR`、`MEMORY_DIR` 测试进程中设 `GOAL_ENABLED=true`；专用Batch5启动器会自动开启，正式.env无需修改。该开关与Formation相互独立。
 
 Batch 1–4 已接通 Goal/Plan/Step/Execution、独立 GoalRunner、受控自然语言入口与自动化生命周期。每次明确创建或继续最多执行一个纯文本片段，Checkpoint 与 Run、步骤、目标状态同一 SQLite 事务提交，随后等待用户。旧 Task 仍是一次性提醒；Goal 不使用 Memory 或聊天历史保存进度。没有新增依赖。Batch5按用户调整在电脑Console完成真实模型核心闭环，实际48请求、保守预留2.337244元后停服。完整清单未全通过：学习计划粒度有偏差，暂停指代仅离线修复、未收费复验；飞书/手机本轮未复测。结果与失败见[当前报告](docs/evaluations/v3-batch5-acceptance.md)。正式用户服务及数据不在本次操作范围。

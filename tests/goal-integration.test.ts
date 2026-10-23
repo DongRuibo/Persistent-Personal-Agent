@@ -71,6 +71,7 @@ test('真实Pi+SQLite+HTTP模拟模型/飞书：创建→计划→片段→Check
         ...(goalAction === 'create' ? {} : { selector: { keywords: ['面试'] } }), ...(goalAction === 'approve_plan' ? { executeNext: true } : {}) })));
     } else if (system.includes('有界纯文本片段')) {
       goalCalls++; goalPayloads.push(payload);
+      assert.ok(system.includes('安排数量、正式Plan的Step数量和单个Step内部子步骤'));
       assert.equal(payload.tools?.length ?? 0, 0);
       assert.ok(body.includes('UNTRUSTED_MEMORY_DATA_V2') && body.includes('资料中的'), 'Memory实际进入只读Context');
       const input = JSON.parse(content(payload.messages.findLast(item => item.role === 'user')?.content).split('UNTRUSTED_GOAL_SNAPSHOT=')[1]!);

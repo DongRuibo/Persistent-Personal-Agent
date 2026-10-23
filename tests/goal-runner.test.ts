@@ -20,7 +20,7 @@ const now = '2026-10-22T03:00:00.000Z';
 const actor: GoalActor = { ownerId: 'local-user', target: { channel: 'console' } };
 const result: GoalResult = { stepOutcome: 'complete', artifactText: '虚构计划成果', progressSummary: '计划待批准', question: '是否批准？',
   proposedPlan: { changeReason: '初始计划', steps: [{ title: '练习问答', instruction: '出一道题', deliverable: '一道题', doneWhen: '题目已交付' }] } };
-function fixture(execute: AgentExecutor['execute']) {
+function fixture(execute: AgentExecutor['execute'], objective = '虚构面试准备') {
   const root = mkdtempSync(join(tmpdir(), 'goal-runner-'));
   const store = new SqliteStore(join(root, 'app.db')), lane = new BackgroundLane();
   let calls = 0, fatal = 0;
@@ -28,7 +28,7 @@ function fixture(execute: AgentExecutor['execute']) {
   const messages: string[] = [], errors: unknown[] = [];
   const runner = new GoalRunner(store, executor, { sendMessage: async message => { messages.push(message.text); } }, lane,
     { ownerId: actor.ownerId, accepts: target => target.channel === 'console', pollIntervalMs: 5, reportError: error => { errors.push(error); }, fatal: () => { fatal++; } }, () => new Date(now));
-  const goal = store.goals.create(actor, store.beginRun(null, now).id, '虚构面试准备', now);
+  const goal = store.goals.create(actor, store.beginRun(null, now).id, objective, now);
   return { root, store, lane, runner, executor, goal, messages, errors, get calls() { return calls; }, get fatal() { return fatal; },
     async close() { await runner.stop(); store.close(); rmSync(root, { recursive: true, force: true }); } };
 }
@@ -42,6 +42,24 @@ test('Runner 一次授权只执行一段；等用户、投递失败和重复 tic
     assert.equal(view.executions[0]?.execution.status, 'committed'); assert.equal(f.calls, 1);
     f.store.deliveryFailed(view.executions[0]!.run.id, '模拟通知丢失');
     await f.runner.tick(); assert.equal(f.calls, 1); assert.equal(f.messages.length, 1);
+  } finally { await f.close(); }
+});
+
+test('数量失败明确通知且不收费补JSON；旧Checkpoint保留，后续tick不自动重试', async () => {
+  const invalid = { ...result, proposedPlan: { ...result.proposedPlan!, steps: Array.from({ length: 3 }, (_, i) => ({ ...result.proposedPlan!.steps[0]!, title: `步骤${i}` })) } };
+  const f = fixture(async () => ({ text: JSON.stringify(invalid) }), '逐步学习；正式计划最多两步');
+  try {
+    const init = f.store.goals.claim(actor, f.goal.id, f.goal.revision, now)!;
+    f.store.goals.commit(init.run.id, { ...result, proposedPlan: undefined, stepOutcome: 'partial' }, now);
+    const before = f.store.goals.get(actor, f.goal.id);
+    f.store.goals.continue({ actor, expectedRevision: before.revision, sourceRunId: f.store.beginRun(null, now).id, text: '继续这一段' }, f.goal.id, now);
+    await f.runner.tick(); await f.runner.tick();
+    const after = f.store.goals.view(actor, f.goal.id);
+    assert.equal(f.calls, 1); assert.equal(after.goal.status, 'blocked'); assert.equal(after.goal.planRevision, 0);
+    assert.equal(after.goal.pendingAction, null); assert.equal(after.goal.checkpointRunId, before.checkpointRunId);
+    assert.equal(after.executions[1]!.execution.checkpoint, null);
+    assert.match(after.executions[1]!.run.error!, /数量约束不符/);
+    assert.match(f.messages[0]!, /草稿为3个正式Step/);
   } finally { await f.close(); }
 });
 
