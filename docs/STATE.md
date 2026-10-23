@@ -4,12 +4,12 @@
 
 ## 当前阶段与进行中事项
 
-- V3.0.1仅收尾计划数量与暂停指代，开发基线为 `3353ddbcc41fffa999871c506ee69d74e304e933`，已本地提交 `ade995b277948e2c3cf41c9af8a777f556eed2cb`。用户随后另行明确授权，将该提交及本次发布状态说明推送GitHub main；代码与上轮验证一致，本次仅更新发布状态。保持GOAL_ENABLED默认false、原四表/Task/Memory/Pi架构与权限边界，不开发V3.1等能力。
-- 明确正式Step数量在草稿/审批事务校验，含已完成Step；数量错误不裁剪、不提交半个Checkpoint、不补模型重试。安排数量不强转Step，多Step口径未明确则保留草稿并要求明确拆解确认；一个任务/一道题/内部子步骤不作为整个Plan总步数。规则仅覆盖限定语法，不能证明全部产物语义。
-- 原45/47响应及waiting_user/revision2/Planv0/三Step草稿状态在新库离线重建；自然暂停通过，旧/过期/未投递/跨渠道/多目标/错指代均不获权限。新增发现并修复多重指向、二选一或同时暂停取消按唯一视图误操作的问题；未改历史Goal状态或旧Batch5结论。
-- 最终Node24.19.0、Pi1.3.0：Windows207项204通过/0失败/3原有平台跳过，断网Linux207通过/0失败/0跳过；两平台typecheck/build、两个eval均退出0。完整范围与失败前后见[独立修复报告](evaluations/v3.0.1-closeout.md)/[机器证据](evaluations/v3.0.1-validation.json)。
-- 本轮新增收费请求/Token/费用0，无飞书操作；正式.env、HANDOFF.md、旧报告/原始SSE/账本/历史SQLite文件前后Hash相同。上一轮48/48请求及2.337244元预留是历史，真实学习Goal仍waiting_user，不能以离线暂停覆盖真实失败。原始证据在 `E:/AgentWork/acceptance/v3-goals-20261023`，新日志在 `E:/AgentWork/validation/personal-agent-v3.0.1-20261023`。
-- 下一步仅审查[最小真实复验方案](evaluations/v3.0.1-live-retest-plan.md)：预计14次模型HTTP请求，拟硬限16次/2元，含计划数量、自然暂停、取消与目标选择；尚未批准或执行。现旧启动器仍48/5，另行批准后必须先落实更低预算闸再联网；未获得新授权不能续用旧账本或操作飞书。
+- V3.0.1代码ade995b及发布状态ae2a820已在main。用户随后单独授权[小规模Console复验](evaluations/v3.0.1-live-retest-plan.md)，本轮基线本地/远端均ae2a820，仅新增独立入口、限额测试及文档，未改Goal/Guard/Pi业务实现。本轮未提交或推送，GOAL_ENABLED仍默认false。
+- 联网前通过Windows/断网Linux的6项限额测试：固定16次/2元/32768字节/4096输出Token，跨进程账本、费用、并发锁、容量、篡改和失败不退额均验证；只放行配置模型POST端点，无飞书连接。用户追加允许仅只读.env四个LLM模型字段，私有启动器白名单抽取并直接注入，不解析数据路径/飞书字段、不显示或落盘凭据；正式数据及历史验收目录/数据库未打开。
+- 实际14/16请求，均HTTP200，预留0.605440/2元后正常停服，未使用剩余2次。可观察未缓存输入12281/缓存读取15744/输出1248 Token，14条cost均null，预留不是账单。新根目录 `E:/AgentWork/acceptance/v3.0.1-retest-20261023`，独立v301-console-budget.json，无旧48次账本读写、自动重试或话术改写。
+- A与C分别输出1步待批草稿，数量局部通过；B“暂停那个学习计划”的关键词学习计划与银杏阅读计划不匹配，宿主未命中，A仍waiting_user/revision2；D正确只取消枫叶Goal→cancelled/revision3，A与两个Checkpoint/Execution不变。冻结链路含A应paused的预期未满足；主模型收尾还误读工具收据，虽被宿主最终呈现覆盖，**本轮未全通过，暂不能完整阶段收尾**。
+- 真实库仅2次committed初始化、两个Plan仍v0，未批准或执行正式v1计划；Task0、Memory Markdown0、候选0，外键/完整性/Goal只读审计均正常。原始SSE、冻结方案、Session、A/B/C/D及停服快照和db/WAL/SHM副本留在新根目录；锁均释放。证据与分层判断见[真实报告](evaluations/v3.0.1-live-retest.md)/[JSON](evaluations/v3.0.1-live-retest.json)。
+- 最终Windows213项210通过/0失败/3原有平台跳过，断网Linux213通过/0失败/0跳过；两平台typecheck/build、两个eval均退出0，97份代码/测试/脚本/配置Hash一致且与真实调用前相同。新日志在 `E:/AgentWork/validation/personal-agent-v301-retest-20261023`。下一步先离线审查B的泛称筛选及模型收据误解，不再收费补测、操作手机或推进V3.1。
 
 ## 已完成功能
 
@@ -35,13 +35,18 @@
 
 | 日期 | 修改及位置 |
 | --- | --- |
+| 2026-10-23 | V3.0.1真实复验：专用16/2/32KiB Console入口及6项预算测试先过；14请求/0.605440元预留后停服，数量与取消局部正确，暂停及主模型收尾仍有问题，213项/两平台检查通过；[报告](evaluations/v3.0.1-live-retest.md)暂不判收尾 |
 | 2026-10-23 | V3.0.1：正式Step数量事务校验、安排拆解确认、原45/47及多指代回归；207项与两平台检查通过；[独立报告](evaluations/v3.0.1-closeout.md)和[14次预计复验方案](evaluations/v3.0.1-live-retest-plan.md)，新增收费0；已提交ade995b，用户随后授权发布main |
 | 2026-10-23 | GOAL_ENABLED默认关闭；电脑核心闭环经真实模型通过，48请求/2.337244元预留后停服；计划粒度及暂停失败保留，暂停仅离线修复，最终198项及两平台检查通过；[报告](evaluations/v3-batch5-acceptance.md)不记全项通过；用户随后授权提交推送main |
 | 2026-10-22 | V3.0 Batch 2–4：GoalRunner/Pi、共享后台互斥、Service/Guard自然语言控制与完整集成；Windows188/191通过、3平台跳过，Linux191全过；两个eval均通过。[证据](evaluations/v3-mvp-validation.md)及[待批准手机方案](evaluations/v3-live-acceptance-plan.md)已准备，无收费/正式数据操作；用户后续授权提交推送main供审查 |
 | 2026-10-22 | V2.1b.4真实手机核心链路通过：24请求/保守预留0.977334元，H02真实错误恢复、批准及空Session命中，已停服；139项136通过/3平台跳过 |
-| 2026-10-22 | 手机误写后保存意图定点修复；同类真实提议被拦截，46/48请求后停服，保留失败现场 |
 
 ## 验证记录与证据边界
+
+### V3.0.1本地真实模型复验（2026-10-23，未全通过）
+
+- 按冻结A→B→C→D原话执行14请求，未增查/改名/重新生成。A/C数量通过，B未暂停，D取消目标正确但冻结预期中A应paused未满足；原始模型收尾还有错误推断，宿主最终呈现与SQLite一致。全过程只用新数据，未访问正式或历史验收目录/数据库；仅按追加授权受控读取四个LLM配置字段。
+- 固定16/2/32KiB入口与6项离线闸验证后才联网；最终Windows213项210通过/3平台跳过，断网Linux213全过，两平台typecheck/build和两个eval均0。真实业务失败不被自动化绿灯覆盖，实际0.605440元是保守预留，账单未知。模型用量、SQLite断言及Hash见[JSON](evaluations/v3.0.1-live-retest.json)。本轮已停止，不自动花完剩余2次，不推送或启用日常Goal。
 
 ### V3.0.1离线定点收尾（2026-10-23，未真实复验）
 

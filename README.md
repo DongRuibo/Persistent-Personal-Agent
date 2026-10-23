@@ -14,7 +14,7 @@ V2.1b.3 按授权定点修复上述三个问题：有成功显示的候选时，
 
 ## V3.0：可手动继续的长期目标（默认关闭，电脑核心验收通过）
 
-V3.0.1只做Batch5定点收尾：明确的正式计划步数会在草稿/审批时核对；“一项安排”拆成多个正式Step时保留完整草稿并要求确认口径，不静默裁剪。多重或二选一指代只澄清。详见[离线修复报告](docs/evaluations/v3.0.1-closeout.md)；[最小真实复验](docs/evaluations/v3.0.1-live-retest-plan.md)预计14次、拟上限16次/2元，尚未授权或执行。
+V3.0.1只做Batch5定点收尾：明确的正式计划步数会在草稿/审批时核对；“一项安排”拆成多个正式Step时保留完整草稿并要求确认口径，不静默裁剪。多重或二选一指代只澄清。详见[离线修复报告](docs/evaluations/v3.0.1-closeout.md)。用户随后批准[最小真实复验方案](docs/evaluations/v3.0.1-live-retest-plan.md)，专用Console入口落实16次/2元及32KiB限制后，实际14次/0.605440元预留即停服；数量和取消局部通过，自然暂停失败，暂不能完整收尾，见[真实复验报告](docs/evaluations/v3.0.1-live-retest.md)。本轮已结束，旧48/5入口不适用，不自动使用剩余额度。
 
 `GOAL_ENABLED` 默认 `false`，只接受显式 `true`/`false`。关闭时不注册Goal工具/提示、不启动Runner，不领取已有ready目标；数据不删除，启动时仍做原有保守崩溃恢复。仅在独立的 `DATABASE_PATH`、`SESSION_DIR`、`MEMORY_DIR` 测试进程中设 `GOAL_ENABLED=true`；专用Batch5启动器会自动开启，正式.env无需修改。该开关与Formation相互独立。
 
