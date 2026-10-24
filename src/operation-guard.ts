@@ -1,4 +1,5 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
+import { renderGoal, renderGoalState } from './goal-runner.js';
 import { GoalPlanQuantityError, validateQuantityApproval } from './goal-plan-quantity.js';
 import { createHash } from 'node:crypto';
 import { Type } from 'typebox';
@@ -249,13 +250,15 @@ export class OperationGuard {
     const priorReceipt = goals.receipt(request);
     const show = (records: Goal[], action?: GoalAction, prefix = '') => {
       if (!request.source) throw new Error('Goal显示需要可信来源Run');
-      const text = records.length === 1 ? goals.render(records[0]!.id) : records.length
+      const views = records.map(goal => goals.plan(goal.id));
+      records = views.map(view => view.goal);
+      const text = records.length === 1 ? renderGoal(views[0]!) : records.length
         ? records.map((goal, index) => `${index + 1}. ${goal.objective}；${goal.status}；版本${goal.revision}`).join('\n') : '当前没有匹配的长期目标。';
       this.state.goalView = { items: records.map(goal => ({ id: goal.id, revision: goal.revision, draftHash: goal.pendingAction?.hash })),
         expires: this.tasks.now().getTime() + ttl, displayRunId: request.source.reference, action, details: records.length === 1 };
       delete this.state.choices; delete this.state.confirmation; delete this.state.candidateReview;
       this.saveState(this.state); frame.answer = prefix + text;
-      frame.contextResult = prefix + (records.length ? records.map(goal => `目标：${goal.objective}；状态：${goal.status}；版本：${goal.revision}；计划：v${goal.planRevision}；控制请求：${goal.controlRequested ?? '无'}；待批准：${!!goal.pendingAction}；计划状态：${goal.planRevision === 0 ? '初始化占位' : '正式已批准'}；Checkpoint：${goal.checkpointRunId ? '已提交' : '无'}；阻塞原因：${goal.blockedReason ?? '无'}`).join('\n') : '本轮筛选交集为空，不代表数据库没有Goal；未提交控制。');
+      frame.contextResult = prefix + (views.length ? views.map(renderGoalState).join('\n') : '本轮筛选交集为空，不代表数据库没有Goal；未提交控制。');
       return { status: 'displayed', count: records.length, result: frame.contextResult,
         goals: records.map(goal => ({ id: goal.id, status: goal.status, revision: goal.revision, planRevision: goal.planRevision, controlRequested: goal.controlRequested })) };
     };

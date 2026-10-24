@@ -88,6 +88,8 @@ Chat自动匹配目录并通过受限原生read按需读取正文和references�
 
 升级/停用：停服后修改受管包或清单。更新必须重新运行宿主批准命令并重启，旧Goal不能自动换到新Hash，须改选并重批Plan。`approved.json` 中 `enabled:false` 表示禁用；已有绑定无法使用时Goal阻塞，不创建新Execution。历史Chat正文、Run和Session不删除，历史内容不授予当前工具权限。无运行中热安装/启用接口。
 
+仓库中的agent-notes现为1.0.1，明确可整理本轮经宿主授权工具取得的正文，仍不授予网络或文件权限。已有受管1.0.0及批准记录不会自动更新；选择升级时按上述流程重新审阅批准，旧Plan绑定不得静默替换。收据归属、异步结果及描述调整的离线证据见[定点修复报告](docs/evaluations/a2-b1-offline-fix.md)；真实模型自动选择和收据理解仍待复验。
+
 实现与故障边界见[设计](docs/designs/skills-tools-architecture.md)与[本轮验证](docs/evaluations/s0-skills-validation.md)。真实模型的自动选择/遵循质量、真实主动执行、飞书及长期运行尚未验收；V3.0.1自然暂停和收据解释原始失败继续保留。S0没有Shell、Web、Browser、MCP、Sandbox、Computer Use或外部写工具。
 
 ## S1-A：Chat 受控只读 Web（默认关闭）

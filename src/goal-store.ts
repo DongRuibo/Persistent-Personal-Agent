@@ -162,8 +162,13 @@ export class GoalStore {
       const rows = this.db.prepare('SELECT * FROM goal_executions WHERE goalId=? ORDER BY sequence').all(id);
       return { goal, plan: this.plan(goal), checkpoint: this.checkpoint(goal),
         steps: this.db.prepare('SELECT * FROM goal_steps WHERE goalId=? ORDER BY rowid').all(id) as unknown as GoalStep[],
-        executions: rows.map(row => ({ execution: this.execution(row),
-          run: this.db.prepare('SELECT * FROM runs WHERE id=?').get(String(row.runId)) as unknown as Run })) };
+        executions: rows.map(row => {
+          const run = this.db.prepare('SELECT * FROM runs WHERE id=?').get(String(row.runId)) as unknown as Run;
+          // 只读既有投递证据；没有错误不等于发送成功，也不触发补投或重新执行。
+          const sent = this.db.prepare("SELECT 1 FROM run_events WHERE runId=? AND type='delivery_succeeded' LIMIT 1").get(run.id);
+          const delivery = sent ? 'succeeded' : run.deliveryError ? 'failed' : 'unconfirmed';
+          return { execution: this.execution(row), run, delivery };
+        }) };
     });
   }
 

@@ -63,13 +63,31 @@ export function goalProjection(execution: GoalExecution, view: GoalView): { prom
     memoryQuery: `${input.objective}\n${input.step.title}\n${input.step.instruction}` };
 }
 
-export function renderGoal(view: GoalView): string {
+// ToolResult、Session收据及完整展示共用同一次只读快照；不把旧提交当成本次执行结果。
+export function renderGoalState(view: GoalView): string {
   const { goal, plan, checkpoint } = view;
   const status = goal.controlRequested ? `正在${goal.controlRequested === 'cancel' ? '取消' : '暂停'}，等待执行停止` : goal.status;
-  const lines = [`目标：${goal.objective}`, `状态：${status}；版本：${goal.revision}；计划：v${goal.planRevision}`,
-    `计划状态：${goal.planRevision === 0 ? '初始化占位，尚无已批准正式计划' : '正式计划已批准'}；待批准草稿：${goal.pendingAction ? '已持久化' : '无'}；Checkpoint：${checkpoint ? '已提交' : '无'}。模型口头建议不是保存或批准凭据。`,
-    ...plan.spec.steps.map((step, i) => `${i + 1}. ${step.title}；${view.steps.find(item => item.id === step.stepId)?.status}`)];
-  if (checkpoint) lines.push(`已提交成果（${checkpoint.executionRunId}）：\n${checkpoint.artifactText}`, `进度：${checkpoint.progressSummary}`, `等待：${checkpoint.question}`);
+  const lines = [`目标：${goal.objective}`, `Goal=${goal.id}；状态：${status}；版本：${goal.revision}；计划：v${goal.planRevision}；批准Run=${plan.approvedByRunId ?? '无'}`,
+    `计划状态：${goal.planRevision === 0 ? '初始化占位，尚无已批准正式计划' : '正式计划已批准'}；待批准草稿：${goal.pendingAction ? '已持久化' : '无'}；${checkpoint ? 'Checkpoint归属见下文' : 'Checkpoint：无'}；控制请求：${goal.controlRequested ?? '无'}；阻塞原因：${goal.blockedReason ?? '无'}。`,
+    `这是读取时的当时快照（Goal更新于${goal.updatedAt}），后续状态需重新查看。批准、排队、执行、提交和投递互不等同；模型口头建议不是保存或批准凭据。`];
+  const current = view.steps.find(step => step.id === goal.currentStepId);
+  const attempt = view.executions.findLast(item => item.execution.planRevision === goal.planRevision && item.execution.stepId === goal.currentStepId);
+  lines.push(`当前Step：${goal.currentStepId ?? '无待执行Step'}（Plan v${goal.planRevision}；步骤状态=${current?.status ?? '无'}）${goal.readyInput ? '；已排队，等待领取一个片段，本次排队不代表新成果已提交' : ''}。`);
+  if (attempt) lines.push(`当前Step执行：${attempt.execution.status}（Plan v${attempt.execution.planRevision}；Step=${attempt.execution.stepId}；Run=${attempt.run.id}；Run状态=${attempt.run.status}；提交：${attempt.execution.checkpoint ? 'committed' : '未提交'}；投递：${attempt.delivery ?? 'unconfirmed'}）。`);
+  else lines.push(`当前Step执行：${goal.currentStepId ? '未领取' : '无待执行Step'}；不得据此生成或宣称新的正式题目、点评已交付。`);
+  if (checkpoint) {
+    const committed = view.executions.find(item => item.execution.runId === checkpoint.executionRunId);
+    const sameStep = checkpoint.planRevision === goal.planRevision && checkpoint.stepId === goal.currentStepId;
+    lines.push(`${sameStep ? '当前Step最近Checkpoint' : '历史Checkpoint'}：已提交（Plan v${checkpoint.planRevision}；Step=${checkpoint.stepId}；Run=${checkpoint.executionRunId}；结果=${checkpoint.stepOutcome}；投递：${committed?.delivery ?? 'unconfirmed'}）。${checkpoint.planRevision === 0 ? '这是bootstrap初始化成果，不是正式Step交付。' : sameStep ? '只证明该Run的成果，不能代表后续排队或运行中的片段完成。' : '不代表当前待执行Step完成。'}`);
+  }
+  lines.push('正式题目和点评只能引用已提交Execution的成果；主Chat不得代替后台执行器编造或预告产物。投递unconfirmed表示无成功证据，不能推断未发送或必定送达。');
+  return lines.join('\n');
+}
+
+export function renderGoal(view: GoalView): string {
+  const { goal, plan, checkpoint } = view;
+  const lines = [renderGoalState(view), ...plan.spec.steps.map((step, i) => `${i + 1}. ${step.title}；${view.steps.find(item => item.id === step.stepId)?.status}`)];
+  if (checkpoint) lines.push(`已提交成果（Plan v${checkpoint.planRevision}；Step=${checkpoint.stepId}；Run=${checkpoint.executionRunId}，仅属此Run）：\n${checkpoint.artifactText}`, `该成果进度：${checkpoint.progressSummary}`, `该成果后续问题（可能为历史）：${checkpoint.question}`);
   if (goal.pendingAction) lines.push(`待批准计划 v${goal.pendingAction.revision}（理由：${goal.pendingAction.changeReason}）：`,
     ...goal.pendingAction.spec.steps.map((step, i) => `${i + 1}. ${step.title}\n说明：${step.instruction}\n产物：${step.deliverable}\n验收：${step.doneWhen}`),
     ...[planQuantityQuestion(goal.objective, goal.pendingAction.spec.steps.length)].filter((text): text is string => !!text),

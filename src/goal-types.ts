@@ -80,5 +80,5 @@ export interface GoalControlReceipt {
 }
 export interface GoalView {
   goal: Goal; plan: GoalPlan; steps: GoalStep[]; checkpoint: GoalCheckpoint | null;
-  executions: { execution: GoalExecution; run: Run }[];
+  executions: { execution: GoalExecution; run: Run; delivery?: 'succeeded' | 'failed' | 'unconfirmed' }[];
 }
