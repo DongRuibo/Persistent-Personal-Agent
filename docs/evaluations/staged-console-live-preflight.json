@@ -1,0 +1,258 @@
+{
+  "status": "blocked_preflight_no_live_start",
+  "dateAsiaShanghai": "2026-10-24",
+  "fixedCommit": "7e96d4e869a7efee9a4a3e33cb2e97ec128f142c",
+  "branch": "codex/staged-console-prep",
+  "worktree": "C:\\Users\\Dongr\\.codex\\worktrees\\staged-console-prep\\Persistent Personal Agent",
+  "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+  "intendedEndpoint": "https://api.siliconflow.cn/v1/chat/completions",
+  "endpointInLocalEnvironmentConfirmed": false,
+  "userAuthorized": {
+    "modelHttp": 46,
+    "reservedMicroCny": 8000000,
+    "stages": {
+      "A": {
+        "modelHttp": 28,
+        "microCny": 4620000
+      },
+      "B": {
+        "modelHttp": 4,
+        "microCny": 660000
+      },
+      "C": {
+        "modelHttp": 14,
+        "microCny": 2320000
+      }
+    },
+    "fixedDocumentGet": 1
+  },
+  "blockers": [
+    "LLM_API_KEY/LLM_MODEL/LLM_BASE_URL/LLM_PROVIDER absent in Process, User and Machine environments; frozen plan prohibits automatic production .env reading",
+    "Account-specific current rate and extra fees not confirmed; account model page redirects to login"
+  ],
+  "officialPricing": {
+    "checkedDateAsiaShanghai": "2026-10-24",
+    "source": "https://www.siliconflow.cn/pricing",
+    "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "unit": "CNY per million tokens",
+    "nonValleyHoursAsiaShanghai": "00:00-02:00 and 08:00-24:00",
+    "nonValley": {
+      "input": 2,
+      "output": 8,
+      "cacheRead": 0.04
+    },
+    "valleyHoursAsiaShanghai": "02:00-08:00",
+    "valley": {
+      "input": 1,
+      "output": 4,
+      "cacheRead": 0.02
+    },
+    "proposedReservationInput": 2,
+    "proposedReservationOutput": 8,
+    "accountSpecificConfirmed": false,
+    "extraFeesConfirmed": false,
+    "officialModelIdUnchanged": true,
+    "releaseNoteSource": "https://api-docs.siliconflow.cn/docs/release-notes/overview",
+    "servedVersionAccordingToOfficialReleaseNote": "1017 since 2026-10-21; model ID unchanged",
+    "failedPreliminaryRetrievals": [
+      "siliconflow.cn/pricing without www: timeout",
+      "in-app browser pricing tab: timeout"
+    ],
+    "billingOrModelRequestSent": false
+  },
+  "preflight": {
+    "sourceFilesMatched": 146,
+    "sourceManifestSha256": "e0f8642bcbc0edab5939b6d9c1f2868a3a892e0c3417716201599fd47a6c7fcf",
+    "frozenFiles": [
+      {
+        "path": "docs/evaluations/staged-console-live-plan.md",
+        "sha256": "5001128432f01bcaca04a261782c2586dda21693b2fe8e6663b8dbed89cbb627"
+      },
+      {
+        "path": "scripts/staged-console-acceptance.ts",
+        "sha256": "a9a0c61180b09710cf52635c21d67d295eb07a5533f3844dc2ddffadbdc9431d"
+      },
+      {
+        "path": "scripts/staged-console-cases.ts",
+        "sha256": "d4702cc08a0c1e1a390833812b6b272906e85713aca9cd6dff62036d0b3cc6bd"
+      },
+      {
+        "path": "tests/staged-console-acceptance.test.ts",
+        "sha256": "f50f5e4a297c5471b72dc09e479ad73d3f0ac7a12c59bb58e2a8d3a560396815"
+      },
+      {
+        "path": "tests/staged-console-flow.test.ts",
+        "sha256": "9e37f27416f67a123d652c03a10bd08a64a181c60c4fa511695cad642e45ba14"
+      }
+    ],
+    "node": "v24.19.0",
+    "piSdk": "1.3.0",
+    "offlineTests": 7,
+    "offlinePass": 7,
+    "offlineFail": 0,
+    "offlineSkipped": 0,
+    "offlineLog": "E:\\AgentWork\\validation\\personal-agent-staged-live-20261024\\preflight-offline.log",
+    "offlineLogSha256": "61cf07c235ddb9475805326273407b89f986110d7f1f2c1487a546f11b38d04d",
+    "offlineFixtureModelHttp": 36,
+    "offlineFixtureWebGets": 1,
+    "realActivityExcludedFromOfflineFixtures": true
+  },
+  "actualLiveActivity": {
+    "modelHttp": 0,
+    "reservedMicroCny": 0,
+    "webReservations": 0,
+    "fixedDocumentGet": 0,
+    "realAcceptanceProcessStarted": false,
+    "acceptanceRootCreated": false,
+    "budgetLedgerCreated": false,
+    "productionEnvRead": false,
+    "keyReadOrDisplayed": false,
+    "productionAccountLogin": false,
+    "feishu": false,
+    "mainPushedOrMerged": false
+  },
+  "cases": [
+    {
+      "id": "A1",
+      "status": "not_executed",
+      "reason": "shared preflight requirements not satisfied",
+      "modelHttp": 0,
+      "reservedMicroCny": 0,
+      "hostOperation": null,
+      "sqliteSessionCheckpoint": null,
+      "modelSemanticVerdict": null
+    },
+    {
+      "id": "A2",
+      "status": "not_executed",
+      "reason": "shared preflight requirements not satisfied",
+      "modelHttp": 0,
+      "reservedMicroCny": 0,
+      "hostOperation": null,
+      "sqliteSessionCheckpoint": null,
+      "modelSemanticVerdict": null
+    },
+    {
+      "id": "A3",
+      "status": "not_executed",
+      "reason": "shared preflight requirements not satisfied",
+      "modelHttp": 0,
+      "reservedMicroCny": 0,
+      "hostOperation": null,
+      "sqliteSessionCheckpoint": null,
+      "modelSemanticVerdict": null
+    },
+    {
+      "id": "A4",
+      "status": "not_executed",
+      "reason": "shared preflight requirements not satisfied",
+      "modelHttp": 0,
+      "reservedMicroCny": 0,
+      "hostOperation": null,
+      "sqliteSessionCheckpoint": null,
+      "modelSemanticVerdict": null
+    },
+    {
+      "id": "A5",
+      "status": "not_executed",
+      "reason": "shared preflight requirements not satisfied",
+      "modelHttp": 0,
+      "reservedMicroCny": 0,
+      "hostOperation": null,
+      "sqliteSessionCheckpoint": null,
+      "modelSemanticVerdict": null
+    },
+    {
+      "id": "A6",
+      "status": "not_executed",
+      "reason": "shared preflight requirements not satisfied",
+      "modelHttp": 0,
+      "reservedMicroCny": 0,
+      "hostOperation": null,
+      "sqliteSessionCheckpoint": null,
+      "modelSemanticVerdict": null
+    },
+    {
+      "id": "A7",
+      "status": "not_executed",
+      "reason": "shared preflight requirements not satisfied",
+      "modelHttp": 0,
+      "reservedMicroCny": 0,
+      "hostOperation": null,
+      "sqliteSessionCheckpoint": null,
+      "modelSemanticVerdict": null
+    },
+    {
+      "id": "B1",
+      "status": "not_executed",
+      "reason": "shared preflight requirements not satisfied",
+      "modelHttp": 0,
+      "reservedMicroCny": 0,
+      "hostOperation": null,
+      "sqliteSessionCheckpoint": null,
+      "modelSemanticVerdict": null
+    },
+    {
+      "id": "C1",
+      "status": "not_executed",
+      "reason": "shared preflight requirements not satisfied",
+      "modelHttp": 0,
+      "reservedMicroCny": 0,
+      "hostOperation": null,
+      "sqliteSessionCheckpoint": null,
+      "modelSemanticVerdict": null
+    },
+    {
+      "id": "C2",
+      "status": "not_executed",
+      "reason": "shared preflight requirements not satisfied",
+      "modelHttp": 0,
+      "reservedMicroCny": 0,
+      "hostOperation": null,
+      "sqliteSessionCheckpoint": null,
+      "modelSemanticVerdict": null
+    },
+    {
+      "id": "C3",
+      "status": "not_executed",
+      "reason": "shared preflight requirements not satisfied",
+      "modelHttp": 0,
+      "reservedMicroCny": 0,
+      "hostOperation": null,
+      "sqliteSessionCheckpoint": null,
+      "modelSemanticVerdict": null
+    },
+    {
+      "id": "C4",
+      "status": "not_executed",
+      "reason": "shared preflight requirements not satisfied",
+      "modelHttp": 0,
+      "reservedMicroCny": 0,
+      "hostOperation": null,
+      "sqliteSessionCheckpoint": null,
+      "modelSemanticVerdict": null
+    }
+  ],
+  "audit": {
+    "acceptanceRoot": "E:\\AgentWork\\acceptance\\staged-console-live-20261024",
+    "rootAbsent": true,
+    "ledgerAbsent": true,
+    "sqliteAbsent": true,
+    "sessionAbsent": true,
+    "checkpointAbsent": true,
+    "liveShutdown": "not applicable; no live process started",
+    "liveLockAndPending": "not created; no lock cleared",
+    "protectedOriginalsUnchanged": true,
+    "protectedGroups": [
+      8,
+      78,
+      8,
+      3
+    ],
+    "historicalInvoice": "not retrieved; no account login",
+    "historicalV301Pause": "still open",
+    "historicalReceiptInterpretation": "still open"
+  },
+  "evidenceDirectory": "E:\\AgentWork\\validation\\personal-agent-staged-live-20261024",
+  "remainingScope": "All authorized live requests/reservations remain unconsumed; no reuse of old round balance. Only safe local config and new account rate confirmation are missing; no repeated budget authorization required."
+}

@@ -4,15 +4,15 @@
 
 ## 当前阶段与进行中事项
 
-- 发布交接：用户已单独授权提交并推送验收准备，目标仅审查分支`codex/staged-console-prep`，不合并或推送main。发布前独立核对远端main仍c604565、修复分支仍aad7，本审查分支尚不存在；146份源码/测试/依赖文件Hash及两份准备报告Hash与最终验证版本一致，沿用下述474项和五关结果，不重复运行完整测试。只补STATE发布记录，冻结方案、入口、Case和报告/JSON不改；报告中的HEAD、未提交/未推送字段属于发布前冻结快照，发布后的SHA以Git和远端独立核对为准。此授权不包括第二轮真实模型、固定文档GET或费用。
-- 第二轮分阶段Console真实验收**仅完成准备和离线验证，尚未执行、收费或访问验收公网端点**。独立工作树 `C:/Users/Dongr/.codex/worktrees/staged-console-prep/Persistent Personal Agent`，分支 `codex/staged-console-prep`，基于已审查修复 `aad7edbc38da2ee93985e4c10e118283431ea823`；main保持c604565，本次只发布独立分支。
-- 新[冻结方案](evaluations/staged-console-live-plan.md)包含12个Case：A独立Goal/Skill/自然暂停/收据解释；B独立agent-notes及唯一固定Web读取；C仅在A/B证据全部通过后验证Skill+快照Goal。A目标“青桐阅读计划”及创建原话不含“学习计划”，A5保留历史“暂停那个学习计划”，不以改名绕过泛称问题。A结束取消，C新建“杜鹃资料练习”。
-- 新专用入口/Case表和7项离线测试不改src、Pi SDK、产品权限、旧入口/冻结话术或正式开关。每Case只发一次冻结消息、跨进程不可重发；A3/C4零请求重启；B关闭GoalRunner，不会推进A残留授权。C需操作者审阅声明及真实SQLite源状态，缺失/损坏/跨身份/错版本快照和Skill Hash不符均拒绝。
-- **待批准建议**：预计35、最多46次物理模型HTTP；整轮¥8保守预留，A/B/C另限28/4/14次与¥4.62/0.66/2.32；整轮最多一次固定pi-skills-v1 Web预留，仅B1可用。新绝对根/新scope账本，次数/费用/容量在发送前fsync；失败不退、锁/pending/配置变化拒绝恢复。历史32/6账本剩余24次及旧Web预留不复用。未来必须重新核实官方与账号费率、附加费并安全注入环境变量，当前不读取正式.env。
-- Windows Node24.19.0完整离线关卡通过：474项471通过、0失败、3原平台跳过，typecheck/build/eval:memory/eval:formation均退出0；新增7项覆盖原版Pi+真实SQLite+本机模拟模型/HTTP、正常跨进程恢复、失败不重发。机械statePass不代替模型语义/收据解释验收；原始调试失败日志均保留。Docker daemon不可用、唯一WSL发行版已停止，本轮Linux未运行，未安装/启动新环境。详见[准备验证报告](evaluations/staged-console-preparation.md)/[JSON](evaluations/staged-console-preparation.json)。
-- 旧综合真实验收仍为**未通过**：c604565上B0通过、W1超时无快照、G1复用bootstrap Step ID被拒绝，其余7项未执行；8次模型HTTP200、保守预留¥0.409924，实际账单未知；Web唯一预留消费、实际GET只能确认0～1。aad7离线修复不改变这项真实结论。V3.0.1自然暂停与操作收据解释两项历史失败继续开放，正式主动执行不得据本轮模拟结果启用。
-- 原E盘保存分支ae2a820及8项改动、原main工作树三份未提交文档、审查修复工作树、78份原验收数据/证据和原报告Hash保持不变。未打开历史SQLite或迁移重放，仅读取文件Hash；无模型Key、正式数据、Session或账本进入Git。正式WEB_READ_ENABLED/SKILLS_ENABLED/GOAL_ENABLED/PROACTIVE_ENABLED默认false不改，Formation关闭。
-- 下一步先交ChatGPT审查方案与入口，再等待用户一次性批准A/B/C、46次/¥8及一次固定GET；获批且新核价/离线闸/安全注入检查全部通过后才作为完整执行里程碑运行。真实飞书/手机、正式主动策略、S2/Sandbox/Computer Use不在本轮。
+- 第二轮分阶段Console真实验收已在用户46次/¥8及一次固定GET授权下执行并**未通过、正常停服**，固定提交`7e96d4e869a7efee9a4a3e33cb2e97ec128f142c`、分支`codex/staged-console-prep`。仅A1通过；A2机械状态通过但真实模型收据解释失败，B1取数成功但未选择/read agent-notes；其余9个Case按冻结依赖规则未执行。未改话术、补答、重试、重取或追加额度。
+- 本轮实际10/46次模型HTTP，均HTTP200；A/B/C为8/2/0次，分别保守预留¥0.383576/0.141414/0，合计**¥0.524990/¥8**，失败不退款。接口输入28757（未缓存16469、缓存12288）、输出2341 Token；按确认费率估算¥0.05215752，不是供应商账单，SQLite cost均null。剩余36次和费用不再使用。
+- 首次前置缺配置/账号确认时未启动，原[前置报告](evaluations/staged-console-live-preflight.md)/[JSON](evaluations/staged-console-live-preflight.json)保留当时快照。用户随后明确授权只读四个LLM字段并确认当前账号适用官方2/8/0.04、低谷1/4/0.02且无附加费后才调用；Key不显示/保存，正式.env不改。正式provider=openai不动，隔离进程依冻结方案使用personal-compatible宿主适配器，固定模型及端点不换。
+- A1首次计划身份/数量获得有限真实正证据：bootstrap和正式Step为不同宿主UUID，模型没有自编ID；正式v1仅一个Step，完整保留先partial等反馈、再点评complete及interview-practice绑定。A2独立临时Goal Session正确原生展开Skill，零工具/一次请求并提交partial；但主Chat的response07在request08之前误称正式片段已交付，并编造与实际Checkpoint不同的问题。宿主最终显示真实结果、Session另存2条纠正收据，不能把statePass=true当语义通过。
+- B1仅调用一次固定web_get，完整4793字节、Hash5b980552…成功快照进入下一请求（excerpt=false）；DNS/TCP/TLS/发送/响应完整阶段可查，实际固定GET1。目录和read工具可用，但真实模型没有读取agent-notes，故B整体失败。B关闭GoalRunner，A的Goal/Plan/Step/Execution逐项不变。唯一Web额度已消费，不重取；上轮W1实际GET仍未知0～1。
+- A3/A4/A5/A6/A7、C1/C2/C3/C4均未执行：没有为追求暂停/取消结论补发查看或续跑，C不具备A/B全部真实通过的前置。V3.0.1自然暂停本轮未测、操作收据解释本轮再次失败，两项正式主动执行门槛继续开放；原综合B0/W1/G1失败事实及旧账本不改。
+- SQLite完整性ok、外键空，Goal1/Plan2/Step2/Execution2均可核对，当前Goal waiting_user、Plan v1、revision5；两次Execution已提交（bootstrap complete、正式partial且引用前驱）。Task0、Memory知识0、策略/Trigger/Grant/Observation/Outbox/飞书0；Session1份、3条用户消息。所有运行中计数0，匹配本轮根的Node进程0，锁/pending无残留、WAL0字节；未手工清锁或取消Goal作清理。
+- 完整[真实报告](evaluations/staged-console-live-acceptance.md)/[JSON](evaluations/staged-console-live-acceptance.json)及原始证据已保存：新数据根`E:/AgentWork/acceptance/staged-console-live-20261024`，证据根`E:/AgentWork/validation/personal-agent-staged-live-20261024`。本轮执行前7/7离线闸通过，146份源文件及冻结入口/Case/方案Hash不变；未重复完整五关/Linux，不把准备阶段474项及Mock结果说成本轮真实通过。
+- 工作树`C:/Users/Dongr/.codex/worktrees/staged-console-prep/Persistent Personal Agent`，真实执行基线为7e96d4e。用户随后授权仅将本轮STATE及4份报告提交推送至`codex/staged-console-prep`；报告中的“未提交/推送”保留为执行结束时的冻结快照，发布不改原报告或验收结论，不合并main。产品代码、原E盘8项改动、原main工作树3份文档、审查修复工作树文档及78份历史数据/证据Hash不变。正式四项能力默认关闭、Formation关闭，无正式数据、主动策略或部署操作。下一步仅建议离线核对Checkpoint收据归属、后台产物上下文和agent-notes路由；本轮不修复收费重测。
 
 ## 已完成功能
 
@@ -39,11 +39,11 @@
 
 | 日期 | 修改及位置 |
 | --- | --- |
+| 2026-10-24 | 第二轮真实Console：10请求/¥0.524990保守预留/一次固定GET成功；A1通过，A2后台Skill/partial正确但主Chat收据误解并编造另一题，B1未选择/read agent-notes，其余9项未执行。正常停服，原始失败保留，无代码修复/重跑；用户随后授权仅发布5份文档至审查分支，原报告冻结快照不改，两项V3.0.1门槛继续开放 |
 | 2026-10-24 | 第二轮Console分阶段准备：新增A/B/C十二个冻结Case、新46/8独立账本/一次GET硬闸、逐Case自动停服和跨重启审计；Windows474项471通过/3原平台跳过及五关0，新增7项模拟回归；Linux不可用，历史失败/额度/数据不变，真实执行待新授权。用户随后授权仅向独立分支提交推送，发布只补STATE，冻结验证快照不改 |
 | 2026-10-24 | 综合真实失败后离线修复：首次Plan身份契约、固定安全失败原因、Web阶段证据、Pi/SQLite/Session联合回归。原始G1反例先红后绿，历史W1 GET仍0～1；Windows结果和Linux限制见独立修复报告；不改变旧真实结论、不消费额度、不提交推送 |
 | 2026-10-23 | c604565综合Console真实验收未通过：13项预算闸先过，8/32真实模型请求、0.409924/6元预留；B0通过，W1唯一Web预留超时、无快照，G1模型复用bootstrap Step ID被拒绝，后续7项未执行。Chat原生read正文805字节进入下一请求属有限实证，Goal绑定/Checkpoint仍未验成；原始失败保留，V3.0.1两项真实失败仍开放，无产品修改/提交/推送 |
 | 2026-10-23 | S1-A1/A2/A3连续完成：阶段Windows329/332→354/357，最终Windows384/387、断网Linux387/387；Web85/85，五关均0。固定来源、可信许可、单表恢复；原始失败保留，默认关闭；用户随后授权合并main及推送，发布仅补STATE |
-| 2026-10-23 | S0特殊包明确调用定点修复：先红后绿、专项53/53、Windows299/302且3原平台跳过；五关均0。新增Console16次/2元待授权方案、S1只读Web设计；用户随后授权提交推送，仅补发布交接状态，未收费，原真实失败保留 |
 
 ## 验证记录与证据边界
 
