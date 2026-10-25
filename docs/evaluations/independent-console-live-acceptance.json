@@ -1,0 +1,600 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "timezone": "Asia/Shanghai",
+  "fixedSha": "0d0725c1aeeb9e6a498dca5a5f6b1fdcdcf0d5a0",
+  "branch": "codex/independent-console-prep",
+  "result": "partial_pass_not_complete",
+  "counts": {
+    "passed": 3,
+    "failed": 1,
+    "notExecuted": 2
+  },
+  "root": "E:\\AgentWork\\acceptance\\independent-prs-console-20261026",
+  "evidenceRoot": "E:\\AgentWork\\validation\\personal-agent-independent-console-live-20261026",
+  "executionStartedAtUtc": "2026-10-25T17:07:08.546868+00:00",
+  "executionFinishedAtUtc": "2026-10-25T17:09:22.767969+00:00",
+  "cases": [
+    {
+      "caseId": "P1",
+      "result": "failed",
+      "reason": "真实Goal创建成功，但bootstrap把青桐当作阅读对象并追问篇目、时间；提交partial而无proposedPlan，不满足待批准草稿前置。",
+      "failureClass": "model_interpretation_or_bootstrap_contract",
+      "mechanicalStatePass": false,
+      "physicalModelHttp": 4,
+      "reservedMicroCny": 176262,
+      "tokenCostEstimateCny": "0.01678704",
+      "requestSequences": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "modelRawExplanationPass": true,
+      "hostPermissionAndPersistencePass": true,
+      "taskCompletionPass": null,
+      "nativeAutomaticSkillReadPass": null,
+      "modelBehaviorPass": false,
+      "bootstrapPlanInitializationPass": false,
+      "modelRawExplanationNote": "主Chat按其当时ToolResult正确说明无草稿；后续bootstrap未生成proposedPlan导致Case失败。"
+    },
+    {
+      "caseId": "P2",
+      "result": "not_executed",
+      "reason": "P1未通过，不补查看、不刷新视图。",
+      "failureClass": "precondition",
+      "mechanicalStatePass": null,
+      "physicalModelHttp": 0,
+      "reservedMicroCny": 0,
+      "tokenCostEstimateCny": "0",
+      "requestSequences": [],
+      "modelRawExplanationPass": null,
+      "hostPermissionAndPersistencePass": null,
+      "taskCompletionPass": null,
+      "nativeAutomaticSkillReadPass": null,
+      "modelBehaviorPass": null,
+      "bootstrapPlanInitializationPass": null
+    },
+    {
+      "caseId": "P3",
+      "result": "not_executed",
+      "reason": "P1未通过，未取得P2唯一有效视图；历史原话本轮没有发送。",
+      "failureClass": "precondition",
+      "mechanicalStatePass": null,
+      "physicalModelHttp": 0,
+      "reservedMicroCny": 0,
+      "tokenCostEstimateCny": "0",
+      "requestSequences": [],
+      "modelRawExplanationPass": null,
+      "hostPermissionAndPersistencePass": null,
+      "taskCompletionPass": null,
+      "nativeAutomaticSkillReadPass": null,
+      "modelBehaviorPass": null,
+      "bootstrapPlanInitializationPass": null
+    },
+    {
+      "caseId": "R1",
+      "result": "passed",
+      "reason": "真实单Step草稿、宿主新Step ID、interview-practice固定Hash、partial等待要求已持久化并成功展示，正式步骤未提前执行。",
+      "failureClass": null,
+      "mechanicalStatePass": true,
+      "physicalModelHttp": 4,
+      "reservedMicroCny": 186756,
+      "tokenCostEstimateCny": "0.0214384",
+      "requestSequences": [
+        5,
+        6,
+        7,
+        8
+      ],
+      "modelRawExplanationPass": true,
+      "hostPermissionAndPersistencePass": true,
+      "taskCompletionPass": null,
+      "nativeAutomaticSkillReadPass": null,
+      "modelBehaviorPass": true,
+      "bootstrapPlanInitializationPass": true
+    },
+    {
+      "caseId": "R2",
+      "result": "passed",
+      "reason": "原始主模型按当时ToolResult正确说明批准/排队且尚未领取、v0/bootstrap历史归属，无编造新题；随后独立Execution原生展开Skill、单请求零工具、partial提交并成功投递。",
+      "failureClass": null,
+      "mechanicalStatePass": true,
+      "physicalModelHttp": 4,
+      "reservedMicroCny": 210180,
+      "tokenCostEstimateCny": "0.01360192",
+      "requestSequences": [
+        9,
+        10,
+        11,
+        12
+      ],
+      "modelRawExplanationPass": true,
+      "hostPermissionAndPersistencePass": true,
+      "taskCompletionPass": null,
+      "nativeAutomaticSkillReadPass": null,
+      "modelBehaviorPass": true,
+      "bootstrapPlanInitializationPass": null
+    },
+    {
+      "caseId": "S1",
+      "result": "passed",
+      "reason": "真实模型自主read agent-notes 1.0.1，正文进入下一请求；资料整理及事实/推断/未知区分通过，无旧Goal上下文或未授权写入。",
+      "failureClass": null,
+      "mechanicalStatePass": true,
+      "physicalModelHttp": 2,
+      "reservedMicroCny": 103860,
+      "tokenCostEstimateCny": "0.00836104",
+      "requestSequences": [
+        13,
+        14
+      ],
+      "modelRawExplanationPass": true,
+      "hostPermissionAndPersistencePass": true,
+      "taskCompletionPass": true,
+      "nativeAutomaticSkillReadPass": true,
+      "modelBehaviorPass": true,
+      "bootstrapPlanInitializationPass": null
+    }
+  ],
+  "limits": {
+    "modelHttp": 30,
+    "reservedMicroCny": 5000000,
+    "publicDocumentGets": 0,
+    "groups": {
+      "P": {
+        "requests": 14,
+        "microCny": 2310000
+      },
+      "R": {
+        "requests": 12,
+        "microCny": 1980000
+      },
+      "S": {
+        "requests": 4,
+        "microCny": 660000
+      }
+    }
+  },
+  "physicalModelHttp": 14,
+  "allHttpStatus200": true,
+  "allRawResponsesDone": true,
+  "reservedMicroCny": 677058,
+  "usage": {
+    "promptTokensIncludingCache": 34155,
+    "uncachedInputTokens": 18795,
+    "cacheReadTokens": 15360,
+    "outputTokens": 2748,
+    "reasoningTokens": 0
+  },
+  "tokenCostEstimateCny": "0.06018840",
+  "supplierActualBillCny": null,
+  "sdkReportedCostsAllNull": true,
+  "publicDocumentGets": 0,
+  "officialPriceVerificationViaResearchToolSeparateFromProduct": true,
+  "pricing": {
+    "officialSource": "https://www.siliconflow.cn/pricing",
+    "checkedAtUtc": "2026-10-25T17:06:53.086846+00:00",
+    "accountRateConfirmation": "本轮用户明确确认适用官方峰谷价且无额外费用",
+    "appliedConservativeRatesPerMillionCny": {
+      "uncachedInput": 2,
+      "cacheRead": 0.04,
+      "output": 8
+    },
+    "actualRequestTimeBand": "北京时间01:07至01:09，非低谷",
+    "extraFeesCny": 0
+  },
+  "budget": {
+    "file": "E:\\AgentWork\\acceptance\\independent-prs-console-20261026\\independent-budget.json",
+    "sha256": "4853efe4dc8b186304985504ad6bb65ab171107d5ddd2c9f2c183cc92604da24",
+    "scope": "independent-prs-console-v1",
+    "profile": {
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "endpoint": "https://api.siliconflow.cn/v1/chat/completions",
+      "inputRate": 2,
+      "outputRate": 8,
+      "checkedAt": "2026-10-25T17:06:53.086846+00:00",
+      "cacheReadRate": 0.04,
+      "extraFeesCny": 0,
+      "planHash": "a64fe3bdb9ed6a7fb5664c41b9bd69beb6a1ce9a863f795450357174a2012a0f",
+      "entryHash": "23e72b6b135f1991211e8dc04ac36f8ec7e4ed7753ff6c0f58ab3c1d264424a8",
+      "codeHash": "e84ce495593b2b61c2ec2b5d4ad94b4220bd5f63febdbe58d51995ad1c118f15",
+      "casesHash": "6d85a6859a4a546a045d7a0eab8515f19d99a4d59b52966fd37d1e0deac4895a",
+      "nodeVersion": "v24.19.0"
+    },
+    "allStartedCasesFinished": true,
+    "halted": null,
+    "refundsOrResets": false,
+    "caseRetries": false,
+    "remainingAllowanceAutomaticallyUsed": false
+  },
+  "stopAudit": {
+    "normalChildProcessStops": true,
+    "controllerStopped": true,
+    "controllerExitCode": 0,
+    "liveProcessMatches": 0,
+    "inflightRunsOrExecutions": 0,
+    "ledgerOrDatabaseLocks": [],
+    "pendingWrites": [],
+    "sidecarsRetainedWithoutCleanup": [
+      {
+        "path": "P\\agent.db-shm",
+        "bytes": 32768,
+        "sha256": "fd4c9fda9cd3f9ae7c962b0ddf37232294d55580e1aa165aa06129b8549389eb"
+      },
+      {
+        "path": "P\\agent.db-wal",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "R\\agent.db-shm",
+        "bytes": 32768,
+        "sha256": "fd4c9fda9cd3f9ae7c962b0ddf37232294d55580e1aa165aa06129b8549389eb"
+      },
+      {
+        "path": "R\\agent.db-wal",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "S\\agent.db-shm",
+        "bytes": 32768,
+        "sha256": "fd4c9fda9cd3f9ae7c962b0ddf37232294d55580e1aa165aa06129b8549389eb"
+      },
+      {
+        "path": "S\\agent.db-wal",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "sidecarNote": "WAL均0字节，SHM保留；未执行checkpoint、删除或清锁，不能仅凭SHM存在认定运行中。"
+  },
+  "groups": {
+    "P": {
+      "integrity": "ok",
+      "foreignKeyViolations": 0,
+      "goalCount": 1,
+      "runCount": 2,
+      "executionCount": 1,
+      "allRunsSucceeded": true,
+      "allExecutionsCommitted": true,
+      "checkpointAndInputHashesValid": true,
+      "sessionFile": "E:\\AgentWork\\acceptance\\independent-prs-console-20261026\\P\\sessions\\93d8874c8c86f0fc893dbe15c765ffa0fcd342f798dbf669e08f8cbe095d230c\\chat.session.jsonl",
+      "sessionSha256": "7401f9d0d34ec404b467483dc0b75b9e29431922183569641be89e52bf8ddb63",
+      "sessionUserCount": 1,
+      "receiptCount": 1,
+      "counts": {
+        "tasks": 0,
+        "memory_candidates": 0,
+        "memory_formation_jobs": 0,
+        "goal_policies": 0,
+        "goal_grants": 0,
+        "goal_observations": 0,
+        "goal_notifications": 0,
+        "web_read_calls": 0,
+        "feishu_messages": 0
+      },
+      "sqliteFile": "E:\\AgentWork\\acceptance\\independent-prs-console-20261026\\P\\agent.db",
+      "sqliteSha256": "63d86267af05d0a99925c3111830a0abfa8a8f0643c7626dc29695f3a8c84cad",
+      "sdkUsageMatchesResponseUsage": true,
+      "sdkUsage": {
+        "uncachedInputTokens": 5854,
+        "cacheReadTokens": 2176,
+        "outputTokens": 624
+      },
+      "modelCalls": [
+        {
+          "id": 1,
+          "runId": "60d1a564-66b4-4b5a-936a-91571709092f",
+          "at": "2026-10-25T17:07:12.591Z",
+          "details": "{\"provider\":\"personal-compatible\",\"model\":\"deepseek-ai/DeepSeek-V4.1-Flash\",\"inputTokens\":2265,\"outputTokens\":44,\"cacheReadTokens\":0,\"cacheWriteTokens\":0,\"cost\":null,\"stopReason\":\"toolUse\"}"
+        },
+        {
+          "id": 2,
+          "runId": "60d1a564-66b4-4b5a-936a-91571709092f",
+          "at": "2026-10-25T17:07:13.758Z",
+          "details": "{\"provider\":\"personal-compatible\",\"model\":\"deepseek-ai/DeepSeek-V4.1-Flash\",\"inputTokens\":1746,\"outputTokens\":72,\"cacheReadTokens\":0,\"cacheWriteTokens\":0,\"cost\":null,\"stopReason\":\"stop\"}"
+        },
+        {
+          "id": 3,
+          "runId": "60d1a564-66b4-4b5a-936a-91571709092f",
+          "at": "2026-10-25T17:07:16.904Z",
+          "details": "{\"provider\":\"personal-compatible\",\"model\":\"deepseek-ai/DeepSeek-V4.1-Flash\",\"inputTokens\":527,\"outputTokens\":185,\"cacheReadTokens\":2176,\"cacheWriteTokens\":0,\"cost\":null,\"stopReason\":\"stop\"}"
+        },
+        {
+          "id": 4,
+          "runId": "a1bd5677-6e61-4004-89c8-e234a66f8226",
+          "at": "2026-10-25T17:07:22.562Z",
+          "details": "{\"provider\":\"personal-compatible\",\"model\":\"deepseek-ai/DeepSeek-V4.1-Flash\",\"inputTokens\":1316,\"outputTokens\":323,\"cacheReadTokens\":0,\"cacheWriteTokens\":0,\"cost\":null,\"stopReason\":\"stop\"}"
+        }
+      ]
+    },
+    "R": {
+      "integrity": "ok",
+      "foreignKeyViolations": 0,
+      "goalCount": 1,
+      "runCount": 4,
+      "executionCount": 2,
+      "allRunsSucceeded": true,
+      "allExecutionsCommitted": true,
+      "checkpointAndInputHashesValid": true,
+      "sessionFile": "E:\\AgentWork\\acceptance\\independent-prs-console-20261026\\R\\sessions\\93d8874c8c86f0fc893dbe15c765ffa0fcd342f798dbf669e08f8cbe095d230c\\chat.session.jsonl",
+      "sessionSha256": "373c4a819e6aa3c206ca7e16d2bf43cc99c781a2cd3aae4c9d6bb4093688dff4",
+      "sessionUserCount": 2,
+      "receiptCount": 2,
+      "counts": {
+        "tasks": 0,
+        "memory_candidates": 0,
+        "memory_formation_jobs": 0,
+        "goal_policies": 0,
+        "goal_grants": 0,
+        "goal_observations": 0,
+        "goal_notifications": 0,
+        "web_read_calls": 0,
+        "feishu_messages": 0
+      },
+      "sqliteFile": "E:\\AgentWork\\acceptance\\independent-prs-console-20261026\\R\\agent.db",
+      "sqliteSha256": "f688a3f0e6d23c35d4bc22a642d56f25c9e445db1cf828f596c82880b5b43c6c",
+      "sdkUsageMatchesResponseUsage": true,
+      "sdkUsage": {
+        "uncachedInputTokens": 10336,
+        "cacheReadTokens": 11008,
+        "outputTokens": 1741
+      },
+      "modelCalls": [
+        {
+          "id": 1,
+          "runId": "9c952128-66b0-43d2-b0f4-9ba45c0b8695",
+          "at": "2026-10-25T17:08:04.281Z",
+          "details": "{\"provider\":\"personal-compatible\",\"model\":\"deepseek-ai/DeepSeek-V4.1-Flash\",\"inputTokens\":2649,\"outputTokens\":34,\"cacheReadTokens\":0,\"cacheWriteTokens\":0,\"cost\":null,\"stopReason\":\"toolUse\"}"
+        },
+        {
+          "id": 2,
+          "runId": "9c952128-66b0-43d2-b0f4-9ba45c0b8695",
+          "at": "2026-10-25T17:08:06.669Z",
+          "details": "{\"provider\":\"personal-compatible\",\"model\":\"deepseek-ai/DeepSeek-V4.1-Flash\",\"inputTokens\":1840,\"outputTokens\":225,\"cacheReadTokens\":0,\"cacheWriteTokens\":0,\"cost\":null,\"stopReason\":\"stop\"}"
+        },
+        {
+          "id": 3,
+          "runId": "9c952128-66b0-43d2-b0f4-9ba45c0b8695",
+          "at": "2026-10-25T17:08:10.581Z",
+          "details": "{\"provider\":\"personal-compatible\",\"model\":\"deepseek-ai/DeepSeek-V4.1-Flash\",\"inputTokens\":556,\"outputTokens\":245,\"cacheReadTokens\":2560,\"cacheWriteTokens\":0,\"cost\":null,\"stopReason\":\"stop\"}"
+        },
+        {
+          "id": 4,
+          "runId": "d4c7a754-673b-4729-a20e-0de691a5de3e",
+          "at": "2026-10-25T17:08:17.012Z",
+          "details": "{\"provider\":\"personal-compatible\",\"model\":\"deepseek-ai/DeepSeek-V4.1-Flash\",\"inputTokens\":1607,\"outputTokens\":500,\"cacheReadTokens\":0,\"cacheWriteTokens\":0,\"cost\":null,\"stopReason\":\"stop\"}"
+        },
+        {
+          "id": 5,
+          "runId": "40e20236-3eb9-4bdb-91ee-5bfcef3a3691",
+          "at": "2026-10-25T17:08:52.087Z",
+          "details": "{\"provider\":\"personal-compatible\",\"model\":\"deepseek-ai/DeepSeek-V4.1-Flash\",\"inputTokens\":741,\"outputTokens\":22,\"cacheReadTokens\":3072,\"cacheWriteTokens\":0,\"cost\":null,\"stopReason\":\"toolUse\"}"
+        },
+        {
+          "id": 6,
+          "runId": "40e20236-3eb9-4bdb-91ee-5bfcef3a3691",
+          "at": "2026-10-25T17:08:53.233Z",
+          "details": "{\"provider\":\"personal-compatible\",\"model\":\"deepseek-ai/DeepSeek-V4.1-Flash\",\"inputTokens\":104,\"outputTokens\":51,\"cacheReadTokens\":1664,\"cacheWriteTokens\":0,\"cost\":null,\"stopReason\":\"stop\"}"
+        },
+        {
+          "id": 7,
+          "runId": "40e20236-3eb9-4bdb-91ee-5bfcef3a3691",
+          "at": "2026-10-25T17:08:57.301Z",
+          "details": "{\"provider\":\"personal-compatible\",\"model\":\"deepseek-ai/DeepSeek-V4.1-Flash\",\"inputTokens\":652,\"outputTokens\":231,\"cacheReadTokens\":3712,\"cacheWriteTokens\":0,\"cost\":null,\"stopReason\":\"stop\"}"
+        },
+        {
+          "id": 8,
+          "runId": "a3ef55b0-ebe6-444b-866a-92d2a174070f",
+          "at": "2026-10-25T17:09:03.654Z",
+          "details": "{\"provider\":\"personal-compatible\",\"model\":\"deepseek-ai/DeepSeek-V4.1-Flash\",\"inputTokens\":2187,\"outputTokens\":433,\"cacheReadTokens\":0,\"cacheWriteTokens\":0,\"cost\":null,\"stopReason\":\"stop\"}"
+        }
+      ]
+    },
+    "S": {
+      "integrity": "ok",
+      "foreignKeyViolations": 0,
+      "goalCount": 0,
+      "runCount": 1,
+      "executionCount": 0,
+      "allRunsSucceeded": true,
+      "allExecutionsCommitted": true,
+      "checkpointAndInputHashesValid": true,
+      "sessionFile": "E:\\AgentWork\\acceptance\\independent-prs-console-20261026\\S\\sessions\\93d8874c8c86f0fc893dbe15c765ffa0fcd342f798dbf669e08f8cbe095d230c\\chat.session.jsonl",
+      "sessionSha256": "e59cc2840487d296175af7a9c7aa60ad12739a6b7388959baba1abdccdbb2ebd",
+      "sessionUserCount": 1,
+      "receiptCount": 0,
+      "counts": {
+        "tasks": 0,
+        "memory_candidates": 0,
+        "memory_formation_jobs": 0,
+        "goal_policies": 0,
+        "goal_grants": 0,
+        "goal_observations": 0,
+        "goal_notifications": 0,
+        "web_read_calls": 0,
+        "feishu_messages": 0
+      },
+      "sqliteFile": "E:\\AgentWork\\acceptance\\independent-prs-console-20261026\\S\\agent.db",
+      "sqliteSha256": "1119d42b562d5dfae0737fc52963b3ca21dbaa54970f0ee00c821f56598dc7da",
+      "sdkUsageMatchesResponseUsage": true,
+      "sdkUsage": {
+        "uncachedInputTokens": 2605,
+        "cacheReadTokens": 2176,
+        "outputTokens": 383
+      },
+      "modelCalls": [
+        {
+          "id": 1,
+          "runId": "578291c7-40c9-405f-83e3-543b0dd9de78",
+          "at": "2026-10-25T17:09:17.415Z",
+          "details": "{\"provider\":\"personal-compatible\",\"model\":\"deepseek-ai/DeepSeek-V4.1-Flash\",\"inputTokens\":2224,\"outputTokens\":66,\"cacheReadTokens\":0,\"cacheWriteTokens\":0,\"cost\":null,\"stopReason\":\"toolUse\"}"
+        },
+        {
+          "id": 2,
+          "runId": "578291c7-40c9-405f-83e3-543b0dd9de78",
+          "at": "2026-10-25T17:09:22.520Z",
+          "details": "{\"provider\":\"personal-compatible\",\"model\":\"deepseek-ai/DeepSeek-V4.1-Flash\",\"inputTokens\":381,\"outputTokens\":317,\"cacheReadTokens\":2176,\"cacheWriteTokens\":0,\"cost\":null,\"stopReason\":\"stop\"}"
+        }
+      ]
+    }
+  },
+  "r2": {
+    "originalModelExplanationPass": true,
+    "hostFinalPresentationPass": true,
+    "receiptAsOfGoalRevision": 3,
+    "receiptAsOfPlanRevision": 1,
+    "receiptCurrentExecution": "not_claimed",
+    "historyCheckpointRunId": "d4c7a754-673b-4729-a20e-0de691a5de3e",
+    "historyStepId": "d467ba73-2215-4678-b232-0bb40a16ccb6",
+    "formalRunId": "a3ef55b0-ebe6-444b-866a-92d2a174070f",
+    "formalStepId": "e29ce57d-8bec-475b-b4ae-a33187a6c87e",
+    "formalCheckpointOutcome": "partial",
+    "previousCheckpointPreserved": true,
+    "frozenSkill": {
+      "id": "interview-practice",
+      "version": "1.0.0",
+      "hash": "36a23f6ca5fb402aa10e910b73ee3a7470c6c3062027bea81da4ec88fcd0da83"
+    },
+    "nativeSkillBodyInRequest": true,
+    "modelRequestsForFormalFragment": 1,
+    "goalTools": [],
+    "correctiveRequestsAdded": 0,
+    "timeline": [
+      {
+        "atUtc": "2026-10-25T17:06:53.086846+00:00",
+        "event": "本轮官方及账号费率已确认，安全注入四个LLM字段；固定兼容适配器personal-compatible，不改正式.env。"
+      },
+      {
+        "atUtc": "2026-10-25T17:08:50.864Z",
+        "runId": "40e20236-3eb9-4bdb-91ee-5bfcef3a3691",
+        "event": "run_started",
+        "details": null
+      },
+      {
+        "atUtc": "2026-10-25T17:08:53.253Z",
+        "runId": "40e20236-3eb9-4bdb-91ee-5bfcef3a3691",
+        "event": "goal_control",
+        "details": "{\"goalId\":\"7a44074c-61db-4304-8cbe-d9c12f800f1b\",\"action\":\"approve_plan\",\"revision\":3,\"sourceRunId\":\"40e20236-3eb9-4bdb-91ee-5bfcef3a3691\"}"
+      },
+      {
+        "atUtc": "2026-10-25T17:08:57.301Z",
+        "event": "主Chat原始response-11结束：明确未领取，不编造题目"
+      },
+      {
+        "atUtc": "2026-10-25T17:08:57.319Z",
+        "runId": "40e20236-3eb9-4bdb-91ee-5bfcef3a3691",
+        "event": "run_succeeded",
+        "details": null
+      },
+      {
+        "atUtc": "2026-10-25T17:08:57.319Z",
+        "event": "host-goal-result-v1入原生Chat Session，保留ready/v1/历史v0归属"
+      },
+      {
+        "atUtc": "2026-10-25T17:08:57.323Z",
+        "runId": "40e20236-3eb9-4bdb-91ee-5bfcef3a3691",
+        "event": "delivery_succeeded",
+        "details": null
+      },
+      {
+        "atUtc": "2026-10-25T17:08:57.940Z",
+        "runId": "a3ef55b0-ebe6-444b-866a-92d2a174070f",
+        "event": "run_started",
+        "details": null
+      },
+      {
+        "atUtc": "2026-10-25T17:08:57.940Z",
+        "runId": "a3ef55b0-ebe6-444b-866a-92d2a174070f",
+        "event": "goal_claimed",
+        "details": "{\"goalId\":\"7a44074c-61db-4304-8cbe-d9c12f800f1b\",\"stepId\":\"e29ce57d-8bec-475b-b4ae-a33187a6c87e\",\"sequence\":2}"
+      },
+      {
+        "atUtc": "2026-10-25T17:08:57.964Z",
+        "runId": "a3ef55b0-ebe6-444b-866a-92d2a174070f",
+        "event": "skill_activated",
+        "details": "{\"id\":\"interview-practice\",\"version\":\"1.0.0\",\"hash\":\"36a23f6ca5fb402aa10e910b73ee3a7470c6c3062027bea81da4ec88fcd0da83\",\"bytes\":805}"
+      },
+      {
+        "atUtc": "2026-10-25T17:09:03.668Z",
+        "runId": "a3ef55b0-ebe6-444b-866a-92d2a174070f",
+        "event": "run_succeeded",
+        "details": null
+      },
+      {
+        "atUtc": "2026-10-25T17:09:03.668Z",
+        "runId": "a3ef55b0-ebe6-444b-866a-92d2a174070f",
+        "event": "goal_checkpoint_committed",
+        "details": "{\"goalId\":\"7a44074c-61db-4304-8cbe-d9c12f800f1b\",\"stepOutcome\":\"partial\"}"
+      },
+      {
+        "atUtc": "2026-10-25T17:09:03.674Z",
+        "runId": "a3ef55b0-ebe6-444b-866a-92d2a174070f",
+        "event": "delivery_succeeded",
+        "details": null
+      }
+    ],
+    "rawFinalResponse": "宿主已按你的原话保存操作，当前快照如下：\n\n- Goal 7a44074c…，状态 **ready**，版本 3，**Plan v1 已批准**，批准 Run = 40e20236…\n- 待批准草稿：无；阻塞原因：无\n- 当前 Step：e29ce57d…（Plan v1，步骤状态 pending），**已排队，等待领取一个片段**\n- 当前 Step 执行：**尚未领取**\n\n说明两句以免误解：\n- 先前的 Checkpoint（Plan v0，Step d467ba73…）是**bootstrap 初始化成果**，不是正式 Step 交付，不能当作题目或点评。\n- 批准和排队都不等于已执行、已提交或已送达。本轮我作为主 Chat 不会代替后台执行器生成题目或点评。\n\n接下来那一道题与考察点，要等这个 Step 被领取并提交 Execution 后才能交付；届时需要等你回答再点评。你可以稍后再让我核对一次状态，看该 Step 是否已执行、结果是否已提交。"
+  },
+  "s1": {
+    "userTaskPass": true,
+    "automaticNativeReadPass": true,
+    "skillId": "agent-notes",
+    "version": "1.0.1",
+    "hash": "e15df5ce797d8898e572e020d3ccc4b8c49e655d80e6b0316d60b8a37c71a187",
+    "bodyBytes": 1083,
+    "bodyExactlyInRequest14ToolResult": true,
+    "unrelatedOldGoalContext": false,
+    "webAfterSkillRoutingProven": false,
+    "rawFinalResponse": "# Agent 技术资料笔记（虚构/未验证来源）\n\n## 职责\n- **宿主**：保存用户授权与 Checkpoint。\n- **Pi**：执行当前片段。\n- **工具能力**：由宿主白名单控制。\n\n## 调用关系（据资料字面描述）\n- 宿主负责授权与 Checkpoint 的保存，是授权与状态持久化的一方。\n- Pi 承担当前片段的执行，处于执行侧。\n- 工具能力是否可用由宿主的白名单决定，即调用能力受限、由宿主把关。\n\n资料只给出了上述三方职责与白名单关系，**未细化具体的调用顺序、接口形式或数据流**，这部分目前无法确定。\n\n## 事实与未验证内容\n- **资料中的事实（仅限原文陈述）**：宿主保存授权和 Checkpoint；Pi 执行当前片段；工具能力由宿主白名单控制。\n- **尚未验证**：该描述本身是虚构技术资料，无实现证据；资料明确未提供测试结果，因此任何关于行为正确性、性能、隔离有效性或安全性的结论都**没有依据**。\n- **我的推断（非资料原文）**：“白名单控制意味着调用受限”是对“控制”一词的合理解读，资料未进一步定义控制粒度（如可按工具、会话或参数区分）。\n\n## 小结\n这是一份仅描述职责分工的资料：宿主管授权与检查点、Pi 管执行、白名单管工具边界；除此之外的实现细节与验证证据均缺失。"
+  },
+  "offlinePreflight": {
+    "command": "node --import tsx --test --test-concurrency=1 tests/independent-console.test.ts tests/independent-console-flow.test.ts",
+    "tests": 6,
+    "pass": 6,
+    "fail": 0,
+    "skip": 0,
+    "realModelRequests": 0,
+    "log": "E:\\AgentWork\\validation\\personal-agent-independent-console-live-20261026\\offline-entry-tests.log"
+  },
+  "preservation": {
+    "otherWorktreesUnchanged": true,
+    "originalEDriveEightChangesPreserved": true,
+    "historicalRepoReportsHashesUnchanged": true,
+    "historicalDbLedgerSessionOpened": false,
+    "productCodeSkillsAndFrozenPlanChanged": false,
+    "formalConfigChanged": false,
+    "formalEnvReadScope": [
+      "LLM_API_KEY",
+      "LLM_MODEL",
+      "LLM_BASE_URL",
+      "LLM_PROVIDER"
+    ],
+    "credentialsPrintedOrRecorded": false,
+    "gitCommittedPushedOrMerged": false
+  },
+  "historicalGates": {
+    "naturalPause": "still_open_not_reached",
+    "a2Receipt": "this_R2_sample_passed_original_failure_retained",
+    "v301AllReceiptOperations": "not_fully_closed",
+    "agentNotesFromProvidedText": "this_S1_sample_passed",
+    "webAfterSkillSelection": "still_open_not_tested",
+    "jointSkillWebGoal": "not_tested"
+  },
+  "auditNotes": [
+    "P1 Console退出码1是已完成Case的statePass=false；账本未halt，Run succeeded/Execution committed，不是未知进程故障。",
+    "只读审计初版导出遇Python默认GBK解码失败，随后明确UTF-8；源码清单初版用正斜杠导致与Windows原入口反斜杠JSON Hash不等，改用原入口同一Node路径算法核对后完全一致。只影响离线报告计算，未重发任何模型请求。",
+    "P1主Chat在当时ToolResult时正确说明无草稿；本组失败发生在后续bootstrap未产生proposedPlan，不能当成暂停Guard失败。",
+    "R1主Chat建议再次确认生成草稿，但后续bootstrap已自动提交并展示合法草稿；无额外消息按原话R2审批，保留该交互歧义作为后续观察。"
+  ],
+  "evidenceFiles": {
+    "rawRequestsAndResponses": "<root>/P|R|S/request-NN.json and response-NN.txt",
+    "parsedResponses": "E:\\AgentWork\\validation\\personal-agent-independent-console-live-20261026\\parsed-physical-responses.json",
+    "fullReadonlyAudit": "E:\\AgentWork\\validation\\personal-agent-independent-console-live-20261026\\final-readonly-audit.json",
+    "sourceManifest": "E:\\AgentWork\\validation\\personal-agent-independent-console-live-20261026\\source-manifest.json",
+    "processes": "E:\\AgentWork\\validation\\personal-agent-independent-console-live-20261026\\case-processes.json",
+    "hashManifest": "E:\\AgentWork\\validation\\personal-agent-independent-console-live-20261026\\SHA256SUMS.json"
+  }
+}
