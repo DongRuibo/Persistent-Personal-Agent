@@ -1,15 +1,15 @@
 # Personal Agent 当前状态与交接
 
-更新日期：2026-10-24（Asia/Shanghai）。此文件是当前快照；稳定架构见 [PROJECT.md](PROJECT.md)，开发规则见 [AGENTS.md](../AGENTS.md)，运行方法见 [README.md](../README.md)。
+更新日期：2026-10-25（Asia/Shanghai）。此文件是当前快照；稳定架构见 [PROJECT.md](PROJECT.md)，开发规则见 [AGENTS.md](../AGENTS.md)，运行方法见 [README.md](../README.md)。
 
 ## 当前阶段与进行中事项
 
-- A2收据时序/B1 Skill选择离线定点修复完成，等待代码与证据审查。基线`4c673e176bc4a847833079e591cb9837f1db8feb`；独立分支`codex/a2-b1-offline-fix`、工作树`C:/Users/Dongr/.codex/worktrees/a2-b1-offline-fix/Persistent Personal Agent`。用户随后授权将本轮代码、测试和文档提交推送至此独立审查分支，不合并main。原修复报告中的“未提交/推送”为交付时冻结快照，发布不改原报告或真实失败结论，不开展新功能或真实验收。
-- A2确认旧ToolResult只以Goal级Checkpoint非空表示“已提交”，实际为v0/bootstrap，正式v1尚未执行。现复用同一GoalView派生Plan/Step/Run、批准、排队/运行/提交及独立投递证据；ToolResult、宿主Session收据和用户结果同源，旧成果标明归属。主Chat不等待后台、不复制后台Session或产物、不增加纠错模型请求，原错误回答保留。
-- B1原生目录/read发现正常，Web成功后模型未read。描述未明确涵盖本轮授权工具取得的资料，agent-notes仅作该范围说明并升为1.0.1；工具/目录权限不变，不硬编码文档路由。原共享Session中的错误回答和旧收据确实可见，但是否导致漏Skill仍未证实。旧安装与批准不动；升级须重新批准实际包Hash并重启，旧Plan绑定不静默替代，无法匹配则领取前阻塞。
-- Windows typecheck/build/npm test/eval:memory/eval:formation均0，全量480项477通过、0失败、3原平台跳过；新增最终专项6/6。基线先有3项有效红测，Mock编排错误也保留。Docker Linux engine不可用、WSL仅Stopped的docker-desktop，本轮Linux未运行，不安装环境或沿用历史绿灯。报告见[离线修复](evaluations/a2-b1-offline-fix.md)/[机器证据](evaluations/a2-b1-offline-fix.json)，证据根`E:/AgentWork/validation/personal-agent-a2-b1-offline-fix-20261024`。
-- 第二轮真实验收事实不改：固定7e96d4e，A1通过、A2模型收据误解、B1未选择/read agent-notes，其余9Case未执行，已正常停服；10次真实HTTP/¥0.524990保守预留/一次固定GET成功，账单未知。自然暂停本轮仍未真实复验、收据解释再次真实失败，V3.0.1两项门槛继续开放；离线通过不改变[原报告](evaluations/staged-console-live-acceptance.md)及旧结论。
-- 本轮真实模型、公网DNS/GET、飞书、收费、部署均0；未读正式.env或修改正式数据、默认开关、原Session/数据库/账本。旧剩余36次/费用不使用，原E盘保存分支HEAD及8项改动和其他工作树保留。下一次仅建议自然暂停采用独立合法持久目标及成功投递唯一视图、TTL内原话复验，不依赖Web/Skill路由；未新建或运行收费方案。
+- P/R/S三个独立小规模Console真实复验的准备里程碑已完成，真实执行未授权、未启动。基线`9ee11ede17be60ee3d9895ad815c555317a461ac`；独立分支`codex/independent-console-prep`，工作树`C:/Users/Dongr/.codex/worktrees/independent-console-prep/Persistent Personal Agent`。用户随后授权仅将本轮准备代码、测试和文档提交推送至此独立审查分支，不合并main、不启动真实验收。原准备报告及机器证据中的未提交/推送状态保留为当时冻结快照，发布只补本STATE，不改产品实现或扩功能。
+- [冻结方案](evaluations/independent-console-live-plan.md)共6个Case：P自然创建→查看唯一有效视图→原话暂停；R单Step/interview-practice草稿→批准并继续一段及异步收据；S在全新Session整理消息资料，单独评分任务完成/是否read agent-notes。P/R/S分别14/12/4次、¥2.31/1.98/0.66，整轮30次/¥5、零GET，仅为待批准建议。预计20次；执行前必须重新核价、确认账号附加费及安全注入配置，旧余额不复用。
+- 新scope总账本与三个隔离业务/Memory/原生Session目录，复用原main、stagedAudit和响应留证；Case/组/总闸发送前落盘、失败不退、不重发、不跨组借额。语义失败或已知组限额用尽只停本组，任何共同预算/身份/写入/进程不确定停止整轮。P3前置限定本次P2成功投递的唯一同身份渠道/版本视图，TTL过期不刷新；R2原始模型与宿主最终结果分别评分，不以后来的Checkpoint倒推；S未read不抹掉用户任务完成。
+- Windows五关均0，486项483通过、0失败、3既有平台跳过；新增6专项通过。实际Console子进程/原版Pi/真实SQLite及本机模型成功链路20次Mock HTTP，独立反例合计36次，零GET。初始类型错误、流正常取消被误记失败的日志保留并修复；真实费用/公网访问0。Docker Linux engine不可用、WSL仅Stopped docker-desktop，本轮Linux未运行。见[准备报告](evaluations/independent-console-preparation.md)/[JSON](evaluations/independent-console-preparation.json)，证据根`E:/AgentWork/validation/personal-agent-independent-console-prep-20261025`。
+- 9ee11ed的A2收据归属及agent-notes 1.0.1调整不改；既有权限、Plan/Step/Run/Checkpoint、Skill固定Hash升级拒绝及默认关闭边界保持。原真实第二轮仍为A1通过、A2收据解释失败、B1漏read，其余9项未执行；V3.0.1两项真实失败继续开放，准备/Mock不代替真实通过。
+- 原E盘保存分支及8项改动、其他工作树及历史报告/入口保护。未打开旧验收数据库/账本/原始Session，未读正式.env、未操作正式数据/飞书/主动策略或部署。交付后停止，等待ChatGPT审查和用户对固定提交、六Case、新根、30/5/零GET的一次性批准，不自动开始真实验收。
 
 ## 已完成功能
 
@@ -36,11 +36,11 @@
 
 | 日期 | 修改及位置 |
 | --- | --- |
+| 2026-10-25 | P/R/S独立Console准备：六Case、三隔离业务/Session、新30/5总闸及14/12/4分组、零GET；复用旧main/审计/留证，产品源码不改。Windows486项483通过/3跳过、五关0；Linux不可用，原真实失败不改；用户随后授权仅发布至独立审查分支，发布只补STATE，原准备证据不改；真实执行仍待一次性批准 |
 | 2026-10-24 | A2/B1离线定点修复：同快照收据明确Plan/Step/Run与异步提交/投递；agent-notes 1.0.1支持当前授权工具正文，旧Hash升级不替代。基线红3项→专项绿6项，Windows480项477通过/3跳过、五关0；Linux不可用，真实失败不改；用户随后授权仅向独立审查分支提交推送，发布只补STATE，原验证快照不改 |
 | 2026-10-24 | 第二轮真实Console：10请求/¥0.524990保守预留/一次固定GET成功；A1通过，A2后台Skill/partial正确但主Chat收据误解并编造另一题，B1未选择/read agent-notes，其余9项未执行。正常停服，原始失败保留，无代码修复/重跑；用户随后授权仅发布5份文档至审查分支，原报告冻结快照不改，两项V3.0.1门槛继续开放 |
 | 2026-10-24 | 第二轮Console分阶段准备：新增A/B/C十二个冻结Case、新46/8独立账本/一次GET硬闸、逐Case自动停服和跨重启审计；Windows474项471通过/3原平台跳过及五关0，新增7项模拟回归；Linux不可用，历史失败/额度/数据不变，真实执行待新授权。用户随后授权仅向独立分支提交推送，发布只补STATE，冻结验证快照不改 |
 | 2026-10-24 | 综合真实失败后离线修复：首次Plan身份契约、固定安全失败原因、Web阶段证据、Pi/SQLite/Session联合回归。原始G1反例先红后绿，历史W1 GET仍0～1；Windows结果和Linux限制见独立修复报告；不改变旧真实结论、不消费额度、不提交推送 |
-| 2026-10-23 | c604565综合Console真实验收未通过：13项预算闸先过，8/32真实模型请求、0.409924/6元预留；B0通过，W1唯一Web预留超时、无快照，G1模型复用bootstrap Step ID被拒绝，后续7项未执行。Chat原生read正文805字节进入下一请求属有限实证，Goal绑定/Checkpoint仍未验成；原始失败保留，V3.0.1两项真实失败仍开放，无产品修改/提交/推送 |
 
 ## 验证记录与证据边界
 

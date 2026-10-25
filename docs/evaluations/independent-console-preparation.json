@@ -1,0 +1,234 @@
+{
+  "status": "prepared_offline_only_awaiting_review_and_explicit_live_authorization",
+  "dateAsiaShanghai": "2026-10-25",
+  "baseCommit": "9ee11ede17be60ee3d9895ad815c555317a461ac",
+  "branch": "codex/independent-console-prep",
+  "worktree": "C:\\Users\\Dongr\\.codex\\worktrees\\independent-console-prep\\Persistent Personal Agent",
+  "committed": false,
+  "pushed": false,
+  "merged": false,
+  "productSourceOrSkillsChanged": false,
+  "oldEntriesOrFrozenPlansChanged": false,
+  "newRealModelRequests": 0,
+  "newPublicDnsOrGets": 0,
+  "newPaidFeesCny": 0,
+  "officialOrAccountRatesVerifiedThisMilestone": false,
+  "historicalBudgetDbSessionOpened": false,
+  "formalEnvRead": false,
+  "approvalRequired": {
+    "cases": [
+      "P1",
+      "P2",
+      "P3",
+      "R1",
+      "R2",
+      "S1"
+    ],
+    "maxPhysicalModelHttp": 30,
+    "maxReservedMicroCny": 5000000,
+    "groups": {
+      "P": {
+        "requests": 14,
+        "microCny": 2310000
+      },
+      "R": {
+        "requests": 12,
+        "microCny": 1980000
+      },
+      "S": {
+        "requests": 4,
+        "microCny": 660000
+      }
+    },
+    "publicGets": 0,
+    "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "endpoint": "https://api.siliconflow.cn/v1/chat/completions",
+    "channel": "console",
+    "newAbsoluteRootRequired": true,
+    "officialAndAccountPriceRecheckRequired": true,
+    "noUnknownExtraFees": true,
+    "safeCredentialInjectionRequired": true,
+    "oldAllowancesCannotBeReused": true
+  },
+  "budgetProposal": {
+    "expectedHttp": 20,
+    "maxHttp": 30,
+    "historicalIllustrativeRatesOnly": {
+      "input": 2,
+      "output": 8
+    },
+    "maxSingleReservedMicroCnyAtIllustrativeRates": 164864,
+    "maxWholeReservedMicroCnyAtIllustrativeRates": 4945920,
+    "actualInvoiceObtained": false
+  },
+  "validation": {
+    "gates": [
+      {
+        "gate": "typecheck",
+        "exitCode": 0,
+        "elapsedSeconds": 3.641,
+        "log": "E:\\AgentWork\\validation\\personal-agent-independent-console-prep-20261025\\typecheck-reviewed.log"
+      },
+      {
+        "gate": "build",
+        "exitCode": 0,
+        "elapsedSeconds": 1.922,
+        "log": "E:\\AgentWork\\validation\\personal-agent-independent-console-prep-20261025\\build-reviewed.log"
+      },
+      {
+        "gate": "test",
+        "exitCode": 0,
+        "elapsedSeconds": 52.984,
+        "log": "E:\\AgentWork\\validation\\personal-agent-independent-console-prep-20261025\\test-reviewed.log"
+      },
+      {
+        "gate": "eval-memory",
+        "exitCode": 0,
+        "elapsedSeconds": 3.39,
+        "log": "E:\\AgentWork\\validation\\personal-agent-independent-console-prep-20261025\\eval-memory-reviewed.log"
+      },
+      {
+        "gate": "eval-formation",
+        "exitCode": 0,
+        "elapsedSeconds": 4.672,
+        "log": "E:\\AgentWork\\validation\\personal-agent-independent-console-prep-20261025\\eval-formation-reviewed.log"
+      }
+    ],
+    "counts": {
+      "tests": 486,
+      "pass": 483,
+      "fail": 0,
+      "skipped": 3
+    },
+    "newSpecificTests": 6,
+    "mockFlow": {
+      "mockModelHttp": 36,
+      "successfulRoundHttp": 20,
+      "mockPublicGets": 0,
+      "cases": 6,
+      "root": "C:\\Users\\Dongr\\AppData\\Local\\Temp\\independent-flow-hBFBNE\\round"
+    },
+    "modelCallsAreLocalMockOnly": true,
+    "separateMockCases": [
+      "S correct user answer without read yields statePass=true and routingObserved=false",
+      "P1 only oral plan fails yet independent S1 still runs",
+      "HTTP500 reserves once, preserves raw response, and blocks all further groups",
+      "R1 repeated Skill read exhausts Case quota at 7 physical calls; 8th denied before transport, normally stopped; independent P1 still creates via natural language"
+    ],
+    "memoryMode": "offline-lexical",
+    "memoryModelCalls": 0,
+    "formationApiRequests": 0,
+    "formationDevelopment": {
+      "windows": 30,
+      "passed": 30,
+      "validationPrecision": 1,
+      "fixtureRecall": 1,
+      "falseCandidateCount": 0,
+      "kindCorrect": 11,
+      "unauthorizedWrites": 0,
+      "calls": 20
+    },
+    "formationHoldout": {
+      "windows": 30,
+      "passed": 30,
+      "validationPrecision": 1,
+      "fixtureRecall": 1,
+      "falseCandidateCount": 0,
+      "kindCorrect": 11,
+      "unauthorizedWrites": 0,
+      "calls": 20
+    },
+    "linux": {
+      "executed": false,
+      "runtimeCheck": [
+        {
+          "command": [
+            "docker",
+            "info",
+            "--format",
+            "{{.OSType}}"
+          ],
+          "exitCode": 1,
+          "output": "\nfailed to connect to the docker API at npipe:////./pipe/dockerDesktopLinuxEngine; check if the path is correct and if the daemon is running: open //./pipe/dockerDesktopLinuxEngine: The system cannot find the file specified.\n"
+        },
+        {
+          "command": [
+            "wsl",
+            "--list",
+            "--verbose"
+          ],
+          "exitCode": 0,
+          "output": "  NAME              STATE           VERSION\r\n* docker-desktop    Stopped         2\r\n"
+        }
+      ],
+      "installedOrStartedEnvironment": false
+    },
+    "skipReasons": [
+      "  ﹣ POSIX 私有权限位 (0.406ms) # Windows mode 不代表 ACL；ACL 隔离未验证",
+      "  ﹣ 拒绝符号链接且不触碰外部文件 (1.3645ms) # Windows 当前账户无创建符号链接权限，本项未验证",
+      "﹣ 进程级：交互 Session 重启恢复，daemon 隔离调度，拒绝双启动，SIGTERM 标记中断 (1.5674ms) # Windows child.kill(SIGTERM) 强杀，无法验证 POSIX 优雅退出；需在 Mac/Linux 重跑"
+    ],
+    "knownGroupBudgetExhaustionStopsOnlyGroup": true,
+    "sharedUncertainFailuresPersistentlyStopRound": true
+  },
+  "preservation": {
+    "otherWorktrees": 5,
+    "originalEWorktreeDirtyFiles": 8,
+    "protectedRepoFiles": 13,
+    "allCheckedUnchanged": true,
+    "rawHistoricalAcceptanceDataNotOpened": true,
+    "copiedMockOriginalFiles": 153
+  },
+  "hashes": {
+    "planHash": "a64fe3bdb9ed6a7fb5664c41b9bd69beb6a1ce9a863f795450357174a2012a0f",
+    "entryHash": "23e72b6b135f1991211e8dc04ac36f8ec7e4ed7753ff6c0f58ab3c1d264424a8",
+    "casesFileHash": "c7338f3da1554b58a32003a095c9f03bb9680ed4848fc2f4618d37619e51cd59",
+    "casesHash": "6d85a6859a4a546a045d7a0eab8515f19d99a4d59b52966fd37d1e0deac4895a",
+    "codeHash": "e84ce495593b2b61c2ec2b5d4ad94b4220bd5f63febdbe58d51995ad1c118f15",
+    "node": "v24.19.0",
+    "skills": [
+      {
+        "id": "agent-notes",
+        "version": "1.0.1",
+        "hash": "e15df5ce797d8898e572e020d3ccc4b8c49e655d80e6b0316d60b8a37c71a187",
+        "bytes": 1083
+      },
+      {
+        "id": "interview-practice",
+        "version": "1.0.0",
+        "hash": "36a23f6ca5fb402aa10e910b73ee3a7470c6c3062027bea81da4ec88fcd0da83",
+        "bytes": 805
+      }
+    ],
+    "sourceManifestSha256": "744a5782d1cbe5e7b147cb2c644f1d0b87757ab8709ca542f744cf56ef0fe565",
+    "sourceFileCount": 156,
+    "entryAndTestsPatchSha256": "1f6e89ca4f6b672d194cbe538a8dbf0514935674525709b4ba4476bbf36d20ee",
+    "mockOriginalsManifestSha256": "a7e8966aa2f20931be9b0ee06ff23e1b9a3f1a82c6d9f23f98b27ecc5759df2f"
+  },
+  "changedFiles": [
+    "scripts/independent-console-cases.ts",
+    "scripts/independent-console-budget.ts",
+    "scripts/independent-console-acceptance.ts",
+    "tests/independent-console.test.ts",
+    "tests/independent-console-flow.test.ts",
+    "docs/evaluations/independent-console-live-plan.md",
+    "docs/evaluations/independent-console-preparation.md",
+    "docs/evaluations/independent-console-preparation.json",
+    "docs/STATE.md"
+  ],
+  "evidenceRoot": "E:\\AgentWork\\validation\\personal-agent-independent-console-prep-20261025",
+  "initialFailuresPreserved": [
+    "typecheck-initial.log: new adapter type constraints",
+    "flow-initial.log and flow-diagnostic.log: Pi normal response cancellation raced controller close and falsely halted round; fixed only normal cancellation handling",
+    "new temporary debug export used default Python encoding; no network or historical data involved",
+    "Final review distinguished normal local Case/group quota exhaustion from shared safety failure; added before-send denial and actual independent-group continuation tests, then reran all five gates. No limit or frozen utterance increased."
+  ],
+  "remainingLiveGates": [
+    "V3.0.1 natural pause remains open until actual P3 succeeds",
+    "A2 raw model receipt interpretation remains unverified despite host correctness",
+    "agent-notes 1.0.1 actual automatic routing unverified",
+    "S text-only route success cannot substitute B1 Web-after-fetch route",
+    "Skill/Web/Goal joint lifecycle, feedback/cancel/restart and Feishu/phone/proactive production acceptance not included"
+  ],
+  "nextAction": "Stop after preparation; obtain review of fixed commit/hashes and one explicit authorization for six cases, 30 HTTP / CNY5 / zero GET, then recheck official/account rates and isolated configuration before any live execution."
+}
