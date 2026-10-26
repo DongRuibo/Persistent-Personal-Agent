@@ -1,0 +1,550 @@
+{
+  "codeHash": "6730f140c468b9b4e4a0a13208d6aba7ad796d2c6dcb77af4d45a51127a68c16",
+  "planHash": "4121217f6bea9f47867a4d711913a74c9befee9c7d2e4548ebd2cd561f5d6722",
+  "entryHash": "cf038d2a5982a237e74e8717ba2e7abd0e23e3243b375d27f330c41a16e51291",
+  "baseSha": "e836cf38d7b6ce99a254e43bd349a47304db8183",
+  "node": "v24.19.0",
+  "realModelHttp": 0,
+  "publicGets": 0,
+  "states": {
+    "v1-regression": {
+      "scope": "manual-goal-console-v1",
+      "requests": 29,
+      "cases": [
+        {
+          "id": "M1",
+          "at": "2026-10-26T09:02:01.472Z",
+          "finished": "2026-10-26T09:02:03.780Z",
+          "statePass": true,
+          "previousReviewedAt": "2026-10-26T09:02:08.207Z"
+        },
+        {
+          "id": "M2",
+          "at": "2026-10-26T09:02:08.208Z",
+          "finished": "2026-10-26T09:02:10.497Z",
+          "statePass": true,
+          "previousReviewedAt": "2026-10-26T09:02:13.586Z"
+        },
+        {
+          "id": "M3",
+          "at": "2026-10-26T09:02:13.586Z",
+          "finished": "2026-10-26T09:02:14.957Z",
+          "statePass": true,
+          "previousReviewedAt": "2026-10-26T09:02:16.948Z"
+        },
+        {
+          "id": "M4",
+          "at": "2026-10-26T09:02:16.948Z",
+          "finished": "2026-10-26T09:02:18.590Z",
+          "statePass": true,
+          "previousReviewedAt": "2026-10-26T09:02:20.511Z"
+        },
+        {
+          "id": "M5",
+          "at": "2026-10-26T09:02:20.512Z",
+          "finished": "2026-10-26T09:02:21.332Z",
+          "statePass": true,
+          "previousReviewedAt": "2026-10-26T09:02:23.274Z"
+        },
+        {
+          "id": "M6",
+          "at": "2026-10-26T09:02:23.275Z",
+          "finished": "2026-10-26T09:02:24.063Z",
+          "statePass": true,
+          "previousReviewedAt": "2026-10-26T09:02:25.951Z"
+        },
+        {
+          "id": "M7",
+          "at": "2026-10-26T09:02:25.951Z",
+          "finished": "2026-10-26T09:02:27.508Z",
+          "statePass": true,
+          "previousReviewedAt": "2026-10-26T09:02:29.375Z"
+        },
+        {
+          "id": "M8",
+          "at": "2026-10-26T09:02:29.375Z",
+          "finished": "2026-10-26T09:02:30.215Z",
+          "statePass": true,
+          "previousReviewedAt": "2026-10-26T09:02:32.051Z"
+        },
+        {
+          "id": "M9",
+          "at": "2026-10-26T09:02:32.051Z",
+          "finished": "2026-10-26T09:02:32.760Z",
+          "statePass": true
+        }
+      ],
+      "halted": null,
+      "goalStatus": "completed",
+      "executionCount": 3,
+      "integrity": "ok",
+      "foreignKeys": 0,
+      "unexpectedCounts": {
+        "tasks": 0,
+        "memory_candidates": 0,
+        "memory_formation_jobs": 0,
+        "goal_policies": 0,
+        "goal_grants": 0,
+        "goal_observations": 0,
+        "goal_notifications": 0,
+        "web_read_calls": 0,
+        "feishu_messages": 0
+      },
+      "receiptCount": 9,
+      "sessionUserCount": 9,
+      "reviews": {},
+      "sourceHashMatches": true
+    },
+    "v2-continue": {
+      "scope": "manual-goal-console-v2",
+      "requests": 29,
+      "cases": [
+        {
+          "id": "M1",
+          "at": "2026-10-26T09:02:59.537Z",
+          "finished": "2026-10-26T09:03:00.951Z",
+          "statePass": true,
+          "previousReviewedAt": "2026-10-26T09:03:02.473Z"
+        },
+        {
+          "id": "M2",
+          "at": "2026-10-26T09:03:02.473Z",
+          "finished": "2026-10-26T09:03:03.093Z",
+          "statePass": true,
+          "previousReviewedAt": "2026-10-26T09:03:04.650Z"
+        },
+        {
+          "id": "M3",
+          "at": "2026-10-26T09:03:04.650Z",
+          "finished": "2026-10-26T09:03:05.253Z",
+          "statePass": true,
+          "previousReviewedAt": "2026-10-26T09:03:08.327Z"
+        },
+        {
+          "id": "M4",
+          "at": "2026-10-26T09:03:08.327Z",
+          "finished": "2026-10-26T09:03:09.718Z",
+          "statePass": true,
+          "previousReviewedAt": "2026-10-26T09:03:11.264Z"
+        },
+        {
+          "id": "M5",
+          "at": "2026-10-26T09:03:11.264Z",
+          "finished": "2026-10-26T09:03:11.887Z",
+          "statePass": true,
+          "previousReviewedAt": "2026-10-26T09:03:13.443Z"
+        },
+        {
+          "id": "M6",
+          "at": "2026-10-26T09:03:13.444Z",
+          "finished": "2026-10-26T09:03:14.069Z",
+          "statePass": true,
+          "previousReviewedAt": "2026-10-26T09:03:15.722Z"
+        },
+        {
+          "id": "M7",
+          "at": "2026-10-26T09:03:15.722Z",
+          "finished": "2026-10-26T09:03:17.104Z",
+          "statePass": true,
+          "previousReviewedAt": "2026-10-26T09:03:18.682Z"
+        },
+        {
+          "id": "M8",
+          "at": "2026-10-26T09:03:18.683Z",
+          "finished": "2026-10-26T09:03:19.310Z",
+          "statePass": true,
+          "previousReviewedAt": "2026-10-26T09:03:20.918Z"
+        },
+        {
+          "id": "M9",
+          "at": "2026-10-26T09:03:20.918Z",
+          "finished": "2026-10-26T09:03:21.544Z",
+          "statePass": true
+        }
+      ],
+      "halted": null,
+      "goalStatus": "completed",
+      "executionCount": 3,
+      "integrity": "ok",
+      "foreignKeys": 0,
+      "unexpectedCounts": {
+        "tasks": 0,
+        "memory_candidates": 0,
+        "memory_formation_jobs": 0,
+        "goal_policies": 0,
+        "goal_grants": 0,
+        "goal_observations": 0,
+        "goal_notifications": 0,
+        "web_read_calls": 0,
+        "feishu_messages": 0
+      },
+      "receiptCount": 9,
+      "sessionUserCount": 9,
+      "reviews": {
+        "M1-review.json": {
+          "caseId": "M1",
+          "foregroundRunId": "39c4b763-9d9e-4bfa-acb6-dd1af73aa6fd",
+          "auditHash": "b0f2e61cbb8d9e89923ad6caf95aabdef9c105f6dd145a186d16a2a3ce404e4d",
+          "humanReviewed": true,
+          "modelSemanticPass": true,
+          "hostAuthorizationPass": true,
+          "userVisibleResultPass": true,
+          "persistencePass": true,
+          "safetyPass": true
+        },
+        "M2-review.json": {
+          "caseId": "M2",
+          "foregroundRunId": "c143cba3-c9b6-425e-a8d8-68ff64c989aa",
+          "auditHash": "d2d62f8bb9a49da75eb9dcf536bc963820b987aed158bd1f5453ad84f7274691",
+          "humanReviewed": true,
+          "modelSemanticPass": true,
+          "hostAuthorizationPass": true,
+          "userVisibleResultPass": true,
+          "persistencePass": true,
+          "safetyPass": true
+        },
+        "M3-review.json": {
+          "caseId": "M3",
+          "foregroundRunId": "89093fa3-e648-4459-b801-5733421bc003",
+          "auditHash": "0aba31e717dce3bf937136238ffece400df09b8d25f1b267736d3f8cfa072b02",
+          "humanReviewed": true,
+          "modelSemanticPass": false,
+          "hostAuthorizationPass": true,
+          "userVisibleResultPass": true,
+          "persistencePass": true,
+          "safetyPass": true
+        },
+        "M4-review.json": {
+          "caseId": "M4",
+          "foregroundRunId": "b3730de2-008e-4ae8-8ab6-93bef27c05f8",
+          "auditHash": "100a3d33663c957d290a9da0dd6351a7522c4d321524f494407bbef228167f15",
+          "humanReviewed": true,
+          "modelSemanticPass": true,
+          "hostAuthorizationPass": true,
+          "userVisibleResultPass": true,
+          "persistencePass": true,
+          "safetyPass": true
+        },
+        "M5-review.json": {
+          "caseId": "M5",
+          "foregroundRunId": "0940e540-40f1-48d0-a798-2ce6a57b6f12",
+          "auditHash": "d8337167e547f690277f5005aded92e40b13607367e3a4c461c057adec5d74e2",
+          "humanReviewed": true,
+          "modelSemanticPass": true,
+          "hostAuthorizationPass": true,
+          "userVisibleResultPass": true,
+          "persistencePass": true,
+          "safetyPass": true
+        },
+        "M6-review.json": {
+          "caseId": "M6",
+          "foregroundRunId": "0421a582-ab21-41e0-960c-44c960d55b61",
+          "auditHash": "66e3055b89f69447e5b2546cd353ad23ecdd4e4a0ee51ceb849fd1aa4c206106",
+          "humanReviewed": true,
+          "modelSemanticPass": true,
+          "hostAuthorizationPass": true,
+          "userVisibleResultPass": true,
+          "persistencePass": true,
+          "safetyPass": true
+        },
+        "M7-review.json": {
+          "caseId": "M7",
+          "foregroundRunId": "ac7916b8-d9b4-49f0-ab6f-6d74fc6ab43d",
+          "auditHash": "e2dd288772a3adf912e4ccd7189f196d77aaab3fad302f3af56d17faac226e1f",
+          "humanReviewed": true,
+          "modelSemanticPass": true,
+          "hostAuthorizationPass": true,
+          "userVisibleResultPass": true,
+          "persistencePass": true,
+          "safetyPass": true
+        },
+        "M8-review.json": {
+          "caseId": "M8",
+          "foregroundRunId": "93ecbeb0-3df7-4822-8d2c-3f501704fa45",
+          "auditHash": "f59e7e86e5eaf17b39542b7301ae37980a274947608b21699a43b9985bb82a9a",
+          "humanReviewed": true,
+          "modelSemanticPass": true,
+          "hostAuthorizationPass": true,
+          "userVisibleResultPass": true,
+          "persistencePass": true,
+          "safetyPass": true
+        }
+      },
+      "sourceHashMatches": true
+    },
+    "v2-stop": {
+      "scope": "manual-goal-console-v2",
+      "requests": 9,
+      "cases": [
+        {
+          "id": "M1",
+          "at": "2026-10-26T09:03:23.081Z",
+          "finished": "2026-10-26T09:03:24.488Z",
+          "statePass": true,
+          "previousReviewedAt": "2026-10-26T09:03:26.014Z"
+        },
+        {
+          "id": "M2",
+          "at": "2026-10-26T09:03:26.014Z",
+          "finished": "2026-10-26T09:03:26.645Z",
+          "statePass": true,
+          "previousReviewedAt": "2026-10-26T09:03:28.229Z"
+        },
+        {
+          "id": "M3",
+          "at": "2026-10-26T09:03:28.230Z",
+          "finished": "2026-10-26T09:03:28.897Z",
+          "statePass": true
+        }
+      ],
+      "halted": "manual_review_failed",
+      "goalStatus": "waiting_user",
+      "executionCount": 1,
+      "integrity": "ok",
+      "foreignKeys": 0,
+      "unexpectedCounts": {
+        "tasks": 0,
+        "memory_candidates": 0,
+        "memory_formation_jobs": 0,
+        "goal_policies": 0,
+        "goal_grants": 0,
+        "goal_observations": 0,
+        "goal_notifications": 0,
+        "web_read_calls": 0,
+        "feishu_messages": 0
+      },
+      "receiptCount": 3,
+      "sessionUserCount": 3,
+      "reviews": {
+        "M1-review.json": {
+          "caseId": "M1",
+          "foregroundRunId": "0f44ca81-51fb-4496-b4c5-376330008f2e",
+          "auditHash": "bebc4f863ff25170e031c69f1781e5d993e0e0a89b9c05c9560621f31c247aba",
+          "humanReviewed": true,
+          "modelSemanticPass": true,
+          "hostAuthorizationPass": true,
+          "userVisibleResultPass": true,
+          "persistencePass": true,
+          "safetyPass": true
+        },
+        "M2-review.json": {
+          "caseId": "M2",
+          "foregroundRunId": "d224f1ab-3b80-466a-96ab-6380d4713a08",
+          "auditHash": "4336f8246dec6370d55d02d0e730470da191e7306cc055ca39784a06901f4096",
+          "humanReviewed": true,
+          "modelSemanticPass": true,
+          "hostAuthorizationPass": true,
+          "userVisibleResultPass": true,
+          "persistencePass": true,
+          "safetyPass": true
+        },
+        "M3-review.json": {
+          "caseId": "M3",
+          "foregroundRunId": "4c8c2c21-8b9f-49c8-93a4-f70f66d5a4b1",
+          "auditHash": "752a5a92e0a940df8f2c8f7e3ba088d5d22acb67e29b5ad72e5debae48e0cc6a",
+          "humanReviewed": true,
+          "modelSemanticPass": false,
+          "hostAuthorizationPass": true,
+          "userVisibleResultPass": false,
+          "persistencePass": true,
+          "safetyPass": true
+        }
+      },
+      "sourceHashMatches": true
+    }
+  },
+  "gates": {
+    "typecheck": {
+      "exitCode": 0,
+      "elapsedSeconds": 3.063,
+      "command": [
+        "C:/Users/Dongr/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node.exe",
+        "E:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
+        "run",
+        "typecheck"
+      ]
+    },
+    "build": {
+      "exitCode": 0,
+      "elapsedSeconds": 1.594,
+      "command": [
+        "C:/Users/Dongr/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node.exe",
+        "E:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
+        "run",
+        "build"
+      ]
+    },
+    "test": {
+      "exitCode": 0,
+      "elapsedSeconds": 108.5,
+      "command": [
+        "C:/Users/Dongr/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node.exe",
+        "E:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
+        "test"
+      ]
+    },
+    "eval-memory": {
+      "exitCode": 0,
+      "elapsedSeconds": 2.516,
+      "command": [
+        "C:/Users/Dongr/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node.exe",
+        "E:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
+        "run",
+        "eval:memory"
+      ]
+    },
+    "eval-formation": {
+      "exitCode": 0,
+      "elapsedSeconds": 4.406,
+      "command": [
+        "C:/Users/Dongr/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node.exe",
+        "E:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
+        "run",
+        "eval:formation",
+        "--",
+        "--output=E:\\AgentWork\\validation\\personal-agent-m3-state-offline-20261026\\formation-final.json"
+      ]
+    }
+  },
+  "red": {
+    "exitCode": 1,
+    "productSourceStillBaseline": true
+  },
+  "tests": {
+    "total": 503,
+    "passed": 500,
+    "failed": 0,
+    "skipped": 3
+  },
+  "contextAnalysis": {
+    "request-08.json": {
+      "sha256": "b1a21bcea25591dfc6f0ce588197b79db23334fba2cb0a85e2c5ee2ea3417848",
+      "messageCount": 12,
+      "matches": {
+        "批准后我将执行第一步": [],
+        "全程只使用你给出的虚构资料，即": [],
+        "确认后才会进入正式执行阶段": [
+          {
+            "index": 9,
+            "role": "assistant"
+          }
+        ],
+        "ready仅表示排队": [
+          {
+            "index": 0,
+            "role": "system"
+          }
+        ],
+        "当前Step执行：未领取": [
+          {
+            "index": 3,
+            "role": "tool"
+          },
+          {
+            "index": 5,
+            "role": "user"
+          }
+        ],
+        "正式步骤还在排队等待执行": []
+      }
+    },
+    "request-09.json": {
+      "sha256": "451bf27ecec98d51bb504c4c71f558d5c0bbeb4c655cea73a4c9257914332963",
+      "messageCount": 14,
+      "matches": {
+        "批准后我将执行第一步": [],
+        "全程只使用你给出的虚构资料，即": [],
+        "确认后才会进入正式执行阶段": [
+          {
+            "index": 9,
+            "role": "assistant"
+          }
+        ],
+        "ready仅表示排队": [
+          {
+            "index": 0,
+            "role": "system"
+          }
+        ],
+        "当前Step执行：未领取": [
+          {
+            "index": 3,
+            "role": "tool"
+          },
+          {
+            "index": 5,
+            "role": "user"
+          },
+          {
+            "index": 13,
+            "role": "tool"
+          }
+        ],
+        "正式步骤还在排队等待执行": []
+      }
+    }
+  },
+  "preservation": {
+    "checkedAtUtc": "2026-10-26T09:06:28.493439+00:00",
+    "historicalFilesUnchanged": 489,
+    "otherWorktreesUnchanged": [
+      {
+        "path": "E:\\AgentWork\\MacImport-20261021\\projects\\MacHome\\code\\Persistent Personal Agent",
+        "unchanged": true
+      },
+      {
+        "path": "C:\\Users\\Dongr\\.codex\\worktrees\\a2-b1-offline-fix\\Persistent Personal Agent",
+        "unchanged": true
+      },
+      {
+        "path": "C:\\Users\\Dongr\\.codex\\worktrees\\console-offline-fix\\Persistent Personal Agent",
+        "unchanged": true
+      },
+      {
+        "path": "C:\\Users\\Dongr\\.codex\\worktrees\\independent-console-prep\\Persistent Personal Agent",
+        "unchanged": true
+      },
+      {
+        "path": "C:\\Users\\Dongr\\.codex\\worktrees\\staged-console-prep\\Persistent Personal Agent",
+        "unchanged": true
+      },
+      {
+        "path": "C:\\Users\\Dongr\\.codex\\worktrees\\v3-proactive\\Persistent Personal Agent",
+        "unchanged": true
+      },
+      {
+        "path": "C:\\Users\\Dongr\\.codex\\worktrees\\natural-pause-prep\\Persistent Personal Agent",
+        "unchanged": true
+      },
+      {
+        "path": "C:/Users/Dongr/.codex/worktrees/windows-rc-release/Persistent Personal Agent",
+        "unchanged": true
+      }
+    ],
+    "mainLocalHead": "c604565ca507ad9fe14e1cadf945918d14a92668",
+    "originMainLocalRef": "fdf3a069ca15847ab95f51c1ed39cd898d76c44f",
+    "currentHead": "e836cf38d7b6ce99a254e43bd349a47304db8183",
+    "realModelHttp": 0,
+    "publicGets": 0,
+    "formalEnvRead": false
+  },
+  "platforms": {
+    "windows": "executed, 3 existing skips",
+    "linux": "Docker engine unavailable, WSL docker-desktop stopped; not run",
+    "mac": "not available; not run"
+  },
+  "historicalLiveVerdictsUnchanged": true,
+  "realModelUnderstandingImproved": "unverified",
+  "gitCommitCreated": false,
+  "gitPushPerformed": false,
+  "v2ScoringProof": {
+    "mechanicalLifecycleCompleted": true,
+    "overallAllDimensionsPass": false,
+    "M3ModelSemanticPass": false,
+    "M3OtherFourDimensionsPass": true,
+    "M4AllowedAfterHumanReview": true,
+    "storedPreviousOverallPass": false,
+    "realModelQualityVerified": false,
+    "finalCaseHumanReviewRequiredByPlan": true
+  }
+}

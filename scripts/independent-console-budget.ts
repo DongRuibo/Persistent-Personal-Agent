@@ -8,7 +8,7 @@ import type { Group } from './independent-console-cases.js';
 export const digest = (value: string | Buffer): string => createHash('sha256').update(value).digest('hex');
 export interface IndependentProfile extends AcceptanceProfile { casesHash: string; nodeVersion: string; cacheReadRate: number; extraFeesCny: 0 }
 export interface IndependentDefinition {
-  scope: 'independent-prs-console-v1' | 'natural-pause-console-v1' | 'manual-goal-console-v1';
+  scope: 'independent-prs-console-v1' | 'natural-pause-console-v1' | 'manual-goal-console-v1' | 'manual-goal-console-v2';
   limits: { requests: number; microCny: number; bodyBytes: number; outputTokens: number; publicGets: 0 };
   groups: Partial<Record<Group, { requests: number; microCny: number }>>;
   cases: Record<string, { group: Group; expected: number; max: number; goal: boolean; prompt: string }>;

@@ -12,8 +12,9 @@ import { independentAudit, manualGoalState } from '../scripts/independent-consol
 import { stagedModel } from '../scripts/staged-console-cases.js';
 import { content, reply, toolCall } from './helpers/skills-fixture.js';
 import type { Payload } from './helpers/skills-fixture.js';
+import { digest } from '../scripts/independent-console-budget.js';
 
-test('M普通stdin→原Console/Pi/SQLite：完整生命周期、正常重启、严格输入/TTL与断连不重发', async () => {
+for (const version of [1, 2, 3]) test(`M ${version === 3 ? 'v2停止' : 'v' + version}普通stdin→原Console/Pi/SQLite：完整生命周期、重启及评分边界`, async () => {
   const parent = mkdtempSync(join(tmpdir(), 'manual-console-')), root = join(parent, 'round');
   const preload = join(parent, 'mock-fetch.mjs'), expired = join(parent, 'clock-expired.mjs');
   const payloads: Payload[] = [], errors: unknown[] = [];
@@ -51,6 +52,14 @@ test('M普通stdin→原Console/Pi/SQLite：完整生命周期、正常重启、
         progressSummary: feedback ? '用户回答已点评，当前Step完成' : '已出题，等待回答', question: feedback ? '请确认Goal达成' : '宿主与Pi的职责如何区分？' }))); return;
       }
       const at = p.messages.findLastIndex(m => m.role === 'user');
+      if (version !== 1 && p.messages.slice(at + 1).some(m => m.role === 'tool') && user.endsWith('\n确认')) {
+        const wrong = JSON.parse(readFileSync('tests/fixtures/manual-m3-approved-not-queued.json', 'utf8')).wrongChatReply;
+        res.end(reply(wrong)); return;
+      }
+      if (version !== 1 && user.endsWith(manualGoalCases.M4.prompt)) {
+        assert.ok(JSON.stringify(p.messages).includes('正式步骤还在排队等待执行'), '保留原始错误上下文以继续观察');
+        assert.ok(JSON.stringify(p.messages).includes('当前Step尚未排队或执行'), '同一Session有权威纠正，不复制后台Session');
+      }
       res.end(p.messages.slice(at + 1).some(m => m.role === 'tool') ? reply('仅解释本次宿主状态，不编造后台成果。') : toolCall('goal_manage', {}));
     } catch (error) { errors.push(error); res.end(reply('offline fixture failed')); }
   });
@@ -62,7 +71,7 @@ test('M普通stdin→原Console/Pi/SQLite：完整生命周期、正常重启、
   const checkedAt = new Date().toISOString();
   async function cli(id: keyof typeof manualGoalCases, target = root, code = 0, input = manualGoalCases[id].prompt + '\n', clock = false, late = false) {
     const child = spawn(process.execPath, ['--import', 'tsx', '--import', pathToFileURL(preload).href, ...(clock ? ['--import', pathToFileURL(expired).href] : []),
-      'scripts/manual-goal-console-acceptance.ts', '--authorized', '--rates-confirmed', '--case=' + id, '--root=' + target,
+      version !== 1 ? 'scripts/manual-goal-console-v2-acceptance.ts' : 'scripts/manual-goal-console-acceptance.ts', '--authorized', '--rates-confirmed', '--case=' + id, '--root=' + target,
       ...(id !== 'M1' ? ['--resume', '--previous-reviewed'] : [])], { windowsHide: true, stdio: ['pipe', 'pipe', 'pipe'], env: {
       PATH: process.env.PATH, SystemRoot: process.env.SystemRoot, LLM_API_KEY: 'offline-manual-only-key', LLM_MODEL: stagedModel.model,
       LLM_BASE_URL: 'https://api.siliconflow.cn/v1', LLM_PROVIDER: 'personal-compatible', ACCEPTANCE_INPUT_RATE: '2', ACCEPTANCE_OUTPUT_RATE: '8',
@@ -78,6 +87,17 @@ test('M普通stdin→原Console/Pi/SQLite：完整生命周期、正常重启、
     console.log(JSON.stringify({ offlineManualRoot: root }));
     let previous: ReturnType<typeof independentAudit> | undefined;
     for (const id of Object.keys(manualGoalCases) as (keyof typeof manualGoalCases)[]) {
+      if (version !== 1 && id !== 'M1') {
+        const priorId = 'M' + (Number(id.slice(1)) - 1), file = join(root, 'P', priorId + '-audit.json');
+        if (id === 'M4') {
+          const n = payloads.length; const output = await cli(id, root, 1);
+          assert.match(output, /尚无人工五维评分/); assert.equal(payloads.length, n, '未评审不发送下一条');
+        }
+        const audit = JSON.parse(readFileSync(file, 'utf8'));
+        writeFileSync(join(root, 'P', priorId + '-review.json'), JSON.stringify({ caseId: priorId,
+          foregroundRunId: audit.after.foreground.at(-1).id, auditHash: digest(readFileSync(file)), humanReviewed: true,
+          modelSemanticPass: priorId !== 'M3', hostAuthorizationPass: true, userVisibleResultPass: true, persistencePass: true, safetyPass: true }));
+      }
       await cli(id); const a = independentAudit(join(root, 'P'));
       assert.equal(manualGoalState(id, a), true, id); assert.equal(a.receipts.length, Number(id.slice(1)));
       assert.deepEqual(Object.values(a.counts), Object.values(a.counts).map(() => 0));
@@ -85,6 +105,16 @@ test('M普通stdin→原Console/Pi/SQLite：完整生命周期、正常重启、
       if (id === 'M5') { assert.deepEqual(a.executions, previous!.executions); assert.deepEqual(a.plans, previous!.plans); }
       if (['M6', 'M9'].includes(id)) { assert.deepEqual(a.executions, previous!.executions); assert.deepEqual(a.steps, previous!.steps); }
       if (id === 'M7') assert.equal(JSON.parse(String(a.executions[2]!.inputJson)).authorization.text, manualGoalCases.M7.prompt);
+      if (version === 3 && id === 'M3') {
+        const file = join(root, 'P/M3-audit.json'), n = payloads.length;
+        writeFileSync(join(root, 'P/M3-review.json'), JSON.stringify({ caseId: 'M3', foregroundRunId: a.foreground.at(-1)!.id,
+          auditHash: digest(readFileSync(file)), humanReviewed: true, modelSemanticPass: false, hostAuthorizationPass: true,
+          userVisibleResultPass: false, persistencePass: true, safetyPass: true }));
+        const output = await cli('M4', root, 1); assert.match(output, /评分失败/); assert.equal(payloads.length, n);
+        assert.deepEqual(independentAudit(join(root, 'P')), a, '用户可见结果评分失败不改变业务状态或Session');
+        assert.equal(JSON.parse(readFileSync(join(root, 'independent-budget.json'), 'utf8')).halted, 'manual_review_failed');
+        assert.deepEqual(errors, []); return;
+      }
       if (['M2', 'M5', 'M8'].includes(id)) {
         const stale = structuredClone(a); stale.references!.goalView!.expires = Date.now() - 1; assert.equal(manualGoalState(id, stale), false);
       }
@@ -93,6 +123,14 @@ test('M普通stdin→原Console/Pi/SQLite：完整生命周期、正常重启、
     assert.equal(payloads.length, 29); const finished = independentAudit(join(root, 'P')); assert.equal(finished.goals[0]!.status, 'completed');
     assert.equal(finished.executions.length, 3); assert.equal(finished.sessionUserCount, 9);
     const ledger = JSON.parse(readFileSync(join(root, 'independent-budget.json'), 'utf8')); assert.equal(ledger.cases.length, 9); assert.equal(ledger.attempts.length, 29);
+    if (version === 2) {
+      const review = JSON.parse(readFileSync(join(root, 'P/M3-review.json'), 'utf8'));
+      assert.equal(review.modelSemanticPass, false, '不把模型失败自动改判');
+      const continued = JSON.parse(readFileSync(join(root, 'P/M4-audit.json'), 'utf8'));
+      assert.equal(continued.previousReview.overallPass, false); assert.equal(continued.previousReview.mayContinue, true);
+      assert.equal(continued.foregroundDelivered, true); assert.equal(ledger.scope, 'manual-goal-console-v2');
+      assert.deepEqual(errors, []); return;
+    }
     const n = payloads.length; await cli('M9', root, 1); assert.equal(payloads.length, n, '已消费操作不重发');
 
     mode = 'partial'; const partial = join(parent, 'partial'); await cli('M1', partial, 1);

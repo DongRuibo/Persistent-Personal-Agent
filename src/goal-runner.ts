@@ -73,6 +73,9 @@ export function renderGoalState(view: GoalView): string {
   const current = view.steps.find(step => step.id === goal.currentStepId);
   const attempt = view.executions.findLast(item => item.execution.planRevision === goal.planRevision && item.execution.stepId === goal.currentStepId);
   lines.push(`当前Step：${goal.currentStepId ?? '无待执行Step'}（Plan v${goal.planRevision}；步骤状态=${current?.status ?? '无'}）${goal.readyInput ? '；已排队，等待领取一个片段，本次排队不代表新成果已提交' : ''}。`);
+  if (goal.planRevision > 0 && goal.status === 'waiting_user' && !goal.readyInput && current?.status === 'pending' && !attempt) {
+    lines.push('正式计划已批准，但当前Step尚未排队或执行。必须由用户再次明确要求继续，宿主授权后才可领取正式片段。');
+  }
   if (attempt) lines.push(`当前Step执行：${attempt.execution.status}（Plan v${attempt.execution.planRevision}；Step=${attempt.execution.stepId}；Run=${attempt.run.id}；Run状态=${attempt.run.status}；提交：${attempt.execution.checkpoint ? 'committed' : '未提交'}；投递：${attempt.delivery ?? 'unconfirmed'}）。`);
   else lines.push(`当前Step执行：${goal.currentStepId ? '未领取' : '无待执行Step'}；不得据此生成或宣称新的正式题目、点评已交付。`);
   if (checkpoint) {

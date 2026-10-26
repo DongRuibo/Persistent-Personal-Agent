@@ -15,6 +15,7 @@ import { groupSkills } from './independent-console-cases.js';
 import type { Group, IndependentCase } from './independent-console-cases.js';
 import { naturalPauseCases, naturalPauseDefinition } from './natural-pause-console-cases.js';
 import { manualGoalCases, manualGoalDefinition } from './manual-goal-console-cases.js';
+import { manualGoalV2Definition, readManualGoalReview } from './manual-goal-console-review.js';
 
 type Session = ReturnType<typeof openIndependent>;
 type Row = Record<string, unknown>;
@@ -176,17 +177,17 @@ function noLinks(root: string): void {
   if (fs.lstatSync(root).isSymbolicLink()) throw new Error('本轮目录禁止链接/junction');
   if (fs.statSync(root).isDirectory()) for (const p of fs.readdirSync(root)) noLinks(join(root, p));
 }
-export async function startIndependent(mode: boolean | 'manual-goal' = false) {
-  const manual = mode === 'manual-goal', pauseOnly = mode === true;
-  const definition = manual ? manualGoalDefinition : pauseOnly ? naturalPauseDefinition : independentDefinition, { cases, limits, groups } = definition;
+export async function startIndependent(mode: boolean | 'manual-goal' | 'manual-goal-v2' = false) {
+  const manualV2 = mode === 'manual-goal-v2', manual = mode === 'manual-goal' || manualV2, pauseOnly = mode === true;
+  const definition = manualV2 ? manualGoalV2Definition : manual ? manualGoalDefinition : pauseOnly ? naturalPauseDefinition : independentDefinition, { cases, limits, groups } = definition;
   const args = process.argv.slice(2), root = args.find(a => a.startsWith('--root='))?.slice(7), id = args.find(a => a.startsWith('--case='))?.slice(7) ?? '';
   if (!args.includes('--authorized') || !args.includes('--rates-confirmed') || !root || !Object.hasOwn(cases, id)
     || args.some(a => !['--authorized', '--rates-confirmed', '--resume', '--previous-reviewed'].includes(a) && !a.startsWith('--root=') && !a.startsWith('--case='))) throw new Error(manual ? '仅离线准备；须另行批准手动Goal M1至M9、40请求/6.60元/零GET' : pauseOnly ? '仅准备未授权执行；须单独批准自然暂停N1/N2/N3、14请求/2.31元/零GET' : '仅准备未授权执行；须单独批准P/R/S六Case、30请求/5元/零GET');
   const key = process.env.LLM_API_KEY;
   if (!key || process.env.LLM_MODEL !== stagedModel.model || process.env.LLM_BASE_URL !== 'https://api.siliconflow.cn/v1' || process.env.LLM_PROVIDER !== 'personal-compatible'
     || process.env.ACCEPTANCE_EXTRA_FEES_CNY !== '0' || !process.env.ACCEPTANCE_CACHE_READ_RATE) throw new Error('模型、端点、账号价格及无附加费须重新确认并安全注入，不读.env');
-  const plan = resolve(manual ? 'docs/evaluations/manual-goal-console-live-plan.md' : pauseOnly ? 'docs/evaluations/natural-pause-console-live-plan.md' : 'docs/evaluations/independent-console-live-plan.md');
-  const entry = manual ? resolve('scripts/manual-goal-console-acceptance.ts') : pauseOnly ? resolve('scripts/natural-pause-console-acceptance.ts') : fileURLToPath(import.meta.url);
+  const plan = resolve(manualV2 ? 'docs/evaluations/manual-goal-console-v2-live-plan.md' : manual ? 'docs/evaluations/manual-goal-console-live-plan.md' : pauseOnly ? 'docs/evaluations/natural-pause-console-live-plan.md' : 'docs/evaluations/independent-console-live-plan.md');
+  const entry = manualV2 ? resolve('scripts/manual-goal-console-v2-acceptance.ts') : manual ? resolve('scripts/manual-goal-console-acceptance.ts') : pauseOnly ? resolve('scripts/natural-pause-console-acceptance.ts') : fileURLToPath(import.meta.url);
   const paths = ['package-lock.json', ...['src', 'scripts'].flatMap(dir => fs.readdirSync(dir).filter(n => n.endsWith('.ts')).map(n => join(dir, n))), ...['agent-notes', 'interview-practice'].map(n => join('skills', n, 'SKILL.md'))].sort();
   const profile: IndependentProfile = { ...stagedModel, inputRate: Number(process.env.ACCEPTANCE_INPUT_RATE), outputRate: Number(process.env.ACCEPTANCE_OUTPUT_RATE),
     checkedAt: process.env.ACCEPTANCE_PRICE_CHECKED_AT ?? '', cacheReadRate: Number(process.env.ACCEPTANCE_CACHE_READ_RATE), extraFeesCny: 0,
@@ -222,6 +223,12 @@ export async function startIndependent(mode: boolean | 'manual-goal' = false) {
     if (id === 'P3' && (!validIndependentView(before, Date.now(), String(before.foreground.at(-1)?.id)) || !independentState('P2', before))) throw new CaseBlocked('P2视图失效或超期，停止P组，不补发查看');
     if (id === 'P2' && !independentState('P1', before) || id === 'R2' && !independentState('R1', before)) throw new CaseBlocked('本组真实持久前置缺失');
     if (pauseOnly && (id === 'N2' && !naturalPauseState('N1', before) || id === 'N3' && !naturalPauseState('N2', before))) throw new CaseBlocked('自然暂停前置目标或N2有效视图缺失；不刷新、不补答');
+    const previousManual = manual ? Object.keys(manualGoalCases)[Object.keys(manualGoalCases).indexOf(id) - 1] : undefined;
+    const previousReview = manualV2 && previousManual ? readManualGoalReview(data, previousManual, String(before.foreground.at(-1)?.id)) : undefined;
+    if (previousReview && !previousReview.mayContinue) {
+      session.halt('manual_review_failed');
+      throw new CaseBlocked('前一Case宿主、用户可见结果、持久化或安全评分失败；停止后续');
+    }
     if (manual) {
       // 仅将一条逐字匹配的stdin交给原Console。第二条输入从不进入产品队列。
       const source = process.stdin; source.setEncoding('utf8');
@@ -249,8 +256,7 @@ export async function startIndependent(mode: boolean | 'manual-goal' = false) {
         detachInput = () => { source.off('data', onData); source.off('end', onEnd); source.off('error', fail); source.destroy(); };
         source.resume();
       });
-      const previous = Object.keys(manualGoalCases)[Object.keys(manualGoalCases).indexOf(id) - 1];
-      if (previous && !manualGoalState(previous, before)) throw new CaseBlocked('手动Goal持久前置或5分钟视图失效；不刷新、不补答');
+      if (previousManual && !manualGoalState(previousManual, before)) throw new CaseBlocked('手动Goal持久前置或5分钟视图失效；不刷新、不补答');
     }
     session.begin(id, args.includes('--previous-reviewed'));
     const input = new PassThrough(), nativeInput = Object.getOwnPropertyDescriptor(process, 'stdin')!;
@@ -282,7 +288,9 @@ export async function startIndependent(mode: boolean | 'manual-goal' = false) {
       input.write(spec.prompt + '\n'); await main();
       const after = independentAudit(data); healthy(data, group, after, manual);
       if (process.exitCode || session.budget.ledger.halted) throw new Error('共同进程或传输安全故障，禁止继续');
-      const statePass = manual ? manualGoalState(id, after) : pauseOnly ? naturalPauseState(id, after) : independentState(id as IndependentCase, after), routingObserved = after.events.some(e => e.runId === after.foreground.at(-1)?.id && e.type === 'skill_activated' && JSON.parse(String(e.details)).id === 'agent-notes');
+      const foreground = after.foreground.at(-1);
+      const foregroundDelivered = !!foreground && !foreground.deliveryError && after.events.some(e => e.runId === foreground.id && e.type === 'delivery_succeeded');
+      const statePass = (manual ? manualGoalState(id, after) : pauseOnly ? naturalPauseState(id, after) : independentState(id as IndependentCase, after)) && (!manualV2 || foregroundDelivered), routingObserved = after.events.some(e => e.runId === after.foreground.at(-1)?.id && e.type === 'skill_activated' && JSON.parse(String(e.details)).id === 'agent-notes');
       if (manual && before.goals.length) {
         if (before.goals[0]?.id !== after.goals[0]?.id || before.plans.some((p, i) => JSON.stringify(p) !== JSON.stringify(after.plans[i]))
           || before.executions.some((e, i) => JSON.stringify(e) !== JSON.stringify(after.executions[i]))) throw new Error('旧目标、Plan或Checkpoint被改写');
@@ -302,6 +310,8 @@ export async function startIndependent(mode: boolean | 'manual-goal' = false) {
         ...(pauseOnly ? { planGeneration: { outcome: after.executions[0]?.checkpointJson ? JSON.parse(String(after.executions[0].checkpointJson)).stepOutcome : null,
           pendingDraft: !!after.goals[0]?.pendingActionJson }, pauseResult: id === 'N3' ? statePass : null } : {}),
         ...(manual ? { modelQualityPass: null, rawModelEvidenceRequiresReview: true, sessionResumed: args.includes('--resume') } : {}),
+        ...(manualV2 ? { assessmentVersion: 2, foregroundDelivered, previousReview,
+          scoringDimensions: ['modelSemanticPass', 'hostAuthorizationPass', 'userVisibleResultPass', 'persistencePass', 'safetyPass'] } : {}),
         note: pauseOnly ? '新自然暂停指标不依赖草稿；计划生成与暂停分别记录，机械状态不代替模型语义，不追改旧P1。' : '机械状态/读取指标不代替模型语义；S未read但正确完成用户任务须分别评分，其他组语义失败不影响本组' }, null, 2), { flag: 'wx', mode: 0o600 });
       session.finish(id, statePass); console.log(JSON.stringify({ caseId: id, statePass, routingObserved, modelHttp: session.budget.ledger.attempts.length, reservedMicroCny: session.budget.reserved, publicGets: 0 }));
       if (!statePass) process.exitCode = 1;
