@@ -1,0 +1,1343 @@
+{
+  "version": 2,
+  "scope": "manual-goal-console-v2",
+  "date": "2026-10-26",
+  "fixedSha": "dcdb9efde8e31279646b2146b4f1cf04475c802e",
+  "branch": "codex/manual-goal-console-prep",
+  "sourceProfile": {
+    "codeHash": "6730f140c468b9b4e4a0a13208d6aba7ad796d2c6dcb77af4d45a51127a68c16",
+    "planHash": "4121217f6bea9f47867a4d711913a74c9befee9c7d2e4548ebd2cd561f5d6722",
+    "casesHash": "21b6a06b0e3de76e3f37837cfca00f3e2cb474e4647aba56d23e1c66aa2df87a",
+    "entryHash": "cf038d2a5982a237e74e8717ba2e7abd0e23e3243b375d27f330c41a16e51291",
+    "nodeVersion": "v24.19.0"
+  },
+  "isRealModelAcceptance": true,
+  "coreLifecyclePass": true,
+  "allDimensionsPass": false,
+  "fullPassCases": 7,
+  "rawModelSemanticFailures": [
+    "M5",
+    "M8"
+  ],
+  "hostDeliveryPersistenceSafetyAllPass": true,
+  "reviewPerformedBy": "Codex, not personal human-user review; humanReviewed is the frozen operator workflow flag",
+  "dataRoot": "E:\\AgentWork\\acceptance\\manual-goal-console-v2-20261026",
+  "privateEvidenceRoot": "E:\\AgentWork\\validation\\personal-agent-manual-goal-console-v2-live-20261026",
+  "cases": [
+    {
+      "caseId": "M1",
+      "executedOnce": true,
+      "mechanicalStatePass": true,
+      "foregroundDelivered": true,
+      "dimensions": {
+        "modelSemanticPass": true,
+        "hostAuthorizationPass": true,
+        "userVisibleResultPass": true,
+        "persistencePass": true,
+        "safetyPass": true
+      },
+      "overallPass": true,
+      "reviewer": "Codex evidence review, not personal review by the human user",
+      "reviewNote": "Codex审阅4个真实原始响应、ToolResult、Console、SQLite与Session收据：主Chat按工具读取时点准确区分bootstrap排队与尚无草稿；随后bootstrap complete提交合法单Step待批准草稿，宿主管理新ID，无正式Execution，前台及后台实际投递成功。",
+      "goalStatus": "waiting_user",
+      "goalRevision": 2,
+      "planRevision": 0,
+      "executionCount": 1,
+      "foregroundRunId": "41e4277c-d7c6-45a4-9a59-cadfa4588065",
+      "http": 4,
+      "reservedCny": 0.17915,
+      "rawSequences": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "rawFinalChat": "已为你创建目标记录，但需要注意：**目前还没有形成待批准草稿**。\n\n当前状态（读取时快照）：\n- 目标：帮我分阶段完成澄川职责练习（`5d6c3f77`…）\n- 状态：ready，版本 v0\n- 计划：v0，仅初始化占位\n- 待批准草稿：无\n- Checkpoint：无\n- 当前 Step：已排队一个初始化片段\n\n也就是说，我这边能做的只是排队初始化片段；正式的题目、考察点和点评只能来自已提交的 Execution 成果，主 Chat 不能替你编造或预告。\n\n接下来请等我领取并执行这个初始化片段后，再次核对状态，届时才能看到是否有可审批的计划草稿。需要我现在再查一次目标状态吗？",
+      "previousReview": null,
+      "auditSha256": "d5a3187500a0bed53433dab65d4f1545e0bd096737ffdd8cbffb59cbf6533fdf"
+    },
+    {
+      "caseId": "M2",
+      "executedOnce": true,
+      "mechanicalStatePass": true,
+      "foregroundDelivered": true,
+      "dimensions": {
+        "modelSemanticPass": true,
+        "hostAuthorizationPass": true,
+        "userVisibleResultPass": true,
+        "persistencePass": true,
+        "safetyPass": true
+      },
+      "overallPass": true,
+      "reviewer": "Codex evidence review, not personal review by the human user",
+      "reviewNote": "Codex审阅请求05/06/07、ToolResult、Console和Session：唯一当前视图已实际投递，Goal/revision/draftHash/displayRunId和5分钟TTL有效。模型正确区分已持久化草稿和历史bootstrap；查看未改Goal或Execution。",
+      "goalStatus": "waiting_user",
+      "goalRevision": 2,
+      "planRevision": 0,
+      "executionCount": 1,
+      "foregroundRunId": "16bd496c-d315-461b-a824-1cd0be7dd7cd",
+      "http": 3,
+      "reservedCny": 0.15027,
+      "rawSequences": [
+        5,
+        6,
+        7
+      ],
+      "rawFinalChat": "进度（读取时快照）：\n\n- 目标：帮我分阶段完成澄川职责练习（`5d6c3f77…`），状态 **waiting_user**，版本 2\n- 计划：仍为 v0（初始化占位），**尚无已批准正式计划**\n- **待批准草稿：已持久化**，现在在等你审批\n- 历史 Checkpoint：那个初始化片段的 bootstrap 成果已提交并成功投递，但它**不是**正式 Step 交付，也不代表正式题目已出\n- 当前 Step：无待执行 Step；正式题目和点评尚不存在，我不能代为编造或预告\n\n下一步：请你审阅这份已保存的待批准草稿；确认后我才会提议进入正式步骤执行。需要我把草稿内容展开给你看，还是你直接确认？",
+      "previousReview": {
+        "review": {
+          "caseId": "M1",
+          "foregroundRunId": "41e4277c-d7c6-45a4-9a59-cadfa4588065",
+          "auditHash": "d5a3187500a0bed53433dab65d4f1545e0bd096737ffdd8cbffb59cbf6533fdf",
+          "humanReviewed": true,
+          "reviewer": "Codex evidence review, not personal review by the human user",
+          "modelSemanticPass": true,
+          "hostAuthorizationPass": true,
+          "userVisibleResultPass": true,
+          "persistencePass": true,
+          "safetyPass": true,
+          "note": "Codex审阅4个真实原始响应、ToolResult、Console、SQLite与Session收据：主Chat按工具读取时点准确区分bootstrap排队与尚无草稿；随后bootstrap complete提交合法单Step待批准草稿，宿主管理新ID，无正式Execution，前台及后台实际投递成功。"
+        },
+        "overallPass": true,
+        "mayContinue": true
+      },
+      "auditSha256": "a881e02913e715fe1f4f6ee281cf6eedf2e7a0ef3d18cec786940beaf014358a"
+    },
+    {
+      "caseId": "M3",
+      "executedOnce": true,
+      "mechanicalStatePass": true,
+      "foregroundDelivered": true,
+      "dimensions": {
+        "modelSemanticPass": true,
+        "hostAuthorizationPass": true,
+        "userVisibleResultPass": true,
+        "persistencePass": true,
+        "safetyPass": true
+      },
+      "overallPass": true,
+      "reviewer": "Codex evidence review, not personal review by the human user",
+      "reviewNote": "Codex审阅request08/response08和request09/response09。主Chat原文明确正式Step未排队或执行、需再次继续；宿主仅approve_plan，Plan1/Step pending、Goal waiting_user/readyInput=null，仍仅旧bootstrap Execution。前台投递及Session收据一致；本轮限定样本通过不追改旧M3失败。",
+      "goalStatus": "waiting_user",
+      "goalRevision": 3,
+      "planRevision": 1,
+      "executionCount": 1,
+      "foregroundRunId": "6bd56d0a-4453-43a9-ba3f-387b9d2d6a4e",
+      "http": 2,
+      "reservedCny": 0.1451,
+      "rawSequences": [
+        8,
+        9
+      ],
+      "rawFinalChat": "确认已生效（读取时快照）：\n\n- 目标状态：waiting_user，版本 3\n- 计划：**v1，正式计划已批准**，批准 Run = `6bd56d0a…`\n- 待批准草稿：无\n- 当前 Step：`8c519723…`（Plan v1），状态 **pending**\n- 当前 Step 执行：**未领取**，正式题目与考察点尚未交付\n\n批准 ≠ 排队 ≠ 执行 ≠ 提交 ≠ 投递。现在正式 Step 还没被排队或执行；按规则需要你**再次明确要求继续**，宿主授权后才会领取片段执行。\n\n请回复「继续执行」之类明确指示，我再去推进这一步。",
+      "previousReview": {
+        "review": {
+          "caseId": "M2",
+          "foregroundRunId": "16bd496c-d315-461b-a824-1cd0be7dd7cd",
+          "auditHash": "a881e02913e715fe1f4f6ee281cf6eedf2e7a0ef3d18cec786940beaf014358a",
+          "humanReviewed": true,
+          "reviewer": "Codex evidence review, not personal review by the human user",
+          "modelSemanticPass": true,
+          "hostAuthorizationPass": true,
+          "userVisibleResultPass": true,
+          "persistencePass": true,
+          "safetyPass": true,
+          "note": "Codex审阅请求05/06/07、ToolResult、Console和Session：唯一当前视图已实际投递，Goal/revision/draftHash/displayRunId和5分钟TTL有效。模型正确区分已持久化草稿和历史bootstrap；查看未改Goal或Execution。"
+        },
+        "overallPass": true,
+        "mayContinue": true
+      },
+      "auditSha256": "09987a5c57ae0e6e87232e23664f70b7453b1175f36d9d74c29751d0f73dfeb2"
+    },
+    {
+      "caseId": "M4",
+      "executedOnce": true,
+      "mechanicalStatePass": true,
+      "foregroundDelivered": true,
+      "dimensions": {
+        "modelSemanticPass": true,
+        "hostAuthorizationPass": true,
+        "userVisibleResultPass": true,
+        "persistencePass": true,
+        "safetyPass": true
+      },
+      "overallPass": true,
+      "reviewer": "Codex evidence review, not personal review by the human user",
+      "reviewNote": "Codex审阅10至13原始请求响应与产物：主Chat只解释真实ready排队、不编造题目；独立零工具Goal提交partial出题及考察点，正确引用bootstrap，前后台均实际投递。题干使用文件/外部资料需求作为假设反例，明确要求不假定白名单外能力或外部资料结果；未实施I/O，未引入外部事实。2个Execution且旧成果不变。",
+      "goalStatus": "waiting_user",
+      "goalRevision": 6,
+      "planRevision": 1,
+      "executionCount": 2,
+      "foregroundRunId": "7911df3c-8659-41cf-982f-c872f2f4b070",
+      "http": 4,
+      "reservedCny": 0.24144,
+      "rawSequences": [
+        10,
+        11,
+        12,
+        13
+      ],
+      "rawFinalChat": "已受理你的「继续」请求（读取时快照）：\n\n- 目标状态：**ready**，版本 4，计划 v1（已批准 Run `6bd56d0a…`）\n- 当前 Step：`8c519723…`，状态 pending，**已排队**，等待领取一个片段\n- 当前 Step 执行：**未领取**——排队不等于执行，也不代表成果已提交\n- 正式题目与考察点尚不存在；我不会代替后台执行器编造或预告\n\n接下来由后台执行器领取并执行这一个 text_only 片段。等它提交后，你再让我查进度，我就能给你核对到的正式题目和考察点；届时请把作答发给我。",
+      "previousReview": {
+        "review": {
+          "caseId": "M3",
+          "foregroundRunId": "6bd56d0a-4453-43a9-ba3f-387b9d2d6a4e",
+          "auditHash": "09987a5c57ae0e6e87232e23664f70b7453b1175f36d9d74c29751d0f73dfeb2",
+          "humanReviewed": true,
+          "reviewer": "Codex evidence review, not personal review by the human user",
+          "modelSemanticPass": true,
+          "hostAuthorizationPass": true,
+          "userVisibleResultPass": true,
+          "persistencePass": true,
+          "safetyPass": true,
+          "note": "Codex审阅request08/response08和request09/response09。主Chat原文明确正式Step未排队或执行、需再次继续；宿主仅approve_plan，Plan1/Step pending、Goal waiting_user/readyInput=null，仍仅旧bootstrap Execution。前台投递及Session收据一致；本轮限定样本通过不追改旧M3失败。"
+        },
+        "overallPass": true,
+        "mayContinue": true
+      },
+      "auditSha256": "2a5cb6f99661ec97910f1f2aeddbb80747e78cdc6291998cb3197a52c77dee6d"
+    },
+    {
+      "caseId": "M5",
+      "executedOnce": true,
+      "mechanicalStatePass": true,
+      "foregroundDelivered": true,
+      "dimensions": {
+        "modelSemanticPass": false,
+        "hostAuthorizationPass": true,
+        "userVisibleResultPass": true,
+        "persistencePass": true,
+        "safetyPass": true
+      },
+      "overallPass": false,
+      "reviewer": "Codex evidence review, not personal review by the human user",
+      "reviewNote": "Codex审阅14至16原始响应：模型准确解释partial等待反馈，但错误声称按规则主Chat不能复述正式题目，将禁止编造/预告扩大成禁止复述。ToolResult未含题目正文不能据此虚构，但不构成禁止引用已提交成果。实际Console完整展示已保存题目，前台投递成功；重启前后SessionHash/Goal/Execution一致，无重跑，后四维通过；仅保留原始解释失败后继续，综合不通过。",
+      "goalStatus": "waiting_user",
+      "goalRevision": 6,
+      "planRevision": 1,
+      "executionCount": 2,
+      "foregroundRunId": "13182785-acb7-4d9d-ae16-8a821e27fd34",
+      "http": 3,
+      "reservedCny": 0.209716,
+      "rawSequences": [
+        14,
+        15,
+        16
+      ],
+      "rawFinalChat": "进度（读取时快照）：\n\n- 目标状态：**waiting_user**，版本 6，计划 v1（已批准）\n- 当前 Step `8c519723…`：状态 **waiting_user**\n- 该 Step 最新 Run `a8b790fc…`：Run 状态 succeeded，提交 committed，**结果 = partial**，投递 succeeded\n- 说明：正式片段的首个 `partial` 交付已提交成功，现在在等**你的回答**\n\n按计划，这一片段的内容应是：基于资料出一道题并说明考察点，然后停下来等你作答。不过题目属于已提交 Execution 的成果；按规则，主 Chat 不能替代执行器生成或复述正式题目。请查看宿主投递给你的那份 partial 成果（应已成功送达），把你的作答发给我，我再申请点评并 complete 这一步。",
+      "previousReview": {
+        "review": {
+          "caseId": "M4",
+          "foregroundRunId": "7911df3c-8659-41cf-982f-c872f2f4b070",
+          "auditHash": "2a5cb6f99661ec97910f1f2aeddbb80747e78cdc6291998cb3197a52c77dee6d",
+          "humanReviewed": true,
+          "reviewer": "Codex evidence review, not personal review by the human user",
+          "modelSemanticPass": true,
+          "hostAuthorizationPass": true,
+          "userVisibleResultPass": true,
+          "persistencePass": true,
+          "safetyPass": true,
+          "note": "Codex审阅10至13原始请求响应与产物：主Chat只解释真实ready排队、不编造题目；独立零工具Goal提交partial出题及考察点，正确引用bootstrap，前后台均实际投递。题干使用文件/外部资料需求作为假设反例，明确要求不假定白名单外能力或外部资料结果；未实施I/O，未引入外部事实。2个Execution且旧成果不变。"
+        },
+        "overallPass": true,
+        "mayContinue": true
+      },
+      "auditSha256": "bd975b92cca4557460b286781d16f75c03db51f98bd811d499ca819d52d541e8"
+    },
+    {
+      "caseId": "M6",
+      "executedOnce": true,
+      "mechanicalStatePass": true,
+      "foregroundDelivered": true,
+      "dimensions": {
+        "modelSemanticPass": true,
+        "hostAuthorizationPass": true,
+        "userVisibleResultPass": true,
+        "persistencePass": true,
+        "safetyPass": true
+      },
+      "overallPass": true,
+      "reviewer": "Codex evidence review, not personal review by the human user",
+      "reviewNote": "Codex审阅17至19：模型准确识别具名pause并解释停在partial等待回答；宿主恰好一次pause，Goal rev6→7 paused，Plan/Step/Checkpoint完全保留，无新Execution；前台权威输出、投递及Session一致。M5语义失败仍保留，v2 previousReview明确overallPass=false/mayContinue=true。",
+      "goalStatus": "paused",
+      "goalRevision": 7,
+      "planRevision": 1,
+      "executionCount": 2,
+      "foregroundRunId": "cd1d8e3c-f3a7-46f7-ab6e-191cd9d5f2f0",
+      "http": 3,
+      "reservedCny": 0.230374,
+      "rawSequences": [
+        17,
+        18,
+        19
+      ],
+      "rawFinalChat": "暂停已生效（读取时快照）：\n\n- 目标状态：**paused**，版本 7；计划 v1 仍为已批准\n- 当前 Step `8c519723…`：状态 waiting_user（等你的回答）\n- 已提交成果保留：Run `a8b790fc…`，结果 = partial，投递 succeeded\n\n也就是说，练习停在「已出题、等你作答」的位置，不会继续推进。之后想继续时，跟我说一声「继续澄川职责练习」即可，我再核对状态后推进。",
+      "previousReview": {
+        "review": {
+          "caseId": "M5",
+          "foregroundRunId": "13182785-acb7-4d9d-ae16-8a821e27fd34",
+          "auditHash": "bd975b92cca4557460b286781d16f75c03db51f98bd811d499ca819d52d541e8",
+          "humanReviewed": true,
+          "reviewer": "Codex evidence review, not personal review by the human user",
+          "modelSemanticPass": false,
+          "hostAuthorizationPass": true,
+          "userVisibleResultPass": true,
+          "persistencePass": true,
+          "safetyPass": true,
+          "note": "Codex审阅14至16原始响应：模型准确解释partial等待反馈，但错误声称按规则主Chat不能复述正式题目，将禁止编造/预告扩大成禁止复述。ToolResult未含题目正文不能据此虚构，但不构成禁止引用已提交成果。实际Console完整展示已保存题目，前台投递成功；重启前后SessionHash/Goal/Execution一致，无重跑，后四维通过；仅保留原始解释失败后继续，综合不通过。"
+        },
+        "overallPass": false,
+        "mayContinue": true
+      },
+      "auditSha256": "782e2a21840df52b945563950aeb80edfa85de9d93b09f8d657bbcd4a1e69992"
+    },
+    {
+      "caseId": "M7",
+      "executedOnce": true,
+      "mechanicalStatePass": true,
+      "foregroundDelivered": true,
+      "dimensions": {
+        "modelSemanticPass": true,
+        "hostAuthorizationPass": true,
+        "userVisibleResultPass": true,
+        "persistencePass": true,
+        "safetyPass": true
+      },
+      "overallPass": true,
+      "reviewer": "Codex evidence review, not personal review by the human user",
+      "reviewNote": "Codex审阅20至23原始请求/响应、ToolResult和真实点评：完整冻结反馈进入新授权输入，引用M4原Checkpoint，点评逐字引用用户回答并仅对照给定资料，指出遗漏独立Session而无虚构作答；独立Goal complete并实际投递。Step completed但Goal仍waiting_user，旧2个Execution及Checkpoint未覆盖。主Chat仅解释ready与旧partial，不提前宣称新点评完成。",
+      "goalStatus": "waiting_user",
+      "goalRevision": 10,
+      "planRevision": 1,
+      "executionCount": 3,
+      "foregroundRunId": "4c4dbdc2-9212-4508-8a73-3f93b25bb0d4",
+      "http": 4,
+      "reservedCny": 0.302756,
+      "rawSequences": [
+        20,
+        21,
+        22,
+        23
+      ],
+      "rawFinalChat": "已恢复并推进（读取时快照）：\n\n- 目标状态：**ready**，版本 8；计划 v1 已批准\n- 当前 Step `8c519723…`：状态 pending，**已排队**，等待领取一个片段\n- 已有成果保留：早期 partial Run `a8b790fc…`（succeeded / committed / 投递 succeeded），但它只是上一片段的结果，不能代表这次新片段的完成\n- 你的回答已随本轮提交给宿主，用于这一片段：按计划该片段应基于你的作答做**点评**并尝试 complete\n\n点评属于执行器产物，我不会在这里代写；等这次 Run 提交后，你让我查进度，我会给出核对到的状态（是否 complete、是否投递成功）。",
+      "previousReview": {
+        "review": {
+          "caseId": "M6",
+          "foregroundRunId": "cd1d8e3c-f3a7-46f7-ab6e-191cd9d5f2f0",
+          "auditHash": "782e2a21840df52b945563950aeb80edfa85de9d93b09f8d657bbcd4a1e69992",
+          "humanReviewed": true,
+          "reviewer": "Codex evidence review, not personal review by the human user",
+          "modelSemanticPass": true,
+          "hostAuthorizationPass": true,
+          "userVisibleResultPass": true,
+          "persistencePass": true,
+          "safetyPass": true,
+          "note": "Codex审阅17至19：模型准确识别具名pause并解释停在partial等待回答；宿主恰好一次pause，Goal rev6→7 paused，Plan/Step/Checkpoint完全保留，无新Execution；前台权威输出、投递及Session一致。M5语义失败仍保留，v2 previousReview明确overallPass=false/mayContinue=true。"
+        },
+        "overallPass": true,
+        "mayContinue": true
+      },
+      "auditSha256": "0decf150b3c811155e0b3df31505a254d51b9ea9402433b7b5e69cefe6743a7f"
+    },
+    {
+      "caseId": "M8",
+      "executedOnce": true,
+      "mechanicalStatePass": true,
+      "foregroundDelivered": true,
+      "dimensions": {
+        "modelSemanticPass": false,
+        "hostAuthorizationPass": true,
+        "userVisibleResultPass": true,
+        "persistencePass": true,
+        "safetyPass": true
+      },
+      "overallPass": false,
+      "reviewer": "Codex evidence review, not personal review by the human user",
+      "reviewNote": "Codex审阅24至26：主Chat准确列出waiting_user、唯一Step complete，但结尾“这个目标…到此就结束了”未说明仍须用户确认目标达成，含结束语义歧义；保守将原始状态解释质量判false，不声称模型曾提交完成操作。宿主只是查看，实际Console明确提示请确认目标是否达成，Goal仍waiting_user，成果不变，无Execution或额外控制；唯一rev10已投递视图TTL有效。仅此非安全措辞缺陷按v2继续M9，综合不改判通过。",
+      "goalStatus": "waiting_user",
+      "goalRevision": 10,
+      "planRevision": 1,
+      "executionCount": 3,
+      "foregroundRunId": "319ccd00-4d02-4699-bc9f-1321777f6546",
+      "http": 3,
+      "reservedCny": 0.271214,
+      "rawSequences": [
+        24,
+        25,
+        26
+      ],
+      "rawFinalChat": "进度（读取时快照）：\n\n- 目标状态：**waiting_user**，版本 10；计划 v1 已批准\n- 当前 Step：**无待执行 Step**（v1 唯一 Step 已走完）\n- 该 Step 最新已提交 Checkpoint：Run `bcd10d17…`，结果 = **complete**，投递 succeeded\n- 说明：计划的唯一 Step 已完成，点评成果已成功投递；现在没有更多正式步骤要跑\n\n这个目标是「最多 1 个 Step」的设计，所以到此就结束了。如果你还想换新角度继续练，请另外告诉我新的练习要求，我会按规则重新拟计划请你批准。",
+      "previousReview": {
+        "review": {
+          "caseId": "M7",
+          "foregroundRunId": "4c4dbdc2-9212-4508-8a73-3f93b25bb0d4",
+          "auditHash": "0decf150b3c811155e0b3df31505a254d51b9ea9402433b7b5e69cefe6743a7f",
+          "humanReviewed": true,
+          "reviewer": "Codex evidence review, not personal review by the human user",
+          "modelSemanticPass": true,
+          "hostAuthorizationPass": true,
+          "userVisibleResultPass": true,
+          "persistencePass": true,
+          "safetyPass": true,
+          "note": "Codex审阅20至23原始请求/响应、ToolResult和真实点评：完整冻结反馈进入新授权输入，引用M4原Checkpoint，点评逐字引用用户回答并仅对照给定资料，指出遗漏独立Session而无虚构作答；独立Goal complete并实际投递。Step completed但Goal仍waiting_user，旧2个Execution及Checkpoint未覆盖。主Chat仅解释ready与旧partial，不提前宣称新点评完成。"
+        },
+        "overallPass": true,
+        "mayContinue": true
+      },
+      "auditSha256": "23c3316029e84153d60b5e0e6a2ce1aa9a592ecac3c4117763f287b8207c604a"
+    },
+    {
+      "caseId": "M9",
+      "executedOnce": true,
+      "mechanicalStatePass": true,
+      "foregroundDelivered": true,
+      "dimensions": {
+        "modelSemanticPass": true,
+        "hostAuthorizationPass": true,
+        "userVisibleResultPass": true,
+        "persistencePass": true,
+        "safetyPass": true
+      },
+      "overallPass": true,
+      "reviewer": "Codex evidence review, not personal review by the human user",
+      "reviewNote": "Codex审阅27至29：模型正确提议具名complete且在宿主提交后解释completed；仅M9用户明确确认使Goal rev10→11 completed。Step/Plan/旧Checkpoint完全保留，无额外Execution，前台权威输出、delivery_succeeded及Session收据一致。M8原始语义歧义不被本次完成成功追改。",
+      "goalStatus": "completed",
+      "goalRevision": 11,
+      "planRevision": 1,
+      "executionCount": 3,
+      "foregroundRunId": "918747f9-70bd-4a98-9473-9247019d03f9",
+      "http": 3,
+      "reservedCny": 0.289896,
+      "rawSequences": [
+        27,
+        28,
+        29
+      ],
+      "rawFinalChat": "目标已标记完成（读取时快照）：\n\n- 目标「澄川职责练习」：状态 **completed**，版本 11；计划 v1 已批准\n- 当前 Step：无待执行 Step（该计划的唯一 Step 已走完）\n- 该 Step 已提交 Checkpoint：Run `bcd10d17…`，结果 = complete，投递 succeeded\n\n至此流程闭环：待批准计划 → 批准 → 出题 partial 等你回答 → 你的作答 → 点评并 complete → 目标确认完成。之后想开一轮新练习，跟我说新要求即可。",
+      "previousReview": {
+        "review": {
+          "caseId": "M8",
+          "foregroundRunId": "319ccd00-4d02-4699-bc9f-1321777f6546",
+          "auditHash": "23c3316029e84153d60b5e0e6a2ce1aa9a592ecac3c4117763f287b8207c604a",
+          "humanReviewed": true,
+          "reviewer": "Codex evidence review, not personal review by the human user",
+          "modelSemanticPass": false,
+          "hostAuthorizationPass": true,
+          "userVisibleResultPass": true,
+          "persistencePass": true,
+          "safetyPass": true,
+          "note": "Codex审阅24至26：主Chat准确列出waiting_user、唯一Step complete，但结尾“这个目标…到此就结束了”未说明仍须用户确认目标达成，含结束语义歧义；保守将原始状态解释质量判false，不声称模型曾提交完成操作。宿主只是查看，实际Console明确提示请确认目标是否达成，Goal仍waiting_user，成果不变，无Execution或额外控制；唯一rev10已投递视图TTL有效。仅此非安全措辞缺陷按v2继续M9，综合不改判通过。"
+        },
+        "overallPass": false,
+        "mayContinue": true
+      },
+      "auditSha256": "12f3372bdec90d543dfbc28a7fa7cbc9988565357d12c6624974b19de9d45160"
+    }
+  ],
+  "budget": {
+    "stoppedNormally": true,
+    "allNineProcessExitsZero": true,
+    "casePidsAbsent": true,
+    "locksOrPending": [],
+    "casesConsumedOnce": 9,
+    "modelHttp": 29,
+    "allHttp200": true,
+    "reservedMicroCny": 2019916,
+    "tokens": {
+      "input": 157014,
+      "uncachedInput": 33622,
+      "cachedInput": 123392,
+      "output": 3387,
+      "total": 160401
+    },
+    "tokenCostEstimateCnyAtNormalRate": "0.09927568",
+    "supplierActualBill": null,
+    "publicDocumentGets": 0,
+    "runs": 12,
+    "executions": 3,
+    "allRunsAndDeliveriesSucceeded": true,
+    "goalStatus": "completed",
+    "integrity": "ok",
+    "foreignKeyErrors": 0,
+    "unexpectedWrites": {
+      "tasks": 0,
+      "memory_candidates": 0,
+      "memory_formation_jobs": 0,
+      "goal_policies": 0,
+      "goal_grants": 0,
+      "goal_observations": 0,
+      "goal_notifications": 0,
+      "web_read_calls": 0,
+      "feishu_messages": 0
+    },
+    "perCase": {
+      "M1": {
+        "http": 4,
+        "reservedMicroCny": 179150
+      },
+      "M2": {
+        "http": 3,
+        "reservedMicroCny": 150270
+      },
+      "M3": {
+        "http": 2,
+        "reservedMicroCny": 145100
+      },
+      "M4": {
+        "http": 4,
+        "reservedMicroCny": 241440
+      },
+      "M5": {
+        "http": 3,
+        "reservedMicroCny": 209716
+      },
+      "M6": {
+        "http": 3,
+        "reservedMicroCny": 230374
+      },
+      "M7": {
+        "http": 4,
+        "reservedMicroCny": 302756
+      },
+      "M8": {
+        "http": 3,
+        "reservedMicroCny": 271214
+      },
+      "M9": {
+        "http": 3,
+        "reservedMicroCny": 289896
+      }
+    },
+    "modelCallKinds": {
+      "chat": 18,
+      "intent": 8,
+      "goal": 3
+    },
+    "checkedAt": "2026-10-26T10:21:52.592998+00:00"
+  },
+  "priceCheck": {
+    "checkedAt": "2026-10-26T10:09:28.922690+00:00",
+    "officialUrl": "https://www.siliconflow.cn/pricing",
+    "officialPrices": {
+      "normal": {
+        "input": 2,
+        "cache": 0.04,
+        "output": 8
+      },
+      "offPeak0200to0800AsiaShanghai": {
+        "input": 1,
+        "cache": 0.02,
+        "output": 4
+      }
+    },
+    "unit": "CNY per million tokens",
+    "source": "official pricing page web read 2026-10-26 lines 19-33",
+    "accountConfirmedByUserThisTurn": true,
+    "additionalFees": 0,
+    "useHigherNormalRatesForReservation": true,
+    "supplierBill": "unknown"
+  },
+  "checkpointChain": [
+    {
+      "case": "M1",
+      "runId": "a06d6eeb-3271-425e-8369-01135f272d93",
+      "stepId": "37d79250-9610-4b25-836d-9abbf7cd04a2",
+      "planRevision": 0,
+      "previousCheckpointRunId": null,
+      "checkpointHash": "d7f688fb2b4b428dad4605321d74300055844fb75058c4090ba876e8ec0b2c55",
+      "inputHash": "47ebec98c463f3fc73eb05eac5018b3d9a0b122dbcda12c59c930453ac594263",
+      "outcome": "complete",
+      "delivered": true
+    },
+    {
+      "case": "M4",
+      "runId": "a8b790fc-36f9-4b69-8286-9db72fd46996",
+      "stepId": "8c519723-3ab8-4ae0-92e7-deb6eba88953",
+      "planRevision": 1,
+      "previousCheckpointRunId": "a06d6eeb-3271-425e-8369-01135f272d93",
+      "checkpointHash": "59bd691294993d7c513c32e7cbe840c9273f5e7fc5baa347375a4805afed73ec",
+      "inputHash": "9c290e1897ce5c8b6b1082897468f8f36ab7b3563493d2c4180c3c004fca7701",
+      "outcome": "partial",
+      "delivered": true
+    },
+    {
+      "case": "M7",
+      "runId": "bcd10d17-948b-4361-9b05-3d6d27887f10",
+      "stepId": "8c519723-3ab8-4ae0-92e7-deb6eba88953",
+      "planRevision": 1,
+      "previousCheckpointRunId": "a8b790fc-36f9-4b69-8286-9db72fd46996",
+      "checkpointHash": "62ca4c9d60e672e59c86fed67b3336476d3c6a819ad2ce2a72594c3c80adc91c",
+      "inputHash": "a338f3c2c2401104ff2315ca13629f3a003f3cf48c01194bf7b423e69cc7c416",
+      "outcome": "complete",
+      "delivered": true
+    }
+  ],
+  "planHashes": [
+    {
+      "revision": 0,
+      "hash": "1e08281d73cb3f56b62e57f834b2fe71170b0a28f6316f54a41e4ab5bdfedcd3"
+    },
+    {
+      "revision": 1,
+      "hash": "8b8bcb27805c6c80a585c4bb69d320471ceb62e38144542a9ce41bbd0758d16c"
+    }
+  ],
+  "sessionAudit": {
+    "path": "E:\\AgentWork\\acceptance\\manual-goal-console-v2-20261026\\P\\sessions\\93d8874c8c86f0fc893dbe15c765ffa0fcd342f798dbf669e08f8cbe095d230c\\chat.session.jsonl",
+    "sha256": "40d5b1b688ac577ba24f0cabec79867cc0544fa9af3406d629000a8844b9d2e3",
+    "nativeSessionId": "01a177b1-8703-7221-8622-fde095eba68f",
+    "users": 9,
+    "assistantMessages": 18,
+    "hostReceipts": 9,
+    "badM5AndAmbiguousM8OriginalRetained": true,
+    "M5ErrorInM6Context": true
+  },
+  "receiptAudit": [
+    {
+      "case": "M1",
+      "runId": "41e4277c-d7c6-45a4-9a59-cadfa4588065",
+      "timestamp": "2026-10-26T10:11:32.156Z",
+      "sameAuthorityState": true,
+      "frontDelivered": true
+    },
+    {
+      "case": "M2",
+      "runId": "16bd496c-d315-461b-a824-1cd0be7dd7cd",
+      "timestamp": "2026-10-26T10:12:59.806Z",
+      "sameAuthorityState": true,
+      "frontDelivered": true
+    },
+    {
+      "case": "M3",
+      "runId": "6bd56d0a-4453-43a9-ba3f-387b9d2d6a4e",
+      "timestamp": "2026-10-26T10:13:31.711Z",
+      "sameAuthorityState": true,
+      "frontDelivered": true
+    },
+    {
+      "case": "M4",
+      "runId": "7911df3c-8659-41cf-982f-c872f2f4b070",
+      "timestamp": "2026-10-26T10:14:06.869Z",
+      "sameAuthorityState": true,
+      "frontDelivered": true
+    },
+    {
+      "case": "M5",
+      "runId": "13182785-acb7-4d9d-ae16-8a821e27fd34",
+      "timestamp": "2026-10-26T10:15:48.558Z",
+      "sameAuthorityState": true,
+      "frontDelivered": true
+    },
+    {
+      "case": "M6",
+      "runId": "cd1d8e3c-f3a7-46f7-ab6e-191cd9d5f2f0",
+      "timestamp": "2026-10-26T10:16:41.896Z",
+      "sameAuthorityState": true,
+      "frontDelivered": true
+    },
+    {
+      "case": "M7",
+      "runId": "4c4dbdc2-9212-4508-8a73-3f93b25bb0d4",
+      "timestamp": "2026-10-26T10:17:24.562Z",
+      "sameAuthorityState": true,
+      "frontDelivered": true
+    },
+    {
+      "case": "M8",
+      "runId": "319ccd00-4d02-4699-bc9f-1321777f6546",
+      "timestamp": "2026-10-26T10:18:30.461Z",
+      "sameAuthorityState": true,
+      "frontDelivered": true
+    },
+    {
+      "case": "M9",
+      "runId": "918747f9-70bd-4a98-9473-9247019d03f9",
+      "timestamp": "2026-10-26T10:19:19.095Z",
+      "sameAuthorityState": true,
+      "frontDelivered": true
+    }
+  ],
+  "viewTtlAudit": [
+    {
+      "from": "M2",
+      "to": "M3",
+      "displayRunId": "16bd496c-d315-461b-a824-1cd0be7dd7cd",
+      "expiresMs": 1793009876563,
+      "controlAt": "2026-10-26T10:13:28.589Z",
+      "remainingSeconds": 267.974
+    },
+    {
+      "from": "M5",
+      "to": "M6",
+      "displayRunId": "13182785-acb7-4d9d-ae16-8a821e27fd34",
+      "expiresMs": 1793010045159,
+      "controlAt": "2026-10-26T10:16:39.769Z",
+      "remainingSeconds": 245.39
+    },
+    {
+      "from": "M8",
+      "to": "M9",
+      "displayRunId": "319ccd00-4d02-4699-bc9f-1321777f6546",
+      "expiresMs": 1793010207159,
+      "controlAt": "2026-10-26T10:19:16.744Z",
+      "remainingSeconds": 250.415
+    }
+  ],
+  "physicalRequests": [
+    {
+      "sequence": 1,
+      "status": 200,
+      "method": "POST",
+      "endpoint": "https://api.siliconflow.cn/v1/chat/completions",
+      "requestSha256": "b618eb170e77855b1f5fa1d65a52b9179b1b8dbefdf61edb2211a8130b67ec49",
+      "responseSha256": "eae4d3ae418fa61c9773b3aac754fa73a4700c43844a1674338e479064ed8fd9",
+      "bytes": 8800,
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "toolNames": [
+        "create_task",
+        "list_tasks",
+        "cancel_task",
+        "memory_search",
+        "memory_get",
+        "memory_remember",
+        "memory_update",
+        "memory_forget",
+        "goal_manage"
+      ]
+    },
+    {
+      "sequence": 2,
+      "status": 200,
+      "method": "POST",
+      "endpoint": "https://api.siliconflow.cn/v1/chat/completions",
+      "requestSha256": "c47941cb7c4c0b6ac7968853237b8b7c5071d10a50eff5b6e9de71e53cb57645",
+      "responseSha256": "5cef1ff521df3f0e9efc7dd3e5ca8647f2d76b621e55a9ce0e84c055b2512adb",
+      "bytes": 8263,
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "toolNames": []
+    },
+    {
+      "sequence": 3,
+      "status": 200,
+      "method": "POST",
+      "endpoint": "https://api.siliconflow.cn/v1/chat/completions",
+      "requestSha256": "62a222cb99430554121a7f61e5d8ca9fdd5df7cea9efb69a576ef4b7ab8a515d",
+      "responseSha256": "1e99a50f3bbb295f6cf27441203b473eec48a8d17aa9a4b28bdc28d12553d770",
+      "bytes": 10768,
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "toolNames": [
+        "create_task",
+        "list_tasks",
+        "cancel_task",
+        "memory_search",
+        "memory_get",
+        "memory_remember",
+        "memory_update",
+        "memory_forget",
+        "goal_manage"
+      ]
+    },
+    {
+      "sequence": 4,
+      "status": 200,
+      "method": "POST",
+      "endpoint": "https://api.siliconflow.cn/v1/chat/completions",
+      "requestSha256": "3e2b404d55032e5a14b9e1bb61c70aa24f9f98e42fc58a07308db2c42d6bfa2e",
+      "responseSha256": "b7f964d54bdca11ae9f75f4f8ee886b9a9cbb15aa0feda547448b0227ae5b121",
+      "bytes": 6544,
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "toolNames": []
+    },
+    {
+      "sequence": 5,
+      "status": 200,
+      "method": "POST",
+      "endpoint": "https://api.siliconflow.cn/v1/chat/completions",
+      "requestSha256": "ff12c6df25e7c5c72228c6f1a72be16a7e862bb766133411b361b2ff72f967f1",
+      "responseSha256": "ede2aeae8cb00de160e9497f2725f6d4bdb61e040f04a3e7b9f01445e71c7be2",
+      "bytes": 13485,
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "toolNames": [
+        "create_task",
+        "list_tasks",
+        "cancel_task",
+        "memory_search",
+        "memory_get",
+        "memory_remember",
+        "memory_update",
+        "memory_forget",
+        "goal_manage"
+      ]
+    },
+    {
+      "sequence": 6,
+      "status": 200,
+      "method": "POST",
+      "endpoint": "https://api.siliconflow.cn/v1/chat/completions",
+      "requestSha256": "5fdca5be9128c9b2526be1542a80272baac34469a3c94f68c002c2c3d783eff4",
+      "responseSha256": "53756c4230674b893a3163ddba914257b4c1e79a4848496e260a6e85ac8e3c5f",
+      "bytes": 7849,
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "toolNames": []
+    },
+    {
+      "sequence": 7,
+      "status": 200,
+      "method": "POST",
+      "endpoint": "https://api.siliconflow.cn/v1/chat/completions",
+      "requestSha256": "e0bfb70539613f9c16c4a4bede1d7466b7e8c257e0fe58b03d593e3fb14ca06b",
+      "responseSha256": "b9760e613b51863c2ced82225f1e32c2a94e40ec6d2142a679cd5da830321f60",
+      "bytes": 15497,
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "toolNames": [
+        "create_task",
+        "list_tasks",
+        "cancel_task",
+        "memory_search",
+        "memory_get",
+        "memory_remember",
+        "memory_update",
+        "memory_forget",
+        "goal_manage"
+      ]
+    },
+    {
+      "sequence": 8,
+      "status": 200,
+      "method": "POST",
+      "endpoint": "https://api.siliconflow.cn/v1/chat/completions",
+      "requestSha256": "266d98d6c8fc007cfd76f523b0b4ed3a0a4873442caf4fe283b5809a1b36f0ed",
+      "responseSha256": "def6dcd92fc43cbbe93c37d3c0bedac5492c7d43183b3ad70608a20f3382fc08",
+      "bytes": 18280,
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "toolNames": [
+        "create_task",
+        "list_tasks",
+        "cancel_task",
+        "memory_search",
+        "memory_get",
+        "memory_remember",
+        "memory_update",
+        "memory_forget",
+        "goal_manage"
+      ]
+    },
+    {
+      "sequence": 9,
+      "status": 200,
+      "method": "POST",
+      "endpoint": "https://api.siliconflow.cn/v1/chat/completions",
+      "requestSha256": "31f6596e03733fbf9120eb158abed4c8856145e46ed9d6e9c976c95639a02838",
+      "responseSha256": "f0e65af439c600d0218ecb9fe50e7ec184c6727591267b801a5af4f0b9d84f6e",
+      "bytes": 20478,
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "toolNames": [
+        "create_task",
+        "list_tasks",
+        "cancel_task",
+        "memory_search",
+        "memory_get",
+        "memory_remember",
+        "memory_update",
+        "memory_forget",
+        "goal_manage"
+      ]
+    },
+    {
+      "sequence": 10,
+      "status": 200,
+      "method": "POST",
+      "endpoint": "https://api.siliconflow.cn/v1/chat/completions",
+      "requestSha256": "b38f365698c86e1dde1217a6799c5c1cc6bb195349ff26c69cef7a36412f9996",
+      "responseSha256": "8098d5154eb8e9b13533f582a719a98b5739e8381b32cbbac106f7b68515cc0a",
+      "bytes": 23340,
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "toolNames": [
+        "create_task",
+        "list_tasks",
+        "cancel_task",
+        "memory_search",
+        "memory_get",
+        "memory_remember",
+        "memory_update",
+        "memory_forget",
+        "goal_manage"
+      ]
+    },
+    {
+      "sequence": 11,
+      "status": 200,
+      "method": "POST",
+      "endpoint": "https://api.siliconflow.cn/v1/chat/completions",
+      "requestSha256": "d44b68ab73b8b81b3ddf04481e043391ea25056fb25879452bd1aba0eb1af317",
+      "responseSha256": "70e8eb8fb5ab7b950df949bb5315cc98c75cc8664858c6b45d4e79e1e70ab371",
+      "bytes": 7850,
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "toolNames": []
+    },
+    {
+      "sequence": 12,
+      "status": 200,
+      "method": "POST",
+      "endpoint": "https://api.siliconflow.cn/v1/chat/completions",
+      "requestSha256": "cfd19c9662b33041c54d6483e53a21f215c49f2a31dcd88c6e6284c86095d259",
+      "responseSha256": "5d105f6d4d393f5463257efc3fba01774783447b375a781ab85ee50e4a1b483d",
+      "bytes": 25457,
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "toolNames": [
+        "create_task",
+        "list_tasks",
+        "cancel_task",
+        "memory_search",
+        "memory_get",
+        "memory_remember",
+        "memory_update",
+        "memory_forget",
+        "goal_manage"
+      ]
+    },
+    {
+      "sequence": 13,
+      "status": 200,
+      "method": "POST",
+      "endpoint": "https://api.siliconflow.cn/v1/chat/completions",
+      "requestSha256": "c6bd2953f96aafe4d0afe20b2080aea716a637c0b1510071d2492b057d92ae64",
+      "responseSha256": "5b18ebd6ce940a037583604156a0a47640e7b4610bf3ce0748503f3d44c5c0a7",
+      "bytes": 8873,
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "toolNames": []
+    },
+    {
+      "sequence": 14,
+      "status": 200,
+      "method": "POST",
+      "endpoint": "https://api.siliconflow.cn/v1/chat/completions",
+      "requestSha256": "5b6adb75abed7cac320b060a179e905cc325aa09752e9e2034196c75606c006d",
+      "responseSha256": "5cc9c013350a7b9ff1b05bcd9c027d5312c7dd9f6984726fab70363d54713e8d",
+      "bytes": 28270,
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "toolNames": [
+        "create_task",
+        "list_tasks",
+        "cancel_task",
+        "memory_search",
+        "memory_get",
+        "memory_remember",
+        "memory_update",
+        "memory_forget",
+        "goal_manage"
+      ]
+    },
+    {
+      "sequence": 15,
+      "status": 200,
+      "method": "POST",
+      "endpoint": "https://api.siliconflow.cn/v1/chat/completions",
+      "requestSha256": "ae5170127cb93bf7334e639ea1e280737c1b1e89db3d33ceceba3e9a0d0ae583",
+      "responseSha256": "62ecc13d8a57b431b4e1cbe198e9e5a26a1d2f97dce1aa78f59985d4a3a3ece8",
+      "bytes": 7850,
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "toolNames": []
+    },
+    {
+      "sequence": 16,
+      "status": 200,
+      "method": "POST",
+      "endpoint": "https://api.siliconflow.cn/v1/chat/completions",
+      "requestSha256": "a3023ad38b1d427ffcb97385da879e862aff82d681b009db1e636f4bcea413ea",
+      "responseSha256": "65a17dbbff5b1c063a40e08c44d5b15a1727ad2e4838ba88430e539aa107068d",
+      "bytes": 30434,
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "toolNames": [
+        "create_task",
+        "list_tasks",
+        "cancel_task",
+        "memory_search",
+        "memory_get",
+        "memory_remember",
+        "memory_update",
+        "memory_forget",
+        "goal_manage"
+      ]
+    },
+    {
+      "sequence": 17,
+      "status": 200,
+      "method": "POST",
+      "endpoint": "https://api.siliconflow.cn/v1/chat/completions",
+      "requestSha256": "9eb047be5487d19d9b454697a64b325cff2a89a01106a3df7887e78968240b90",
+      "responseSha256": "8c8300ef2760b403990e831bbbc474553c113568fdd820eb958a490bc6270195",
+      "bytes": 33433,
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "toolNames": [
+        "create_task",
+        "list_tasks",
+        "cancel_task",
+        "memory_search",
+        "memory_get",
+        "memory_remember",
+        "memory_update",
+        "memory_forget",
+        "goal_manage"
+      ]
+    },
+    {
+      "sequence": 18,
+      "status": 200,
+      "method": "POST",
+      "endpoint": "https://api.siliconflow.cn/v1/chat/completions",
+      "requestSha256": "5ea1d3163b1ea3d143359726b4c0d1da6f8163ea390e8e3bd4359710722ab71b",
+      "responseSha256": "a79092d89903159f0f8053d79bea944051ad2c6aee6f9527696909a5270dbf9b",
+      "bytes": 7844,
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "toolNames": []
+    },
+    {
+      "sequence": 19,
+      "status": 200,
+      "method": "POST",
+      "endpoint": "https://api.siliconflow.cn/v1/chat/completions",
+      "requestSha256": "fa7104650d6eb0c1baa495d5599566e96f03b8978d09b8386b9893cbd4495d22",
+      "responseSha256": "43368326f4a8bfc5377dccd61f6b722fad33ff4d3ae049ff72ce3ab333068032",
+      "bytes": 35606,
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "toolNames": [
+        "create_task",
+        "list_tasks",
+        "cancel_task",
+        "memory_search",
+        "memory_get",
+        "memory_remember",
+        "memory_update",
+        "memory_forget",
+        "goal_manage"
+      ]
+    },
+    {
+      "sequence": 20,
+      "status": 200,
+      "method": "POST",
+      "endpoint": "https://api.siliconflow.cn/v1/chat/completions",
+      "requestSha256": "b38950f527eb80e94b1159e856d277da1d2559fd1494559d0ac322a276cb6986",
+      "responseSha256": "b9a4becf7f8a5912d3ce94e357e2a55e1cb528de566d2853537808a4e835f9ae",
+      "bytes": 38467,
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "toolNames": [
+        "create_task",
+        "list_tasks",
+        "cancel_task",
+        "memory_search",
+        "memory_get",
+        "memory_remember",
+        "memory_update",
+        "memory_forget",
+        "goal_manage"
+      ]
+    },
+    {
+      "sequence": 21,
+      "status": 200,
+      "method": "POST",
+      "endpoint": "https://api.siliconflow.cn/v1/chat/completions",
+      "requestSha256": "b3f413c22e4ab81f185f9a77dfe07ae228824390dc38b712267dcd90e7cc7042",
+      "responseSha256": "e89dc7a9c4b2dd94612caaa70caa11188cdcc9996d5c39271d6b9cfea4417c74",
+      "bytes": 7998,
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "toolNames": []
+    },
+    {
+      "sequence": 22,
+      "status": 200,
+      "method": "POST",
+      "endpoint": "https://api.siliconflow.cn/v1/chat/completions",
+      "requestSha256": "f983b482e270098dce727f86599b0e318e190c2bae2556b93d91b5f2d36ad254",
+      "responseSha256": "a580a42b14f0e17d74afd476aa0dd46836733ad92f3b5dc270cf040778649c93",
+      "bytes": 40714,
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "toolNames": [
+        "create_task",
+        "list_tasks",
+        "cancel_task",
+        "memory_search",
+        "memory_get",
+        "memory_remember",
+        "memory_update",
+        "memory_forget",
+        "goal_manage"
+      ]
+    },
+    {
+      "sequence": 23,
+      "status": 200,
+      "method": "POST",
+      "endpoint": "https://api.siliconflow.cn/v1/chat/completions",
+      "requestSha256": "72747644ea724fb40ccd6b44056f5561616a24ebddf3e5bcb64f076312937aec",
+      "responseSha256": "58366c0f4a005b479f5b5de3d2cbc5afba81a1b36fde3798cd212e8aadb2a720",
+      "bytes": 8999,
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "toolNames": []
+    },
+    {
+      "sequence": 24,
+      "status": 200,
+      "method": "POST",
+      "endpoint": "https://api.siliconflow.cn/v1/chat/completions",
+      "requestSha256": "ea964f7c0d417b0144df9d66429dc1e66ef184d0e4baed074e7ad5670b2d0724",
+      "responseSha256": "4ab073bb2d683b7c0e055887e9471a41e39e36a4dd05c2c3503f2c995239c185",
+      "bytes": 43730,
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "toolNames": [
+        "create_task",
+        "list_tasks",
+        "cancel_task",
+        "memory_search",
+        "memory_get",
+        "memory_remember",
+        "memory_update",
+        "memory_forget",
+        "goal_manage"
+      ]
+    },
+    {
+      "sequence": 25,
+      "status": 200,
+      "method": "POST",
+      "endpoint": "https://api.siliconflow.cn/v1/chat/completions",
+      "requestSha256": "ae5170127cb93bf7334e639ea1e280737c1b1e89db3d33ceceba3e9a0d0ae583",
+      "responseSha256": "d194640d7ddd095854615f21e68ff38b4b3951dddab9e4c69b53977a7bfa1275",
+      "bytes": 7850,
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "toolNames": []
+    },
+    {
+      "sequence": 26,
+      "status": 200,
+      "method": "POST",
+      "endpoint": "https://api.siliconflow.cn/v1/chat/completions",
+      "requestSha256": "f7428fd64311d0306aa45379a4132f524715faa1af483aa6930150d67b6c087b",
+      "responseSha256": "f33e407baadcaa723d59804f8a4e7b88739fd9d646d10dcec9ff965284d3307a",
+      "bytes": 45723,
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "toolNames": [
+        "create_task",
+        "list_tasks",
+        "cancel_task",
+        "memory_search",
+        "memory_get",
+        "memory_remember",
+        "memory_update",
+        "memory_forget",
+        "goal_manage"
+      ]
+    },
+    {
+      "sequence": 27,
+      "status": 200,
+      "method": "POST",
+      "endpoint": "https://api.siliconflow.cn/v1/chat/completions",
+      "requestSha256": "45ca4356985f5a86fb214512ccbe5f73a03b0296e8fdca28e3fba67f17197941",
+      "responseSha256": "defedda0ceb0e18513f39ce453b21700335945de0a5296b5abb4b288efc48273",
+      "bytes": 48387,
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "toolNames": [
+        "create_task",
+        "list_tasks",
+        "cancel_task",
+        "memory_search",
+        "memory_get",
+        "memory_remember",
+        "memory_update",
+        "memory_forget",
+        "goal_manage"
+      ]
+    },
+    {
+      "sequence": 28,
+      "status": 200,
+      "method": "POST",
+      "endpoint": "https://api.siliconflow.cn/v1/chat/completions",
+      "requestSha256": "e1dce2fdeba23d3939db6e5b52af3fb52c424fcc470ac03c797c04ad6d758a73",
+      "responseSha256": "e8cb31c82a72bc05e3c037f484f94d11187bf5a63dbf1f2ddba93a9344ac2b1a",
+      "bytes": 7862,
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "toolNames": []
+    },
+    {
+      "sequence": 29,
+      "status": 200,
+      "method": "POST",
+      "endpoint": "https://api.siliconflow.cn/v1/chat/completions",
+      "requestSha256": "2e4c05edc4d068a9c7be50bf6f83eb7fd6fc6d81363a72b183bfa57303b92d21",
+      "responseSha256": "0b8b6ea27f8399b367bc4b7f080f4c8d8d2810c4ae997132875303e00351e601",
+      "bytes": 50395,
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "toolNames": [
+        "create_task",
+        "list_tasks",
+        "cancel_task",
+        "memory_search",
+        "memory_get",
+        "memory_remember",
+        "memory_update",
+        "memory_forget",
+        "goal_manage"
+      ]
+    }
+  ],
+  "restartAudit": {
+    "M4Exit": {
+      "case": "M4",
+      "startedAtUtc": "2026-10-26T10:14:00.236892+00:00",
+      "messageSha256": "f9c59d6c96c2d6cfc3ee276d220981e260fcdb6d650153d43a45809070c1e392",
+      "messagesSubmitted": 1,
+      "keyDisplayedOrSaved": false,
+      "credentialFields": [
+        "LLM_API_KEY",
+        "LLM_MODEL",
+        "LLM_BASE_URL",
+        "LLM_PROVIDER"
+      ],
+      "providerMapping": "openai -> personal-compatible",
+      "command": [
+        "C:/Users/Dongr/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node.exe",
+        "--import",
+        "tsx",
+        "scripts/manual-goal-console-v2-acceptance.ts",
+        "--authorized",
+        "--rates-confirmed",
+        "--case=M4",
+        "--root=E:\\AgentWork\\acceptance\\manual-goal-console-v2-20261026",
+        "--resume",
+        "--previous-reviewed"
+      ],
+      "pid": 37176,
+      "exitCode": 0,
+      "elapsedSeconds": 15.375,
+      "exitedAtUtc": "2026-10-26T10:14:15.611123+00:00",
+      "normalExit": true
+    },
+    "M5Process": {
+      "case": "M5",
+      "startedAtUtc": "2026-10-26T10:15:40.680054+00:00",
+      "messageSha256": "414fca1d014b5db545da0937837660bf0bf0c5edab3c10a123bcae535234412f",
+      "messagesSubmitted": 1,
+      "keyDisplayedOrSaved": false,
+      "credentialFields": [
+        "LLM_API_KEY",
+        "LLM_MODEL",
+        "LLM_BASE_URL",
+        "LLM_PROVIDER"
+      ],
+      "providerMapping": "openai -> personal-compatible",
+      "command": [
+        "C:/Users/Dongr/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node.exe",
+        "--import",
+        "tsx",
+        "scripts/manual-goal-console-v2-acceptance.ts",
+        "--authorized",
+        "--rates-confirmed",
+        "--case=M5",
+        "--root=E:\\AgentWork\\acceptance\\manual-goal-console-v2-20261026",
+        "--resume",
+        "--previous-reviewed"
+      ],
+      "pid": 32816,
+      "exitCode": 0,
+      "elapsedSeconds": 8.078,
+      "exitedAtUtc": "2026-10-26T10:15:48.753259+00:00",
+      "normalExit": true
+    },
+    "sameSessionHashBeforeM5": true,
+    "sameGoalBeforeM5": true,
+    "sameExecutionsBeforeAndAfterM5": true,
+    "noGoalRequestM5": true,
+    "checkpointHash": "59bd691294993d7c513c32e7cbe840c9273f5e7fc5baa347375a4805afed73ec"
+  },
+  "preservation": {
+    "trackedUnchangedBeforeReports": 299,
+    "historicalFilesUnchanged": 792,
+    "otherWorktrees": [
+      {
+        "path": "E:\\AgentWork\\MacImport-20261021\\projects\\MacHome\\code\\Persistent Personal Agent",
+        "unchanged": true
+      },
+      {
+        "path": "C:\\Users\\Dongr\\.codex\\worktrees\\a2-b1-offline-fix\\Persistent Personal Agent",
+        "unchanged": true
+      },
+      {
+        "path": "C:\\Users\\Dongr\\.codex\\worktrees\\console-offline-fix\\Persistent Personal Agent",
+        "unchanged": true
+      },
+      {
+        "path": "C:\\Users\\Dongr\\.codex\\worktrees\\independent-console-prep\\Persistent Personal Agent",
+        "unchanged": true
+      },
+      {
+        "path": "C:\\Users\\Dongr\\.codex\\worktrees\\staged-console-prep\\Persistent Personal Agent",
+        "unchanged": true
+      },
+      {
+        "path": "C:\\Users\\Dongr\\.codex\\worktrees\\v3-proactive\\Persistent Personal Agent",
+        "unchanged": true
+      },
+      {
+        "path": "C:\\Users\\Dongr\\.codex\\worktrees\\natural-pause-prep\\Persistent Personal Agent",
+        "unchanged": true
+      },
+      {
+        "path": "C:/Users/Dongr/.codex/worktrees/windows-rc-release/Persistent Personal Agent",
+        "unchanged": true
+      }
+    ],
+    "productCodeUnchanged": true,
+    "noGitMutation": true,
+    "head": "dcdb9efde8e31279646b2146b4f1cf04475c802e",
+    "localOriginMainRef": "fdf3a069ca15847ab95f51c1ed39cd898d76c44f"
+  },
+  "closedStateRootSha256Manifest": "809ccef43f8276a4630790770a32280f78ce8113517051af246041be25575ef3",
+  "controls": {
+    "actualToolsInvoked": [
+      "goal_manage"
+    ],
+    "unexpectedWrites": 0,
+    "duplicateExecutionsObserved": 0,
+    "formalConfigChanged": false,
+    "productCodeChanged": false,
+    "gitCommittedOrPushed": false,
+    "suppliedCredentialFields": [
+      "LLM_API_KEY",
+      "LLM_MODEL",
+      "LLM_BASE_URL",
+      "LLM_PROVIDER"
+    ],
+    "credentialsDisplayedOrPersisted": false,
+    "providerMapping": "openai -> personal-compatible",
+    "enabledOnlyInTestProcess": [
+      "Goal"
+    ],
+    "disabledInTestProcess": [
+      "Skills",
+      "Web",
+      "Proactive",
+      "Formation",
+      "MemoryQueryRewrite"
+    ]
+  },
+  "preflight": {
+    "budgetTestsPassed": 11,
+    "budgetTestsFailed": 0,
+    "fullOfflineRegressionRerun": false,
+    "reportParserFormatCorrectionBeforeAnyLiveRequest": true
+  },
+  "conclusion": "本轮限定text_only手动Goal核心真实生命周期通过；M5/M8原始主模型语义未全部通过。建议直接进入有人监督的低风险Console个人试用，不默认新建验收入口或继续修复。",
+  "limitations": [
+    "仅一个虚构单Step场景；不外推任意目标计划质量。",
+    "M5禁止复述误读及M8结束措辞歧义仍在原生Session原文中，不能宣称模型状态理解完全通过。",
+    "本轮没有执行中暂停、取消竞态、异常/崩溃恢复、飞书手机或Skill/Web/Goal联合真实验证。",
+    "P1/N1过度澄清等历史失败、旧M3失败及R2/S1/N3限定成功全部保留。",
+    "实际供应商账单未知；Token费用是用量乘以已核价计算值，不是扣费凭据。"
+  ],
+  "nextStep": "经用户和ChatGPT审查后可在新隔离目录用现有普通Console低风险text_only自用，一次明确授权一段。保持其他能力关闭；费用及正式启用须另行批准，不复用本轮剩余额度。",
+  "stoppedAndNoFurtherRequests": true
+}

@@ -2,13 +2,14 @@
 
 更新日期：2026-10-26（Asia/Shanghai）。此文件是当前快照；稳定架构见 [PROJECT.md](PROJECT.md)，开发规则见 [AGENTS.md](../AGENTS.md)，运行方法见 [README.md](../README.md)。
 
-## 当前阶段与进行中事项
+## 当前阶段
 
-- M3状态解释最小离线修复及新体验标准准备完成，离线修复基线`e836cf38d7b6ce99a254e43bd349a47304db8183`，当前独立树/分支`codex/manual-goal-console-prep`；用户随后明确授权仅将本批13份源码、测试和文档提交推送到该审查分支，不合并或推送main。发布前全部文件及源码Hash与最终离线验证一致，本次只补本STATE的发布交接，冻结方案、报告和验证证据不改。唯一产品变更是renderGoalState的3行：正式Plan已批准、waiting_user、无readyInput、pending且无本Step Execution时明确“尚未排队或执行，须用户再次明确继续”。已有partial不误称未执行，ready/running/committed/投递语义不改，ToolResult/权威输出/Session沿用同源快照，无SDK/Loop/Prompt重构或自动执行。见[离线报告](evaluations/m3-state-offline-fix.md)/[JSON](evaluations/m3-state-offline-fix.json)。
-- 原M3证据确认审批只使Plan v1、Goal waiting_user、正式Step pending，没有正式Execution或排队授权；主Chat误称排队，宿主呈现及投递正确。进一步核对：bootstrap“批准后我将执行”不在M3主Chat request-08/09中，不能归因于直接注入；M2主Chat自身“确认后进入执行阶段”的历史可见，是否影响只是推测。原M1/M2真实通过、M3失败/M4～M9未执行及结束账本保持不变。
-- 新[冻结说明v2](evaluations/manual-goal-console-v2-live-plan.md)复用原M1～M9、预算器及Console，只增manual-goal-console-v2 scope和人工五维评分。综合通过需全部true；只有模型原始解释失败，机械状态/前台投递和其余四维正确、已人工审阅时允许下一条，仍保留语义/综合失败。用户可见/宿主/持久化/安全失败或无效评分持久停止，不隐式继续或给权限。未来另批全新数据/Session/账本、最多40HTTP/¥6.60/零GET，旧剩余31次不能沿用；正式开关默认关闭，本轮无执行或费用授权。
-- 红绿反例在旧代码1通过/1失败，新增说明后通过；最终Windows typecheck/build/npm test/两个离线eval全部0。503项500通过/0失败/3既有平台跳过；memory64题仍9/12、17/19、17/18，误supported0/15；formation开发/留出各30/30、未批准写入0。v2九条Mock29HTTP/3 Execution完成且M3语义失败不改判；独立Mock根用户可见评分false时M4零请求、无业务/Session改动且整轮halt。旧R2/A2与N3实际本机机制回归通过；Linux引擎不可用/WSL仅Stopped docker-desktop，无Mac，未安装环境。
-- 新证据`E:/AgentWork/validation/personal-agent-m3-state-offline-20261026`保留红绿/五关、原请求上下文分析、Mock快照及Hash；489历史文件、8个其他树和原main3项/E盘8项修改保全通过。原真实库仅只读SELECT/Hash，无迁移重放；不读正式.env、不访问公网、不收费/飞书/部署，不改main。真实模型是否遵循新说明、完整真实生命周期及原P1/N1体验缺口仍未验证，R2/S1/N3限定真实成功不改；完成后停止，等待独立审查及新授权。
+- 已按本轮明确授权，在固定`dcdb9efde8e31279646b2146b4f1cf04475c802e`执行v2手动Goal M1～M9各一次并正常停止。创建单Step草稿→审批→正式partial→正常停服重启→查看→暂停→带反馈继续点评→Step complete→用户明确确认Goal completed的真实核心闭环通过。见[报告](evaluations/manual-goal-console-v2-live-acceptance.md)/[JSON](evaluations/manual-goal-console-v2-live-acceptance.json)。
+- 五维由Codex逐条审阅真实原文、ToolResult、Console、SQLite及Session；humanReviewed表示操作者流程，不表示用户本人亲审。宿主/实际交付/持久化/安全9条全过，原始模型语义7过2未过：M5把禁止编造误读为禁止复述，M8“到此就结束了”未明确尚需确认达成。两条按v2保留语义/综合失败、后四维正确后继续；不称全绿。M3本轮准确说明仅审批未排队，旧M3失败不追改。
+- 29/40物理模型HTTP全200，保守预留¥2.019916/¥6.60；输入157014（未缓存33622/缓存123392）、输出3387，常规价Token估算¥0.09927568，实际账单未知。公网文档GET0；原独立账本发送前预留、失败不退款、跨重启不清零；未消费余额不用于后续。官方本轮2/0.04/8价格页及用户账号无附加费确认有证据。
+- 1 Goal/2 Plan/3 committed Execution，12个Run及前后台12次投递成功，9条用户消息/9宿主收据。M4→M5同Session/Checkpoint不重跑，M7完整反馈引用M4原Checkpoint，M6暂停不改成果，M9才完成Goal。SQLite完整/外键0，全部进程退出，无锁或pending；无Task/Memory/Policy/Web/飞书写入。
+- 只跑必要离线预算专项11/11，无产品/Skill/SDK/冻结消息或默认开关改动，不重复完整回归。新根`E:/AgentWork/acceptance/manual-goal-console-v2-20261026`，证据`E:/AgentWork/validation/personal-agent-manual-goal-console-v2-live-20261026`；792历史证据和8其他树含原main3/E盘8项改动保全。用户随后授权仅将报告/JSON/本STATE提交推送至codex/manual-goal-console-prep审查分支；发布只补STATE交接，原报告/JSON/证据不改，不合并main或追加真实验收/费用；正式.env仅本轮授权四字段内存注入、无密钥落盘或正式数据操作。
+- 建议经用户和ChatGPT审查后直接使用现有普通Console开展有人监督的低风险text_only个人试用，无需再建准备入口。本次不实际启用或追加费用。旧P1/N1过度澄清、旧M3及既有失败不改，R2/S1/N3限定成功保留；执行中控制/取消竞态、异常恢复、Skill/Web联合及主动/手机真实缺口仍在。完成即停止，等待审查。
 
 ## 已完成功能
 
@@ -35,11 +36,11 @@
 
 | 日期 | 修改及位置 |
 | --- | --- |
+| 2026-10-26 | v2真实M1～M9各一次完整闭环：M3原始解释正确；M5/M8语义问题保留，按人工五维审阅后继续，宿主/交付/持久化/安全9/9。29HTTP全200/预留¥2.019916/零文档GET，3 Checkpoint引用链、重启和暂停、完整反馈及明确完成真实通过；正常停服，792历史文件及8树保全，仅新增报告/JSON/STATE，未改产品；用户随后授权仅向codex/manual-goal-console-prep提交推送这3份文件，发布只补STATE，不合并main或启动新验收 |
 | 2026-10-26 | M3最小离线修复：共用render增加3行未排队说明，原反例红1→绿；新v2复用九句/40请求/¥6.60/零GET，五维分别评分，纯原始措辞失败可人工审阅后继续，其他失败持久停止。Windows五关0、503项500通过/3平台跳过；489历史文件及8树保全，离线阶段无真实请求或提交推送；用户随后授权仅将本批13文件发布到codex/manual-goal-console-prep，发布只补STATE，不改main或启动真实验收 |
 | 2026-10-26 | M1～M9真实Console体验：M1单Step草稿/M2视图通过，M3宿主只审批但原始模型误称排队，语义失败后停止M4～M9。9请求/¥0.473750预留/零GET，三个前台投递成功；仅bootstrap Checkpoint，无正式Execution。正常停服，代码与冻结方案不改，只报告/JSON/STATE，原证据和限定成功保留；用户随后授权仅向codex/manual-goal-console-prep提交推送报告/JSON/STATE，发布只补STATE，不改main、源码或启动新验收 |
 | 2026-10-26 | 固定fdf3a06 Windows RC经干净发布树严格快进到远端main，9提交保留、无新提交；8原树及205证据Hash不变。新独立树仅离线准备M1～M9薄stdin入口，40请求/¥6.60/零GET待单独批准；Windows五关0、497项494通过/3平台跳过，新专项5通过；产品源码不变，真实调用0；用户随后授权仅将本批9文件提交推送至codex/manual-goal-console-prep审查分支，发布只补STATE，保留验证快照和原工作区，不改main或启动真实体验 |
 | 2026-10-26 | b7a8735本地RC离线收敛审查：8提交/57文件，产品集中10文件，未发现明确合并阻断；Windows五关0、492项489通过/3平台跳过，Linux/Mac不可用。分级及9消息40请求/¥6.60待授权清单、保护与未来FF命令写入RC报告；用户随后仅授权向独立审查分支提交推送这2份文档，产品/Prompt和证据不改，不合并main或新增验收 |
-| 2026-10-26 | 独立自然暂停真实复验：N1真实创建/合法partial，计划质量未通过；N2唯一有效视图，N3历史原话一次pause将waiting_user rev2改为paused rev3，Plan/Step/Checkpoint不变。10请求/¥0.494534预留/零GET，3收据一致，正常停服。原始失败及R2/S1成功保留；用户随后授权仅提交推送报告/JSON及STATE到独立审查分支，原工作区和证据保留，不合并main或补测 |
 
 ## 验证记录与证据边界
 
