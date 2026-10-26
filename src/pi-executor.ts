@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { chmod, mkdir, mkdtemp, open, writeFile } from 'node:fs/promises';
 import { rmSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
+import { dirname, isAbsolute, join, resolve, sep } from 'node:path';
 import { InMemoryCredentialStore } from '@earendil-works/pi-ai';
 import {
   createAgentSession, createExtensionRuntime, createSyntheticSourceInfo, DefaultResourceLoader, formatSkillsForPrompt, ModelRuntime, parseSkillBlock, SessionManager, SettingsManager, stripFrontmatter,
@@ -25,6 +25,8 @@ import type { GoalService } from './goal-service.js';
 import { goalTools } from './goal-tools.js';
 import { SkillService, type SkillUsage, type SkillSnapshot } from './skill-service.js';
 import { skillReadTool } from './skill-tools.js';
+import { LocalFileService } from './local-file-service.js';
+import { localFileTools } from './local-file-tools.js';
 import { webTool } from './web-tools.js';
 import type { WebReadService } from './web-read-service.js';
 import type { WebReadStore } from './web-read-store.js';
@@ -158,6 +160,7 @@ export async function createPiExecutor(config: Config, tasks: TaskService, chatK
   web = config.webReadEnabled ? web : undefined;
   if (config.webReadEnabled && !web) throw new Error('WEB_READ_ENABLED需要宿主Web服务和持久存储');
   const skills = config.skillsEnabled ? new SkillService(config.skillsDir ?? `${config.databasePath}.skills`) : undefined;
+  const localFiles = config.localFiles?.enabled ? new LocalFileService(config.localFiles.workspace) : undefined;
   goals?.setSkills(skills);
   const limits = new AsyncLocalStorage<{ calls: number; request: ExecutionRequest }>();
   const chargeChat = () => { const current = limits.getStore(); if (current?.request.scope === 'chat' && ++current.calls > 8) throw new Error('Chat本轮8次模型HTTP上限触发；不重试'); };
@@ -256,6 +259,8 @@ export async function createPiExecutor(config: Config, tasks: TaskService, chatK
     const reader = scope === 'chat' && skills ? skillReadTool(skills, usage,
       () => { chatManager.appendCustomEntry('host-skill-usage-v1', structuredClone(usage)); },
       details => { limits.getStore()?.request.observer.event('skill_activated', details); }, () => limits.getStore()?.request.prompt ?? '') : undefined;
+    const fileTools = scope === 'chat' && localFiles ? localFileTools(localFiles,
+      () => limits.getStore()?.request.prompt ?? '', details => { limits.getStore()?.request.observer.event('local_file_access', details); }) : undefined;
     // 仅通过公开内联扩展注册 context。私有空资源目录 + no* + 内存设置，避免发现本机 Pi 资源。
     const resourceDir = join(sessionDir, 'runtime-resources');
     let skillDirectory: string | undefined, skillFile: string | undefined;
@@ -275,13 +280,13 @@ export async function createPiExecutor(config: Config, tasks: TaskService, chatK
       skillFile = join(directory, 'SKILL.md'); await writeFile(skillFile, skill.text, { mode: 0o600, flag: 'wx' });
     }
     let providerRequests = 0;
-    const extensions = memory || scope === 'goal' || reader || web ? new DefaultResourceLoader({
+    const extensions = memory || scope === 'goal' || reader || web || fileTools ? new DefaultResourceLoader({
       cwd: resourceDir, agentDir: resourceDir, settingsManager: SettingsManager.inMemory(),
       noExtensions: true, noSkills: true, noPromptTemplates: true, noThemes: true, noContextFiles: true,
       additionalSkillPaths: skillFile ? [skillFile] : reader ? skills!.list().map(info => info.filePath) : [],
       extensionFactories: [(pi) => {
         pi.on('before_provider_request', (event, sdkContext) => {
-          if (scope === 'chat' && (skills || web)) {
+          if (scope === 'chat' && (skills || web || localFiles)) {
             try { chargeChat(); if (Buffer.byteLength(JSON.stringify(event.payload)) > 65536) throw new Error('Chat请求超过65536字节'); }
             catch (error) { boundaryError = error; sdkContext.abort(); }
           }
@@ -380,7 +385,17 @@ export async function createPiExecutor(config: Config, tasks: TaskService, chatK
         ...(scope === 'chat' && goals ? ['已有Web快照绑定到Goal步骤时调用goal_manage，不重新调用web_get。用户须明确已获取文档标题、Goal及当前或第N步，选择全文或第N至M行；只生成待批准草稿，宿主核对身份、来源和Hash。执行Goal不会联网；绑定不能批准Skill、Policy或执行。'] : [])], getAppendSystemPromptSources: () => [],
       extendResources: () => {}, reload: async () => {},
     };
-    const selected = [...tools, ...(reader ? [reader.tool] : [])];
+    // 只有一个原生read名；资料失败绝不回退，Skill仍沿原批准/Hash/累计额度机制。
+    const fileRead = fileTools && reader ? { ...fileTools.read,
+      execute: (...args: Parameters<typeof fileTools.read.execute>) => {
+        const path = (args[1] as { path: string }).path;
+        const match = isAbsolute(path) && skills!.list().some(info => {
+          const name = resolve(path), base = dirname(info.filePath) + sep;
+          return process.platform === 'win32' ? name.toLowerCase().startsWith(base.toLowerCase()) : name.startsWith(base);
+        });
+        return match ? reader.tool.execute(...args) : fileTools.read.execute(...args);
+      } } : fileTools?.read;
+    const selected = [...tools, ...(fileRead ? [fileRead, fileTools!.ls] : reader ? [reader.tool] : [])];
     const allowed = scope === 'chat' ? selected.map((tool) => tool.name) : [];
     const { session } = await createAgentSession({
       modelRuntime: runtime, model: scope === 'goal' ? { ...model, maxTokens: Math.min(model.maxTokens, 4096) } : model, resourceLoader: loader,
@@ -410,6 +425,7 @@ export async function createPiExecutor(config: Config, tasks: TaskService, chatK
         memoryContextError = undefined;
         boundaryError = undefined;
         reader?.reset();
+        fileTools?.reset();
         providerRequests = 0;
         memory?.repair(); // 在写入新用户消息/调用模型之前先校验文件和索引。
         try {
@@ -424,5 +440,5 @@ export async function createPiExecutor(config: Config, tasks: TaskService, chatK
     };
   };
   return new PiExecutor(createSession, config.executionTimeoutMs, await createSession('chat'), memory, tasks, guard, formation, lane, skills,
-    skills || web ? (request, run) => limits.run({ calls: 0, request }, run) : undefined);
+    skills || web || localFiles ? (request, run) => limits.run({ calls: 0, request }, run) : undefined);
 }

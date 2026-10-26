@@ -55,6 +55,7 @@ Pi SDK 使用公开 API，不 Fork、不修改内部源码和 Agent Loop。宿�
 | [src/config.ts](../src/config.ts) | 环境变量、IANA 时区与参数校验、日志脱敏 |
 | [src/contracts.ts](../src/contracts.ts) | Task / Run、AgentExecutor、Channel、Scheduler、MemoryService 业务接口 |
 | [src/pi-executor.ts](../src/pi-executor.ts) | 原生 Session 文件创建/恢复与权限、后台隔离、白名单检查、执行生命周期、取消超时和用量观察 |
+| [src/local-file-service.ts](../src/local-file-service.ts)、[src/local-file-tools.ts](../src/local-file-tools.ts) | 默认关闭的Chat资料副本read/ls；宿主批准文件身份/Hash、当前请求范围与有界读取，复用Pi原生工具；不提供后台或写权限 |
 | [src/operation-guard.ts](../src/operation-guard.ts) | 当前意图与操作提议分离、宿主候选筛选、澄清/确认引用、一次性权限及操作审计 |
 | [src/task-tools.ts](../src/task-tools.ts) | Pi 工具适配：创建、查询、取消任务，调用 Task Service |
 | [src/memory-service.ts](../src/memory-service.ts) | 四类 Memory CRUD、来源/版本/Hash、原子文件提交、索引修复、关键词检索和有预算的临时 Context |
@@ -201,6 +202,12 @@ GoalPlanSpec新增可选skillBindings，模型仅可提议每步skillId；宿主
 Runner在门外准备包快照，重新入门后复核Task优先、Goal/Plan/Grant版本，再随claim冻结Execution输入。原生/skill显式展开只用于该一份冻结副本，联网前校验全文与参数、零工具、一次HTTP；执行后再次核对包未禁用/变化。Skill不可用时沿用blocked语义，尚未领取Step保留pending、授权不被消费；修复后需重新批准/授权。临时Session和副本释放，不从历史恢复工具。结果仍由原Checkpoint聚合事务提交，原Outbox只重投消息，不重跑模型。产物不自动进Memory或Formation。
 
 `skill-service.ts`负责宿主管理边界，`skill-tools.ts`集中公开Pi Skill/read适配，`skills-admin.ts`仅为停服人工批准入口。业务服务只传宿主DTO，Pi类型不进入Goal/Policy。安全限制依靠宿主验证与工具白名单，不把Skill提示词当权限保证，也不声称同账户恶意进程隔离。真实语义、渠道与长期稳定性另验，S0不开放任何其他工具能力。
+
+### T2-A：Chat受控本地资料
+
+独立`LOCAL_FILES_ENABLED=false`，仅显式绝对资料副本目录、宿主批准清单和当前请求三者共同允许读取。`local-files-admin.ts`只供操作者批准最多16份UTF-8 md/txt，固定目录/文件ID、Hash与大小；不是模型工具。运行中每次操作重新检查路径、类型、链接及批准状态，读取前后核对有界FD和内容Hash。原生read保留分页/呈现，ls只投影批准条目。拒绝越界、链接/junction、硬链接及典型配置/凭据路径和可识别凭据正文；不宣称能自动判断任意文本是否含秘密或隔离同账户恶意进程。
+
+仅普通Chat注册原生read/ls，不给后台Goal/Task/Proactive新增能力；Skills继续独立批准、固定Hash及原额度，通过唯一read名分流。文件工具每轮4调用/2文件/16KiB返回，Chat的8次模型请求上限与Skills/Web共用。正文是低信任ToolResult，只能作为材料，不能授权Task/Memory/Goal写入。无新依赖、数据库或工作流；操作与限制见[试用说明](t1-t2a-trial.md)。grep/find的默认rg/fd子进程及可能工具下载留待T2-B单独设计，本轮不启用。
 
 ## S1-A Chat固定资源只读Web
 

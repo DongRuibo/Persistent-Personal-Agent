@@ -1,4 +1,6 @@
-import { dirname, resolve, sep } from 'node:path';
+import { dirname, isAbsolute, resolve, sep } from 'node:path';
+import { homedir } from 'node:os';
+import { existsSync } from 'node:fs';
 import { Temporal } from '@js-temporal/polyfill';
 import type { FormationOptions } from './formation-types.js';
 import type { ProactiveOptions } from './goal-policy-types.js';
@@ -18,6 +20,7 @@ export interface Config {
   skillsEnabled?: boolean;
   webReadEnabled?: boolean;
   skillsDir?: string;
+  localFiles?: { enabled: boolean; workspace: string };
   proactive?: ProactiveOptions;
   pollIntervalMs: number;
   executionTimeoutMs: number;
@@ -83,6 +86,16 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const skillsDir = resolve(env.SKILLS_DIR || `${databasePath}.skills`);
   if (env.SKILLS_ENABLED === 'true' && (skillsDir === dirname(skillsDir) || contains(skillsDir, process.cwd())
     || [databasePath, sessionDir, memoryDir].some(path => contains(skillsDir, path) || contains(path, skillsDir)))) throw new Error('SKILLS_DIR必须是独立受管目录');
+  if (env.LOCAL_FILES_ENABLED !== undefined && !['true', 'false'].includes(env.LOCAL_FILES_ENABLED)) throw new Error('LOCAL_FILES_ENABLED 必须为 true 或 false');
+  const localFilesEnabled = env.LOCAL_FILES_ENABLED === 'true', workspace = env.LOCAL_FILES_WORKSPACE ? resolve(env.LOCAL_FILES_WORKSPACE) : '';
+  const localContains = (a: string, b: string) => contains(process.platform === 'win32' ? a.toLowerCase() : a, process.platform === 'win32' ? b.toLowerCase() : b);
+  if (localFilesEnabled && (!env.LOCAL_FILES_WORKSPACE || !isAbsolute(env.LOCAL_FILES_WORKSPACE) || /^(?:\\\\|\/\/)/u.test(env.LOCAL_FILES_WORKSPACE) || workspace === dirname(workspace)
+    || localContains(workspace, homedir()) || localContains(workspace, process.cwd()) || localContains(process.cwd(), workspace)
+    || [databasePath, sessionDir, memoryDir, skillsDir].some(p => localContains(workspace, p) || localContains(p, workspace)))) throw new Error('LOCAL_FILES_WORKSPACE 必须为独立的绝对资料副本目录，不能覆盖个人目录、代码或应用数据');
+  if (localFilesEnabled) for (let parent = workspace; ; parent = dirname(parent)) {
+    if (existsSync(resolve(parent, '.git'))) throw new Error('LOCAL_FILES_WORKSPACE 不能位于Git仓库内，请使用专用资料副本');
+    if (parent === dirname(parent)) break;
+  }
   if (env.PROACTIVE_ENABLED !== undefined && !['true', 'false'].includes(env.PROACTIVE_ENABLED)) throw new Error('PROACTIVE_ENABLED 必须为 true 或 false');
   const proactiveEnabled = env.PROACTIVE_ENABLED === 'true';
   if (proactiveEnabled && env.GOAL_ENABLED !== 'true') throw new Error('主动执行还需要 GOAL_ENABLED=true');
@@ -110,6 +123,7 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env): Config {
     memoryQueryRewrite: env.MEMORY_QUERY_REWRITE === 'true',
     goalEnabled: env.GOAL_ENABLED === 'true',
     skillsEnabled: env.SKILLS_ENABLED === 'true', skillsDir,
+    localFiles: { enabled: localFilesEnabled, workspace },
     webReadEnabled: env.WEB_READ_ENABLED === 'true',
     proactive: { enabled: proactiveEnabled, inputRate: proactiveNumber('PROACTIVE_INPUT_CNY_PER_MILLION', 0),
       outputRate: proactiveNumber('PROACTIVE_OUTPUT_CNY_PER_MILLION', 0), dailyCalls: proactiveNumber('PROACTIVE_DAILY_CALLS', 20, true),

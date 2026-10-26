@@ -1,0 +1,181 @@
+{
+  "schemaVersion": 1,
+  "scope": "T1/T2-A offline only",
+  "baseline": "bcf4fcb711fe6b0dbcab327ea6079ba598cb26c4",
+  "branch": "codex/t1-t2a-readonly-files",
+  "worktree": "C:\\Users\\Dongr\\.codex\\worktrees\\t1-t2a-readonly-files\\Persistent Personal Agent",
+  "gitCommitCreated": false,
+  "pushed": false,
+  "paidModelRequests": 0,
+  "publicWebRequestsInitiated": 0,
+  "formalEnvRead": false,
+  "realFeishuConnectionInitiated": false,
+  "runtime": {
+    "node": "24.19.0",
+    "platform": "win32"
+  },
+  "checks": [
+    {
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "seconds": 3.25
+    },
+    {
+      "command": "npm run build",
+      "exitCode": 0,
+      "seconds": 1.578
+    },
+    {
+      "command": "npm test",
+      "exitCode": 0,
+      "seconds": 105.922
+    },
+    {
+      "command": "npm run eval:memory",
+      "exitCode": 0,
+      "seconds": 3.453
+    },
+    {
+      "command": "npm run eval:formation -- --output=E:\\AgentWork\\validation\\personal-agent-t1-t2a-offline\\formation-offline-root-check.json",
+      "exitCode": 0,
+      "seconds": 6.547
+    }
+  ],
+  "tests": {
+    "total": 513,
+    "passed": 510,
+    "failed": 0,
+    "skipped": 3,
+    "skipReasons": [
+      "﹣ POSIX 私有权限位 (0.4236ms) # Windows mode 不代表 ACL；ACL 隔离未验证",
+      "﹣ 拒绝符号链接且不触碰外部文件 (2.4491ms) # Windows 当前账户无创建符号链接权限，本项未验证",
+      "﹣ 进程级：交互 Session 重启恢复，daemon 隔离调度，拒绝双启动，SIGTERM 标记中断 (1.3525ms) # Windows child.kill(SIGTERM) 强杀，无法验证 POSIX 优雅退出；需在 Mac/Linux 重跑"
+    ],
+    "newTests": 10
+  },
+  "evals": {
+    "memory": {
+      "mode": "offline-lexical",
+      "recall5": 0.75,
+      "contextHitRate": 0.75,
+      "supportedRecordPrecision": 1,
+      "realApiCalls": 0
+    },
+    "formation": {
+      "fixturePassed": 30,
+      "fixtureTotal": 30,
+      "holdoutPassed": 30,
+      "holdoutTotal": 30,
+      "unauthorizedWrites": 0,
+      "apiRequests": 0
+    }
+  },
+  "configScript": {
+    "powershellParser": "passed",
+    "execution": "isolated config-demo; no agent startup",
+    "approvedSkills": [
+      "agent-notes@1.0.1",
+      "interview-practice@1.0.0"
+    ],
+    "localFixtureBytes": 230,
+    "enabled": [
+      "skills",
+      "localFiles"
+    ],
+    "disabled": [
+      "goal",
+      "web",
+      "proactive",
+      "formation",
+      "memoryQueryRewrite"
+    ]
+  },
+  "productSourceHashMethod": "SHA256(sorted relativePath TAB fileSHA256 LF), src/*.ts + package.json + package-lock.json",
+  "productSourceHash": "0ebb3c11d52c2abfd21c8fd699c72b229d61b9680ee6efc380c3257de6c26627",
+  "productSourceHashes": {
+    "package-lock.json": "ff65f60b779b2acb468d2940efc214e002d9b61001c39c7684e592586ab8a882",
+    "package.json": "636b386a856e51ad30303fbccaacb4be25db28820543628d0f0d25483d36cc16",
+    "src/background-lane.ts": "4091ae6e3c495763b14063ffd59db040942ea07d1ec0c6599b7a8661ab3a733e",
+    "src/channel-router.ts": "77571641314846350b761f209144110e59c51f9657202857344f8bfab4b37794",
+    "src/config.ts": "1150cd1e1b1e15ca15d163969218c62e6c32dd6faed8e9c3315e726feec96a9e",
+    "src/console-channel.ts": "15e5ca7066f9a987970eafd5066751ad334f4d74b37425e31034bfdb9a7f99b0",
+    "src/contracts.ts": "21766be15066ca3186e758ee1a1383eaa0eebce2c4c3f1a17f595f4eaf26ea85",
+    "src/feishu-channel.ts": "3146ad02e4c5dbca3a1eb5b7f47e4a7d2da68209a9569bbcade587b5446625ad",
+    "src/feishu-transport.ts": "2faae4cd58cf299c206454b99d3b6a802e77485c0e002c1d130a31222b27a5c4",
+    "src/formation-service.ts": "65be5366177e31d64445f38c67406fd51bc4ecdbdc37f55fa3ec0dd850fb354e",
+    "src/formation-store.ts": "540c24d41ae806d50b3d3b925954039e6db8818845ff21a026b763d21b6bd199",
+    "src/formation-types.ts": "e46c3c7c956a2af591006cec0610ae48df869b05c561e691a41b9ef57332e32e",
+    "src/github-observer.ts": "61deabce1cb3099515d49fd173d1bbb2ac34f844b2a10a3756577251ef8a7df0",
+    "src/goal-commit-error.ts": "17cb182ee877bd799cad18d2b6f654d06e57036826922cabcfd6065cdafcdd84",
+    "src/goal-notification-store.ts": "0b0373fe0d81135a844ef25cb6743b7718824377cf58172328f2f9d2da1745b9",
+    "src/goal-plan-quantity.ts": "5c139333be7ce6e0e98190896544696ec9f560f6dabb8d6696296b5ade7d0270",
+    "src/goal-policy-console.ts": "41a8d0247ad439870ab1d3f2e8a260e1f0d818c32e1dc82874ba269533f9d378",
+    "src/goal-policy-store.ts": "6261ccb84e820246754fed398076a6bcb01ee3983f070b8df5b2821a0f572761",
+    "src/goal-policy-types.ts": "63f46bbb952b87430e0e3d6310f1d9fc19fa106f2735ad4bf5bd50105550e07b",
+    "src/goal-runner.ts": "3c617b2779b0c9711eebaf6810e6b9bb8beb5516ed2b5df5e96ec6b1ec04e4c0",
+    "src/goal-schedule.ts": "67a197f372b288a66247ffe9e428f0d424009ea5fa149dff8d360ef156f725b6",
+    "src/goal-service.ts": "b302a6c4cba4ae9c293c72f31a3412efc1419bf5735c9d22c129eac064a3f057",
+    "src/goal-store.ts": "98e6b4624bafa332a536d2d827a36f52062911a73a16e99b7535eeb04becba94",
+    "src/goal-tools.ts": "c4cd469c745c540e7e2537a5e38c6075e3cedaeffc12a1f9658fc24e5702518e",
+    "src/goal-types.ts": "6a09ee17e713068bc2f79b074ed8eafc86ac240fe4a86cbfe2299daa68ce98e3",
+    "src/local-file-service.ts": "f764c8d300094de52b3fa68fcdca58b56d2551e5814546536ad426f615678541",
+    "src/local-file-tools.ts": "e61356ec2a79bd5a01bbafa192c9702681d30fa8747524922bdf596a3e9cd1d0",
+    "src/local-files-admin.ts": "34ebf12ccbc8fa557fddbc3d6b6f62589849ca65e23ec4f9d5abac2864951170",
+    "src/main.ts": "6846c447a2e7b239cc1a69073a29778513e15335ee28fce6a1ccc965a5bded0b",
+    "src/memory-retriever.ts": "ffa2cad1b2254b25510e463992998e69e8dc57d7f3a847dd0752744756d072f3",
+    "src/memory-service.ts": "65b4d1c35838661bb491c293c0abe5c1e27e607aa28b507728a3d21504cc6b0f",
+    "src/memory-tools.ts": "799c529bbd401cf34603685c00171b6a05906d65f5e7a566e6330f6400ba15d8",
+    "src/operation-guard.ts": "7058cd5e5b1f89dd433a6ecd30e4c7b0595d35f0f9a989c6141994bf91e5c7e0",
+    "src/pi-executor.ts": "a1ee3f4cd996fc263f9b4172e2903a31f20fd5276eea97904cdd3e77198ea378",
+    "src/scheduler.ts": "9b9ec95f390130c24079d2147605d4e35eaec43fa88d526074b97d171cdd31fd",
+    "src/skill-service.ts": "bfb215ff8d0da9c911cf5939c05d8d6d0a897ab94dbf409830884537727e9818",
+    "src/skill-tools.ts": "7f135bba9e621b4cbfbb3a017a8e98b556ccd47d62b71e3b07ab250f147efffa",
+    "src/skills-admin.ts": "7a819fe30507d9ee91e9343b01aed6eb69cc569bb25f3838fbed3696342872ab",
+    "src/sqlite-store.ts": "fed74b0eca00f9e02f55c37385f37487aacddef5b722bb003fcdc0a2dcec5a9e",
+    "src/task-service.ts": "c7fa22771cab8bb4112b555ab29a5086080b1d93fc7d2c9858f71fce211b4002",
+    "src/task-tools.ts": "173c28c2e37e6180d4688a0c06bcfce97d95ebfe97a21b8f51b79a9dc6d1ba9c",
+    "src/time.ts": "3492bf1516411e83f58029c361719587a2303f01fe138f0b97bc5c284ff0a70b",
+    "src/web-read-authorization.ts": "bb2a12a0e292914a7363a45859d2392434e1e239872f772ec5fcb41444994dbd",
+    "src/web-read-service.ts": "e476cb97f14f79609f0b28c0157afc68f298619952771a390b31bc755fa4417b",
+    "src/web-read-store.ts": "68a7ea5664039a027a0fa137fd53ae661612420dddf7bfdb2edb4203db3c4744",
+    "src/web-read-types.ts": "701fc0a83dbf94963da82af2225a104c1c9beeaf9ee46c0c7ab30fd328ef23fa",
+    "src/web-tools.ts": "94afaedbfa0a93a40d5d5752dd2c52c17d22fd28a4b6775278f50dd2bf7b2e4e"
+  },
+  "sdkSourceHashes": {
+    "node_modules\\@earendil-works\\pi-coding-agent\\package.json": "83c3bb7619f590c213cc96a24216eb29a819a3ef6dc548607cc037ed276e8dc5",
+    "node_modules\\@earendil-works\\pi-coding-agent\\dist\\core\\tools\\read.js": "a5493a6cc7a3a03ba23d345f603bc7ee839ead2fe0ea79a096107fb9ebaa03eb",
+    "node_modules\\@earendil-works\\pi-coding-agent\\dist\\core\\tools\\read.d.ts": "87b343a7fb03add446f1d6f87c891c7cd4806dde6b4b1ba7bfb8d4d74e58a2e3",
+    "node_modules\\@earendil-works\\pi-coding-agent\\dist\\core\\tools\\ls.js": "8e06f1a42e48fcf447558686d8bb4defebcb80eb8e73c3483a7892643e1622a9",
+    "node_modules\\@earendil-works\\pi-coding-agent\\dist\\core\\tools\\ls.d.ts": "9ea1cf0d7a024089d7be0690406207cd2812553cd9330ee45924db43bb44d608",
+    "node_modules\\@earendil-works\\pi-coding-agent\\dist\\core\\tools\\path-utils.js": "76acb2622a7f4f54c871a553501340829580f0f9caad627e7dafb8aee8b449af",
+    "node_modules\\@earendil-works\\pi-coding-agent\\dist\\core\\tools\\grep.js": "641ae520a88c7eb86406d9a18880f31412cb41cdc15a7ee3e1da5de62979ca7c",
+    "node_modules\\@earendil-works\\pi-coding-agent\\dist\\core\\tools\\find.js": "cbb5e3a76e962899f833452ff26670c1fdbf333e7efdecb9953b07f6ebd14ed7"
+  },
+  "preservation": {
+    "originalHead": "bcf4fcb711fe6b0dbcab327ea6079ba598cb26c4",
+    "originalStatus": " M docs/STATE.md\u0000",
+    "originalStateHash": "764190b8bce117ebde8803d9a85b1c8cb2949c06f2b9540912032566c6c6c3f4",
+    "currentFeishuLauncherHash": "4509d93e3ae2d7dfd056c73d042e897decab2abe4fa1bce06f5c56af6fc6c419",
+    "unchanged": true
+  },
+  "platformProbe": {
+    "wsl": {
+      "exitCode": 0,
+      "output": "docker-desktop\r\n"
+    },
+    "docker": {
+      "exitCode": 1,
+      "output": "\nfailed to connect to the docker API at npipe:////./pipe/dockerDesktopLinuxEngine; check if the path is correct and if the daemon is running: open //./pipe/dockerDesktopLinuxEngine: The system cannot find the file specified.\n"
+    }
+  },
+  "evidenceRoot": "E:\\AgentWork\\validation\\personal-agent-t1-t2a-offline",
+  "limitations": [
+    "No new real model/Feishu trial; mocks do not prove automatic Skill selection quality.",
+    "Only local operator-controlled UTF-8 md/txt copies; no OS sandbox or malicious same-user process isolation.",
+    "Recognizable credential filtering does not prove arbitrary text contains no secrets; operator must sanitize copies.",
+    "Native Session stores authorized ToolResults; audit events do not duplicate file bodies.",
+    "Per-turn limits are not a persistent monetary cap.",
+    "Linux/Mac not run; 3 existing Windows platform skips retained.",
+    "T2-B grep/find subprocess and optional binary acquisition remain unimplemented."
+  ]
+}

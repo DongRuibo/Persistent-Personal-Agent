@@ -92,6 +92,14 @@ Chat自动匹配目录并通过受限原生read按需读取正文和references�
 
 实现与故障边界见[设计](docs/designs/skills-tools-architecture.md)与[本轮验证](docs/evaluations/s0-skills-validation.md)。真实模型的自动选择/遵循质量、真实主动执行、飞书及长期运行尚未验收；V3.0.1自然暂停和收据解释原始失败继续保留。S0没有Shell、Web、Browser、MCP、Sandbox、Computer Use或外部写工具。
 
+## T1 / T2-A：独立 Skills 试用与 Chat 只读资料（默认关闭）
+
+T1沿用现有两个Skill、宿主批准清单和原生目录/read，不新增安装系统。T2-A增加独立的`LOCAL_FILES_ENABLED=false`与`LOCAL_FILES_WORKSPACE`，复用Pi1.3.0公开的原生read/ls ToolDefinition及可注入文件操作。仅Chat可用；Task/Goal/Proactive仍无文件工具，不提供Shell、写入、grep/find或任意目录扫描。
+
+资料须先复制到独立目录、由操作者用`node dist/local-files-admin.js <绝对资料目录> notes/a.md`批准；不接入整个个人目录或代码仓库。当前消息首行明确`本次允许读取资料文件：notes/a.md`，可附`#L1-L20`；列目录另需`本次允许列出资料目录：notes`。宿主配置、批准清单与本轮范围取交集，目录清单不授权读取。原生read的分页与文本呈现保持不变，宿主另限路径、文件身份/Hash、链接、容量和当前授权；两个功能共用唯一read名及原Chat请求预算。
+
+完整配置、额度、隔离试用及未来飞书人工切换步骤见[T1/T2-A操作说明](docs/t1-t2a-trial.md)。配置示例只创建虚构资料并批准两个现有包，不启动Agent、不读取.env；本轮仅模拟验证，未更改正在使用的飞书实例。普通Chat无整轮人民币硬上限；正文会发给模型并进入原生Session，审计事件只保存相对路径/字节/拒绝原因。
+
 ## S1-A：Chat 受控只读 Web（默认关闭）
 
 `WEB_READ_ENABLED=false`，独立于Skills/Goal/Proactive；开启开关也不能代替当前用户读取许可。首批宿主目录仅包含Pi1.3.0的“Pi Skills 文档”和“Pi SDK 文档”，资源的固定HTTPS地址、版本、启用状态及目录Hash由代码维护，不支持模型提交URL、在线安装或热更新。目录Hash约束来源配置；抓取后的contentHash另行记录正文，不把网页内容当已批准指令。
@@ -571,7 +579,7 @@ Console 输入 → Task Service / AgentExecutor → Pi 交互 Session
 
 ## 安全与日志
 
-- 交互白名单为create_task/list_tasks/cancel_task及五项Memory工具；显式开启Formation后另加memory_review，SKILLS_ENABLED开启后另加仅批准Skill文件的受限read，WEB_READ_ENABLED开启后另加固定资源web_get。后台Session/形成请求无工具，允许宿主只读检索。没有Shell、任意文件读写、浏览器或通用网络工具。
+- 交互白名单为create_task/list_tasks/cancel_task及五项Memory工具；显式开启Formation后另加memory_review，SKILLS_ENABLED开启后另加仅批准Skill文件的受限read，LOCAL_FILES_ENABLED开启后增加受控资料read/ls（与Skill共享唯一read名），WEB_READ_ENABLED开启后另加固定资源web_get。后台Session/形成请求无工具，允许宿主只读检索。没有Shell、任意文件读写、浏览器或通用网络工具。
 - SDK使用内存凭据和设置；交互Session使用宿主指定私有文件。资源加载器只注册宿主内联扩展，关闭本机扩展、AGENTS、模板及MCP自动发现；Skills也不自动发现，只有SKILLS_ENABLED显式开启后加载受管批准包。不读取全局Pi配置，不保存Key到Pi认证文件。
 - 关闭 Agent 自动重试、Provider HTTP 重试、自动压缩、缓存预热和 SDK 可配置的分析功能。保留原版 Pi SDK 及 Agent Loop。
 - 服务自身仍会写 SQLite，并向指定 LLM API 和启用的飞书服务发请求。工具白名单属于应用能力边界，不是操作系统沙箱。模型会收到对话和当前任务内容。

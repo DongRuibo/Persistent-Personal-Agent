@@ -1,15 +1,14 @@
 # Personal Agent 当前状态与交接
 
-更新日期：2026-10-26（Asia/Shanghai）。此文件是当前快照；稳定架构见 [PROJECT.md](PROJECT.md)，开发规则见 [AGENTS.md](../AGENTS.md)，运行方法见 [README.md](../README.md)。
+更新日期：2026-10-27（Asia/Shanghai）。此文件是当前快照；稳定架构见 [PROJECT.md](PROJECT.md)，开发规则见 [AGENTS.md](../AGENTS.md)，运行方法见 [README.md](../README.md)。
 
 ## 当前阶段
 
-- 已按本轮明确授权，在固定`dcdb9efde8e31279646b2146b4f1cf04475c802e`执行v2手动Goal M1～M9各一次并正常停止。创建单Step草稿→审批→正式partial→正常停服重启→查看→暂停→带反馈继续点评→Step complete→用户明确确认Goal completed的真实核心闭环通过。见[报告](evaluations/manual-goal-console-v2-live-acceptance.md)/[JSON](evaluations/manual-goal-console-v2-live-acceptance.json)。
-- 五维由Codex逐条审阅真实原文、ToolResult、Console、SQLite及Session；humanReviewed表示操作者流程，不表示用户本人亲审。宿主/实际交付/持久化/安全9条全过，原始模型语义7过2未过：M5把禁止编造误读为禁止复述，M8“到此就结束了”未明确尚需确认达成。两条按v2保留语义/综合失败、后四维正确后继续；不称全绿。M3本轮准确说明仅审批未排队，旧M3失败不追改。
-- 29/40物理模型HTTP全200，保守预留¥2.019916/¥6.60；输入157014（未缓存33622/缓存123392）、输出3387，常规价Token估算¥0.09927568，实际账单未知。公网文档GET0；原独立账本发送前预留、失败不退款、跨重启不清零；未消费余额不用于后续。官方本轮2/0.04/8价格页及用户账号无附加费确认有证据。
-- 1 Goal/2 Plan/3 committed Execution，12个Run及前后台12次投递成功，9条用户消息/9宿主收据。M4→M5同Session/Checkpoint不重跑，M7完整反馈引用M4原Checkpoint，M6暂停不改成果，M9才完成Goal。SQLite完整/外键0，全部进程退出，无锁或pending；无Task/Memory/Policy/Web/飞书写入。
-- 只跑必要离线预算专项11/11，无产品/Skill/SDK/冻结消息或默认开关改动，不重复完整回归。新根`E:/AgentWork/acceptance/manual-goal-console-v2-20261026`，证据`E:/AgentWork/validation/personal-agent-manual-goal-console-v2-live-20261026`；792历史证据和8其他树含原main3/E盘8项改动保全。用户随后授权仅将报告/JSON/本STATE提交推送至codex/manual-goal-console-prep审查分支；发布只补STATE交接，原报告/JSON/证据不改，不合并main或追加真实验收/费用；正式.env仅本轮授权四字段内存注入、无密钥落盘或正式数据操作。
-- 建议经用户和ChatGPT审查后直接使用现有普通Console开展有人监督的低风险text_only个人试用，无需再建准备入口。本次不实际启用或追加费用。旧P1/N1过度澄清、旧M3及既有失败不改，R2/S1/N3限定成功保留；执行中控制/取消竞态、异常恢复、Skill/Web联合及主动/手机真实缺口仍在。完成即停止，等待审查。
+- T1/T2-A仅离线实现完成，基线`bcf4fcb711fe6b0dbcab327ea6079ba598cb26c4`，独立树`C:/Users/Dongr/.codex/worktrees/t1-t2a-readonly-files/Persistent Personal Agent`，分支`codex/t1-t2a-readonly-files`；用户随后明确授权仅将本批15份源码/测试/配置样例/文档提交推送至同名审查分支。发布仅补本STATE交接，产品与测试保持最终离线验证版本，不合并main、不启动真实验收。原E盘工作树/STATE与飞书启动脚本Hash核对不变，未读取正式.env或操作现有飞书实例/业务数据。
+- T1复用SkillService、skills-admin、原生目录与受限read，两个现有包版本/Hash不改。新增仅配置隔离目录的PowerShell示例和[操作说明](t1-t2a-trial.md)，不启动Agent，不需要新增Skill。
+- T2-A独立`LOCAL_FILES_ENABLED=false`，显式资料副本工作区+人工批准文件身份/Hash+当前请求范围；Pi1.3.0公开原生read/ls与注入操作，后台Task/Goal/Proactive不增加工具。默认其他开关未变；无Shell/写入/grep/find/MCP或通用网络。详见[离线报告](evaluations/t1-t2a-offline-validation.md)/[JSON](evaluations/t1-t2a-offline-validation.json)。
+- Windows Node24.19.0：typecheck/build/test/eval:memory/eval:formation均退出0，最终513项510通过/3既有平台跳过；新专项10项与原生Skill共用、模拟飞书、取消、重启、链接/容量等均在全量中通过。Memory离线Recall@5=0.75/ContextHit=0.75，不声称质量全过；Formation30/30+holdout30/30、API请求0。Docker Linux引擎不可用，未安装/启动新环境；ACL、文件符号链接权限及POSIX SIGTERM缺口保留。
+- 历史v2手动Goal真实核心闭环仍为宿主/交付/持久化/安全9/9，原始模型语义7/9，M5/M8失败保留；R2/S1/N3仅限定场景真实成功，P1/N1过度澄清及其他真实缺口不变。本轮不做任何收费/公网/正式飞书验证，不把模拟工具成功当成新真实效果；完成即停止，等待审查后再决定T2-B和人工飞书试用。
 
 ## 已完成功能
 
@@ -36,11 +35,11 @@
 
 | 日期 | 修改及位置 |
 | --- | --- |
+| 2026-10-27 | T1复用现有两个Skill并补独立试用配置；T2-A默认关闭的Chat资料read/ls，固定副本身份/Hash、当前授权与有界注入操作，后台零工具，模拟飞书去重/身份保持。Windows五关0、513项510通过/3平台跳过；原E盘工作区和启动器Hash不变。仅离线、未启用正式环境，Linux引擎缺口及历史真实失败保留；用户随后仅授权发布本批15文件到同名审查分支，发布只补STATE，不改产品/测试或main |
 | 2026-10-26 | v2真实M1～M9各一次完整闭环：M3原始解释正确；M5/M8语义问题保留，按人工五维审阅后继续，宿主/交付/持久化/安全9/9。29HTTP全200/预留¥2.019916/零文档GET，3 Checkpoint引用链、重启和暂停、完整反馈及明确完成真实通过；正常停服，792历史文件及8树保全，仅新增报告/JSON/STATE，未改产品；用户随后授权仅向codex/manual-goal-console-prep提交推送这3份文件，发布只补STATE，不合并main或启动新验收 |
 | 2026-10-26 | M3最小离线修复：共用render增加3行未排队说明，原反例红1→绿；新v2复用九句/40请求/¥6.60/零GET，五维分别评分，纯原始措辞失败可人工审阅后继续，其他失败持久停止。Windows五关0、503项500通过/3平台跳过；489历史文件及8树保全，离线阶段无真实请求或提交推送；用户随后授权仅将本批13文件发布到codex/manual-goal-console-prep，发布只补STATE，不改main或启动真实验收 |
 | 2026-10-26 | M1～M9真实Console体验：M1单Step草稿/M2视图通过，M3宿主只审批但原始模型误称排队，语义失败后停止M4～M9。9请求/¥0.473750预留/零GET，三个前台投递成功；仅bootstrap Checkpoint，无正式Execution。正常停服，代码与冻结方案不改，只报告/JSON/STATE，原证据和限定成功保留；用户随后授权仅向codex/manual-goal-console-prep提交推送报告/JSON/STATE，发布只补STATE，不改main、源码或启动新验收 |
 | 2026-10-26 | 固定fdf3a06 Windows RC经干净发布树严格快进到远端main，9提交保留、无新提交；8原树及205证据Hash不变。新独立树仅离线准备M1～M9薄stdin入口，40请求/¥6.60/零GET待单独批准；Windows五关0、497项494通过/3平台跳过，新专项5通过；产品源码不变，真实调用0；用户随后授权仅将本批9文件提交推送至codex/manual-goal-console-prep审查分支，发布只补STATE，保留验证快照和原工作区，不改main或启动真实体验 |
-| 2026-10-26 | b7a8735本地RC离线收敛审查：8提交/57文件，产品集中10文件，未发现明确合并阻断；Windows五关0、492项489通过/3平台跳过，Linux/Mac不可用。分级及9消息40请求/¥6.60待授权清单、保护与未来FF命令写入RC报告；用户随后仅授权向独立审查分支提交推送这2份文档，产品/Prompt和证据不改，不合并main或新增验收 |
 
 ## 验证记录与证据边界
 
