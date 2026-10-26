@@ -1,0 +1,475 @@
+{
+  "schemaVersion": 1,
+  "dateAsiaShanghai": "2026-10-26",
+  "status": "completed_natural_pause_pass_plan_generation_not_passed",
+  "fixedSha": "83733d97a8334e5f21d9a092344ac8c0d4139e96",
+  "branch": "codex/natural-pause-prep",
+  "acceptanceRoot": "E:\\AgentWork\\acceptance\\natural-pause-console-20261026",
+  "evidenceRoot": "E:\\AgentWork\\validation\\personal-agent-natural-pause-live-20261026",
+  "frozen": {
+    "fixedSha": "83733d97a8334e5f21d9a092344ac8c0d4139e96",
+    "nodeVersion": "v24.19.0",
+    "piVersion": "1.3.0",
+    "planHash": "55a36b74e27032cf4015d5619bd247540dd04d4f88db3dcc5bf6de81e1fe6bca",
+    "entryHash": "1a7fbbd1e62e684ee012a8f36825d973b959489d140807a230a4549796768834",
+    "casesFileHash": "41192aafb0b4fb190c3453a38b6e7bc6a7ceb52a3310bf16cee219e85a356cc1",
+    "casesHash": "ecb9804c6e38e5a259d29b9e28e214c927adaf0b0bf024e394ed5b60522c0671",
+    "codeHash": "44e5bd3d848da961825156c97a3978582e840c4551e09f84ce30587dfd6c7c2f",
+    "definition": {
+      "scope": "natural-pause-console-v1",
+      "limits": {
+        "requests": 14,
+        "microCny": 2310000,
+        "bodyBytes": 65536,
+        "outputTokens": 4096,
+        "publicGets": 0
+      },
+      "groups": {
+        "P": {
+          "requests": 14,
+          "microCny": 2310000
+        }
+      },
+      "cases": {
+        "N1": {
+          "group": "P",
+          "expected": 4,
+          "max": 6,
+          "goal": true,
+          "prompt": "帮我分阶段制定青桐阅读计划，只使用以下虚构资料：宿主保存授权与Checkpoint，Pi执行当前片段。先拟定待批准的阅读安排，等我确认后再执行正式步骤。"
+        },
+        "N2": {
+          "group": "P",
+          "expected": 3,
+          "max": 4,
+          "goal": false,
+          "prompt": "查看青桐阅读计划进度"
+        },
+        "N3": {
+          "group": "P",
+          "expected": 3,
+          "max": 4,
+          "goal": false,
+          "prompt": "暂停那个学习计划"
+        }
+      }
+    }
+  },
+  "startedAtUtc": "2026-10-26T05:37:47.659613+00:00",
+  "finishedAtUtc": "2026-10-26T05:39:21.481310+00:00",
+  "authorization": {
+    "cases": [
+      "N1",
+      "N2",
+      "N3"
+    ],
+    "physicalHttpMax": 14,
+    "reservedMicroCnyMax": 2310000,
+    "publicDocumentGetMax": 0,
+    "currentAccountPricesConfirmed": true,
+    "rates": {
+      "confirmedThisRound": true,
+      "checkedAtUtc": "2026-10-26T05:37:46.952146+00:00",
+      "inputRate": 2,
+      "outputRate": 8,
+      "cacheReadRate": 0.04,
+      "extraFeesCny": 0,
+      "accountEvidence": "用户本轮确认当前账号适用上述官方费率，无附加费。",
+      "modelHttpLimit": 14,
+      "microCnyLimit": 2310000,
+      "publicDocumentGetsLimit": 0,
+      "officialSource": "https://www.siliconflow.cn/pricing",
+      "officialCheckedThisRound": true
+    },
+    "credentialFields": [
+      "LLM_API_KEY",
+      "LLM_MODEL",
+      "LLM_BASE_URL",
+      "LLM_PROVIDER"
+    ],
+    "sourceProvider": "openai",
+    "isolatedProvider": "personal-compatible",
+    "providerMapping": "原产品baseUrl分支既有适配器，非换模型",
+    "keyDisplayedSavedOrSubmitted": false
+  },
+  "cases": [
+    {
+      "id": "N1",
+      "prompt": "帮我分阶段制定青桐阅读计划，只使用以下虚构资料：宿主保存授权与Checkpoint，Pi执行当前片段。先拟定待批准的阅读安排，等我确认后再执行正式步骤。",
+      "casePass": true,
+      "mechanicalStatePass": true,
+      "goalCreationPass": true,
+      "planGenerationPass": false,
+      "planDraftFormed": false,
+      "modelOriginalAnswer": "已为你建立长期目标并排队，当前状态如下：\n\n- **Goal**：69e922b8-98e7-4918-96b2-70fcb42df4f5，状态 ready，版本 v0\n- **计划**：Plan v0 仅为初始化占位，**尚无已批准的正式计划**\n- **待批准草稿**：目前没有（本次只排队了一个初始化片段，尚未提交任何成果）\n- **Checkpoint**：无\n- **批准 Run**：无\n\n需要说明的是，我不会在聊天里替你生成并宣布一份“正式阅读安排”——分阶段的阅读计划需要由宿主与后台执行器经初始化片段形成**待批准草稿**，再由你确认后才转为正式步骤。目前草稿还没产出，也还没有正式 Step 在执行，因此我不能说计划已经拟定完成。\n\n按你提出的边界，后续流程会是：\n\n1. 初始化片段形成待批准的分阶段阅读安排草稿（只基于你提供的虚构资料）；\n2. 你确认后，才执行正式步骤；\n3. 每轮只推进一个片段，由 Pi 执行当前片段，宿主保存授权与 Checkpoint。\n\n你现在想让我重新核对一次当前状态，看看初始化片段是否已产出草稿吗？还是先补充一下阅读计划的具体要素（比如阶段数量、每阶段篇幅或节奏）？",
+      "modelIntent": "{\"action\":\"goal_manage\",\"mode\":\"request\",\"evidence\":\"帮我分阶段制定青桐阅读计划，只使用以下虚构资料：宿主保存授权与Checkpoint，Pi执行当前片段。先拟定待批准的阅读安排，等我确认后再执行正式步骤。\",\"goalAction\":\"create\",\"selector\":{\"keywords\":[\"青桐\",\"阅读计划\"]}}",
+      "hostOutput": "已创建并排队，最多执行一个初始化片段。\n目标：帮我分阶段制定青桐阅读计划，只使用以下虚构资料：宿主保存授权与Checkpoint，Pi执行当前片段。先拟定待批准的阅读安排，等我确认后再执行正式步骤。\nGoal=69e922b8-98e7-4918-96b2-70fcb42df4f5；状态：ready；版本：0；计划：v0；批准Run=无\n计划状态：初始化占位，尚无已批准正式计划；待批准草稿：无；Checkpoint：无；控制请求：无；阻塞原因：无。\n这是读取时的当时快照（Goal更新于2026-10-26T05:37:52.315Z），后续状态需重新查看。批准、排队、执行、提交和投递互不等同；模型口头建议不是保存或批准凭据。\n当前Step：4c681db0-eceb-4d42-9c5a-f744c4bad215（Plan v0；步骤状态=pending）；已排队，等待领取一个片段，本次排队不代表新成果已提交。\n当前Step执行：未领取；不得据此生成或宣称新的正式题目、点评已交付。\n正式题目和点评只能引用已提交Execution的成果；主Chat不得代替后台执行器编造或预告产物。投递unconfirmed表示无成功证据，不能推断未发送或必定送达。\n1. 梳理目标与初步计划；pending",
+      "physicalHttp": 4,
+      "reservedMicroCny": 175984,
+      "maximumPhysicalHttp": 6,
+      "process": {
+        "case": "N1",
+        "startedAtUtc": "2026-10-26T05:37:47.659613+00:00",
+        "finishedAtUtc": "2026-10-26T05:38:04.458369+00:00",
+        "exitCode": 0,
+        "childPid": 35472,
+        "stopped": true,
+        "requestsNotRetried": true
+      },
+      "review": {
+        "caseId": "N1",
+        "reviewedAtUtc": "2026-10-26T05:38:36.424788+00:00",
+        "semanticPass": true,
+        "commonSafetyHealthy": true,
+        "goalCreationPass": true,
+        "bootstrapContractPass": true,
+        "planDraftFormed": false,
+        "planGenerationQualityPass": false,
+        "clarificationQuality": "标题被当作篇目对象；已限定资料却追问书目/周期/时间/步数，存在不必要澄清。没有虚构具体篇目或实际执行。模型内部因果仍未知。",
+        "basis": "真实goal_manage create；唯一合法partial无草稿，waiting_user；主Chat解释按当时ready/无Checkpoint收据，未宣称正式成果已交付；冻结N1允许该状态。计划质量单独记未通过，旧P1仍失败。",
+        "goalId": "69e922b8-98e7-4918-96b2-70fcb42df4f5",
+        "revision": 2,
+        "executionCount": 1,
+        "modelHttp": 4,
+        "reservedMicroCny": 175984
+      },
+      "evidenceAudit": "E:\\AgentWork\\acceptance\\natural-pause-console-20261026\\P\\N1-audit.json",
+      "evidenceResponses": "E:\\AgentWork\\validation\\personal-agent-natural-pause-live-20261026\\N1-parsed-responses.json"
+    },
+    {
+      "id": "N2",
+      "prompt": "查看青桐阅读计划进度",
+      "casePass": true,
+      "mechanicalStatePass": true,
+      "goalCreationPass": null,
+      "planGenerationPass": null,
+      "planDraftFormed": false,
+      "modelOriginalAnswer": "青桐阅读计划当前进度（宿主读取时快照）：\n\n**总体状态**\n- Goal：69e922b8-98e7-4918-96b2-70fcb42df4f5，状态 **waiting_user**（等你处理），版本 2\n- 计划：Plan v0，仍是**初始化占位**，没有已批准的正式计划\n- 批准 Run：无\n- 待批准草稿：无\n- 控制请求 / 阻塞原因：无\n\n**初始化片段结果**\n- Step：4c681db0-eceb-4d42-9c5a-f744c4bad215，状态 waiting_user\n- Run：00fc9c31-5a85-4323-a9a8-685a9088848d，状态 succeeded，提交 committed，投递 succeeded\n- 最近 Checkpoint：已提交，结果 **partial（部分完成）**\n\n**要点**\n- 这个已提交的 Checkpoint 属于 **bootstrap 初始化成果**，不是正式 Step 的交付内容；也不能据此认为已经有了可执行的正式计划。\n- 由于结果显示为\"部分\"，初始化环节没有走完全部内容，也因此**尚未形成可审批的计划草稿**，系统现在停下等你。\n- 我不能在聊天里替执行器编造或预告具体的分阶段阅读安排；只有宿主形成并经你确认的正式产物才算数。\n\n下一步选择：\n1. 你再核对一次状态，看是否有新的草稿产生；\n2. 或补充你希望的分阶段要素（阶段数、每阶段读多少、节奏），让后续片段据此完善；\n3. 或告诉我下一步怎么处理这个\"部分完成\"的初始化结果。\n\n你想先做哪一个？",
+      "modelIntent": "{\"action\":\"goal_manage\",\"mode\":\"query\",\"evidence\":\"查看青桐阅读计划进度\",\"goalAction\":\"view\",\"selector\":{\"keywords\":[\"青桐\",\"阅读计划\"]}}",
+      "hostOutput": "目标：帮我分阶段制定青桐阅读计划，只使用以下虚构资料：宿主保存授权与Checkpoint，Pi执行当前片段。先拟定待批准的阅读安排，等我确认后再执行正式步骤。\nGoal=69e922b8-98e7-4918-96b2-70fcb42df4f5；状态：waiting_user；版本：2；计划：v0；批准Run=无\n计划状态：初始化占位，尚无已批准正式计划；待批准草稿：无；Checkpoint归属见下文；控制请求：无；阻塞原因：无。\n这是读取时的当时快照（Goal更新于2026-10-26T05:38:04.228Z），后续状态需重新查看。批准、排队、执行、提交和投递互不等同；模型口头建议不是保存或批准凭据。\n当前Step：4c681db0-eceb-4d42-9c5a-f744c4bad215（Plan v0；步骤状态=waiting_user）。\n当前Step执行：committed（Plan v0；Step=4c681db0-eceb-4d42-9c5a-f744c4bad215；Run=00fc9c31-5a85-4323-a9a8-685a9088848d；Run状态=succeeded；提交：committed；投递：succeeded）。\n当前Step最近Checkpoint：已提交（Plan v0；Step=4c681db0-eceb-4d42-9c5a-f744c4bad215；Run=00fc9c31-5a85-4323-a9a8-685a9088848d；结果=partial；投递：succeeded）。这是bootstrap初始化成果，不是正式Step交付。\n正式题目和点评只能引用已提交Execution的成果；主Chat不得代替后台执行器编造或预告产物。投递unconfirmed表示无成功证据，不能推断未发送或必定送达。\n1. 梳理目标与初步计划；waiting_user\n已提交成果（Plan v0；Step=4c681db0-eceb-4d42-9c5a-f744c4bad215；Run=00fc9c31-5a85-4323-a9a8-685a9088848d，仅属此Run）：\n目标：为“青桐阅读”分阶段制定阅读计划；当前仅依据用户给出的虚构资料与授权/Checkpoint机制，先提交阅读安排草稿供你确认，不虚构书目、时长或依据。\n\n暂时缺少的信息（需你补充后才能定稿）：\n1. 阅读对象/书目范围与版本（“青桐阅读”具体指哪本书、系列或材料）。\n2. 总周期与可投入时间（起止日期、每周可读小时数）。\n3. 阶段划分偏好（如按章节/主题/难度，或按周均分）。\n4. 期望的产出形式（如每阶段阅读目标、笔记要点、复习节点）。\n\n初步思路框架（待确认）：将总周期均分为若干阶段，每阶段设定主题与章节范围、周内阅读量、阶段小结；阶段之间设回顾节点。正式Step数量将受“最多N步”约束限制，具体N与拆分口径需你明确后我再列出正式计划。\n\n待你补充上述信息并批准后，再执行正式步骤。\n该成果进度：本轮为初始化片段：已输出阅读计划框架与缺失信息清单，尚未形成可执行的正式分阶段阅读安排，等待用户补充书目、周期、时间投入等信息并批准计划。\n该成果后续问题（可能为历史）：请补充“青桐阅读”的具体书目/范围、总周期与每周可投入时间，并说明阶段划分偏好及计划最多允许几步、每步内部如何拆分；确认后我再提交正式分阶段阅读计划。",
+      "physicalHttp": 3,
+      "reservedMicroCny": 148778,
+      "maximumPhysicalHttp": 4,
+      "process": {
+        "case": "N2",
+        "startedAtUtc": "2026-10-26T05:38:37.118607+00:00",
+        "finishedAtUtc": "2026-10-26T05:38:47.292325+00:00",
+        "exitCode": 0,
+        "childPid": 23904,
+        "stopped": true,
+        "requestsNotRetried": true
+      },
+      "review": {
+        "caseId": "N2",
+        "reviewedAtUtc": "2026-10-26T05:39:13.380346+00:00",
+        "semanticPass": true,
+        "commonSafetyHealthy": true,
+        "viewPass": true,
+        "modelInterpretation": "正确调用goal_manage/view，具名筛选青桐与阅读计划；原始最终回答准确说明waiting_user、revision2、Plan0初始化、无正式批准/草稿和bootstrap partial归属。",
+        "note": "建议再查看不会自行形成新计划；本轮不增加消息。",
+        "displayRunId": "afdfe4a0-fba0-4aa0-8397-ee142294b7b8",
+        "expires": 1792993421001,
+        "ttlRemainingSeconds": 267.6206540527344,
+        "goalId": "69e922b8-98e7-4918-96b2-70fcb42df4f5",
+        "revision": 2,
+        "draftHash": null,
+        "modelHttp": 7,
+        "reservedMicroCny": 324762
+      },
+      "evidenceAudit": "E:\\AgentWork\\acceptance\\natural-pause-console-20261026\\P\\N2-audit.json",
+      "evidenceResponses": "E:\\AgentWork\\validation\\personal-agent-natural-pause-live-20261026\\N2-parsed-responses.json"
+    },
+    {
+      "id": "N3",
+      "prompt": "暂停那个学习计划",
+      "casePass": true,
+      "mechanicalStatePass": true,
+      "goalCreationPass": null,
+      "planGenerationPass": null,
+      "planDraftFormed": false,
+      "modelOriginalAnswer": "已暂停。宿主确认控制已保存：\n\n- **Goal**：69e922b8-98e7-4918-96b2-70fcb42df4f5，状态 **paused**，版本 3\n- 计划：Plan v0（初始化占位），无已批准正式计划\n- 待批准草稿：无；批准 Run：无\n- 当前 Step：4c681db0-eceb-4d42-9c5a-f744c4bad215，状态 waiting_user（即暂停前停下的位置）\n- 该 Step 的 bootstrap 初始化成果已提交（结果 partial），不是正式 Step 交付\n\n暂停后不会再推进新片段，之前已有的成果与进度都保留。需要恢复时告诉我\"继续青桐阅读计划\"即可，我会重新核对当前状态再处理。",
+      "modelIntent": "{\"action\":\"goal_manage\",\"mode\":\"request\",\"evidence\":\"暂停那个学习计划\",\"goalAction\":\"pause\",\"selector\":{\"keywords\":[\"学习计划\"],\"reference\":\"last\"}}",
+      "hostOutput": "控制已保存。\n目标：帮我分阶段制定青桐阅读计划，只使用以下虚构资料：宿主保存授权与Checkpoint，Pi执行当前片段。先拟定待批准的阅读安排，等我确认后再执行正式步骤。\nGoal=69e922b8-98e7-4918-96b2-70fcb42df4f5；状态：paused；版本：3；计划：v0；批准Run=无\n计划状态：初始化占位，尚无已批准正式计划；待批准草稿：无；Checkpoint归属见下文；控制请求：无；阻塞原因：无。\n这是读取时的当时快照（Goal更新于2026-10-26T05:39:18.239Z），后续状态需重新查看。批准、排队、执行、提交和投递互不等同；模型口头建议不是保存或批准凭据。\n当前Step：4c681db0-eceb-4d42-9c5a-f744c4bad215（Plan v0；步骤状态=waiting_user）。\n当前Step执行：committed（Plan v0；Step=4c681db0-eceb-4d42-9c5a-f744c4bad215；Run=00fc9c31-5a85-4323-a9a8-685a9088848d；Run状态=succeeded；提交：committed；投递：succeeded）。\n当前Step最近Checkpoint：已提交（Plan v0；Step=4c681db0-eceb-4d42-9c5a-f744c4bad215；Run=00fc9c31-5a85-4323-a9a8-685a9088848d；结果=partial；投递：succeeded）。这是bootstrap初始化成果，不是正式Step交付。\n正式题目和点评只能引用已提交Execution的成果；主Chat不得代替后台执行器编造或预告产物。投递unconfirmed表示无成功证据，不能推断未发送或必定送达。\n1. 梳理目标与初步计划；waiting_user\n已提交成果（Plan v0；Step=4c681db0-eceb-4d42-9c5a-f744c4bad215；Run=00fc9c31-5a85-4323-a9a8-685a9088848d，仅属此Run）：\n目标：为“青桐阅读”分阶段制定阅读计划；当前仅依据用户给出的虚构资料与授权/Checkpoint机制，先提交阅读安排草稿供你确认，不虚构书目、时长或依据。\n\n暂时缺少的信息（需你补充后才能定稿）：\n1. 阅读对象/书目范围与版本（“青桐阅读”具体指哪本书、系列或材料）。\n2. 总周期与可投入时间（起止日期、每周可读小时数）。\n3. 阶段划分偏好（如按章节/主题/难度，或按周均分）。\n4. 期望的产出形式（如每阶段阅读目标、笔记要点、复习节点）。\n\n初步思路框架（待确认）：将总周期均分为若干阶段，每阶段设定主题与章节范围、周内阅读量、阶段小结；阶段之间设回顾节点。正式Step数量将受“最多N步”约束限制，具体N与拆分口径需你明确后我再列出正式计划。\n\n待你补充上述信息并批准后，再执行正式步骤。\n该成果进度：本轮为初始化片段：已输出阅读计划框架与缺失信息清单，尚未形成可执行的正式分阶段阅读安排，等待用户补充书目、周期、时间投入等信息并批准计划。\n该成果后续问题（可能为历史）：请补充“青桐阅读”的具体书目/范围、总周期与每周可投入时间，并说明阶段划分偏好及计划最多允许几步、每步内部如何拆分；确认后我再提交正式分阶段阅读计划。",
+      "physicalHttp": 3,
+      "reservedMicroCny": 169772,
+      "maximumPhysicalHttp": 4,
+      "process": {
+        "case": "N3",
+        "startedAtUtc": "2026-10-26T05:39:14.063244+00:00",
+        "finishedAtUtc": "2026-10-26T05:39:21.481310+00:00",
+        "exitCode": 0,
+        "childPid": 29688,
+        "stopped": true,
+        "requestsNotRetried": true
+      },
+      "review": {
+        "caseId": "N3",
+        "reviewedAtUtc": "2026-10-26T05:41:04.640808+00:00",
+        "semanticPass": true,
+        "commonSafetyHealthy": true,
+        "modelIntentPass": true,
+        "hostControlPass": true,
+        "userVisibleResultPass": true,
+        "sessionReceiptPass": true,
+        "databasePass": true,
+        "modelOriginalAnswerPass": true,
+        "basis": "主Chat只提议goal_manage；隔离解析器明确pause、keywords学习计划、reference=last。宿主以N2有效唯一视图绑定青桐目标，revision2的一次授权经CAS提交revision3；原始最终回答准确paused/Plan0/bootstrap partial，不用宿主覆盖冒充模型理解。",
+        "viewDisplayRunId": "afdfe4a0-fba0-4aa0-8397-ee142294b7b8",
+        "pauseRunId": "daf880a7-dc1b-4ca6-a8af-b13c03ff9a00",
+        "viewTtlRemainingAtControlSeconds": 262.762,
+        "goalChangedFields": [
+          "status",
+          "revision",
+          "updatedAt"
+        ],
+        "revisionBefore": 2,
+        "revisionAfter": 3,
+        "pauseControlEvents": 1,
+        "allControlEventsByAction": [
+          "create",
+          "pause"
+        ],
+        "immutableRowsHashes": {
+          "plans": "1b6bb95cf5b80439af7034b090e3c3b36ccbf9547eb2c9b823ec37d6b59b1f96",
+          "steps": "46f9f7cccc06fedbc6e1dc32d87f75ea93e1a16e63a9298f45b5f4b4b9179e45",
+          "executions": "c689703d74e5d06f9ff7a891e8c399d86c0280064bc3259580e0e2a8141d8ee9"
+        },
+        "checkpointHash": "7e6ab8599cf7ecb7e3563821aa0129d6bdc5ab1b8d0af381288f353a28651a69",
+        "planHash": "8be1b88f3e72252e9bce3b7dc443917ff3ca0392dbf0a5700c37be8b589b3db8",
+        "newExecutionsOnViewOrPause": 0,
+        "receiptCount": 3,
+        "note": "解析器未直接输出Goal UUID；可信宿主以reference=last和当前有效唯一视图确定目标，模型参数不授予权限。"
+      },
+      "evidenceAudit": "E:\\AgentWork\\acceptance\\natural-pause-console-20261026\\P\\N3-audit.json",
+      "evidenceResponses": "E:\\AgentWork\\validation\\personal-agent-natural-pause-live-20261026\\N3-parsed-responses.json"
+    }
+  ],
+  "scores": {
+    "goalCreation": true,
+    "bootstrapContract": true,
+    "planGenerationQuality": false,
+    "validUniqueDeliveredView": true,
+    "naturalPause": true,
+    "originalModelPauseInterpretation": true,
+    "hostPauseCommit": true,
+    "sqliteSessionReceiptsUserOutputConsistency": true
+  },
+  "bootstrap": {
+    "outcome": "partial",
+    "pendingDraft": false,
+    "originalModelResult": "{\"stepOutcome\":\"partial\",\"artifactText\":\"目标：为“青桐阅读”分阶段制定阅读计划；当前仅依据用户给出的虚构资料与授权/Checkpoint机制，先提交阅读安排草稿供你确认，不虚构书目、时长或依据。\\n\\n暂时缺少的信息（需你补充后才能定稿）：\\n1. 阅读对象/书目范围与版本（“青桐阅读”具体指哪本书、系列或材料）。\\n2. 总周期与可投入时间（起止日期、每周可读小时数）。\\n3. 阶段划分偏好（如按章节/主题/难度，或按周均分）。\\n4. 期望的产出形式（如每阶段阅读目标、笔记要点、复习节点）。\\n\\n初步思路框架（待确认）：将总周期均分为若干阶段，每阶段设定主题与章节范围、周内阅读量、阶段小结；阶段之间设回顾节点。正式Step数量将受“最多N步”约束限制，具体N与拆分口径需你明确后我再列出正式计划。\\n\\n待你补充上述信息并批准后，再执行正式步骤。\",\"progressSummary\":\"本轮为初始化片段：已输出阅读计划框架与缺失信息清单，尚未形成可执行的正式分阶段阅读安排，等待用户补充书目、周期、时间投入等信息并批准计划。\",\"question\":\"请补充“青桐阅读”的具体书目/范围、总周期与每周可投入时间，并说明阶段划分偏好及计划最多允许几步、每步内部如何拆分；确认后我再提交正式分阶段阅读计划。\"}",
+    "qualityIssue": "重复把青桐阅读理解为篇目对象，并要求书目/周期/每周时间/拆分口径；尚未形成用户要求的待批准计划。partial合法不等于计划生成任务完成。",
+    "unconfirmedCause": "不能从输出确定模型内部原因或预言提示修改效果。"
+  },
+  "persistentAudit": {
+    "goalId": "69e922b8-98e7-4918-96b2-70fcb42df4f5",
+    "goalStatus": "paused",
+    "revision": 3,
+    "planRevision": 0,
+    "plans": 1,
+    "steps": 1,
+    "executions": 1,
+    "checkpoints": 1,
+    "runs": 4,
+    "runsSucceeded": 4,
+    "sessionUserMessages": 3,
+    "hostReceipts": 3,
+    "n3Review": {
+      "caseId": "N3",
+      "reviewedAtUtc": "2026-10-26T05:41:04.640808+00:00",
+      "semanticPass": true,
+      "commonSafetyHealthy": true,
+      "modelIntentPass": true,
+      "hostControlPass": true,
+      "userVisibleResultPass": true,
+      "sessionReceiptPass": true,
+      "databasePass": true,
+      "modelOriginalAnswerPass": true,
+      "basis": "主Chat只提议goal_manage；隔离解析器明确pause、keywords学习计划、reference=last。宿主以N2有效唯一视图绑定青桐目标，revision2的一次授权经CAS提交revision3；原始最终回答准确paused/Plan0/bootstrap partial，不用宿主覆盖冒充模型理解。",
+      "viewDisplayRunId": "afdfe4a0-fba0-4aa0-8397-ee142294b7b8",
+      "pauseRunId": "daf880a7-dc1b-4ca6-a8af-b13c03ff9a00",
+      "viewTtlRemainingAtControlSeconds": 262.762,
+      "goalChangedFields": [
+        "status",
+        "revision",
+        "updatedAt"
+      ],
+      "revisionBefore": 2,
+      "revisionAfter": 3,
+      "pauseControlEvents": 1,
+      "allControlEventsByAction": [
+        "create",
+        "pause"
+      ],
+      "immutableRowsHashes": {
+        "plans": "1b6bb95cf5b80439af7034b090e3c3b36ccbf9547eb2c9b823ec37d6b59b1f96",
+        "steps": "46f9f7cccc06fedbc6e1dc32d87f75ea93e1a16e63a9298f45b5f4b4b9179e45",
+        "executions": "c689703d74e5d06f9ff7a891e8c399d86c0280064bc3259580e0e2a8141d8ee9"
+      },
+      "checkpointHash": "7e6ab8599cf7ecb7e3563821aa0129d6bdc5ab1b8d0af381288f353a28651a69",
+      "planHash": "8be1b88f3e72252e9bce3b7dc443917ff3ca0392dbf0a5700c37be8b589b3db8",
+      "newExecutionsOnViewOrPause": 0,
+      "receiptCount": 3,
+      "note": "解析器未直接输出Goal UUID；可信宿主以reference=last和当前有效唯一视图确定目标，模型参数不授予权限。"
+    },
+    "counts": {
+      "feishu_messages": 0,
+      "goal_executions": 1,
+      "goal_grants": 0,
+      "goal_notifications": 0,
+      "goal_observations": 0,
+      "goal_observer_cursors": 0,
+      "goal_plans": 1,
+      "goal_policies": 0,
+      "goal_policy_events": 0,
+      "goal_steps": 1,
+      "goal_triggers": 0,
+      "goals": 1,
+      "memory_candidates": 0,
+      "memory_formation_jobs": 0,
+      "model_calls": 10,
+      "run_events": 53,
+      "runs": 4,
+      "tasks": 0,
+      "web_read_calls": 0
+    },
+    "integrity": "ok",
+    "foreignKeyViolations": 0,
+    "filesystem": {
+      "locks": [],
+      "pending": [],
+      "walBytes": 0,
+      "memoryMarkdown": []
+    },
+    "auditReadModifiedFiles": false,
+    "budgetLedgerSha256": "cc57c736d2763c5c2a04755fd40b0ccc4697b35b41c131c70a12ae4e3a601e8d",
+    "sessionSha256": "5efdb51a5491138a2ca23a88d6d0d4140c87a6af6a99290403512257b9f1e047",
+    "databaseSha256": "b102c04605e5d11bff3488e88af844c027cb7970143c3bfe0a0057b7f1918d87",
+    "rawSessionAndChatAnswersPreserved": true,
+    "notes": [
+      "收据为摘要，用户可见宿主output还包含Step及已提交成果；归属一致但字节不完全相同。",
+      "host-goal-result-v1原生条目类型为custom_message；初次外部摘要误筛custom，旧摘要保留， reviewed摘要已纠正。",
+      "goal_control含create和pause各一次，不能把全部control事件都当作pause。",
+      "物理响应04为后台bootstrap，不应当作主Chat解释；主Chat分别为03/07/10。"
+    ]
+  },
+  "usage": {
+    "scope": "natural-pause-console-v1",
+    "physicalHttp": 10,
+    "allHttp200": true,
+    "reservedMicroCny": 494534,
+    "cases": [
+      {
+        "id": "N1",
+        "at": "2026-10-26T05:37:49.220Z",
+        "finished": "2026-10-26T05:38:04.264Z",
+        "statePass": true,
+        "previousReviewedAt": "2026-10-26T05:38:38.604Z"
+      },
+      {
+        "id": "N2",
+        "at": "2026-10-26T05:38:38.604Z",
+        "finished": "2026-10-26T05:38:47.092Z",
+        "statePass": true,
+        "previousReviewedAt": "2026-10-26T05:39:15.626Z"
+      },
+      {
+        "id": "N3",
+        "at": "2026-10-26T05:39:15.626Z",
+        "finished": "2026-10-26T05:39:21.266Z",
+        "statePass": true
+      }
+    ],
+    "halted": null,
+    "sha256": "cc57c736d2763c5c2a04755fd40b0ccc4697b35b41c131c70a12ae4e3a601e8d",
+    "tokens": {
+      "uncachedInput": 10598,
+      "cachedInput": 18304,
+      "output": 1385,
+      "totalInput": 28902
+    },
+    "estimatedTokenCostCny": 0.03300816,
+    "supplierBill": null,
+    "publicDocumentGets": 0,
+    "physicalResponseFiles": 10,
+    "physicalRequestFiles": 10,
+    "retries": 0,
+    "additionalCases": 0,
+    "allRequestsFixedModelPost": true,
+    "maximumRequestBytes": 20314,
+    "maximumRequestedOutputTokens": 4096,
+    "estimatedTokenCostBasis": "按本轮响应usage和确认的非低谷2/0.04/8元每百万Token估算；实际执行在北京时间13:37–13:39。非供应商实际账单。",
+    "supplierActualBillKnown": false,
+    "remainingAllowanceNotConsumed": true
+  },
+  "stop": {
+    "allCaseExitCodes": [
+      0,
+      0,
+      0
+    ],
+    "allStopped": true,
+    "acceptanceChildProcessesStillRunning": 0,
+    "locked": false,
+    "pending": false,
+    "walBytes": 0,
+    "unfinishedRuns": 0,
+    "unfinishedExecutions": 0,
+    "noFurtherExecutionPlanned": true
+  },
+  "offlinePreflight": {
+    "tests": 9,
+    "pass": 9,
+    "fail": 0,
+    "skipped": 0,
+    "log": "E:\\AgentWork\\validation\\personal-agent-natural-pause-live-20261026\\offline-budget-checks.log",
+    "priorFullSuiteNotRerunForLiveDocumentation": true,
+    "linuxNotRun": true
+  },
+  "preservation": {
+    "checkedAtUtc": "2026-10-26T05:41:31.890414+00:00",
+    "otherWorktreesUnchanged": 6,
+    "originalEDriveEightChangesPreserved": true,
+    "historicalEvidenceUnchanged": 72,
+    "runtimeFrozenHashesUnchanged": true,
+    "newAcceptanceDataReadOnlyAuditUnchanged": true,
+    "rawCopyFiles": 31,
+    "rawCopyHashesMatch": true,
+    "productCodeChanged": false,
+    "formalConfigModified": false,
+    "newGitCommitPushMerge": false
+  },
+  "historicalResultsPreserved": {
+    "P1": "failed",
+    "P2": "not_executed",
+    "P3": "not_executed",
+    "R1": "passed",
+    "R2": "passed",
+    "S1": "passed",
+    "earlierFailures": "原始历史自然暂停、收据及计划失败保留；本轮只新增明确场景的真实成功证据。"
+  },
+  "limitations": [
+    "仅初始化后静止waiting_user、无待批准草稿的唯一目标场景。",
+    "未验证有草稿/已批准/ready/running的暂停、迟到执行、反馈继续、取消、Web/Skill联合、飞书或正式主动执行。",
+    "模型还未满足初步计划生成需求；没有修复、补答或收费重跑。",
+    "单个样本成功不代表通用自然指代准确率。",
+    "实际供应商账单未取得。"
+  ],
+  "nextSuggestions": [
+    "先由ChatGPT独立审阅本次原始证据，确认历史原话的窄场景门槛。",
+    "下一产品问题优先分析有限资料下不必要澄清和“草稿”用词，保持合法澄清；本轮不修复。",
+    "后续个人可用闭环和其他暂停状态须另行冻结及授权，不复用本轮余额。"
+  ],
+  "git": {
+    "baseSha": "83733d97a8334e5f21d9a092344ac8c0d4139e96",
+    "committed": false,
+    "pushed": false,
+    "merged": false,
+    "productSourceModified": false,
+    "intendedChangedFiles": [
+      "docs/STATE.md",
+      "docs/evaluations/natural-pause-console-live-acceptance.md",
+      "docs/evaluations/natural-pause-console-live-acceptance.json"
+    ]
+  }
+}

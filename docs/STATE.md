@@ -4,12 +4,12 @@
 
 ## 当前阶段与进行中事项
 
-- P1离线分析与独立自然暂停准备完成，尚未获批真实执行。基线`1e20e51145b4f2c422bbb7a918cb52f771f01ade`；独立分支`codex/natural-pause-prep`、工作树`C:/Users/Dongr/.codex/worktrees/natural-pause-prep/Persistent Personal Agent`。见[分析/准备报告](evaluations/natural-pause-preparation.md)、[机器JSON](evaluations/natural-pause-preparation.json)和[新冻结方案](evaluations/natural-pause-console-live-plan.md)。用户随后授权仅将本轮11份代码、测试及文档提交推送至该独立审查分支；发布只补本STATE，原准备报告/JSON的未提交状态是当时冻结快照，不合并main、不启动真实验收。
-- 原始P1输入完整进入bootstrap；模型把名称解释为篇目对象并追问范围/周期/时长，合法partial、无proposedPlan，Goal waiting_user。宿主本来允许这种澄清，也能保存带待确认条件的初步草稿；没有证据证明状态机/Schema缺陷，本轮不改src、Pi、Skill或权限。具体日历才必需的时间参数可后续确认；输入仅限定两条资料，另要篇目存在体验摩擦，模型内部因果仍未证实。
-- 新N1/N2/N3沿用三句原话，以独立scope natural-pause-console-v1和新账本，将真实创建且静止waiting_user、唯一成功投递视图及合法暂停作为门槛；不要求先有正式草稿，计划生成和暂停分开记录。复用原independent-console预留/锁/审计/main，旧CLI默认PRS及旧P1草稿指标不变；不绕过Guard、CAS、身份/渠道、revision、displayRunId/draftHash或TTL。未来设计最多14请求/¥2.31/零GET，预计10次，不复用旧余额。
-- 基线红测复现旧P1在合法partial后拒绝新暂停前置；新原版Pi/真实临时SQLite/本机模型两条链（complete有草稿、partial无草稿）各10次Mock HTTP均暂停成功，无新Execution/Checkpoint或计划改写。错目标与过期实进程反例、13种前置拒绝、新旧scope双向隔离及预算/GET边界均通过。最终新增6项、全量492项489通过/0失败/3既有平台跳过；typecheck/build及两个离线eval均0。Docker Linux engine不可用，WSL仅Stopped docker-desktop，Linux未运行，不安装环境。
-- 新证据`E:/AgentWork/validation/personal-agent-natural-pause-prep-20261026`保存红绿日志、只读原始证据、最终四份Mock轮副本及Hash/patch。旧72份数据/账本/Session/报告证据SHA保持；原库以immutable只读取证，不迁移或回放，旧账本仅核对Hash。原E盘保存分支8项改动和其他工作树保护，正式.env/正式数据/默认开关未读改，真实模型/公网DNS/GET/费用/飞书/部署均0。
-- 旧真实判定不变：P1失败、P2/P3未执行，R1/R2/S1通过；历史14请求/¥0.677058保守预留及账单未知原样保留，未重复收费。自然暂停仍未真实验证，R2/S1正样本不外推完整控制、Web后路由或联合链路。当前停止，等待审查和新的明确执行授权，不自行开始复验或新功能。
+- 独立自然暂停Console真实复验完成并正常停服，固定提交`83733d97a8334e5f21d9a092344ac8c0d4139e96`、分支`codex/natural-pause-prep`。N1真实创建及合法bootstrap通过、计划生成质量未通过，N2唯一成功视图通过，N3历史原话“暂停那个学习计划”真实暂停通过；见[报告](evaluations/natural-pause-console-live-acceptance.md)及[JSON](evaluations/natural-pause-console-live-acceptance.json)。不以statePass替代语义审阅。
+- N1独立bootstrap又追问青桐篇目、周期/时间，partial无草稿合法，Goal静止waiting_user/revision2；不改判旧P1。N2真实查看后，N3在TTL剩262.762秒时一次pause提交paused/revision3；Plan/Step/草稿/Execution/Checkpoint及Hash不变，查看/暂停没有新执行授权。主模型原始解释、宿主最终呈现和3条原生Session收据一致；单样本不外推通用准确率。
+- 本轮10/14物理模型HTTP、全200，保守预留¥0.494534/¥2.31，文档GET0。未缓存输入10598/缓存18304/输出1385Token，按确认费率估算¥0.03300816，供应商账单未知。新scope natural-pause-console-v1与全新数据目录`E:/AgentWork/acceptance/natural-pause-console-20261026`；证据`E:/AgentWork/validation/personal-agent-natural-pause-live-20261026`，旧余额不用。
+- 执行前官方和账号核价、仅四字段安全注入、冻结Hash及离线预算9/9通过；产品/Skill/SDK/默认开关及正式配置数据未改，Skills/Web/Formation/Proactive关闭，后台text_only零工具。最终4 Run成功、1 committed初始化Execution，SQLite完整性通过，验收进程/锁/pending/未完成执行0，WAL0；原始响应与31份新数据副本/Hash保留。原E盘8项改动、其他6工作树和72份历史证据未变。
+- 旧P1失败、P2/P3未执行、R1/R2/S1通过维持原判。本次自然暂停仅覆盖无草稿、初始化后静止waiting_user、唯一有效视图；批准后/执行中暂停、继续/取消、Skill+Web+Goal联合、飞书与正式主动执行尚未验收。未重复全量或Linux，本轮仅专项9/9；准备批次492项489通过/3跳过及五关0仍是历史离线记录。
+- 只新增本轮报告/JSON并更新STATE，无产品修复、部署或后续收费运行。用户随后授权仅将这3份文档提交推送到codex/natural-pause-prep审查分支；发布只补本STATE，原报告/JSON中的未提交状态保留为验收结束时快照，不合并main、不启动新验收。剩余4次及费用空间不再消费，等待ChatGPT独立审阅。
 
 ## 已完成功能
 
@@ -36,7 +36,7 @@
 
 | 日期 | 修改及位置 |
 | --- | --- |
-| 2026-10-26 | P1证据分析与新自然暂停前置：合法partial无需先生成Plan；新N1/N2/N3 scope复用原预算/入口，产品不改。红测保留，complete/partial两链及拒绝边界通过，Windows492项489通过/3跳过、五关0；Linux不可用，零收费/公网。随后仅获批向codex/natural-pause-prep提交推送本轮11文件，原工作区改动和冻结证据保留，等待审查 |
+| 2026-10-26 | 独立自然暂停真实复验：N1真实创建/合法partial，计划质量未通过；N2唯一有效视图，N3历史原话一次pause将waiting_user rev2改为paused rev3，Plan/Step/Checkpoint不变。10请求/¥0.494534预留/零GET，3收据一致，正常停服。原始失败及R2/S1成功保留；用户随后授权仅提交推送报告/JSON及STATE到独立审查分支，原工作区和证据保留，不合并main或补测 |
 | 2026-10-26 | P/R/S真实复验：14请求/¥0.677058保守预留/零文档GET，P1无草稿失败、P2/P3未执行，R1/R2/S1通过；原始主Chat正确解释异步归属，正式Skill/partial投递及消息资料自动read真实通过。正常停服，只新增报告/JSON和STATE；用户随后授权仅向独立审查分支提交推送这3份文档，发布只补STATE，原失败/报告/账本保留，不修复或重跑 |
 | 2026-10-25 | P/R/S独立Console准备：六Case、三隔离业务/Session、新30/5总闸及14/12/4分组、零GET；复用旧main/审计/留证，产品源码不改。Windows486项483通过/3跳过、五关0；Linux不可用，原真实失败不改；用户随后授权仅发布至独立审查分支，发布只补STATE，原准备证据不改；真实执行仍待一次性批准 |
 | 2026-10-24 | A2/B1离线定点修复：同快照收据明确Plan/Step/Run与异步提交/投递；agent-notes 1.0.1支持当前授权工具正文，旧Hash升级不替代。基线红3项→专项绿6项，Windows480项477通过/3跳过、五关0；Linux不可用，真实失败不改；用户随后授权仅向独立审查分支提交推送，发布只补STATE，原验证快照不改 |
@@ -474,7 +474,7 @@ V1 原有自动化证据：39项测试使用模拟模型/飞书服务和虚拟�
 1. 将新[分析/准备报告](evaluations/natural-pause-preparation.md)、JSON、代码差异和[冻结方案](evaluations/natural-pause-console-live-plan.md)交给ChatGPT审查。P1历史失败不改，不因合法澄清或新Mock暂停成功改判。
 2. 若审查通过，需用户另行一次性批准新N1/N2/N3、全新Console根与scope、固定模型/端点、最多14次物理请求/¥2.31/零GET；执行前重新核价、确认账号附加费和安全注入配置。不能续用旧30/5余额或旧P2/P3。
 3. R2原始收据理解及S1消息资料自动选择的真实正证据保留；自然暂停、批准后/运行中控制、Web后路由及联合场景仍有未验收项。正式Web/Skills/Goal/Proactive及Formation保持关闭，不部署或启用正式能力。
-4. 按用户后续授权仅提交推送本轮11文件至codex/natural-pause-prep，独立核验远端SHA及原工作区改动后停止；不合并main、不收费、不公网、不修改正式配置或数据，不扩展S2、Sandbox、Computer Use或其他功能，真实执行仍需新的明确授权。
+4. 本轮真实复验已正常结束，按用户后续授权仅提交推送报告/JSON及STATE到codex/natural-pause-prep并独立核验远端SHA后停止，等待审查；不消费余额、不修复、不合并main、不部署，不扩展其他能力。新范围或新收费验收仍需明确授权。
 
 ## V2.0.2 关键文件（主体及本轮修复）
 
