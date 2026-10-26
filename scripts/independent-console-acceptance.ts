@@ -14,6 +14,7 @@ import type { IndependentProfile } from './independent-console-budget.js';
 import { groupSkills } from './independent-console-cases.js';
 import type { Group, IndependentCase } from './independent-console-cases.js';
 import { naturalPauseCases, naturalPauseDefinition } from './natural-pause-console-cases.js';
+import { manualGoalCases, manualGoalDefinition } from './manual-goal-console-cases.js';
 
 type Session = ReturnType<typeof openIndependent>;
 type Row = Record<string, unknown>;
@@ -82,9 +83,51 @@ export function naturalPauseState(id: string, a: Audit): boolean {
   return id !== 'N2' || validIndependentView(a, Date.now(), String(a.foreground.at(-1)?.id));
 }
 
+// 只核对新手动体验的持久状态；模型题目、点评及原始解释仍须单独审阅。
+export function manualGoalState(id: string, a: Audit): boolean {
+  const position = Object.keys(manualGoalCases).indexOf(id);
+  const goal = a.goals[0], first = a.executions[0], last = a.executions.at(-1);
+  if (position < 0 || a.goals.length !== 1 || !goal || !first?.checkpointJson || !last?.checkpointJson) return false;
+  const initial = JSON.parse(String(first.checkpointJson)), checkpoint = JSON.parse(String(last.checkpointJson));
+  const draft = goal.pendingActionJson ? JSON.parse(String(goal.pendingActionJson)) : null;
+  const planRevision = position < 2 ? 0 : 1, expectedExecutions = position < 3 ? 1 : position < 6 ? 2 : 3;
+  if (goal.ownerId !== 'local-user' || goal.targetJson !== '{"channel":"console"}'
+    || goal.accessKey !== digest(JSON.stringify(['local-user', ['console']])) || goal.objective !== manualGoalCases.M1.prompt
+    || goal.status !== (id === 'M6' ? 'paused' : id === 'M9' ? 'completed' : 'waiting_user')
+    || goal.planRevision !== planRevision || goal.controlRequested || goal.blockedReason || goal.readyInputJson
+    || a.foreground.length !== position + 1 || a.sessionUserCount !== position + 1 || a.receipts.length !== position + 1
+    || a.runs.some(r => r.status !== 'succeeded') || a.executions.length !== expectedExecutions
+    || a.executions.some(e => e.status !== 'committed' || e.goalId !== goal.id)
+    || initial.planRevision !== 0 || initial.executionRunId !== first.runId || initial.stepId !== first.stepId
+    || !['partial', 'complete'].includes(initial.stepOutcome) || !initial.proposedPlan
+    || goal.checkpointRunId !== last.runId || checkpoint.executionRunId !== last.runId || checkpoint.stepId !== last.stepId
+    || a.plans.length !== planRevision + 1 || a.plans.some(p => {
+      const spec = JSON.parse(String(p.specJson));
+      return spec.steps.length !== 1 || spec.skillBindings?.length || spec.webBindings?.length;
+    }) || a.events.some(e => e.type === 'tool_execution_start' && e.details !== 'goal_manage')) return false;
+  const formalId = initial.proposedPlan.spec.steps[0]?.stepId;
+  if (!formalId || formalId === first.stepId) return false;
+  if (position < 2) return !!draft && JSON.stringify(draft) === JSON.stringify(initial.proposedPlan)
+    && draft.spec.steps.length === 1 && (id !== 'M2' || validIndependentView(a, Date.now(), String(a.foreground.at(-1)?.id)));
+  const plan = a.plans[1]!, spec = JSON.parse(String(plan.specJson));
+  if (draft || spec.steps[0].stepId !== formalId || plan.approvedByRunId !== a.foreground[2]?.id) return false;
+  if (id === 'M3') return goal.currentStepId === formalId && a.steps.find(s => s.id === formalId)?.status === 'pending';
+  if (last.planRevision !== 1 || last.stepId !== formalId
+    || !a.events.some(e => e.runId === last.runId && e.type === 'delivery_succeeded')) return false;
+  const input = JSON.parse(String(last.inputJson));
+  if (position < 6) return checkpoint.stepOutcome === 'partial' && checkpoint.previousCheckpointRunId === first.runId
+    && input.previousCheckpoint?.executionRunId === first.runId && input.authorization.text === manualGoalCases.M4.prompt
+    && goal.currentStepId === formalId && a.steps.find(s => s.id === formalId)?.status === 'waiting_user'
+    && (id !== 'M5' || validIndependentView(a, Date.now(), String(a.foreground.at(-1)?.id)));
+  return checkpoint.stepOutcome === 'complete' && checkpoint.previousCheckpointRunId === a.executions[1]?.runId
+    && input.previousCheckpoint?.executionRunId === a.executions[1]?.runId && input.authorization.text === manualGoalCases.M7.prompt
+    && goal.currentStepId === null && a.steps.find(s => s.id === formalId)?.status === 'completed'
+    && (id !== 'M8' || validIndependentView(a, Date.now(), String(a.foreground.at(-1)?.id)));
+}
+
 // 共同安全审计只读本轮当前组；语义判断仍由获批执行者单独完成。
-function healthy(root: string, group: Group, a: Audit): void {
-  const name = group === 'P' ? '青桐阅读计划' : '白桦练习计划';
+function healthy(root: string, group: Group, a: Audit, manual = false): void {
+  const name = manual ? '澄川职责练习' : group === 'P' ? '青桐阅读计划' : '白桦练习计划';
   const invalidHash = a.plans.some(p => digest(String(p.specJson)) !== p.hash) || a.executions.some(e => digest(String(e.inputJson)) !== e.inputHash || e.checkpointJson !== null && digest(String(e.checkpointJson)) !== e.checkpointHash)
     || a.goals.some(g => { if (!g.pendingActionJson) return false; const { hash, ...draft } = JSON.parse(String(g.pendingActionJson)); return digest(JSON.stringify(draft)) !== hash; });
   if (a.integrity !== 'ok' || a.foreignKeys || Object.values(a.counts).some(n => n !== 0) || invalidHash
@@ -133,22 +176,24 @@ function noLinks(root: string): void {
   if (fs.lstatSync(root).isSymbolicLink()) throw new Error('本轮目录禁止链接/junction');
   if (fs.statSync(root).isDirectory()) for (const p of fs.readdirSync(root)) noLinks(join(root, p));
 }
-export async function startIndependent(pauseOnly = false) {
-  const definition = pauseOnly ? naturalPauseDefinition : independentDefinition, { cases, limits, groups } = definition;
+export async function startIndependent(mode: boolean | 'manual-goal' = false) {
+  const manual = mode === 'manual-goal', pauseOnly = mode === true;
+  const definition = manual ? manualGoalDefinition : pauseOnly ? naturalPauseDefinition : independentDefinition, { cases, limits, groups } = definition;
   const args = process.argv.slice(2), root = args.find(a => a.startsWith('--root='))?.slice(7), id = args.find(a => a.startsWith('--case='))?.slice(7) ?? '';
   if (!args.includes('--authorized') || !args.includes('--rates-confirmed') || !root || !Object.hasOwn(cases, id)
-    || args.some(a => !['--authorized', '--rates-confirmed', '--resume', '--previous-reviewed'].includes(a) && !a.startsWith('--root=') && !a.startsWith('--case='))) throw new Error(pauseOnly ? '仅准备未授权执行；须单独批准自然暂停N1/N2/N3、14请求/2.31元/零GET' : '仅准备未授权执行；须单独批准P/R/S六Case、30请求/5元/零GET');
+    || args.some(a => !['--authorized', '--rates-confirmed', '--resume', '--previous-reviewed'].includes(a) && !a.startsWith('--root=') && !a.startsWith('--case='))) throw new Error(manual ? '仅离线准备；须另行批准手动Goal M1至M9、40请求/6.60元/零GET' : pauseOnly ? '仅准备未授权执行；须单独批准自然暂停N1/N2/N3、14请求/2.31元/零GET' : '仅准备未授权执行；须单独批准P/R/S六Case、30请求/5元/零GET');
   const key = process.env.LLM_API_KEY;
   if (!key || process.env.LLM_MODEL !== stagedModel.model || process.env.LLM_BASE_URL !== 'https://api.siliconflow.cn/v1' || process.env.LLM_PROVIDER !== 'personal-compatible'
     || process.env.ACCEPTANCE_EXTRA_FEES_CNY !== '0' || !process.env.ACCEPTANCE_CACHE_READ_RATE) throw new Error('模型、端点、账号价格及无附加费须重新确认并安全注入，不读.env');
-  const plan = resolve(pauseOnly ? 'docs/evaluations/natural-pause-console-live-plan.md' : 'docs/evaluations/independent-console-live-plan.md');
-  const entry = pauseOnly ? resolve('scripts/natural-pause-console-acceptance.ts') : fileURLToPath(import.meta.url);
+  const plan = resolve(manual ? 'docs/evaluations/manual-goal-console-live-plan.md' : pauseOnly ? 'docs/evaluations/natural-pause-console-live-plan.md' : 'docs/evaluations/independent-console-live-plan.md');
+  const entry = manual ? resolve('scripts/manual-goal-console-acceptance.ts') : pauseOnly ? resolve('scripts/natural-pause-console-acceptance.ts') : fileURLToPath(import.meta.url);
   const paths = ['package-lock.json', ...['src', 'scripts'].flatMap(dir => fs.readdirSync(dir).filter(n => n.endsWith('.ts')).map(n => join(dir, n))), ...['agent-notes', 'interview-practice'].map(n => join('skills', n, 'SKILL.md'))].sort();
   const profile: IndependentProfile = { ...stagedModel, inputRate: Number(process.env.ACCEPTANCE_INPUT_RATE), outputRate: Number(process.env.ACCEPTANCE_OUTPUT_RATE),
     checkedAt: process.env.ACCEPTANCE_PRICE_CHECKED_AT ?? '', cacheReadRate: Number(process.env.ACCEPTANCE_CACHE_READ_RATE), extraFeesCny: 0,
     planHash: digest(fs.readFileSync(plan)), entryHash: digest(fs.readFileSync(entry)), codeHash: digest(JSON.stringify(paths.map(p => [p, digest(fs.readFileSync(p))]))), casesHash: digest(JSON.stringify(cases)), nodeVersion: process.version };
   process.umask(0o077); const session = openIndependent(root, profile, args.includes('--resume'), definition); process.once('exit', session.close);
   const spec = cases[id]!, group = spec.group, data = join(session.root, group), managed = join(data, 'approved-skills');
+  let detachInput = () => {};
   const packages = () => groupSkills[group].map(id => { const p = skillPackage(resolve('skills'), id, true).info; if (id === 'agent-notes' && p.version !== '1.0.1') throw new Error('agent-notes版本未冻结为1.0.1'); return { id, hash: p.hash, version: p.version }; });
   try {
     noLinks(session.root);
@@ -171,34 +216,82 @@ export async function startIndependent(pauseOnly = false) {
       || JSON.stringify(auth.identity) !== JSON.stringify(['local-user', 'console'])) throw new Error('授权快照变化');
     if (JSON.stringify(installed) !== JSON.stringify(packages()) || JSON.stringify(installed) !== JSON.stringify(auth.skills[group].map(({ id, hash, version }: { id: string; hash: string; version: string }) => ({ id, hash, version })))) throw new Error('批准Skill版本/Hash变化');
     const before = independentAudit(data);
-    healthy(data, group, before);
+    healthy(data, group, before, manual);
     const specs = [...before.plans.map(p => JSON.parse(String(p.specJson))), ...before.goals.filter(g => g.pendingActionJson).map(g => JSON.parse(String(g.pendingActionJson)).spec)];
     if (specs.some(s => s.webBindings?.length || (s.skillBindings ?? []).some((b: { skillId: string; packageHash: string; version: string }) => !installed.some(i => i.id === b.skillId && i.hash === b.packageHash && i.version === b.version)))) throw new Error('计划含未批准Skill版本/Hash或Web绑定');
     if (id === 'P3' && (!validIndependentView(before, Date.now(), String(before.foreground.at(-1)?.id)) || !independentState('P2', before))) throw new CaseBlocked('P2视图失效或超期，停止P组，不补发查看');
     if (id === 'P2' && !independentState('P1', before) || id === 'R2' && !independentState('R1', before)) throw new CaseBlocked('本组真实持久前置缺失');
     if (pauseOnly && (id === 'N2' && !naturalPauseState('N1', before) || id === 'N3' && !naturalPauseState('N2', before))) throw new CaseBlocked('自然暂停前置目标或N2有效视图缺失；不刷新、不补答');
+    if (manual) {
+      // 仅将一条逐字匹配的stdin交给原Console。第二条输入从不进入产品队列。
+      const source = process.stdin; source.setEncoding('utf8');
+      console.log(`${id}：请仅输入以下冻结消息一次，然后等待正常退出：\n${spec.prompt}`);
+      await new Promise<void>((resolveInput, reject) => {
+        let text = '', received = false, rejected = false;
+        const fail = () => {
+          if (rejected) return; rejected = true;
+          session.halt('unexpected_console_input');
+          // 已在途时由下方原轮询统一停止，避免和fetch中止重复发信号。
+          if (!received) reject(new Error('只接受本Case的一条完整冻结消息；不补发'));
+        };
+        const onData = (chunk: string) => {
+          if (rejected) return;
+          if (received) { if (chunk.length) fail(); return; }
+          text += chunk;
+          if (Buffer.byteLength(text) > 4096) { fail(); return; }
+          const end = text.indexOf('\n');
+          if (end < 0) return;
+          if (text.slice(0, end).replace(/\r$/u, '') !== spec.prompt || text.slice(end + 1).length) { fail(); return; }
+          received = true; resolveInput();
+        };
+        const onEnd = () => { if (!received) fail(); };
+        source.on('data', onData); source.once('end', onEnd); source.once('error', fail);
+        detachInput = () => { source.off('data', onData); source.off('end', onEnd); source.off('error', fail); source.destroy(); };
+        source.resume();
+      });
+      const previous = Object.keys(manualGoalCases)[Object.keys(manualGoalCases).indexOf(id) - 1];
+      if (previous && !manualGoalState(previous, before)) throw new CaseBlocked('手动Goal持久前置或5分钟视图失效；不刷新、不补答');
+    }
     session.begin(id, args.includes('--previous-reviewed'));
     const input = new PassThrough(), nativeInput = Object.getOwnPropertyDescriptor(process, 'stdin')!;
     Object.defineProperty(process, 'stdin', { configurable: true, value: input });
     Object.assign(process.env, { DATABASE_PATH: join(data, 'agent.db'), MEMORY_DIR: join(data, 'memory'), SESSION_DIR: join(data, 'sessions'), SKILLS_DIR: managed,
       USER_TIMEZONE: 'Asia/Shanghai', GOAL_ENABLED: String(group !== 'S'), SKILLS_ENABLED: String(group !== 'P'), WEB_READ_ENABLED: 'false', PROACTIVE_ENABLED: 'false', MEMORY_FORMATION_ENABLED: 'false', MEMORY_QUERY_REWRITE: 'false' });
     const guarded = independentFetch(session, id, key);
-    globalThis.fetch = async (url, init) => { try { return await guarded(url, init); } catch (error) { if (!(error instanceof GroupBudgetExhausted)) setImmediate(() => process.emit('SIGTERM')); throw error; } };
+    globalThis.fetch = async (url, init) => { try { return await guarded(url, init); } catch (error) { if (!manual && !(error instanceof GroupBudgetExhausted)) setImmediate(() => process.emit('SIGTERM')); throw error; } };
     const { main } = await import('../src/main.js'); process.argv = [process.argv[0]!, resolve('src/main.ts')];
     const started = Date.now(); let quitting = false;
     const timer = setInterval(() => {
       try {
         const a = stagedAudit(data), current = a.foreground.slice(before.foreground.length), busy = a.goals.some(g => ['ready', 'running'].includes(String(g.status)));
-        if (Date.now() - started > 240000 || session.budget.ledger.halted) { if (!session.budget.ledger.halted) session.halt('case_timeout'); process.emit('SIGTERM'); }
+        if (Date.now() - started > 240000 || session.budget.ledger.halted) {
+          if (!session.budget.ledger.halted) session.halt('case_timeout');
+          if (!manual || !quitting) {
+            quitting = true;
+            if (manual && !current.length && !busy) input.end('/quit\n'); else process.emit('SIGTERM');
+          }
+        }
         else if (!quitting && current.length && current.every(r => r.status !== 'running') && !busy) { quitting = true; input.end('/quit\n'); }
-      } catch { session.halt('audit_read_failure'); process.emit('SIGTERM'); }
+      } catch {
+        session.halt('audit_read_failure');
+        if (!manual || !quitting) { quitting = true; process.emit('SIGTERM'); }
+      }
     }, 100);
     try {
       console.log(`独立Console ${id}：本组${groups[group]!.requests}请求，整轮${limits.requests}请求/${limits.microCny / 1000000}元，零Web GET；仅一次冻结输入。`);
       input.write(spec.prompt + '\n'); await main();
-      const after = independentAudit(data); healthy(data, group, after);
+      const after = independentAudit(data); healthy(data, group, after, manual);
       if (process.exitCode || session.budget.ledger.halted) throw new Error('共同进程或传输安全故障，禁止继续');
-      const statePass = pauseOnly ? naturalPauseState(id, after) : independentState(id as IndependentCase, after), routingObserved = after.events.some(e => e.runId === after.foreground.at(-1)?.id && e.type === 'skill_activated' && JSON.parse(String(e.details)).id === 'agent-notes');
+      const statePass = manual ? manualGoalState(id, after) : pauseOnly ? naturalPauseState(id, after) : independentState(id as IndependentCase, after), routingObserved = after.events.some(e => e.runId === after.foreground.at(-1)?.id && e.type === 'skill_activated' && JSON.parse(String(e.details)).id === 'agent-notes');
+      if (manual && before.goals.length) {
+        if (before.goals[0]?.id !== after.goals[0]?.id || before.plans.some((p, i) => JSON.stringify(p) !== JSON.stringify(after.plans[i]))
+          || before.executions.some((e, i) => JSON.stringify(e) !== JSON.stringify(after.executions[i]))) throw new Error('旧目标、Plan或Checkpoint被改写');
+        if (['M2', 'M5', 'M8'].includes(id) && JSON.stringify(before.goals) !== JSON.stringify(after.goals)) throw new Error('查看改变了Goal');
+        if (['M2', 'M3', 'M5', 'M6', 'M8', 'M9'].includes(id) && JSON.stringify(before.executions) !== JSON.stringify(after.executions)) throw new Error('本次操作产生未授权Execution');
+        if (['M6', 'M9'].includes(id) && (JSON.stringify(before.steps) !== JSON.stringify(after.steps)
+          || before.goals[0]?.checkpointRunId !== after.goals[0]?.checkpointRunId || before.goals[0]?.pendingActionJson !== after.goals[0]?.pendingActionJson
+          || Number(after.goals[0]?.revision) !== Number(before.goals[0]?.revision) + 1)) throw new Error('控制改写了成果或产生额外版本');
+      }
       if ((id === 'P3' || pauseOnly && id !== 'N1') && JSON.stringify(before.executions) !== JSON.stringify(after.executions)) throw new Error('查看/暂停产生了额外执行');
       if (pauseOnly && id !== 'N1' && (JSON.stringify(before.plans) !== JSON.stringify(after.plans) || before.goals[0]?.checkpointRunId !== after.goals[0]?.checkpointRunId
         || before.goals[0]?.pendingActionJson !== after.goals[0]?.pendingActionJson || before.goals[0]?.id !== after.goals[0]?.id)) throw new Error('查看/暂停改写了计划、成果或目标归属');
@@ -208,6 +301,7 @@ export async function startIndependent(pauseOnly = false) {
       fs.writeFileSync(join(data, id + '-audit.json'), JSON.stringify({ caseId: id, before, after, statePass, routingObserved,
         ...(pauseOnly ? { planGeneration: { outcome: after.executions[0]?.checkpointJson ? JSON.parse(String(after.executions[0].checkpointJson)).stepOutcome : null,
           pendingDraft: !!after.goals[0]?.pendingActionJson }, pauseResult: id === 'N3' ? statePass : null } : {}),
+        ...(manual ? { modelQualityPass: null, rawModelEvidenceRequiresReview: true, sessionResumed: args.includes('--resume') } : {}),
         note: pauseOnly ? '新自然暂停指标不依赖草稿；计划生成与暂停分别记录，机械状态不代替模型语义，不追改旧P1。' : '机械状态/读取指标不代替模型语义；S未read但正确完成用户任务须分别评分，其他组语义失败不影响本组' }, null, 2), { flag: 'wx', mode: 0o600 });
       session.finish(id, statePass); console.log(JSON.stringify({ caseId: id, statePass, routingObserved, modelHttp: session.budget.ledger.attempts.length, reservedMicroCny: session.budget.reserved, publicGets: 0 }));
       if (!statePass) process.exitCode = 1;
@@ -216,6 +310,6 @@ export async function startIndependent(pauseOnly = false) {
     // 已消费Case异常不释放额度；未知写入/进程故障锁住整轮。TTL等发送前拒绝不触发重试。
     if (!(error instanceof CaseBlocked) && !session.budget.ledger.halted) session.halt('case_persistence_or_process_failure');
     throw error;
-  } finally { session.close(); }
+  } finally { detachInput(); session.close(); }
 }
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) void startIndependent().catch(error => { console.error(redactor(process.env.LLM_API_KEY ?? '')(error)); process.exitCode = 1; });

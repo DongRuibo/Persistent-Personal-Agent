@@ -4,12 +4,11 @@
 
 ## 当前阶段与进行中事项
 
-- 本地Release Candidate收敛审查完成，固定候选`b7a87355e4b0bde62833c50de3c47471c4a0ca34`、分支`codex/natural-pause-prep`，对比main基线`c604565ca507ad9fe14e1cadf945918d14a92668`的8个线性提交。结论：未发现明确源码合并阻断，可收敛为Windows本地RC；手动Goal仍是隔离候选，不是完整真实生命周期已验收。见[RC报告](evaluations/local-rc-review.md)。
-- 本轮实际重跑五关：typecheck/build均0；Windows npm test共492项、489通过/0失败/3既有平台跳过；eval:memory词法64题，Top1/Recall@5仍9/12、17/19、17/18，误supported0/15；eval:formation开发/留出各30/30、未批准写入0。两个eval真实API0，所有新模型HTTP/公网文档GET/收费/飞书均0。Linux引擎不可用、WSL仅Stopped docker-desktop，无现成Mac；3项权限/链接/POSIX进程缺口保留，不安装环境。
-- Pi及依赖仍1.3.0原版，无锁文件/Task/Memory核心/main/config/BackgroundLane差异，产品未导入验收scripts；Goal首次身份、审批/CAS/Checkpoint、安全错误、异步收据，以及Skill Hash升级/受限read、Web诊断和默认关闭边界经源码与全量回归核对。新证据`E:/AgentWork/validation/personal-agent-rc-review-20261026`保存diff、逐项日志、范围审查、平台及保全/Hash。
-- 功能分级：基础Chat/Session、一次性Task、明确Memory操作及批准纯文本Chat Skill适合低风险本地使用；手动Goal/固定只读Web为隔离候选；完整Goal生命周期、执行中控制、Skill+Web+Goal联合、Proactive/Observer/Outbox与Formation继续待验/默认关闭。R2/S1/N3真实限定成功保留；旧P1失败与N1未形成计划草稿仍是P1体验问题，不擅改Prompt或把合法partial算计划完成。
-- RC审查时本地main及origin/main引用为c604565，固定候选b7a8735为后代、左右0/8，可fast-forward；审查阶段未联网。用户随后仅授权将RC报告和STATE这2份文档提交推送到codex/natural-pause-prep；发布前只读复核远端仍为上述main及候选SHA，不合并main。原E盘8项修改与main工作树3项修改均保护；未来发布应重新固定包含本次文档的分支SHA并使用全新detached发布树，不在脏树merge/pull/reset。
-- 下一阶段手动Goal体验只作建议：新隔离目录、9条普通Console消息，创建/确认/partial/正常停服重启/查看/暂停/附回答继续/Step完成/显式Goal达成，预计29、最多40物理HTTP/¥6.60保守预留/零GET；只是历史费率演算，未来须重新核价和授权，且复用原预留器补薄传输预算入口后才可有界收费，普通Console本身没有整轮费用闸。本轮仅新增RC报告和更新STATE；发布只补本STATE，报告保留审查完成时的未提交快照，不开启默认能力、不改正式.env/数据、不修复或再验收，核验审查分支推送后停止。
+- Windows本地RC已按本轮明确授权发布：远端main从`c604565ca507ad9fe14e1cadf945918d14a92668`严格fast-forward到`fdf3a069ca15847ab95f51c1ed39cd898d76c44f`，9个线性提交完整保留，无额外提交/强推/历史改写。全新干净detached发布树执行，推送后独立ls-remote确认精确SHA。发布证据在`E:/AgentWork/validation/personal-agent-windows-rc-release-20261026`；只表示Windows RC收敛，不启用正式Goal或无人值守能力。
+- 后续离线准备位于新树`C:/Users/Dongr/.codex/worktrees/manual-goal-console-prep/Persistent Personal Agent`、分支`codex/manual-goal-console-prep`，HEAD仍fdf3a06。新增薄stdin入口和M1～M9冻结表，复用IndependentBudget/留证/审计/正常退出，只有scripts/tests/docs变化；产品src、Pi1.3.0、依赖、Skill、正式配置及数据不变。见[准备报告](evaluations/manual-goal-console-preparation.md)和[冻结方案](evaluations/manual-goal-console-live-plan.md)。用户随后明确授权将本批9份准备代码、测试和文档仅提交推送到codex/manual-goal-console-prep供独立审查，不合并或推送main。发布前9份文件及174份准备证据Hash均与最终离线快照一致；本次只补本STATE的发布交接记录，源码、测试及冻结方案不改。
+- 最终Windows五关全部退出0：typecheck/build，npm test497项494通过/0失败/3既有平台跳过；memory词法64题仍9/12、17/19、17/18，误supported0/15；formation开发/留出各30/30、未批准写入0。新专项5项通过，9条原Console/原版Pi/真实SQLite模拟主线29次本机HTTP、3次Checkpoint、同一原生Session跨进程恢复；错误输入、在途额外输入、断连、TTL、重复/配置/预算均保守拒绝。初始类型错误及退出锁失败日志保留，最小修复只在包装层。Linux引擎不可用、WSL仅Stopped docker-desktop，无现成Mac，平台缺口保留。
+- 保护核对8个非开发树HEAD/分支/status及原脏文件Hash、205份历史/发布证据Hash全不变；原E盘8项修改和v3-proactive本地main的3份文档保留。本地被占用main仍c604565，远端main/origin/main为fdf3a06，不能在脏树直接pull。新准备证据在`E:/AgentWork/validation/personal-agent-manual-goal-prep-20261026`，含最终Mock副本、审计、日志及源码Hash。
+- 下一阶段仅待批准普通Console手动Goal体验：冻结澄川职责练习M1～M9，预计29、最多40物理HTTP/¥6.60保守预留/零GET，新scope/数据/账本，每条各一次；M2→M3、M5→M6、M8→M9保持5分钟TTL。未来需重新审查Hash、核价及安全注入凭据后单独授权。本轮真实模型/公网文档GET/费用/飞书0，不读正式.env，不继续执行。R2/S1/N3真实限定成功保留；P1/N1计划质量、完整Goal生命周期、执行中控制与Skill/Web/Goal联合仍未真实通过。Proactive/Formation/Web/Skills/Goal正式开关继续默认关闭。
 
 ## 已完成功能
 
@@ -36,11 +35,11 @@
 
 | 日期 | 修改及位置 |
 | --- | --- |
+| 2026-10-26 | 固定fdf3a06 Windows RC经干净发布树严格快进到远端main，9提交保留、无新提交；8原树及205证据Hash不变。新独立树仅离线准备M1～M9薄stdin入口，40请求/¥6.60/零GET待单独批准；Windows五关0、497项494通过/3平台跳过，新专项5通过；产品源码不变，真实调用0；用户随后授权仅将本批9文件提交推送至codex/manual-goal-console-prep审查分支，发布只补STATE，保留验证快照和原工作区，不改main或启动真实体验 |
 | 2026-10-26 | b7a8735本地RC离线收敛审查：8提交/57文件，产品集中10文件，未发现明确合并阻断；Windows五关0、492项489通过/3平台跳过，Linux/Mac不可用。分级及9消息40请求/¥6.60待授权清单、保护与未来FF命令写入RC报告；用户随后仅授权向独立审查分支提交推送这2份文档，产品/Prompt和证据不改，不合并main或新增验收 |
 | 2026-10-26 | 独立自然暂停真实复验：N1真实创建/合法partial，计划质量未通过；N2唯一有效视图，N3历史原话一次pause将waiting_user rev2改为paused rev3，Plan/Step/Checkpoint不变。10请求/¥0.494534预留/零GET，3收据一致，正常停服。原始失败及R2/S1成功保留；用户随后授权仅提交推送报告/JSON及STATE到独立审查分支，原工作区和证据保留，不合并main或补测 |
 | 2026-10-26 | P/R/S真实复验：14请求/¥0.677058保守预留/零文档GET，P1无草稿失败、P2/P3未执行，R1/R2/S1通过；原始主Chat正确解释异步归属，正式Skill/partial投递及消息资料自动read真实通过。正常停服，只新增报告/JSON和STATE；用户随后授权仅向独立审查分支提交推送这3份文档，发布只补STATE，原失败/报告/账本保留，不修复或重跑 |
 | 2026-10-25 | P/R/S独立Console准备：六Case、三隔离业务/Session、新30/5总闸及14/12/4分组、零GET；复用旧main/审计/留证，产品源码不改。Windows486项483通过/3跳过、五关0；Linux不可用，原真实失败不改；用户随后授权仅发布至独立审查分支，发布只补STATE，原准备证据不改；真实执行仍待一次性批准 |
-| 2026-10-24 | A2/B1离线定点修复：同快照收据明确Plan/Step/Run与异步提交/投递；agent-notes 1.0.1支持当前授权工具正文，旧Hash升级不替代。基线红3项→专项绿6项，Windows480项477通过/3跳过、五关0；Linux不可用，真实失败不改；用户随后授权仅向独立审查分支提交推送，发布只补STATE，原验证快照不改 |
 
 ## 验证记录与证据边界
 

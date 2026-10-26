@@ -8,7 +8,7 @@ import type { Group } from './independent-console-cases.js';
 export const digest = (value: string | Buffer): string => createHash('sha256').update(value).digest('hex');
 export interface IndependentProfile extends AcceptanceProfile { casesHash: string; nodeVersion: string; cacheReadRate: number; extraFeesCny: 0 }
 export interface IndependentDefinition {
-  scope: 'independent-prs-console-v1' | 'natural-pause-console-v1';
+  scope: 'independent-prs-console-v1' | 'natural-pause-console-v1' | 'manual-goal-console-v1';
   limits: { requests: number; microCny: number; bodyBytes: number; outputTokens: number; publicGets: 0 };
   groups: Partial<Record<Group, { requests: number; microCny: number }>>;
   cases: Record<string, { group: Group; expected: number; max: number; goal: boolean; prompt: string }>;
@@ -25,7 +25,7 @@ const price = (p: IndependentProfile, b: number, o: number) => Math.ceil((b + 51
 export class CaseBlocked extends Error {}
 export class GroupBudgetExhausted extends Error {}
 
-// 两份固定宿主方案共用预留/落盘；定义只由入口静态提供，不能来自模型或旧账本。
+// 固定宿主方案共用预留/落盘；定义只由入口静态提供，不能来自模型或旧账本。
 export class IndependentBudget {
   constructor(readonly ledger: Ledger, readonly definition: IndependentDefinition = independentDefinition) {
     const p = ledger.profile, { limits, groups, cases } = definition;
