@@ -1,0 +1,773 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "timezone": "Asia/Shanghai",
+  "result": "offline_preparation_passed_live_not_authorized",
+  "baseSha": "1e20e51145b4f2c422bbb7a918cb52f771f01ade",
+  "branch": "codex/natural-pause-prep",
+  "worktree": "C:\\Users\\Dongr\\.codex\\worktrees\\natural-pause-prep\\Persistent Personal Agent",
+  "productCodeChangeRequired": false,
+  "productCodeChanged": false,
+  "p1Findings": {
+    "confirmed": [
+      "bootstrap完整收到原话与两条虚构资料，非宿主丢失输入",
+      "模型原文将青桐当阅读主题并询问额外篇目、周期、每日时间",
+      "合法partial、无proposedPlan已原子提交，Goal waiting_user，旧P1计划草稿指标仍失败",
+      "Schema已允许带待确认条件的初稿，也允许真正缺必要信息时澄清"
+    ],
+    "hypothesesNotEstablished": [
+      "名称未从整句目标独立建模可能造成语言歧义",
+      "不虚构/缺信息提问指令可能促使保守澄清，未证明模型内部因果或某一提示句的决定作用"
+    ],
+    "necessaryVersusDeferred": {
+      "potentiallyNecessary": "如果真实阅读对象、所需事实、期限或能力范围确实缺失且用户要求依赖它们，应允许必要提问",
+      "notMandatoryForThisLimitedDraft": [
+        "额外青桐篇目",
+        "未要求的总周期/截止日",
+        "未要求的每日时间预算"
+      ],
+      "safeAlternative": "只基于两条已给资料提出有限条件式草稿，将具体时间和偏好留待确认；不要求模型虚构外部资料"
+    },
+    "goalState": {
+      "id": "41aa1e4a-387e-4793-afb0-5018d2b3f57d",
+      "ownerId": "local-user",
+      "targetJson": "{\"channel\":\"console\"}",
+      "status": "waiting_user",
+      "revision": 2,
+      "planRevision": 0,
+      "pendingActionJson": null,
+      "checkpointRunId": "a1bd5677-6e61-4004-89c8-e234a66f8226"
+    },
+    "executionStatus": "committed",
+    "checkpointOutcome": "partial",
+    "proposedPlanOptional": true,
+    "sourceRequestSha256": "f7bddc961c8e879371dd7c6e447edcb701f93ba04efa2bd3baae4179e39f32a4",
+    "sourceResponseSha256": "4098cbc469b5aefb6b870c221a95c6192e4cd4b9b953863da7a804124216dd97",
+    "originalP1Classification": "failed_unchanged",
+    "originalExecutionSha": "0d0725c1aeeb9e6a498dca5a5f6b1fdcdcf0d5a0",
+    "sourceReportCommitSha": "1e20e51145b4f2c422bbb7a918cb52f771f01ade"
+  },
+  "newPlan": {
+    "file": "docs/evaluations/natural-pause-console-live-plan.md",
+    "scope": "natural-pause-console-v1",
+    "cases": [
+      "N1",
+      "N2",
+      "N3"
+    ],
+    "promptsSameAsOldPButIndependentMetrics": true,
+    "prerequisite": "真实自然语言创建，唯一local-user/Console Goal、v0初始化committed、静止waiting_user，无未知在途；N2当前唯一详细成功投递视图，N3保持revision/draftHash/displayRunId/TTL/身份/渠道校验",
+    "draftNotRequiredForBasicPause": true,
+    "legalBootstrapOutcomes": [
+      "complete_with_valid_draft",
+      "partial_without_draft"
+    ],
+    "completeDraftMustAgreeWithCheckpoint": true,
+    "planGenerationAndPauseRecordedSeparately": true,
+    "doesNotAuthorizeApprovedOrRunningGoalPauseTest": true,
+    "expectedPhysicalModelHttp": 10,
+    "maxPhysicalModelHttp": 14,
+    "maxReservedMicroCny": 2310000,
+    "publicGets": 0,
+    "perCaseMax": {
+      "N1": 6,
+      "N2": 4,
+      "N3": 4
+    },
+    "feeCalculationOnlyHistoricalRates": {
+      "input": 2,
+      "output": 8,
+      "perMaxRequestMicroCny": 164864,
+      "fourteenRequestsMicroCny": 2308096
+    },
+    "officialOrAccountRatesCheckedThisTask": false,
+    "liveApprovalRequired": true
+  },
+  "reuse": {
+    "budgetEngine": "IndependentBudget/openIndependent，宿主静态definition，原PRS默认不变",
+    "execution": "原main、Pi SDK、隔离/响应留证、正常停服及只读审计，无新增Agent Loop",
+    "permissions": "原Guard/GoalService/CAS不变，新前置只控制验收是否继续",
+    "newPersistentServicesOrTables": false
+  },
+  "verification": {
+    "baselineRed": {
+      "date": "2026-10-26",
+      "exitCode": 1,
+      "expectedRed": true,
+      "basis": "旧P1要求草稿；新暂停门槛不应依赖草稿，原真实partial Fixture经原版Pi和SQLite触发旧入口statePass=false",
+      "realModelHttp": 0,
+      "publicGets": 0
+    },
+    "initialTargeted": [
+      {
+        "name": "typecheck",
+        "exitCode": 0,
+        "log": "typecheck-initial.log"
+      },
+      {
+        "name": "targeted",
+        "exitCode": 0,
+        "log": "targeted-initial.log"
+      }
+    ],
+    "finalGates": [
+      {
+        "gate": "typecheck",
+        "exitCode": 0,
+        "elapsedSeconds": 3.391,
+        "log": "typecheck-reviewed.log"
+      },
+      {
+        "gate": "build",
+        "exitCode": 0,
+        "elapsedSeconds": 1.891,
+        "log": "build-reviewed.log"
+      },
+      {
+        "gate": "test",
+        "exitCode": 0,
+        "elapsedSeconds": 57.422,
+        "log": "test-reviewed.log"
+      },
+      {
+        "gate": "eval-memory",
+        "exitCode": 0,
+        "elapsedSeconds": 3.906,
+        "log": "eval-memory-reviewed.log"
+      },
+      {
+        "gate": "eval-formation",
+        "exitCode": 0,
+        "elapsedSeconds": 9.844,
+        "log": "eval-formation-reviewed.log"
+      }
+    ],
+    "counts": {
+      "tests": 492,
+      "pass": 489,
+      "fail": 0,
+      "skip": 3
+    },
+    "newTests": 6,
+    "newFlowMockHttp": 37,
+    "twoPositiveChainsHttpEach": 10,
+    "mockChains": [
+      {
+        "name": "partial",
+        "source": "C:\\Users\\Dongr\\AppData\\Local\\Temp\\natural-pause-VBTEcY\\round",
+        "copy": "E:\\AgentWork\\validation\\personal-agent-natural-pause-prep-20261026\\mock-reviewed-originals\\partial",
+        "attempts": 10,
+        "cases": [
+          {
+            "id": "N1",
+            "at": "2026-10-25T18:19:31.304Z",
+            "finished": "2026-10-25T18:19:33.403Z",
+            "statePass": true,
+            "previousReviewedAt": "2026-10-25T18:19:35.885Z"
+          },
+          {
+            "id": "N2",
+            "at": "2026-10-25T18:19:35.885Z",
+            "finished": "2026-10-25T18:19:36.945Z",
+            "statePass": true,
+            "previousReviewedAt": "2026-10-25T18:19:38.818Z"
+          },
+          {
+            "id": "N3",
+            "at": "2026-10-25T18:19:38.818Z",
+            "finished": "2026-10-25T18:19:39.690Z",
+            "statePass": true
+          }
+        ],
+        "scope": "natural-pause-console-v1",
+        "halted": null,
+        "audits": {
+          "N1": {
+            "statePass": true,
+            "planGeneration": {
+              "outcome": "partial",
+              "pendingDraft": false
+            },
+            "pauseResult": null,
+            "goalId": "a7d0ebdc-9e18-417c-8841-87715270874c",
+            "goalStatus": "waiting_user",
+            "revision": 2,
+            "planRevision": 0,
+            "pendingDraft": false,
+            "executionCount": 1,
+            "checkpointRunId": "5cf0f9e0-c257-4717-ab32-049793536d10",
+            "checkpointHash": "53ae05e09ac4dad92bfeaf282c4cb4cb3ee49a3c42fb93f2cd80fb37bd0757c6",
+            "inputHash": "b631b116377f492e66277f4d854b8deb2db4b2a1ad5a7769bf88a90d7a087eee",
+            "checkpointOutcome": "partial",
+            "sessionUserCount": 1,
+            "integrity": "ok",
+            "foreignKeys": 0,
+            "otherWrites": {
+              "tasks": 0,
+              "memory_candidates": 0,
+              "memory_formation_jobs": 0,
+              "goal_policies": 0,
+              "goal_grants": 0,
+              "goal_observations": 0,
+              "goal_notifications": 0,
+              "web_read_calls": 0,
+              "feishu_messages": 0
+            }
+          },
+          "N2": {
+            "statePass": true,
+            "planGeneration": {
+              "outcome": "partial",
+              "pendingDraft": false
+            },
+            "pauseResult": null,
+            "goalId": "a7d0ebdc-9e18-417c-8841-87715270874c",
+            "goalStatus": "waiting_user",
+            "revision": 2,
+            "planRevision": 0,
+            "pendingDraft": false,
+            "executionCount": 1,
+            "checkpointRunId": "5cf0f9e0-c257-4717-ab32-049793536d10",
+            "checkpointHash": "53ae05e09ac4dad92bfeaf282c4cb4cb3ee49a3c42fb93f2cd80fb37bd0757c6",
+            "inputHash": "b631b116377f492e66277f4d854b8deb2db4b2a1ad5a7769bf88a90d7a087eee",
+            "checkpointOutcome": "partial",
+            "sessionUserCount": 2,
+            "integrity": "ok",
+            "foreignKeys": 0,
+            "otherWrites": {
+              "tasks": 0,
+              "memory_candidates": 0,
+              "memory_formation_jobs": 0,
+              "goal_policies": 0,
+              "goal_grants": 0,
+              "goal_observations": 0,
+              "goal_notifications": 0,
+              "web_read_calls": 0,
+              "feishu_messages": 0
+            }
+          },
+          "N3": {
+            "statePass": true,
+            "planGeneration": {
+              "outcome": "partial",
+              "pendingDraft": false
+            },
+            "pauseResult": true,
+            "goalId": "a7d0ebdc-9e18-417c-8841-87715270874c",
+            "goalStatus": "paused",
+            "revision": 3,
+            "planRevision": 0,
+            "pendingDraft": false,
+            "executionCount": 1,
+            "checkpointRunId": "5cf0f9e0-c257-4717-ab32-049793536d10",
+            "checkpointHash": "53ae05e09ac4dad92bfeaf282c4cb4cb3ee49a3c42fb93f2cd80fb37bd0757c6",
+            "inputHash": "b631b116377f492e66277f4d854b8deb2db4b2a1ad5a7769bf88a90d7a087eee",
+            "checkpointOutcome": "partial",
+            "sessionUserCount": 3,
+            "integrity": "ok",
+            "foreignKeys": 0,
+            "otherWrites": {
+              "tasks": 0,
+              "memory_candidates": 0,
+              "memory_formation_jobs": 0,
+              "goal_policies": 0,
+              "goal_grants": 0,
+              "goal_observations": 0,
+              "goal_notifications": 0,
+              "web_read_calls": 0,
+              "feishu_messages": 0
+            }
+          }
+        }
+      },
+      {
+        "name": "wrong-target",
+        "source": "C:\\Users\\Dongr\\AppData\\Local\\Temp\\natural-pause-VBTEcY\\wrong-target",
+        "copy": "E:\\AgentWork\\validation\\personal-agent-natural-pause-prep-20261026\\mock-reviewed-originals\\wrong-target",
+        "attempts": 10,
+        "cases": [
+          {
+            "id": "N1",
+            "at": "2026-10-25T18:19:43.210Z",
+            "finished": "2026-10-25T18:19:44.886Z",
+            "statePass": true,
+            "previousReviewedAt": "2026-10-25T18:19:46.577Z"
+          },
+          {
+            "id": "N2",
+            "at": "2026-10-25T18:19:46.577Z",
+            "finished": "2026-10-25T18:19:47.318Z",
+            "statePass": true,
+            "previousReviewedAt": "2026-10-25T18:19:49.032Z"
+          },
+          {
+            "id": "N3",
+            "at": "2026-10-25T18:19:49.032Z",
+            "finished": "2026-10-25T18:19:49.777Z",
+            "statePass": false
+          }
+        ],
+        "scope": "natural-pause-console-v1",
+        "halted": null,
+        "audits": {
+          "N1": {
+            "statePass": true,
+            "planGeneration": {
+              "outcome": "partial",
+              "pendingDraft": false
+            },
+            "pauseResult": null,
+            "goalId": "73576f05-fd25-42fc-a90e-c9f041d3011c",
+            "goalStatus": "waiting_user",
+            "revision": 2,
+            "planRevision": 0,
+            "pendingDraft": false,
+            "executionCount": 1,
+            "checkpointRunId": "ca615191-a9e2-4a44-987f-5582ade1dfdb",
+            "checkpointHash": "fd5714cf0dae91c72dda038cda87beb04e6d3d04d64c428928d3a5714b795533",
+            "inputHash": "a54250233a5fcc6ed4d6487772021e5a971d568984218589e44277b4f89e9cfd",
+            "checkpointOutcome": "partial",
+            "sessionUserCount": 1,
+            "integrity": "ok",
+            "foreignKeys": 0,
+            "otherWrites": {
+              "tasks": 0,
+              "memory_candidates": 0,
+              "memory_formation_jobs": 0,
+              "goal_policies": 0,
+              "goal_grants": 0,
+              "goal_observations": 0,
+              "goal_notifications": 0,
+              "web_read_calls": 0,
+              "feishu_messages": 0
+            }
+          },
+          "N2": {
+            "statePass": true,
+            "planGeneration": {
+              "outcome": "partial",
+              "pendingDraft": false
+            },
+            "pauseResult": null,
+            "goalId": "73576f05-fd25-42fc-a90e-c9f041d3011c",
+            "goalStatus": "waiting_user",
+            "revision": 2,
+            "planRevision": 0,
+            "pendingDraft": false,
+            "executionCount": 1,
+            "checkpointRunId": "ca615191-a9e2-4a44-987f-5582ade1dfdb",
+            "checkpointHash": "fd5714cf0dae91c72dda038cda87beb04e6d3d04d64c428928d3a5714b795533",
+            "inputHash": "a54250233a5fcc6ed4d6487772021e5a971d568984218589e44277b4f89e9cfd",
+            "checkpointOutcome": "partial",
+            "sessionUserCount": 2,
+            "integrity": "ok",
+            "foreignKeys": 0,
+            "otherWrites": {
+              "tasks": 0,
+              "memory_candidates": 0,
+              "memory_formation_jobs": 0,
+              "goal_policies": 0,
+              "goal_grants": 0,
+              "goal_observations": 0,
+              "goal_notifications": 0,
+              "web_read_calls": 0,
+              "feishu_messages": 0
+            }
+          },
+          "N3": {
+            "statePass": false,
+            "planGeneration": {
+              "outcome": "partial",
+              "pendingDraft": false
+            },
+            "pauseResult": false,
+            "goalId": "73576f05-fd25-42fc-a90e-c9f041d3011c",
+            "goalStatus": "waiting_user",
+            "revision": 2,
+            "planRevision": 0,
+            "pendingDraft": false,
+            "executionCount": 1,
+            "checkpointRunId": "ca615191-a9e2-4a44-987f-5582ade1dfdb",
+            "checkpointHash": "fd5714cf0dae91c72dda038cda87beb04e6d3d04d64c428928d3a5714b795533",
+            "inputHash": "a54250233a5fcc6ed4d6487772021e5a971d568984218589e44277b4f89e9cfd",
+            "checkpointOutcome": "partial",
+            "sessionUserCount": 3,
+            "integrity": "ok",
+            "foreignKeys": 0,
+            "otherWrites": {
+              "tasks": 0,
+              "memory_candidates": 0,
+              "memory_formation_jobs": 0,
+              "goal_policies": 0,
+              "goal_grants": 0,
+              "goal_observations": 0,
+              "goal_notifications": 0,
+              "web_read_calls": 0,
+              "feishu_messages": 0
+            }
+          }
+        }
+      },
+      {
+        "name": "expired",
+        "source": "C:\\Users\\Dongr\\AppData\\Local\\Temp\\natural-pause-VBTEcY\\expired",
+        "copy": "E:\\AgentWork\\validation\\personal-agent-natural-pause-prep-20261026\\mock-reviewed-originals\\expired",
+        "attempts": 7,
+        "cases": [
+          {
+            "id": "N1",
+            "at": "2026-10-25T18:19:51.401Z",
+            "finished": "2026-10-25T18:19:52.960Z",
+            "statePass": true,
+            "previousReviewedAt": "2026-10-25T18:19:54.659Z"
+          },
+          {
+            "id": "N2",
+            "at": "2026-10-25T18:19:54.659Z",
+            "finished": "2026-10-25T18:19:55.374Z",
+            "statePass": true
+          }
+        ],
+        "scope": "natural-pause-console-v1",
+        "halted": null,
+        "audits": {
+          "N1": {
+            "statePass": true,
+            "planGeneration": {
+              "outcome": "partial",
+              "pendingDraft": false
+            },
+            "pauseResult": null,
+            "goalId": "7737dfde-fad2-489d-881b-20c9e38428e5",
+            "goalStatus": "waiting_user",
+            "revision": 2,
+            "planRevision": 0,
+            "pendingDraft": false,
+            "executionCount": 1,
+            "checkpointRunId": "e1a1835f-15bc-4fa2-8031-40151ae2fa49",
+            "checkpointHash": "6f6e5ef33fbd8f818ca9b6e5dfdd8a61a32d8244e158cdd219d01a9e4c85f79f",
+            "inputHash": "16700feaa9d33e45f7141b359146c4f33d3d9cdb5a4543311f0ea3ef43c9dc93",
+            "checkpointOutcome": "partial",
+            "sessionUserCount": 1,
+            "integrity": "ok",
+            "foreignKeys": 0,
+            "otherWrites": {
+              "tasks": 0,
+              "memory_candidates": 0,
+              "memory_formation_jobs": 0,
+              "goal_policies": 0,
+              "goal_grants": 0,
+              "goal_observations": 0,
+              "goal_notifications": 0,
+              "web_read_calls": 0,
+              "feishu_messages": 0
+            }
+          },
+          "N2": {
+            "statePass": true,
+            "planGeneration": {
+              "outcome": "partial",
+              "pendingDraft": false
+            },
+            "pauseResult": null,
+            "goalId": "7737dfde-fad2-489d-881b-20c9e38428e5",
+            "goalStatus": "waiting_user",
+            "revision": 2,
+            "planRevision": 0,
+            "pendingDraft": false,
+            "executionCount": 1,
+            "checkpointRunId": "e1a1835f-15bc-4fa2-8031-40151ae2fa49",
+            "checkpointHash": "6f6e5ef33fbd8f818ca9b6e5dfdd8a61a32d8244e158cdd219d01a9e4c85f79f",
+            "inputHash": "16700feaa9d33e45f7141b359146c4f33d3d9cdb5a4543311f0ea3ef43c9dc93",
+            "checkpointOutcome": "partial",
+            "sessionUserCount": 2,
+            "integrity": "ok",
+            "foreignKeys": 0,
+            "otherWrites": {
+              "tasks": 0,
+              "memory_candidates": 0,
+              "memory_formation_jobs": 0,
+              "goal_policies": 0,
+              "goal_grants": 0,
+              "goal_observations": 0,
+              "goal_notifications": 0,
+              "web_read_calls": 0,
+              "feishu_messages": 0
+            }
+          }
+        }
+      },
+      {
+        "name": "complete",
+        "source": "C:\\Users\\Dongr\\AppData\\Local\\Temp\\natural-pause-Ssvocn\\round",
+        "copy": "E:\\AgentWork\\validation\\personal-agent-natural-pause-prep-20261026\\mock-reviewed-originals\\complete",
+        "attempts": 10,
+        "cases": [
+          {
+            "id": "N1",
+            "at": "2026-10-25T18:19:58.655Z",
+            "finished": "2026-10-25T18:20:00.235Z",
+            "statePass": true,
+            "previousReviewedAt": "2026-10-25T18:20:01.890Z"
+          },
+          {
+            "id": "N2",
+            "at": "2026-10-25T18:20:01.891Z",
+            "finished": "2026-10-25T18:20:02.608Z",
+            "statePass": true,
+            "previousReviewedAt": "2026-10-25T18:20:04.242Z"
+          },
+          {
+            "id": "N3",
+            "at": "2026-10-25T18:20:04.242Z",
+            "finished": "2026-10-25T18:20:04.942Z",
+            "statePass": true
+          }
+        ],
+        "scope": "natural-pause-console-v1",
+        "halted": null,
+        "audits": {
+          "N1": {
+            "statePass": true,
+            "planGeneration": {
+              "outcome": "complete",
+              "pendingDraft": true
+            },
+            "pauseResult": null,
+            "goalId": "cb30ac7c-b0c8-4ec4-8e66-02310e8ce70c",
+            "goalStatus": "waiting_user",
+            "revision": 2,
+            "planRevision": 0,
+            "pendingDraft": true,
+            "executionCount": 1,
+            "checkpointRunId": "782fa135-1b73-46de-bfba-837470751b82",
+            "checkpointHash": "1fb8c2749ca5f43a1b2f79626fce18a86ed9ab520644180ed1f3968fc90d29ec",
+            "inputHash": "bfc41cc208f158767437e95a42fdfdcbfbf980de5c16b5624aa0656080ac5cc5",
+            "checkpointOutcome": "complete",
+            "sessionUserCount": 1,
+            "integrity": "ok",
+            "foreignKeys": 0,
+            "otherWrites": {
+              "tasks": 0,
+              "memory_candidates": 0,
+              "memory_formation_jobs": 0,
+              "goal_policies": 0,
+              "goal_grants": 0,
+              "goal_observations": 0,
+              "goal_notifications": 0,
+              "web_read_calls": 0,
+              "feishu_messages": 0
+            }
+          },
+          "N2": {
+            "statePass": true,
+            "planGeneration": {
+              "outcome": "complete",
+              "pendingDraft": true
+            },
+            "pauseResult": null,
+            "goalId": "cb30ac7c-b0c8-4ec4-8e66-02310e8ce70c",
+            "goalStatus": "waiting_user",
+            "revision": 2,
+            "planRevision": 0,
+            "pendingDraft": true,
+            "executionCount": 1,
+            "checkpointRunId": "782fa135-1b73-46de-bfba-837470751b82",
+            "checkpointHash": "1fb8c2749ca5f43a1b2f79626fce18a86ed9ab520644180ed1f3968fc90d29ec",
+            "inputHash": "bfc41cc208f158767437e95a42fdfdcbfbf980de5c16b5624aa0656080ac5cc5",
+            "checkpointOutcome": "complete",
+            "sessionUserCount": 2,
+            "integrity": "ok",
+            "foreignKeys": 0,
+            "otherWrites": {
+              "tasks": 0,
+              "memory_candidates": 0,
+              "memory_formation_jobs": 0,
+              "goal_policies": 0,
+              "goal_grants": 0,
+              "goal_observations": 0,
+              "goal_notifications": 0,
+              "web_read_calls": 0,
+              "feishu_messages": 0
+            }
+          },
+          "N3": {
+            "statePass": true,
+            "planGeneration": {
+              "outcome": "complete",
+              "pendingDraft": true
+            },
+            "pauseResult": true,
+            "goalId": "cb30ac7c-b0c8-4ec4-8e66-02310e8ce70c",
+            "goalStatus": "paused",
+            "revision": 3,
+            "planRevision": 0,
+            "pendingDraft": true,
+            "executionCount": 1,
+            "checkpointRunId": "782fa135-1b73-46de-bfba-837470751b82",
+            "checkpointHash": "1fb8c2749ca5f43a1b2f79626fce18a86ed9ab520644180ed1f3968fc90d29ec",
+            "inputHash": "bfc41cc208f158767437e95a42fdfdcbfbf980de5c16b5624aa0656080ac5cc5",
+            "checkpointOutcome": "complete",
+            "sessionUserCount": 3,
+            "integrity": "ok",
+            "foreignKeys": 0,
+            "otherWrites": {
+              "tasks": 0,
+              "memory_candidates": 0,
+              "memory_formation_jobs": 0,
+              "goal_policies": 0,
+              "goal_grants": 0,
+              "goal_observations": 0,
+              "goal_notifications": 0,
+              "web_read_calls": 0,
+              "feishu_messages": 0
+            }
+          }
+        }
+      }
+    ],
+    "negativePrerequisites": [
+      "expired",
+      "undelivered",
+      "foreign_owner",
+      "foreign_channel",
+      "revision_changed",
+      "multiple_goals",
+      "cancelled",
+      "completed",
+      "old_display_run",
+      "draft_hash_mismatch",
+      "uncertain_execution",
+      "cancel_control_requested",
+      "complete_without_required_draft"
+    ],
+    "nativeWrongModelTargetDenied": true,
+    "expiredViewRejectedBeforeModelSend": true,
+    "oldScopeRejectedByNewAndReverse": true,
+    "getRejectedBeforeTransport": true,
+    "checkpointPlanExecutionUnchangedByPause": true,
+    "memoryEval": "offline-lexical，真实调用0",
+    "formationEval": {
+      "mode": "offline-scripted-proposals",
+      "devPass": "30/30",
+      "holdoutPass": "30/30",
+      "apiRequests": 0,
+      "output": "E:\\AgentWork\\validation\\personal-agent-natural-pause-prep-20261026\\formation-reviewed.json"
+    },
+    "linux": {
+      "date": "2026-10-26",
+      "linuxTestsExecuted": false,
+      "installedOrStartedRuntime": false,
+      "checks": [
+        {
+          "check": "docker-linux",
+          "exitCode": 1,
+          "output": "\nfailed to connect to the docker API at npipe:////./pipe/dockerDesktopLinuxEngine; check if the path is correct and if the daemon is running: open //./pipe/dockerDesktopLinuxEngine: The system cannot find the file specified.\n"
+        },
+        {
+          "check": "wsl",
+          "exitCode": 0,
+          "output": "  NAME              STATE           VERSION\r\n* docker-desktop    Stopped         2\r\n"
+        }
+      ]
+    }
+  },
+  "hashes": {
+    "baseSha": "1e20e51145b4f2c422bbb7a918cb52f771f01ade",
+    "scope": "natural-pause-console-v1",
+    "node": "v24.19.0",
+    "planHash": "55a36b74e27032cf4015d5619bd247540dd04d4f88db3dcc5bf6de81e1fe6bca",
+    "entryHash": "1a7fbbd1e62e684ee012a8f36825d973b959489d140807a230a4549796768834",
+    "casesHash": "ecb9804c6e38e5a259d29b9e28e214c927adaf0b0bf024e394ed5b60522c0671",
+    "casesFileHash": "41192aafb0b4fb190c3453a38b6e7bc6a7ceb52a3310bf16cee219e85a356cc1",
+    "codeHash": "44e5bd3d848da961825156c97a3978582e840c4551e09f84ce30587dfd6c7c2f",
+    "limits": {
+      "requests": 14,
+      "microCny": 2310000,
+      "bodyBytes": 65536,
+      "outputTokens": 4096,
+      "publicGets": 0
+    }
+  },
+  "evidenceRoot": "E:\\AgentWork\\validation\\personal-agent-natural-pause-prep-20261026",
+  "evidenceFiles": [
+    "baseline-red.log",
+    "p1-analysis-evidence.json",
+    "windows-reviewed-gates.json",
+    "test-reviewed.log",
+    "mock-reviewed-rounds.json",
+    "runtime-source-manifest.json",
+    "source-manifest.json",
+    "preparation.patch",
+    "SHA256SUMS.json"
+  ],
+  "preservation": {
+    "historicalEvidenceFiles": 72,
+    "historicalBudgetDbSessionReportsChanged": false,
+    "historicalDbReadOnlyMode": "mode=ro&immutable=1",
+    "historicalSessionReadOnly": true,
+    "historicalBudgetHashOnly": true,
+    "historicalExpectedResultsChanged": false,
+    "oldP1P2P3AndR1R2S1": [
+      "failed",
+      "not_executed",
+      "not_executed",
+      "passed",
+      "passed",
+      "passed"
+    ],
+    "originalEDriveEightChangesPreserved": true,
+    "otherWorktreesPreserved": true,
+    "formalEnvRead": false,
+    "formalDataUsed": false,
+    "sdkOrNodeModulesSourceChanged": false,
+    "defaultSwitchesChanged": false
+  },
+  "currentActivity": {
+    "newRealModelHttp": 0,
+    "newPublicDnsOrGet": 0,
+    "newFeesCny": 0,
+    "feishu": false,
+    "proactiveEnabledFormally": false,
+    "liveAcceptanceRootCreated": false,
+    "gitCommitted": false,
+    "gitPushed": false,
+    "gitMerged": false
+  },
+  "changedFiles": [
+    "scripts/independent-console-acceptance.ts",
+    "scripts/independent-console-budget.ts",
+    "scripts/natural-pause-console-acceptance.ts",
+    "scripts/natural-pause-console-cases.ts",
+    "tests/natural-pause.test.ts",
+    "tests/natural-pause-flow.test.ts",
+    "tests/fixtures/natural-pause-bootstrap-partial.json",
+    "docs/evaluations/natural-pause-console-live-plan.md",
+    "docs/evaluations/natural-pause-preparation.md",
+    "docs/evaluations/natural-pause-preparation.json",
+    "docs/STATE.md"
+  ],
+  "remainingRisks": [
+    "真实模型仍可能漏创建或错选；Mock不代表真实指代通过",
+    "Goal名称的语言歧义和过度澄清质量没有新真实改善证据",
+    "N2到N3可能超TTL，必须停止而不刷新",
+    "不覆盖批准后/执行中暂停、反馈继续/取消、Web后Skill路由或联合链路",
+    "Linux未运行，Windows三项平台跳过及ACL边界保留"
+  ],
+  "nextApproval": {
+    "scope": "新N1/N2/N3各一次，全新Console根与新scope，固定模型端点",
+    "physicalModelHttp": 14,
+    "reservedCny": "2.31",
+    "publicGet": 0,
+    "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "endpoint": "https://api.siliconflow.cn/v1/chat/completions",
+    "beforeSending": [
+      "审查固定提交和源码/方案/入口/Case Hash",
+      "重新确认官方/当前账号输入、缓存、输出费率及全部附加费",
+      "安全环境变量注入；缺失则拒绝联网",
+      "再次离线验证发送前预算、scope和跨重启边界"
+    ],
+    "noOldAllowanceReuse": true,
+    "runNow": false
+  }
+}
