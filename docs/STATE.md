@@ -4,11 +4,11 @@
 
 ## 当前阶段
 
-- T2-B/T3仅离线实现完成，固定基线`5e9c66818a8aa171d9f72f587f4ff4f098a0d840`，新独立树`C:/Users/Dongr/.codex/worktrees/t2b-t3-file-tools/Persistent Personal Agent`，分支`codex/t2b-t3-file-tools`；用户随后明确授权仅将本批22份代码、测试、配置样例与文档提交推送至同名独立审查分支，发布只补本STATE交接。产品与测试Hash保持最终离线验证版本，不合并main、不启动真实模型或飞书试用。原E盘HEAD/改动状态/STATE与现用飞书启动器Hash核对不变，未读正式.env、正式库或私人资料，未操作飞书服务。
-- T2-B新增独立默认关闭的搜索开关；原生find注入glob避开fd，grep按已审查SDK限制做小集合字面量匹配，不运行/下载rg/fd；复用资料批准身份/Hash、当前目录授权、每轮4调用/16KiB响应/128KiB读取预留。T1/read/ls及原权限保持。
-- T3新增独立默认关闭写开关及专用输出目录。原生write/edit只在内存准备完整内容/精确编辑/Diff，Guard核对当前请求，完整成功投递后用户确认ID+Hash、5分钟TTL和一次性消费；确认零主模型请求。同库file_operations表、独立宿主收据、无覆盖创建与临时文件编辑；失败/崩溃不确定阻塞、不重放，后台Goal/Task/Proactive无文件工具。见[报告](evaluations/t2b-t3-offline-validation.md)/[JSON](evaluations/t2b-t3-offline-validation.json)、[精简未来试用](t2b-t3-trial.md)。
-- Windows Node24.19.0最终typecheck/build/npm test/两个离线eval均退出0，525项522通过/3既有平台跳过，新增12项定点用例。Memory Recall@5/ContextHit=0.75，不声称质量全过；Formation fixture30/30+holdout30/30、真实API0。Linux Docker引擎不可用；ACL、文件符号链接权限、POSIX SIGTERM平台缺口保留，不安装/启动新环境。
-- 仅单进程专用本地输出目录，不承诺跨进程文件Hash CAS或恶意同账户进程隔离，外部编辑需停服；SQLite/文件之间未知窗口不重试。历史v2四维9/9、原模型7/9，M5/M8与P1/N1失败、R2/S1/N3限定成功不改。本轮无真实费用/公网/正式飞书，完成后停止，等待一次代码审查及未来真实试用批准，不开发T4或新架构。
+- T3文件提议定点离线修复完成，基线`32d8687b62ffa2ec8e1568ac4a68c2ff012a8c3c`；独立树`C:/Users/Dongr/.codex/worktrees/t3-proposal-contract-fix/Persistent Personal Agent`、分支`codex/t3-proposal-contract-fix`。用户随后授权仅将本轮7份修复代码、测试和文档提交推送到本独立审查分支；产品/测试Hash与最终离线验证一致，不重复全量测试。不合并main、不自动切换Console/飞书；原T2-B/T3树及原dist保持干净、Hash一致。
+- 只改两处产品逻辑：Chat写开关开启时追加明确的“提议→宿主完整预览→用户确认→写盘”提示，Agent自行选择工具；Skill整理与文件提议分阶段，仍独立核对当前授权。没有更改Skill正文、版本、批准Hash、Pi SDK、工具白名单或确认机制。
+- 对当前创建/编辑授权却未调用提议工具的情况，宿主标明本轮未登记、不能确认，保留模型草稿/澄清及原始Session文本；追加状态收据与file_proposal_missing事件。不从聊天合成提议，不补发模型请求，不新增操作授权。原实际口头预览及无账本/无文件的失败事实保留。
+- 新增3项红绿回归：旧代码0/3、修复后3/3；专项11/11。Windows typecheck/build/npm test/两个离线eval均退出0；528项525通过、0失败、3项既有平台跳过。Memory Recall@5/ContextHit仍0.75，Formation fixture/holdout各30/30；真实模型请求0。Docker Linux引擎不可用，WSL仅停止的docker-desktop，未补Linux或Mac验收。
+- 见[修复报告](evaluations/t3-file-proposal-fix.md)及[现有人工试用说明](t2b-t3-trial.md)。Mock仅验证提示投影、状态、审批与恢复，不证明真实模型自动选择已修好。现用Console仍是原固定版本；审查后经用户授权再切换普通Console人工试用，不新增Harness。原P1/N1、M5/M8失败及其他历史验收边界保持原样。
 
 ## 已完成功能
 

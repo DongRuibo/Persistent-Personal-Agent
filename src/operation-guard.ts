@@ -176,6 +176,14 @@ export class OperationGuard {
           await saveGoalResult?.(frame.contextResult ?? '本轮宿主要求澄清，未提交新的Goal控制；请重新查看当前状态。');
         }
         if(frame.fileUsed && frame.answer){request.signal.throwIfAborted();await saveFileResult?.(frame.answer);}
+        if (this.files && !frame.fileUsed && /^本次允许(?:创建|编辑)输出文件：[^\n]+$/u.test(request.prompt.trim().split('\n')[0]!)) {
+          // 只补充真实状态，不把模型草稿合成操作，也不追加模型纠错请求。
+          request.signal.throwIfAborted();
+          const receipt = '宿主状态：本轮未登记待批准文件操作；没有本轮操作ID或操作Hash，不能确认。本轮未提交输出文件修改。';
+          request.observer.event('file_proposal_missing', 'model_did_not_propose');
+          await saveFileResult?.(receipt);
+          return { ...result, text: `${receipt}\n\n以下仅为未登记的模型草稿或澄清，不是宿主操作预览：\n${frame.answer ?? result.text}` };
+        }
         return frame.answer ? { ...result, text: frame.answer } : result;
       } finally {
         if (!frame.plan && (this.state.choices || this.state.confirmation || this.state.candidateReview)) { delete this.state.choices; delete this.state.confirmation; delete this.state.candidateReview; this.saveState(this.state); }
