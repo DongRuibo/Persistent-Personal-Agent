@@ -8,7 +8,7 @@
 - P0认证/API与P1真实Pi接入、Task/Goal只读工作台和T3文件审批已实现；P2持久收件箱/活动、Manifest/图标/standalone与响应式布局已实现。所有本次模型调用仅到127.0.0.1模拟服务，真实模型调用0、额外API费用0；不把模拟语义表现视为真实验收。
 - Web身份由宿主固定，独立原生Session；Chat持久请求ID关联Run，单前台请求、无自动重放。预览ACK与用户Confirm分离，T3确认继续使用原Guard；后台通知只入箱，无手机推送。权限默认关闭，未新增Shell/MCP/任意文件工具，Pi SDK仍1.3.0。
 - 最终Windows/Node24.19.0：typecheck、build、前端TypeScript+production build、eval:memory、eval:formation均退出0；完整557项554通过/0失败/3既有平台跳过，新增Web专项13/13。包含实际--web-ui主入口/锁/正常停止、真实Pi模拟Chat/Memory/Task/Goal及T3。首轮在源码仍编辑期间两项冻结Hash测试失败；源码冻结后两次完整回归均无失败，最终以557项为准。
-- 本轮已获授权向专用分支提交推送并创建面向main的PR；不合并main、不部署、不切换日常实例。T3真实Console的限定成功、原M5/M8/N1/P1失败和Linux/Mac/手机/长跑缺口继续保留，历史报告链接见下文。
+- 实现提交`06ad8f966fb5560d14a66345bdec633009d65d28`已推送专用分支，并创建[PR #2](https://github.com/DongRuibo/Persistent-Personal-Agent/pull/2)面向main审查；远端main仍为`4ac6089`。本轮临时离线预览已停止，不合并main、不部署、不切换日常实例。T3真实Console的限定成功、原M5/M8/N1/P1失败和Linux/Mac/手机/长跑缺口继续保留，历史报告链接见下文。
 
 ## 已完成功能
 
@@ -481,7 +481,7 @@ V1 原有自动化证据：39项测试使用模拟模型/飞书服务和虚拟�
 
 ## 下一步与需要提供的信息
 
-1. 完成Web分支最终验证后交付PR供审阅；不合并或部署。使用[npm离线预览](web-app.md)无需提供Key；真实模型试用由操作者安全配置，勿发凭据到聊天。
+1. 审阅[Web V1 PR #2](https://github.com/DongRuibo/Persistent-Personal-Agent/pull/2)，按Web说明在独立数据中试用；本轮不合并或部署。使用[npm离线预览](web-app.md)无需提供Key；真实模型试用由操作者安全配置，勿发凭据到聊天。
 2. 本机Web目前仅PC回环访问。iPhone实机/LAN/HTTPS、Service Worker离线启动、Web Push、历史分页与长期稳定性均未实施或未验证，需后续明确任务。
 3. 历史真实语义失败及平台缺口不改判；若继续Goal/文件真实模型验收，需另行确定新隔离数据、用量边界及验收目标，不沿用旧额度或连接现用飞书。
 
