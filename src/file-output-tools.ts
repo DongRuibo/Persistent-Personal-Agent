@@ -22,7 +22,7 @@ export function fileOutputTools(service: FileOutputService, guard: OperationGuar
       }).then(value=>({content:[{type:'text' as const,text:JSON.stringify(value)}],details:undefined,structuredContent:JSON.stringify(value)}));
     },
   });
-  const edit=defineTool({...editNative,description:'仅提议精确编辑当前用户已创建的输出md/txt；首行须“本次允许编辑输出文件：a.md”。展示原生Diff并经用户确认后才提交；不能编辑资料副本或扩大权限。',
+  const edit=defineTool({...editNative,description:'仅提议精确编辑当前用户/渠道已创建并提交的输出md/txt；首行须“本次允许编辑输出文件：a.md”。edit自带目标文件的受限内部读取：宿主核对归属、身份及已提交Hash，读取当前快照，由Pi生成精确Diff，不会立即写入。旧审批过期不影响已提交文件，新编辑提议另需用户确认。已知原文和替换内容时直接提议edit，无需先调用资料read或追加读取授权；不能编辑资料副本或扩大权限。',
     promptSnippet:'Propose exact output edits and preview native Diff; user confirmation is required',promptGuidelines:['只提议并等待宿主确认；不得声称已修改。'],
     async execute(...args:Parameters<typeof editNative.execute>){
       const [id,input,signal,update,ctx]=args;
