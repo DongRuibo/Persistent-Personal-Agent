@@ -20,27 +20,33 @@ import { BackgroundLane } from './background-lane.js';
 import { GoalRunner } from './goal-runner.js';
 import { GoalService } from './goal-service.js';
 import { GitHubObserver } from './github-observer.js';
+import { WebUiChannel, webChatKey, webTarget } from './web-ui-channel.js';
+import { WebUiServer, readWebUiConfig, prepareWebUiData } from './web-ui-server.js';
 
 export async function main(webService?: WebReadService): Promise<void> {
   const args = process.argv.slice(2);
   if (args.includes('--help')) { console.log(consoleHelp); return; }
-  if (args.some((arg) => !['--daemon', '--feishu'].includes(arg)) || (args.includes('--daemon') && args.includes('--feishu'))) {
-    throw new Error('请选择 --daemon、--feishu 或默认终端模式；帮助使用 --help');
+  if (args.some((arg) => !['--daemon', '--feishu', '--web-ui'].includes(arg)) || new Set(args).size > 1) {
+    throw new Error('请选择 --daemon、--feishu、--web-ui 或默认终端模式；帮助使用 --help');
   }
-  const config = readConfig();
+  const webConfig = args.includes('--web-ui') ? readWebUiConfig() : undefined;
+  const config = readConfig(webConfig ? { ...process.env, DATABASE_PATH: resolve(webConfig.dataDir, 'agent.db'),
+    SESSION_DIR: resolve(webConfig.dataDir, 'sessions'), MEMORY_DIR: resolve(webConfig.dataDir, 'memory') } : process.env);
   if (!config.apiKey || config.apiKey === '<REDACTED>') throw new Error('请先在本机 .env 或环境变量中设置 LLM_API_KEY');
   const feishuConfig = args.includes('--feishu') ? readFeishuConfig() : undefined;
-  const redact = redactor(config.apiKey, feishuConfig?.appSecret, process.env.FEISHU_APP_SECRET);
+  const redact = redactor(config.apiKey, feishuConfig?.appSecret, process.env.FEISHU_APP_SECRET, webConfig?.key);
   const reportError = (error: unknown) => console.error(redact(error));
   // 数据库、WAL 和锁文件默认只允许当前 Unix 用户访问。
   process.umask(0o077);
   await mkdir(dirname(config.databasePath), { recursive: true, mode: 0o700 });
   const shutdown = new AbortController();
   let feishu: FeishuChannel | undefined;
+  let webUi: WebUiServer | undefined;
   const stop = () => {
     shutdown.abort();
     void feishu?.stop().catch(reportError);
   };
+  if (webConfig) await prepareWebUiData(webConfig.dataDir);
   const release = await lockfile.lock(config.databasePath, {
     realpath: false, retries: 0, stale: 10000, update: 2000,
     onCompromised: (error) => { reportError(error); stop(); },
@@ -57,6 +63,8 @@ export async function main(webService?: WebReadService): Promise<void> {
   process.once('SIGTERM', stop);
   try {
     store = new SqliteStore(config.databasePath, redact);
+    if (webConfig && store.hasForeignTasks(webTarget)) throw new Error('Web 专用库存在其他渠道待执行Task，拒绝启动调度器');
+    if (!webConfig && store.hasPendingWebTasks()) throw new Error('数据库中有Web任务，请使用 --web-ui 和独立数据目录启动');
     if (config.proactive) store.policies.configure(config.proactive);
     if (config.proactive?.enabled) store.policies.observer = new GitHubObserver();
     if (!feishuConfig && store.hasPendingFeishuTasks()) {
@@ -69,7 +77,7 @@ export async function main(webService?: WebReadService): Promise<void> {
       onCompromised: (error) => { reportError(error); stop(); },
     });
     memory = new FileMemoryService(config.memoryDir, [config.apiKey, process.env.FEISHU_APP_SECRET ?? '']);
-    const chatKey = feishuConfig ? JSON.stringify(['feishu', feishuConfig.appId, feishuConfig.allowedOpenId]) : 'console';
+    const chatKey = webConfig ? webChatKey : feishuConfig ? JSON.stringify(['feishu', feishuConfig.appId, feishuConfig.allowedOpenId]) : 'console';
     if (config.formation?.enabled) formation = new FormationService({ ...config.formation, owner: createHash('sha256').update(chatKey).digest('hex') }, store, { listForHost: () => memory!.listForHost() }, [config.apiKey, process.env.FEISHU_APP_SECRET ?? '']);
     const goals = config.goalEnabled ? new GoalService(store, tasks, id => goalRunner?.interrupt(id)) : undefined;
     executor = await createPiExecutor(config, tasks, chatKey, memory, formation, lane, goals,
@@ -78,7 +86,7 @@ export async function main(webService?: WebReadService): Promise<void> {
     const recovered = store.recoverInterrupted(new Date().toISOString());
     const otherGoals = config.goalEnabled ? store.goals.readyForHost().filter(goal => goal.ownerId !== 'local-user' || (feishuConfig
       ? goal.target.channel !== 'feishu' || goal.target.appId !== feishuConfig.appId || goal.target.userOpenId !== feishuConfig.allowedOpenId
-      : goal.target.channel !== 'console')) : [];
+      : webConfig ? goal.target.channel !== 'web' || goal.target.userId !== webTarget.userId : goal.target.channel !== 'console')) : [];
     if (otherGoals.length) console.error(`有${otherGoals.length}个其他身份或渠道的Goal等待原绑定启动；本进程不会领取或改发。`);
     const consoleChannel = new ConsoleChannel(redact, config.proactive?.enabled);
     if (feishuConfig) {
@@ -87,17 +95,26 @@ export async function main(webService?: WebReadService): Promise<void> {
       await feishu.start();
     }
     if (shutdown.signal.aborted) return;
-    const channels = new ChannelRouter(consoleChannel, feishu);
+    let webChannel: WebUiChannel | undefined;
+    if (webConfig) {
+      webChannel = new WebUiChannel(store, tasks, executor, config, goals, lane, reportError);
+      webUi = new WebUiServer(webChannel, webConfig.key, fileURLToPath(new URL('../web-dist/', import.meta.url)));
+      console.log(`Web App：${await webUi.start(webConfig.port)}；仅本机；通知仅存入应用收件箱，无手机推送`);
+    }
+    const channels = new ChannelRouter(consoleChannel, feishu, webChannel);
     scheduler = new TaskScheduler(store, executor, channels, config.pollIntervalMs, reportError, () => new Date(), lane);
     if (goals) goalRunner = new GoalRunner(store, executor, channels, lane, { ownerId: 'local-user', pollIntervalMs: config.pollIntervalMs,
-      accepts: target => feishuConfig ? target.channel === 'feishu' && target.appId === feishuConfig.appId && target.userOpenId === feishuConfig.allowedOpenId : target.channel === 'console',
-      reportError, proactiveEnabled: config.proactive?.enabled, fatal: () => { process.exitCode = 1; stop(); }, delivered: (goal, runId) => goals.displayed(goal, runId) });
+      accepts: target => webConfig ? target.channel === 'web' && target.userId === webTarget.userId : feishuConfig ? target.channel === 'feishu' && target.appId === feishuConfig.appId && target.userOpenId === feishuConfig.allowedOpenId : target.channel === 'console',
+      reportError, proactiveEnabled: config.proactive?.enabled, fatal: () => { process.exitCode = 1; stop(); }, delivered: (goal, runId) => {
+        // Web入箱并不表示用户已看见当前计划；需在Chat重新查看并完成渲染ACK。
+        if (goal.target.channel !== 'web') goals.displayed(goal, runId);
+      } });
     store.policies.interrupt = id => goalRunner?.interrupt(id);
     scheduler.start();
     goalRunner?.start();
     formation?.start();
-    console.log(`Personal Agent 已启动；用户时区=${config.timeZone}；中断记录=${recovered}；模式=${feishu ? 'feishu' : args.includes('--daemon') ? 'daemon' : 'console'}；Goal=${config.goalEnabled ? 'enabled' : 'disabled'}`);
-    if (args.includes('--daemon') || feishu) {
+    console.log(`Personal Agent 已启动；用户时区=${config.timeZone}；中断记录=${recovered}；模式=${webConfig ? 'web-ui' : feishu ? 'feishu' : args.includes('--daemon') ? 'daemon' : 'console'}；Goal=${config.goalEnabled ? 'enabled' : 'disabled'}`);
+    if (args.includes('--daemon') || feishu || webUi) {
       if (!shutdown.signal.aborted) await once(shutdown.signal, 'abort');
     } else {
       await consoleChannel.run(executor, tasks, store, shutdown.signal, formation);
@@ -107,7 +124,7 @@ export async function main(webService?: WebReadService): Promise<void> {
     // 先中断并等待执行，再关闭存储；避免日志写入已关闭的数据库。
     try {
       await formation?.stop();
-      await Promise.all([scheduler?.stop(), goalRunner?.stop(), feishu?.stop()]);
+      await Promise.all([scheduler?.stop(), goalRunner?.stop(), feishu?.stop(), webUi?.stop()]);
       await executor?.close();
     } finally {
       store?.close();
@@ -121,6 +138,6 @@ export async function main(webService?: WebReadService): Promise<void> {
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) void main().catch((error: unknown) => {
-  console.error(redactor(process.env.LLM_API_KEY || '', process.env.FEISHU_APP_SECRET)(error));
+  console.error(redactor(process.env.LLM_API_KEY || '', process.env.FEISHU_APP_SECRET, process.env.WEB_UI_ACCESS_KEY)(error));
   process.exitCode = 1;
 });

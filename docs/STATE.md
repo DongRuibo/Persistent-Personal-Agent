@@ -1,16 +1,18 @@
 # Personal Agent 当前状态与交接
 
-更新日期：2026-10-27（Asia/Shanghai）。此文件是当前快照；稳定架构见 [PROJECT.md](PROJECT.md)，开发规则见 [AGENTS.md](../AGENTS.md)，运行方法见 [README.md](../README.md)。
+更新日期：2026-10-28（Asia/Shanghai）。此文件是当前快照；稳定架构见 [PROJECT.md](PROJECT.md)，开发规则见 [AGENTS.md](../AGENTS.md)，运行方法见 [README.md](../README.md)。
 
 ## 当前阶段
 
-- T3编辑及自然确认取得一个限定真实人工成功样本：用户亲自使用固定`de127b35ed62bb4ec231ee315a088135a9c545e7`的普通隔离Console，输入编辑授权后收到真实待批准Diff，再以“确认”提交。Codex仅事后只读审计并记录，不追加模型/公网请求、不操作飞书或正式.env。
-- 提议Run `556fde91-6f0f-41b1-93cf-fe575c193bf2`只调用edit；确认Run `9cfd0e94-6f35-4dec-b2c5-2e0f3c4d4a12`没有工具或模型调用。两次投递成功，操作`27312590-eb0c-4686-a7f1-8634e6c55aed`为committed；批准完整内容、收据及实际summary.md的Hash均为`2696f545ee6837f4b328d200cf2689b6f9b87ade5cef76c864f8e057390683a2`，与旧正文相比只替换指定一句。
-- 本样本证明旧创建审批过期不妨碍已提交文件新编辑，无需追加资料read授权；原生Diff、新5分钟TTL及用户自然确认边界保留。原始模型复述Diff将一处未修改上下文“与”写为“及”，保留该差异，不记为原始文本逐字全对；用户实际收到的宿主Diff及文件没有这处误改。不外推其他确认/多目标/并发场景。
-- 本次只改报告和STATE，核对真实Run、Session、账本、文件、UTF-8/链接/差异及源码Hash，不重跑离线测试。修复源码既有Windows结果仍为typecheck/build/两个eval退出0、544项541通过/0失败/3平台跳过，专项27/27；Linux/Mac缺口保留。真实提议有2条SDK模型调用记录，确认0条；费用和供应商账单未核对，普通Console无整轮费用硬限额。
-- 见[修复报告及真实试用记录](evaluations/t3-edit-contract-fix.md)；只读证据在`E:/AgentWork/validation/t3-edit-natural-confirm-live-20261027`。文档在独立树`t3-edit-live-record`提交推送到`codex/t3-edit-contract-fix`；现用de127b3源码树、HEAD、构建、启动器及试用数据保留，不影响下次启动、不合并main。原错误Run和旧P1/N1、M5/M8失败及R2/S1/N3限定成功保持原结论。
+- Web App V1在远端main固定基线`4ac6089a823fe5a6815499aa0ca9084bfd40bc58`上开发，独立worktree `C:/Users/Dongr/.codex/worktrees/web-app-w1-mvp/Persistent Personal Agent`，专用分支`codex/web-app-w1-mvp`。原E盘main树及其未提交STATE保留；未读正式.env，未连接或重启飞书，未操作正式/历史数据库、Session或Memory。
+- P0认证/API与P1真实Pi接入、Task/Goal只读工作台和T3文件审批已实现；P2持久收件箱/活动、Manifest/图标/standalone与响应式布局已实现。所有本次模型调用仅到127.0.0.1模拟服务，真实模型调用0、额外API费用0；不把模拟语义表现视为真实验收。
+- Web身份由宿主固定，独立原生Session；Chat持久请求ID关联Run，单前台请求、无自动重放。预览ACK与用户Confirm分离，T3确认继续使用原Guard；后台通知只入箱，无手机推送。权限默认关闭，未新增Shell/MCP/任意文件工具，Pi SDK仍1.3.0。
+- 最终Windows/Node24.19.0：typecheck、build、前端TypeScript+production build、eval:memory、eval:formation均退出0；完整557项554通过/0失败/3既有平台跳过，新增Web专项13/13。包含实际--web-ui主入口/锁/正常停止、真实Pi模拟Chat/Memory/Task/Goal及T3。首轮在源码仍编辑期间两项冻结Hash测试失败；源码冻结后两次完整回归均无失败，最终以557项为准。
+- 本轮已获授权向专用分支提交推送并创建面向main的PR；不合并main、不部署、不切换日常实例。T3真实Console的限定成功、原M5/M8/N1/P1失败和Linux/Mac/手机/长跑缺口继续保留，历史报告链接见下文。
 
 ## 已完成功能
+
+- Web V1认证/API、真实Pi Chat与历史/Run恢复、Task/Goal只读工作台、T3创建/编辑Diff审批、活动/持久收件箱均已实现并通过离线测试。前端页面连接实际业务服务，不使用生产假数据；启动时所有列表为空。PWA只完成Manifest/图标/standalone基础，没有Service Worker或Push。
 
 - 终端对话与一次性任务创建、查询、仅 pending 取消；确定性命令可直接调用 Task Service。
 - 独立 Scheduler 与 `--daemon` 入口，不依赖 stdin；后台串行执行，结果通过统一 `Channel.sendMessage()` 输出到控制台。
@@ -35,13 +37,22 @@
 
 | 日期 | 修改及位置 |
 | --- | --- |
+| 2026-10-28 | Web V1：独立--web-ui认证/API与可信web身份；原Pi Chat/Task/Goal/T3 Guard接入、请求幂等与渲染ACK；React手机工作台、持久收件箱与PWA基础。专项13/13、全量557项554通过/3既有跳过、两端构建与两个eval退出0；零真实模型/飞书/公网服务，未改日常目录 |
 | 2026-10-27 | 用户亲自完成真实edit→宿主待批Diff→自然“确认”提交：两Run投递成功，SQLite/Session/文件Hash一致；提议2条SDK模型记录、确认0条。保留原始Diff复述“与/及”差异，不外推全语义正确。Codex只读审计并发布报告/STATE，保持现用de127b3树及启动器不变，不新增请求或改main |
 | 2026-10-27 | T3只补编辑提示契约：旧审批过期不使已提交文件失效，edit自带受限内部读取并生成原生Diff，不要求追加资料read。新4项红1→绿、专项27/27；Windows544项541通过/3既有跳过、五关退出0，真实调用0。原a31与56项文件Hash保全；未改权限/确认/SDK、未提交推送或切换运行实例 |
 | 2026-10-27 | T2-B原生find注入glob与宿主有界字面grep，T3原生内存write/edit预览、Guard成功投递后一次确认、同库账本与保守恢复；开关默认关闭、后台零工具。Windows五关0，525项522通过/3平台跳过；原E盘和现用飞书启动器Hash不变。未真实模型/公网/飞书，历史失败和平台缺口保留；用户随后仅授权发布本批22文件到同名审查分支，发布只补STATE，不改产品/测试或main |
 | 2026-10-27 | T1复用现有两个Skill并补独立试用配置；T2-A默认关闭的Chat资料read/ls，固定副本身份/Hash、当前授权与有界注入操作，后台零工具，模拟飞书去重/身份保持。Windows五关0、513项510通过/3平台跳过；原E盘工作区和启动器Hash不变。仅离线、未启用正式环境，Linux引擎缺口及历史真实失败保留；用户随后仅授权发布本批15文件到同名审查分支，发布只补STATE，不改产品/测试或main |
-| 2026-10-26 | v2真实M1～M9各一次完整闭环：M3原始解释正确；M5/M8语义问题保留，按人工五维审阅后继续，宿主/交付/持久化/安全9/9。29HTTP全200/预留¥2.019916/零文档GET，3 Checkpoint引用链、重启和暂停、完整反馈及明确完成真实通过；正常停服，792历史文件及8树保全，仅新增报告/JSON/STATE，未改产品；用户随后授权仅向codex/manual-goal-console-prep提交推送这3份文件，发布只补STATE，不合并main或启动新验收 |
 
 ## 验证记录与证据边界
+
+### Web App V1（2026-10-28）
+
+- `npm run typecheck`、`npm run build`、`npm run web:build`、`npm test`、`npm run eval:memory`、`npm run eval:formation`均退出0。最终557项554通过、0失败、3既有Windows平台跳过。新增13项覆盖认证/来源/CSRF/限流、有界请求、身份隔离、Pi调用、请求去重、重启中断不重放、Memory来源、Task/Goal入箱及失败不重跑、T3真实Diff/ACK/一次确认/过期/错误Hash/拒绝。Pi两包仍精确1.3.0，无SDK内核修改。
+- eval:memory为offline-lexical，无新模型请求；原固定样本Recall@5=0.75、4/4无答案拒答、支持记录精度1，不外推真实回答质量。eval:formation固定30条30通过、0未授权写、apiRequests=0；其自动生成的旧评测JSON已恢复到基线，不提交本地测试数据。
+- 实际浏览器390×844及1440×1000检查登录、导航、空状态、Chat/Markdown/代码块、Enter发送/Shift+Enter换行、刷新恢复、T3可见预览ACK→授权→宿主committed和禁用状态。两宽度无横向溢出，浏览器error/warn日志为空，不可信HTML未插入脚本。仅用新临时数据和本地模拟模型，截图保存在本机visualizations，不提交仓库。不等于真实iPhone、软键盘、真实模型语义或网络故障注入验收。
+- 前端构建约379kB JS（gzip约118kB）/33kB CSS；lucide-react的use-client被客户端打包器忽略有两条非阻断警告，production build退出0。无SSR路径，浏览器运行正常。敏感路径/常见凭据模式/UTF-8/差异检查通过；没有.env、SQLite、Session、Memory正文、测试数据或截图进入提交。
+- 未实现：Token流式、Memory管理页面、历史分页、Service Worker离线启动、Web Push、LAN/HTTPS及公网部署；未进行真实收费模型、iPhone、Linux/Mac和长期运行验收。Task/Goal控制通过原Chat+Guard，详情页面只读；通知入箱和用户已查看明确分开，不冒充推送。真实模型费用未确认。
+
 
 ### V3.0.1本地真实模型复验（2026-10-23，未全通过）
 
@@ -470,11 +481,9 @@ V1 原有自动化证据：39项测试使用模拟模型/飞书服务和虚拟�
 
 ## 下一步与需要提供的信息
 
-1. ChatGPT审阅[本地RC报告](evaluations/local-rc-review.md)、本STATE及固定候选b7a8735的差异；R2/S1/N3只在各自真实范围认可，历史失败不改判。
-2. 本轮仅获批RC报告/STATE向独立审查分支提交推送；若决定main发布，仍需另行授权并重新固定分支SHA，执行前核对远端，使用新detached发布目录，保留E盘8项和main工作树3项修改。
-3. 若决定手动Goal体验，先审查9条消息与最多40请求/¥6.60/零GET建议，重新核价、安全注入并为普通Console复用现有持久预留器的薄入口；本轮无实现或费用授权，不沿用旧额度。运行中pause/cancel竞态另冻结，不暗加到普通体验。
-4. N1/P1过度澄清列P1体验改进，允许合理澄清，不强迫凭空计划；如授权后改提示，应另做针对性回放与真实验证。本次只分析，没有修改。跨平台正式使用或主动执行前补Linux/Mac和完整生命周期证据。
-5. 按后续授权仅提交推送RC报告和STATE到codex/natural-pause-prep，独立核验远端SHA后停止；不启动真实模型/公网文档GET/飞书，不修改正式配置数据，不修复产品、不部署、不合并main。
+1. 完成Web分支最终验证后交付PR供审阅；不合并或部署。使用[npm离线预览](web-app.md)无需提供Key；真实模型试用由操作者安全配置，勿发凭据到聊天。
+2. 本机Web目前仅PC回环访问。iPhone实机/LAN/HTTPS、Service Worker离线启动、Web Push、历史分页与长期稳定性均未实施或未验证，需后续明确任务。
+3. 历史真实语义失败及平台缺口不改判；若继续Goal/文件真实模型验收，需另行确定新隔离数据、用量边界及验收目标，不沿用旧额度或连接现用飞书。
 
 ## V2.0.2 关键文件（主体及本轮修复）
 

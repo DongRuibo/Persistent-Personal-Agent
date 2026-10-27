@@ -2,7 +2,7 @@ import type { SkillCatalog, SkillSnapshot } from './skill-service.js';
 export type TaskStatus = 'pending' | 'running' | 'succeeded' | 'failed' | 'interrupted' | 'cancelled';
 export type RunStatus = 'running' | 'succeeded' | 'failed' | 'interrupted';
 
-export type MessageTarget = { channel: 'console' } | {
+export type MessageTarget = { channel: 'console' } | { channel: 'web'; userId: string } | {
   channel: 'feishu'; appId: string; chatId: string; userOpenId: string;
 };
 
@@ -65,7 +65,7 @@ export interface ExecutionRequest {
   skill?: SkillSnapshot;
   signal: AbortSignal;
   observer: ExecutionObserver;
-  source?: { channel: 'console' | 'feishu'; reference: string };
+  source?: { channel: 'console' | 'feishu' | 'web'; reference: string };
 }
 
 // 业务层不接触 Pi Session、事件或模型对象。
@@ -96,7 +96,7 @@ export interface MemoryRecord extends MemoryInput {
   createdAt: string;
   updatedAt: string;
   hash: string;
-  source: { type: 'user_explicit'; reference: string; channel: 'console' | 'feishu' | 'host' };
+  source: { type: 'user_explicit'; reference: string; channel: 'console' | 'feishu' | 'web' | 'host' };
 }
 export interface MemoryService {
   search(query: string, kind?: MemoryKind): MemoryRecord[];

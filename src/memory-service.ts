@@ -160,7 +160,7 @@ export class FileMemoryService implements MemoryService {
           !/^[\p{L}\p{N}_.:-]{1,100}$/u.test(metadata.key) || normalize(metadata.key) !== metadata.key ||
           !Number.isSafeInteger(metadata.version) || metadata.version < 1 ||
           !Number.isFinite(Date.parse(metadata.createdAt)) || !Number.isFinite(Date.parse(metadata.updatedAt)) ||
-          metadata.source?.type !== 'user_explicit' || !['console', 'feishu', 'host'].includes(metadata.source.channel) ||
+          metadata.source?.type !== 'user_explicit' || !['console', 'feishu', 'web', 'host'].includes(metadata.source.channel) ||
           typeof metadata.source.reference !== 'string' || metadata.hash !== hash(normalize(content)) ||
           this.path(metadata) !== file) throw new Error('Memory 元数据、内容 Hash 或路径无效；保留原文件');
         this.validateContent(content);

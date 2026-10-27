@@ -24,7 +24,7 @@ type Row = Record<string, unknown>;
 const hash = (value: unknown): string => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const json = <T>(value: unknown): T => JSON.parse(String(value)) as T;
 const binding = (actor: GoalActor): string => hash([actor.ownerId, actor.target.channel === 'console'
-  ? ['console'] : ['feishu', actor.target.appId, actor.target.chatId, actor.target.userOpenId]]);
+  ? ['console'] : actor.target.channel === 'web' ? ['web', actor.target.userId] : ['feishu', actor.target.appId, actor.target.chatId, actor.target.userOpenId]]);
 
 // 仅负责同连接的短事务；没有调度、模型调用或自然语言授权能力。
 export class GoalStore {

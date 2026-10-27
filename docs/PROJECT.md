@@ -253,3 +253,18 @@ V3.0.1修复区分有效唯一视图中的类别泛称与具名交集；Goal工�
 - 最终source=user_explicit关联当前审批Run；原始发现Run/quote/hash在候选保留。采用现有remember/update与expectedVersion，不伪造请求、不放宽服务授权。任意正式Memory变化让旧候选保守失效。applying先落盘，崩溃仅精确对账，不确定blocked、不重放写入。
 - 单一应用库跨渠道共用UTC日20次/0.2元预留预算；审批owner是渠道身份的隔离Hash，不是长期个人ID。提取input≤2000字节、output≤512Token、10秒、无重试；前台优先，中断费用不退。参考最多5条相关且非敏感记录，语义正确性依然取决于模型与用户审查。
 - 候选7天过期后运行时清除来源/草稿/旧值，保留最小Hash抑制重复；历史Run/Session、WAL/空闲页和备份不擦除。Mac/Linux沿用私有模式，Windows使用账户ACL，当前未验证其隔离性。默认关闭，不将模拟机制成绩当作真实语义门槛达标。
+
+
+## Web App V1：独立本机工作空间
+
+显式 `--web-ui` / `WEB_UI_ENABLED=true` 启动同一main生命周期，默认仅127.0.0.1；不与飞书并行，不读取正式.env。Web专用数据根需为空目录或带本模式marker，固定agent.db/sessions/memory三个位置，原数据库/Memory锁及恢复流程保留；存在其他渠道pending Task时拒绝启动Scheduler。默认不开其他工具权限。
+
+可信身份固定为宿主 `web/local-user`，chatKey=`["web","local-user"]`，与Console和飞书分离；Task目标查询、Goal绑定、Memory来源、文件账本和ChannelRouter都显式支持web。用户不能传owner/target/channel；Task与Goal控制仍走聊天和原OperationGuard。
+
+`web-ui-server.ts`负责原生HTTP、独立访问密钥、12小时HttpOnly/SameSite=Strict Cookie、精确Host/Origin/CSRF、32KiB请求体及限流。只服务构建静态资源和经过认证的有界DTO，不提供任意文件、SQL、原生Session导出或Memory写入API。Cookie仅服务HTTP回环；不支持LAN/HTTPS、公网或多用户。
+
+`web-ui-channel.ts`把Chat提交持久关联到Run后才调用既有PiExecutor；每次至多一个前台请求，重复ID返回原Run，内容冲突拒绝，断连和重启不重放。`web-ui-store.ts`仅两张展示投影/收件箱表，与Task/Goal/Run同库；Pi Session仍是模型上下文，Memory仍由原服务唯一写入。后台仍由原Scheduler/GoalRunner执行，入箱失败不重跑模型。
+
+T3冻结提议额外保存参与Hash的结构化原生Diff；旧账本记录保持兼容。Web只能投影账本正文与Diff，页面完成可见渲染后ACK对应Run/Hash，宿主才记聊天delivery_succeeded。按钮精确确认/拒绝经Web身份绑定进入原Guard，保留归属、TTL、来源输出/投递、Hash和一次消费检查；API不调用apply、不直接改账本状态。ACK不表示同意。Web后台Goal入箱不会提前建立用户已看见的计划引用，须在Chat重新查看并ACK。
+
+React/Vite手机优先工作台提供Chat、Task/Goal、审批、活动与收件箱；最多100条列表/60项文件操作，无历史分页。Markdown禁用不可信HTML和远程图片。Manifest/图标/standalone与安全区已提供；无Service Worker或Web Push，不缓存私有API，不申请通知权限。实际离线验证及未验收边界见STATE，操作方法见[Web说明](web-app.md)。
