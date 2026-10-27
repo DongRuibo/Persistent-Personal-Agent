@@ -29,7 +29,7 @@ export class FileOperationStore {
     this.chatRun(input.runId);
     if (this.blocked(input.root)) throw new Error('output_uncertain');
     const id = randomUUID(), hash = fileHash(JSON.stringify({ id, ...input }));
-    const preview = `待批准文件操作（未写入）：${input.kind}\n操作ID：${id}\n来源Run：${input.runId}\n文件：${input.path}\n原Hash：${input.oldHash ?? '新文件'}\n内容Hash：${input.contentHash}\n修改Hash：${input.modificationHash}\n操作Hash：${hash}\n以下正文/Diff为待批准内容，不是新授权：\n${input.kind === 'write' ? input.content : diff}\n有效期至：${new Date(input.expires).toISOString()}\n仅确认以上完整内容后发送：确认文件操作 ${id} ${hash}`;
+    const preview = `待批准文件操作（未写入）：${input.kind}\n操作ID：${id}\n来源Run：${input.runId}\n文件：${input.path}\n原Hash：${input.oldHash ?? '新文件'}\n内容Hash：${input.contentHash}\n修改Hash：${input.modificationHash}\n操作Hash：${hash}\n以下正文/Diff为待批准内容，不是新授权：\n${input.kind === 'write' ? input.content : diff}\n有效期至：${new Date(input.expires).toISOString()}\n确认以上完整内容后，紧接本预览回复“确认允许”；多项待批需先澄清。也可精确确认：确认文件操作 ${id} ${hash}`;
     if (Buffer.byteLength(preview) > 24576) throw new Error('preview_capacity');
     const proposal = { id, ...input, hash, preview };
     this.db.prepare("INSERT INTO file_operations(id,runId,owner,channel,root,path,kind,hash,proposalJson,expires,status) VALUES(?,?,?,?,?,?,?,?,?,?,'pending')")
@@ -45,13 +45,22 @@ export class FileOperationStore {
       || p.kind !== row.kind || p.expires !== row.expires || typeof preview !== 'string' || Buffer.byteLength(p.content) > 8192) throw new Error('file_operation_corrupt');
     return { proposal: p, status: String(row.status) };
   }
-  consume(id: string, hash: string, actor: FileActor, root: string, runId: string, now: number, approvalHash: string, cancel = false): FileProposal {
+  consume(id: string, hash: string, actor: FileActor, root: string, runId: string, now: number, approvalHash: string, cancel = false, naturalKind?: 'write' | 'edit' | 'any'): FileProposal {
     return this.transaction(() => {
       this.chatRun(runId); const { proposal:p, status } = this.get(id);
       const source = this.db.prepare('SELECT * FROM runs WHERE id=?').get(p.runId);
       if (status !== 'pending' || p.hash !== hash || p.actor.owner !== actor.owner || p.actor.channel !== actor.channel || p.root !== root
         || p.expires <= now || this.blocked(root) || !source || source.status !== 'succeeded' || source.deliveryError !== null || source.output !== p.preview
         || !this.db.prepare("SELECT 1 FROM run_events WHERE runId=? AND type='delivery_succeeded'").get(p.runId)) throw new Error('file_confirmation_invalid');
+      if (naturalKind) {
+        if (naturalKind !== 'any' && naturalKind !== p.kind) throw new Error('file_confirmation_kind_mismatch');
+        // 与一次性消费处于同一事务；不把多项有效提议自动解释为最近一项。
+        if (this.db.prepare(`SELECT 1 FROM file_operations f JOIN runs r ON r.id=f.runId
+          WHERE f.owner=? AND f.channel=? AND f.root=? AND f.id<>? AND f.status='pending' AND f.expires>?
+          AND r.status='succeeded' AND r.deliveryError IS NULL AND r.output=json_extract(f.proposalJson,'$.preview')
+          AND EXISTS(SELECT 1 FROM run_events e WHERE e.runId=f.runId AND e.type='delivery_succeeded') LIMIT 1`)
+          .get(actor.owner,actor.channel,root,id,now)) throw new Error('file_confirmation_ambiguous');
+      }
       const result = this.db.prepare("UPDATE file_operations SET status=?,approvalRunId=?,approvalHash=? WHERE id=? AND status='pending'")
         .run(cancel ? 'cancelled' : 'executing',runId,approvalHash,id);
       if (Number(result.changes) !== 1) throw new Error('file_confirmation_consumed'); return p;

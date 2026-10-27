@@ -4,11 +4,11 @@
 
 ## 当前阶段
 
-- T3文件提议定点离线修复完成，基线`32d8687b62ffa2ec8e1568ac4a68c2ff012a8c3c`；独立树`C:/Users/Dongr/.codex/worktrees/t3-proposal-contract-fix/Persistent Personal Agent`、分支`codex/t3-proposal-contract-fix`。用户随后授权仅将本轮7份修复代码、测试和文档提交推送到本独立审查分支；产品/测试Hash与最终离线验证一致，不重复全量测试。不合并main、不自动切换Console/飞书；原T2-B/T3树及原dist保持干净、Hash一致。
-- 只改两处产品逻辑：Chat写开关开启时追加明确的“提议→宿主完整预览→用户确认→写盘”提示，Agent自行选择工具；Skill整理与文件提议分阶段，仍独立核对当前授权。没有更改Skill正文、版本、批准Hash、Pi SDK、工具白名单或确认机制。
-- 对当前创建/编辑授权却未调用提议工具的情况，宿主标明本轮未登记、不能确认，保留模型草稿/澄清及原始Session文本；追加状态收据与file_proposal_missing事件。不从聊天合成提议，不补发模型请求，不新增操作授权。原实际口头预览及无账本/无文件的失败事实保留。
-- 新增3项红绿回归：旧代码0/3、修复后3/3；专项11/11。Windows typecheck/build/npm test/两个离线eval均退出0；528项525通过、0失败、3项既有平台跳过。Memory Recall@5/ContextHit仍0.75，Formation fixture/holdout各30/30；真实模型请求0。Docker Linux引擎不可用，WSL仅停止的docker-desktop，未补Linux或Mac验收。
-- 见[修复报告](evaluations/t3-file-proposal-fix.md)及[现有人工试用说明](t2b-t3-trial.md)。Mock仅验证提示投影、状态、审批与恢复，不证明真实模型自动选择已修好。现用Console仍是原固定版本；审查后经用户授权再切换普通Console人工试用，不新增Harness。原P1/N1、M5/M8失败及其他历史验收边界保持原样。
+- T3自然文件确认最小离线修复完成，基线`9f8723cb0f0c538844ec3ab5449e65401f202fc8`；独立树`C:/Users/Dongr/.codex/worktrees/t3-natural-file-confirm/Persistent Personal Agent`、分支`codex/t3-natural-file-confirm`。用户随后授权仅将本轮9份代码、测试和文档提交推送到本独立审查分支；产品/测试Hash与最终离线验证一致，发布不重复全量测试。不合并main、不自动切换Console/飞书，原9f修复和试用数据保留。
+- 当前唯一、成功完整投递且仍有效的宿主预览后，可直接回复“确认允许”“确认保存”“确认”或“按这个修改”等明确短句。Guard在模型调用前绑定宿主保存的fileView，继续复用原账本、身份/渠道/根、Hash、5分钟TTL、一次消费及FS提交；自然确认零主模型请求，模型没有确认工具。
+- 多个有效文件提议或其他审批视图有歧义时拒绝，结束短确认引用，不因重复短句、其他提议过期或重启自动选择。普通Chat的新请求也结束引用；重启本身不延长TTL。旧ID+Hash确认兼容，旧数据不自动产生短确认引用。默认开关、Skill批准和Pi SDK均未改，无新数据表。
+- Windows最终typecheck/build/npm test/两个离线eval均退出0；540项537通过、0失败、3既有平台跳过；文件专项23/23。原版Pi、真实临时SQLite、本地模拟模型完成自然创建/编辑、重启、重复、投递/过期/内容变化、跨身份/渠道/根及歧义回归。初次类型检查与开发自检反例失败日志保留；Memory Recall@5/ContextHit仍0.75，Formation开发/留出各30/30。Docker Linux引擎不可用，未安装/启动环境。
+- 见[自然确认修复报告](evaluations/t3-natural-file-confirm-fix.md)和[人工试用步骤](t2b-t3-trial.md)。本轮真实模型/公网调用0，未读正式.env；现用版本仍9f8723c，须审查后另行切换才能使用本修复，不新增验收Harness。旧P1/N1、M5/M8失败和R2/S1/N3限定成功均保持原结论；任意复杂确认措辞、多目标自然选择及自然取消不在本次范围。
 
 ## 已完成功能
 

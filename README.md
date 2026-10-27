@@ -104,7 +104,7 @@ T1沿用现有两个Skill、宿主批准清单和原生目录/read，不新增�
 
 `LOCAL_FILES_SEARCH_ENABLED=false`；显式开启且已有T2-A批准副本时，Chat增加find/grep。find使用Pi1.3.0公开自定义glob与Node匹配；grep因锁定SDK无法阻止rg，仅在批准的小文件集合内做有界字面量匹配。均不下载/运行rg/fd，与read/ls共用4次调用、16KiB返回及128KiB本轮读取预留。
 
-独立`LOCAL_FILES_WRITE_ENABLED=false`与`LOCAL_FILES_OUTPUT`。仅宿主初始化的全新平铺输出目录内md/txt，不与资料、源码或应用数据重叠。Pi原生write先在内存生成完整内容，edit先在内存精确编辑并生成原生Diff；展示内容/变化和Hash后等待用户。当前用户复制宿主给出的`确认文件操作 <ID> <Hash>`，宿主核对身份、成功投递、5分钟TTL及旧文件Hash后一次提交；这个确认不调用主模型。创建绝不覆盖，编辑冻结已批准内容并原子替换；未知文件/SQLite窗口不重放。账本在原应用库的file_operations中，事件只记元数据，预览与成果会持久化。
+独立`LOCAL_FILES_WRITE_ENABLED=false`与`LOCAL_FILES_OUTPUT`。仅宿主初始化的全新平铺输出目录内md/txt，不与资料、源码或应用数据重叠。Pi原生write先在内存生成完整内容，edit先在内存精确编辑并生成原生Diff；展示内容/变化和Hash后等待用户。当前用户在唯一有效预览后直接回复“确认允许”或“确认保存”，宿主自己关联ID/Hash，核对身份、成功投递、5分钟TTL及旧文件Hash后一次提交，不调用主模型。多项或审批视图歧义不自动选择，其他普通Chat会结束短确认引用；原`确认文件操作 <ID> <Hash>`命令仍兼容。创建绝不覆盖，编辑冻结已批准内容并原子替换；未知文件/SQLite窗口不重放。账本在原应用库的file_operations中，事件只记元数据，预览与成果会持久化。
 
 仅前台Chat开启，后台Goal/Task/Proactive仍无工具。读、搜索和写入分别授权，不能借Skill/资料正文或模型声称“已批准”执行。未开启写入时白名单无write/edit。配置和精简未来人工步骤见[T2-B/T3说明](docs/t2b-t3-trial.md)。本轮仅本机模拟验证，未切换现用飞书或调用真实模型；普通Chat仍无整轮人民币费用硬闸。
 

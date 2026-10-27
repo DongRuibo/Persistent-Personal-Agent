@@ -54,6 +54,7 @@ export interface DialogueReferences {
   candidateReview?: CandidateView;
   goalView?: GoalDisplay;
   webView?: WebView;
+  fileView?: { id: string; hash: string };
 }
 interface Frame { request: ExecutionRequest; references: DialogueReferences; plan?: Promise<WriteOperation | string>; used: boolean; webUsed?: boolean; goalUsed?: boolean; fileUsed?: boolean; answer?: string; contextResult?: string }
 export type Interpret = (message: string, pending: { tool?: Tool | 'memory_review' | 'goal_manage'; count?: number; confirmation?: boolean; goalAction?: GoalAction }, request: ExecutionRequest) => Promise<unknown>;
@@ -145,7 +146,11 @@ export class OperationGuard {
 
   async withRequest<T extends { text: string }>(request: ExecutionRequest, action: () => Promise<T>, formation?: FormationService, saveGoalResult?: (text: string) => Promise<void>, saveFileResult?: (text: string) => Promise<void>): Promise<T> {
     if (request.scope !== 'chat') return action();
-    if (this.web && this.state.webView) {
+    // 短确认只指向紧接着的宿主文件预览；引用、假设、否定和附带修改均不匹配。
+    const naturalFileConfirmation = !!this.files && !!this.state.fileView
+      && /^(?:确认(?:允许|保存|创建|修改)?|同意保存|就这样保存|按这个(?:保存|修改))[。！!]?$/u.test(request.prompt.normalize('NFKC').trim());
+    if (this.state.fileView && !naturalFileConfirmation) { delete this.state.fileView; this.saveState(this.state); }
+    if (this.web && this.state.webView && !naturalFileConfirmation) {
       // 后台Goal通知可能在Web等待确认时到达；先清理冲突视图，再建立本轮授权上下文。
       this.clearWebConflicts();
       if (!confirmsWebRequest(request.prompt)) delete this.state.webView;
@@ -154,8 +159,8 @@ export class OperationGuard {
     const frame: Frame = { request, references: structuredClone(this.state), used: false };
     return this.context.run(frame, async () => {
       try {
-        if(this.files && /^(?:确认|取消)文件操作(?:\s|$)/u.test(request.prompt.trim())) {
-          const answer=this.confirmFile(); await saveFileResult?.(answer); return {text:answer} as T;
+        if(this.files && (naturalFileConfirmation || /^(?:确认|取消)文件操作(?:\s|$)/u.test(request.prompt.trim()))) {
+          const answer=this.confirmFile(naturalFileConfirmation); await saveFileResult?.(answer); return {text:answer} as T;
         }
         let result: T;
         try { result = await action(); }
@@ -206,6 +211,7 @@ export class OperationGuard {
       const p=service.store.propose({actor,root:service.key,runId:frame.request.source!.reference,requestHash:fileHash(frame.request.prompt),kind,path,
         oldIdentity:prepared.oldIdentity,oldHash:prepared.oldHash,content:prepared.content,contentHash:fileHash(prepared.content),modificationHash:prepared.modificationHash,expires:this.tasks.now().getTime()+ttl},prepared.diff);
       frame.answer=p.preview;frame.request.observer.event('file_operation_proposed',JSON.stringify({id:p.id,kind,path,hash:p.hash,contentHash:p.contentHash}));
+      this.state.fileView = { id: p.id, hash: p.hash }; this.saveState(this.state);
       return {status:'awaiting_confirmation',id:p.id,hash:p.hash,path,contentHash:p.contentHash,preview:p.preview};
     } catch(error) {
       const reason=error instanceof Error&&/^(?:file_[a-z_]+|output_[a-z_]+|preview_capacity)$/u.test(error.message)?error.message:'file_proposal_rejected';
@@ -213,25 +219,37 @@ export class OperationGuard {
       frame.request.observer.event('file_operation_denied',reason);return {status:'rejected',reason};
     }
   }
-  private confirmFile():string {
+  private confirmFile(natural = false):string {
     const frame=this.frame(), files=this.files!;frame.used=true;frame.fileUsed=true;
+    if (natural && (frame.references.goalView || frame.references.webView || frame.references.confirmation || frame.references.choices || frame.references.candidateReview)) {
+      delete this.state.fileView; this.saveState(this.state);
+      frame.request.observer.event('file_operation_denied', 'file_confirmation_ambiguous');
+      return '当前审批视图有歧义，不能把这条短确认用于文件操作；请先明确要确认的对象。本轮未修改文件。';
+    }
     this.clearWebConflicts();delete this.state.webView;this.saveState(this.state);
     let consumed:string|undefined, mutated=false;
     try {
       const match=/^(确认|取消)文件操作 ([a-f0-9-]{36}) ([a-f0-9]{64})$/u.exec(frame.request.prompt.trim());
-      if(!match)throw new Error('file_confirmation_invalid');
+      const view = frame.references.fileView;
+      if(natural ? !view : !match)throw new Error('file_confirmation_invalid');
       const actor=this.fileActor();files.service.verify();
-      const p=files.service.store.consume(match[2]!,match[3]!,actor,files.service.key,frame.request.source!.reference,this.tasks.now().getTime(),fileHash(frame.request.prompt),match[1]==='取消');
-      if(match[1]==='取消')return `已取消文件操作：${p.id}；未写入文件。`;
+      const naturalKind = natural ? /创建/u.test(frame.request.prompt) ? 'write' : /修改/u.test(frame.request.prompt) ? 'edit' : 'any' : undefined;
+      const cancel = !natural && match![1] === '取消';
+      const p=files.service.store.consume(natural ? view!.id : match![2]!,natural ? view!.hash : match![3]!,actor,files.service.key,frame.request.source!.reference,this.tasks.now().getTime(),fileHash(frame.request.prompt),cancel,naturalKind);
+      if(cancel)return `已取消文件操作：${p.id}；未写入文件。`;
       consumed=p.id;frame.request.signal.throwIfAborted();
       // 预留先落盘；文件提交与SQLite不能构成一个事务，任何未知窗口都不自动重放。
       const identity=files.service.apply(p,actor,frame.request.signal,()=>{mutated=true;});frame.request.signal.throwIfAborted();
-      files.service.store.finish(p.id,identity);frame.request.observer.event('file_operation_committed',JSON.stringify({id:p.id,kind:p.kind,path:p.path,hash:p.hash,contentHash:p.contentHash}));
+      files.service.store.finish(p.id,identity);frame.request.observer.event('file_operation_committed',JSON.stringify({id:p.id,kind:p.kind,path:p.path,hash:p.hash,contentHash:p.contentHash,confirmationMode:natural?'natural':'command'}));
       return `文件操作已提交：${p.kind}\n文件：${p.path}\n操作ID：${p.id}\n确认Run：${frame.request.source!.reference}\n内容Hash：${p.contentHash}\n本次仅执行已批准的一次修改。`;
     } catch(error) {
       const reason=error instanceof Error&&/^(?:file_[a-z_]+|output_[a-z_]+|snapshot_changed|read_race|link_not_allowed|file_type_or_hardlink)$/u.test(error.message)?error.message:'file_operation_unknown';
       if(consumed)files.service.store.fail(consumed,mutated,reason);
       frame.request.observer.event('file_operation_denied',JSON.stringify({id:consumed,reason}));
+      if (reason === 'file_confirmation_ambiguous') {
+        delete this.state.fileView; this.saveState(this.state);
+        return '当前有多个有效的待批准文件操作，不能根据短确认自动选择。请先明确对象；必要时使用对应预览中的精确确认或取消命令。本轮未修改文件。';
+      }
       return consumed&&mutated?`文件操作结果不确定：${consumed}；请人工核对专用输出目录和账本，不自动重试。`:`文件操作拒绝：${reason}；没有执行新的有效文件修改。`;
     }
   }

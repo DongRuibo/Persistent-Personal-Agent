@@ -214,7 +214,7 @@ Runner在门外准备包快照，重新入门后复核Task优先、Goal/Plan/Gra
 
 搜索独立默认关闭；find复用公开自定义glob，在批准清单中通过Node matchesGlob匹配；原生grep仍会ensureTool/spawn，故采用已批准16文件/128KiB内的宿主有界字面量扫描。新授权明确搜索目录，不借列目录授权读取正文，也不因搜索结果增加read范围。四个只读工具共用4调用/16KiB返回与128KiB原始读取预留，不执行或下载rg/fd。
 
-写入独立默认关闭；专用输出目录由宿主CLI人工初始化，marker绑定目录身份；只接受平铺非敏感md/txt。write/edit复用Pi原生定义和注入操作，首次调用只在内存准备内容/原生Diff；编辑旧文本必须唯一精确命中，不使用SDK宽松匹配兜底。OperationGuard核对当前请求、一次操作Frame、身份/渠道，固定路径、旧身份/Hash、新内容Hash和修改Hash。成功投递后5分钟内的独立完整确认命令才消费；不是主模型可调用的确认工具，确认不用主模型。
+写入独立默认关闭；专用输出目录由宿主CLI人工初始化，marker绑定目录身份；只接受平铺非敏感md/txt。write/edit复用Pi原生定义和注入操作，首次调用只在内存准备内容/原生Diff；编辑旧文本必须唯一精确命中，不使用SDK宽松匹配兜底。OperationGuard核对当前请求、一次操作Frame、身份/渠道，固定路径、旧身份/Hash、新内容Hash和修改Hash。成功完整投递后5分钟内，当前用户可紧接唯一有效预览以“确认允许”等明确短句确认，宿主从Session中的受控引用关联ID/Hash后消费；有其他审批视图或多项有效提议则澄清并结束短确认引用，其他普通Chat也会结束引用。旧精确确认命令兼容；不是主模型可调用的确认工具，确认不用主模型。
 
 同应用库增量file_operations表保留pending→executing→committed/failed/uncertain，以及cancelled；有效确认先持久消费，再做FS修改，无法与SQLite形成单一事务的窗口不重放。创建以同目录完整临时文件无覆盖发布，编辑同目录临时文件fsync、复核旧内容后rename原子替换。崩溃executing转uncertain，任何uncertain或未知输出条目均阻塞后续写入，不自动修复/删除/重批。仅能编辑该用户/渠道经T3创建且身份/Hash仍一致的文件；输出不会被自动加入资料或Skill清单。
 
