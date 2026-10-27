@@ -6,6 +6,7 @@ import { GoalStore } from './goal-store.js';
 import { GoalPolicyStore } from './goal-policy-store.js';
 import { GoalNotificationStore } from './goal-notification-store.js';
 import { WebReadStore } from './web-read-store.js';
+import { FileOperationStore } from './file-operation-store.js';
 
 export class SqliteStore {
   private readonly db: DatabaseSync;
@@ -14,6 +15,7 @@ export class SqliteStore {
   readonly policies: GoalPolicyStore;
   readonly notifications: GoalNotificationStore;
   readonly web: WebReadStore;
+  readonly files: FileOperationStore;
 
   constructor(path: string, private readonly redact: (value: unknown) => string = String) {
     this.db = new DatabaseSync(path);
@@ -62,6 +64,7 @@ export class SqliteStore {
     (actor, id) => this.goals.get(actor, id));
     this.notifications = new GoalNotificationStore(this.db, fn => this.transaction(fn));
     this.web = new WebReadStore(this.db, fn => this.transaction(fn));
+    this.files = new FileOperationStore(this.db, fn => this.transaction(fn));
     this.goals.web = this.web;
     this.goals.policy = {
       consume: (goal, auth, now) => this.policies.consume(goal, auth, now),
@@ -202,6 +205,7 @@ export class SqliteStore {
       this.goals.recoverInTransaction(now);
       this.notifications.recoverInTransaction(now);
       this.web.recoverInTransaction(now);
+      this.files.recoverInTransaction();
       return runs.length;
     });
   }

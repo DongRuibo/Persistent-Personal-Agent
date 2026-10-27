@@ -4,11 +4,11 @@
 
 ## 当前阶段
 
-- T1/T2-A仅离线实现完成，基线`bcf4fcb711fe6b0dbcab327ea6079ba598cb26c4`，独立树`C:/Users/Dongr/.codex/worktrees/t1-t2a-readonly-files/Persistent Personal Agent`，分支`codex/t1-t2a-readonly-files`；用户随后明确授权仅将本批15份源码/测试/配置样例/文档提交推送至同名审查分支。发布仅补本STATE交接，产品与测试保持最终离线验证版本，不合并main、不启动真实验收。原E盘工作树/STATE与飞书启动脚本Hash核对不变，未读取正式.env或操作现有飞书实例/业务数据。
-- T1复用SkillService、skills-admin、原生目录与受限read，两个现有包版本/Hash不改。新增仅配置隔离目录的PowerShell示例和[操作说明](t1-t2a-trial.md)，不启动Agent，不需要新增Skill。
-- T2-A独立`LOCAL_FILES_ENABLED=false`，显式资料副本工作区+人工批准文件身份/Hash+当前请求范围；Pi1.3.0公开原生read/ls与注入操作，后台Task/Goal/Proactive不增加工具。默认其他开关未变；无Shell/写入/grep/find/MCP或通用网络。详见[离线报告](evaluations/t1-t2a-offline-validation.md)/[JSON](evaluations/t1-t2a-offline-validation.json)。
-- Windows Node24.19.0：typecheck/build/test/eval:memory/eval:formation均退出0，最终513项510通过/3既有平台跳过；新专项10项与原生Skill共用、模拟飞书、取消、重启、链接/容量等均在全量中通过。Memory离线Recall@5=0.75/ContextHit=0.75，不声称质量全过；Formation30/30+holdout30/30、API请求0。Docker Linux引擎不可用，未安装/启动新环境；ACL、文件符号链接权限及POSIX SIGTERM缺口保留。
-- 历史v2手动Goal真实核心闭环仍为宿主/交付/持久化/安全9/9，原始模型语义7/9，M5/M8失败保留；R2/S1/N3仅限定场景真实成功，P1/N1过度澄清及其他真实缺口不变。本轮不做任何收费/公网/正式飞书验证，不把模拟工具成功当成新真实效果；完成即停止，等待审查后再决定T2-B和人工飞书试用。
+- T2-B/T3仅离线实现完成，固定基线`5e9c66818a8aa171d9f72f587f4ff4f098a0d840`，新独立树`C:/Users/Dongr/.codex/worktrees/t2b-t3-file-tools/Persistent Personal Agent`，分支`codex/t2b-t3-file-tools`；用户随后明确授权仅将本批22份代码、测试、配置样例与文档提交推送至同名独立审查分支，发布只补本STATE交接。产品与测试Hash保持最终离线验证版本，不合并main、不启动真实模型或飞书试用。原E盘HEAD/改动状态/STATE与现用飞书启动器Hash核对不变，未读正式.env、正式库或私人资料，未操作飞书服务。
+- T2-B新增独立默认关闭的搜索开关；原生find注入glob避开fd，grep按已审查SDK限制做小集合字面量匹配，不运行/下载rg/fd；复用资料批准身份/Hash、当前目录授权、每轮4调用/16KiB响应/128KiB读取预留。T1/read/ls及原权限保持。
+- T3新增独立默认关闭写开关及专用输出目录。原生write/edit只在内存准备完整内容/精确编辑/Diff，Guard核对当前请求，完整成功投递后用户确认ID+Hash、5分钟TTL和一次性消费；确认零主模型请求。同库file_operations表、独立宿主收据、无覆盖创建与临时文件编辑；失败/崩溃不确定阻塞、不重放，后台Goal/Task/Proactive无文件工具。见[报告](evaluations/t2b-t3-offline-validation.md)/[JSON](evaluations/t2b-t3-offline-validation.json)、[精简未来试用](t2b-t3-trial.md)。
+- Windows Node24.19.0最终typecheck/build/npm test/两个离线eval均退出0，525项522通过/3既有平台跳过，新增12项定点用例。Memory Recall@5/ContextHit=0.75，不声称质量全过；Formation fixture30/30+holdout30/30、真实API0。Linux Docker引擎不可用；ACL、文件符号链接权限、POSIX SIGTERM平台缺口保留，不安装/启动新环境。
+- 仅单进程专用本地输出目录，不承诺跨进程文件Hash CAS或恶意同账户进程隔离，外部编辑需停服；SQLite/文件之间未知窗口不重试。历史v2四维9/9、原模型7/9，M5/M8与P1/N1失败、R2/S1/N3限定成功不改。本轮无真实费用/公网/正式飞书，完成后停止，等待一次代码审查及未来真实试用批准，不开发T4或新架构。
 
 ## 已完成功能
 
@@ -35,11 +35,11 @@
 
 | 日期 | 修改及位置 |
 | --- | --- |
+| 2026-10-27 | T2-B原生find注入glob与宿主有界字面grep，T3原生内存write/edit预览、Guard成功投递后一次确认、同库账本与保守恢复；开关默认关闭、后台零工具。Windows五关0，525项522通过/3平台跳过；原E盘和现用飞书启动器Hash不变。未真实模型/公网/飞书，历史失败和平台缺口保留；用户随后仅授权发布本批22文件到同名审查分支，发布只补STATE，不改产品/测试或main |
 | 2026-10-27 | T1复用现有两个Skill并补独立试用配置；T2-A默认关闭的Chat资料read/ls，固定副本身份/Hash、当前授权与有界注入操作，后台零工具，模拟飞书去重/身份保持。Windows五关0、513项510通过/3平台跳过；原E盘工作区和启动器Hash不变。仅离线、未启用正式环境，Linux引擎缺口及历史真实失败保留；用户随后仅授权发布本批15文件到同名审查分支，发布只补STATE，不改产品/测试或main |
 | 2026-10-26 | v2真实M1～M9各一次完整闭环：M3原始解释正确；M5/M8语义问题保留，按人工五维审阅后继续，宿主/交付/持久化/安全9/9。29HTTP全200/预留¥2.019916/零文档GET，3 Checkpoint引用链、重启和暂停、完整反馈及明确完成真实通过；正常停服，792历史文件及8树保全，仅新增报告/JSON/STATE，未改产品；用户随后授权仅向codex/manual-goal-console-prep提交推送这3份文件，发布只补STATE，不合并main或启动新验收 |
 | 2026-10-26 | M3最小离线修复：共用render增加3行未排队说明，原反例红1→绿；新v2复用九句/40请求/¥6.60/零GET，五维分别评分，纯原始措辞失败可人工审阅后继续，其他失败持久停止。Windows五关0、503项500通过/3平台跳过；489历史文件及8树保全，离线阶段无真实请求或提交推送；用户随后授权仅将本批13文件发布到codex/manual-goal-console-prep，发布只补STATE，不改main或启动真实验收 |
 | 2026-10-26 | M1～M9真实Console体验：M1单Step草稿/M2视图通过，M3宿主只审批但原始模型误称排队，语义失败后停止M4～M9。9请求/¥0.473750预留/零GET，三个前台投递成功；仅bootstrap Checkpoint，无正式Execution。正常停服，代码与冻结方案不改，只报告/JSON/STATE，原证据和限定成功保留；用户随后授权仅向codex/manual-goal-console-prep提交推送报告/JSON/STATE，发布只补STATE，不改main、源码或启动新验收 |
-| 2026-10-26 | 固定fdf3a06 Windows RC经干净发布树严格快进到远端main，9提交保留、无新提交；8原树及205证据Hash不变。新独立树仅离线准备M1～M9薄stdin入口，40请求/¥6.60/零GET待单独批准；Windows五关0、497项494通过/3平台跳过，新专项5通过；产品源码不变，真实调用0；用户随后授权仅将本批9文件提交推送至codex/manual-goal-console-prep审查分支，发布只补STATE，保留验证快照和原工作区，不改main或启动真实体验 |
 
 ## 验证记录与证据边界
 

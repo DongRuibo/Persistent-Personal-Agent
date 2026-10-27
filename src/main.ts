@@ -73,7 +73,7 @@ export async function main(webService?: WebReadService): Promise<void> {
     if (config.formation?.enabled) formation = new FormationService({ ...config.formation, owner: createHash('sha256').update(chatKey).digest('hex') }, store, { listForHost: () => memory!.listForHost() }, [config.apiKey, process.env.FEISHU_APP_SECRET ?? '']);
     const goals = config.goalEnabled ? new GoalService(store, tasks, id => goalRunner?.interrupt(id)) : undefined;
     executor = await createPiExecutor(config, tasks, chatKey, memory, formation, lane, goals,
-      config.webReadEnabled ? { service: webService ?? new WebReadService(), store: store.web } : undefined);
+      config.webReadEnabled ? { service: webService ?? new WebReadService(), store: store.web } : undefined,store.files);
     if (shutdown.signal.aborted) return;
     const recovered = store.recoverInterrupted(new Date().toISOString());
     const otherGoals = config.goalEnabled ? store.goals.readyForHost().filter(goal => goal.ownerId !== 'local-user' || (feishuConfig

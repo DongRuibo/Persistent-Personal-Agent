@@ -1,0 +1,223 @@
+{
+  "schemaVersion": 1,
+  "scope": "T2-B + T3 offline implementation only",
+  "baseline": "5e9c66818a8aa171d9f72f587f4ff4f098a0d840",
+  "branch": "codex/t2b-t3-file-tools",
+  "worktree": "C:\\Users\\Dongr\\.codex\\worktrees\\t2b-t3-file-tools\\Persistent Personal Agent",
+  "committed": false,
+  "pushed": false,
+  "realModelRequests": 0,
+  "publicRequests": 0,
+  "formalEnvRead": false,
+  "feishuServiceOperations": 0,
+  "runtime": {
+    "node": "24.19.0",
+    "platform": "win32"
+  },
+  "checks": [
+    {
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "seconds": 3.984
+    },
+    {
+      "command": "npm run build",
+      "exitCode": 0,
+      "seconds": 2.234
+    },
+    {
+      "command": "npm test",
+      "exitCode": 0,
+      "seconds": 114.5
+    },
+    {
+      "command": "npm run eval:memory",
+      "exitCode": 0,
+      "seconds": 3.485
+    },
+    {
+      "command": "npm run eval:formation -- --output=E:\\AgentWork\\validation\\personal-agent-t2b-t3-offline\\formation-offline-final.json",
+      "exitCode": 0,
+      "seconds": 5.719
+    }
+  ],
+  "tests": {
+    "total": 525,
+    "passed": 522,
+    "failed": 0,
+    "skipped": 3,
+    "newTests": 12,
+    "skipReasons": [
+      "﹣ POSIX 私有权限位 (0.6545ms) # Windows mode 不代表 ACL；ACL 隔离未验证",
+      "﹣ 拒绝符号链接且不触碰外部文件 (1.7882ms) # Windows 当前账户无创建符号链接权限，本项未验证",
+      "﹣ 进程级：交互 Session 重启恢复，daemon 隔离调度，拒绝双启动，SIGTERM 标记中断 (1.1827ms) # Windows child.kill(SIGTERM) 强杀，无法验证 POSIX 优雅退出；需在 Mac/Linux 重跑"
+    ]
+  },
+  "memoryEval": {
+    "summary": {
+      "answerable": 12,
+      "top1": 0.75,
+      "recall5": 0.75,
+      "mrr": 0.75,
+      "negativeCount": 4,
+      "insufficientEvidenceCorrect": 4,
+      "supportedCorrect": 9,
+      "falseSupportedNoAnswer": 0,
+      "supportedClaims": 9,
+      "correctSupportedClaims": 9,
+      "supportedRecordPrecision": 1,
+      "contextHitRate": 0.75,
+      "contextBytesMax": 1153,
+      "strictExpectedKeyContextPrecision": 0.6,
+      "latencyP50Ms": 23.912199999999984,
+      "latencyP95Ms": 28.778500000000008
+    },
+    "usage": {
+      "calls": 0,
+      "failures": 0,
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "cacheReadTokens": 0,
+      "elapsedMs": 0
+    }
+  },
+  "formationEval": {
+    "mode": "offline-scripted-proposals",
+    "fixtureSha256": "768d9db8a471eac68b3244bae4293bbc0a46186d7c81406e294445e907b5f2b2",
+    "development": {
+      "windows": 30,
+      "passed": 30,
+      "validationPrecision": 1,
+      "fixtureRecall": 1,
+      "falseCandidateCount": 0,
+      "kindCorrect": 11,
+      "unauthorizedWrites": 0,
+      "calls": 20
+    },
+    "holdout": {
+      "windows": 30,
+      "passed": 30,
+      "validationPrecision": 1,
+      "fixtureRecall": 1,
+      "falseCandidateCount": 0,
+      "kindCorrect": 11,
+      "unauthorizedWrites": 0,
+      "calls": 20
+    },
+    "actualApiRequests": 0,
+    "actualTokens": 0,
+    "actualCostCny": 0
+  },
+  "sourceHashMethod": "SHA256(sorted relativePath TAB SHA256 LF), src/*.ts + package.json + package-lock.json",
+  "sourceHash": "22667bf17e7c2808446bb724b12c61651a8e3021b719bc5017bed04206072259",
+  "sourceFiles": {
+    "package-lock.json": "ff65f60b779b2acb468d2940efc214e002d9b61001c39c7684e592586ab8a882",
+    "package.json": "636b386a856e51ad30303fbccaacb4be25db28820543628d0f0d25483d36cc16",
+    "src/background-lane.ts": "4091ae6e3c495763b14063ffd59db040942ea07d1ec0c6599b7a8661ab3a733e",
+    "src/channel-router.ts": "77571641314846350b761f209144110e59c51f9657202857344f8bfab4b37794",
+    "src/config.ts": "8c5ca412943541075914d54010adb470f001abb4f35fc9be33e7531422cd2da8",
+    "src/console-channel.ts": "15e5ca7066f9a987970eafd5066751ad334f4d74b37425e31034bfdb9a7f99b0",
+    "src/contracts.ts": "21766be15066ca3186e758ee1a1383eaa0eebce2c4c3f1a17f595f4eaf26ea85",
+    "src/feishu-channel.ts": "3146ad02e4c5dbca3a1eb5b7f47e4a7d2da68209a9569bbcade587b5446625ad",
+    "src/feishu-transport.ts": "2faae4cd58cf299c206454b99d3b6a802e77485c0e002c1d130a31222b27a5c4",
+    "src/file-operation-store.ts": "66344e712b123aeb71f588f84d87d7d6062ab0062ef5825a4ceb27e68fc61032",
+    "src/file-output-admin.ts": "afd156b90da95861658a75a337d7a289564a7a9c33c403403ec954b585e4bd28",
+    "src/file-output-service.ts": "05626b21527310f9e7ec7bc2edbf0672b5be040bb7fb2f243dcdd79da4e1396c",
+    "src/file-output-tools.ts": "2f77abad602baf3397e3ed9f2d4e3267bc199de34b334a1e831afd75b23a0edd",
+    "src/formation-service.ts": "65be5366177e31d64445f38c67406fd51bc4ecdbdc37f55fa3ec0dd850fb354e",
+    "src/formation-store.ts": "540c24d41ae806d50b3d3b925954039e6db8818845ff21a026b763d21b6bd199",
+    "src/formation-types.ts": "e46c3c7c956a2af591006cec0610ae48df869b05c561e691a41b9ef57332e32e",
+    "src/github-observer.ts": "61deabce1cb3099515d49fd173d1bbb2ac34f844b2a10a3756577251ef8a7df0",
+    "src/goal-commit-error.ts": "17cb182ee877bd799cad18d2b6f654d06e57036826922cabcfd6065cdafcdd84",
+    "src/goal-notification-store.ts": "0b0373fe0d81135a844ef25cb6743b7718824377cf58172328f2f9d2da1745b9",
+    "src/goal-plan-quantity.ts": "5c139333be7ce6e0e98190896544696ec9f560f6dabb8d6696296b5ade7d0270",
+    "src/goal-policy-console.ts": "41a8d0247ad439870ab1d3f2e8a260e1f0d818c32e1dc82874ba269533f9d378",
+    "src/goal-policy-store.ts": "6261ccb84e820246754fed398076a6bcb01ee3983f070b8df5b2821a0f572761",
+    "src/goal-policy-types.ts": "63f46bbb952b87430e0e3d6310f1d9fc19fa106f2735ad4bf5bd50105550e07b",
+    "src/goal-runner.ts": "3c617b2779b0c9711eebaf6810e6b9bb8beb5516ed2b5df5e96ec6b1ec04e4c0",
+    "src/goal-schedule.ts": "67a197f372b288a66247ffe9e428f0d424009ea5fa149dff8d360ef156f725b6",
+    "src/goal-service.ts": "b302a6c4cba4ae9c293c72f31a3412efc1419bf5735c9d22c129eac064a3f057",
+    "src/goal-store.ts": "98e6b4624bafa332a536d2d827a36f52062911a73a16e99b7535eeb04becba94",
+    "src/goal-tools.ts": "c4cd469c745c540e7e2537a5e38c6075e3cedaeffc12a1f9658fc24e5702518e",
+    "src/goal-types.ts": "6a09ee17e713068bc2f79b074ed8eafc86ac240fe4a86cbfe2299daa68ce98e3",
+    "src/local-file-service.ts": "1dc9f8815127184a76f6162488c0b4c2a14f02297d0c84a51d286e570b5069a9",
+    "src/local-file-tools.ts": "11f6d85b99cd71354a1940e3c8822183583fceadf3e3c6669d571ef65f4358f8",
+    "src/local-files-admin.ts": "986a477c3c8a7a7c66053d969cf77ce6470d77056c403ed17300988d4d968f44",
+    "src/main.ts": "67c7b2fe8466d6701c3ab02202d1143da037c81d0f0f0a07c26de2e7b4a4d259",
+    "src/memory-retriever.ts": "ffa2cad1b2254b25510e463992998e69e8dc57d7f3a847dd0752744756d072f3",
+    "src/memory-service.ts": "65b4d1c35838661bb491c293c0abe5c1e27e607aa28b507728a3d21504cc6b0f",
+    "src/memory-tools.ts": "799c529bbd401cf34603685c00171b6a05906d65f5e7a566e6330f6400ba15d8",
+    "src/operation-guard.ts": "643ef1d4e0358288e85a11a0bc9a7dc3202d3a81be25054d8e54239c1d8e27ad",
+    "src/pi-executor.ts": "39447e8a0f6b6db0279c9622f38542c5ee5cbdc6c7ad1ca7ade02001073cf3ad",
+    "src/scheduler.ts": "9b9ec95f390130c24079d2147605d4e35eaec43fa88d526074b97d171cdd31fd",
+    "src/skill-service.ts": "bfb215ff8d0da9c911cf5939c05d8d6d0a897ab94dbf409830884537727e9818",
+    "src/skill-tools.ts": "7f135bba9e621b4cbfbb3a017a8e98b556ccd47d62b71e3b07ab250f147efffa",
+    "src/skills-admin.ts": "7a819fe30507d9ee91e9343b01aed6eb69cc569bb25f3838fbed3696342872ab",
+    "src/sqlite-store.ts": "43e7830d6609c050fe0d091dcf94afd3adb44e8909eb8a749e963691021bce82",
+    "src/task-service.ts": "c7fa22771cab8bb4112b555ab29a5086080b1d93fc7d2c9858f71fce211b4002",
+    "src/task-tools.ts": "173c28c2e37e6180d4688a0c06bcfce97d95ebfe97a21b8f51b79a9dc6d1ba9c",
+    "src/time.ts": "3492bf1516411e83f58029c361719587a2303f01fe138f0b97bc5c284ff0a70b",
+    "src/web-read-authorization.ts": "bb2a12a0e292914a7363a45859d2392434e1e239872f772ec5fcb41444994dbd",
+    "src/web-read-service.ts": "e476cb97f14f79609f0b28c0157afc68f298619952771a390b31bc755fa4417b",
+    "src/web-read-store.ts": "68a7ea5664039a027a0fa137fd53ae661612420dddf7bfdb2edb4203db3c4744",
+    "src/web-read-types.ts": "701fc0a83dbf94963da82af2225a104c1c9beeaf9ee46c0c7ab30fd328ef23fa",
+    "src/web-tools.ts": "94afaedbfa0a93a40d5d5752dd2c52c17d22fd28a4b6775278f50dd2bf7b2e4e"
+  },
+  "sdkSourceFiles": {
+    "package.json": "83c3bb7619f590c213cc96a24216eb29a819a3ef6dc548607cc037ed276e8dc5",
+    "dist/core/tools/read.js": "a5493a6cc7a3a03ba23d345f603bc7ee839ead2fe0ea79a096107fb9ebaa03eb",
+    "dist/core/tools/ls.js": "8e06f1a42e48fcf447558686d8bb4defebcb80eb8e73c3483a7892643e1622a9",
+    "dist/core/tools/find.js": "cbb5e3a76e962899f833452ff26670c1fdbf333e7efdecb9953b07f6ebd14ed7",
+    "dist/core/tools/grep.js": "641ae520a88c7eb86406d9a18880f31412cb41cdc15a7ee3e1da5de62979ca7c",
+    "dist/core/tools/write.js": "0e9daec15a5001cafe651db391aed63a463c346d29b60e6dc91ef09477fd22f5",
+    "dist/core/tools/edit.js": "e2e7081b28b170eb11bdd8d4fc295c491d581364cd57ae0670f24031b4057265",
+    "dist/core/tools/edit-diff.js": "fadc87523d52babf246967a1f1b921e621eb4437e50c50f8426c46cec3f05071",
+    "dist/core/tools/find.d.ts": "8e675dc76b8824936f0814ab2939c9dedbeadaa3cd6eca3e6754f22f7ba45cb7",
+    "dist/core/tools/write.d.ts": "c38a85e8c740dd43b415517bfdf868f32dd80e77cf5e1e0115753eed9208c852",
+    "dist/core/tools/edit.d.ts": "df00e7dec9617a02aa0a08e32275be8027248fac8b76e89a123d2ef0e14b4ade"
+  },
+  "platformProbe": {
+    "wsl": {
+      "exitCode": 0,
+      "output": "docker-desktop\r\n"
+    },
+    "docker": {
+      "exitCode": 1,
+      "output": "\nfailed to connect to the docker API at npipe:////./pipe/dockerDesktopLinuxEngine; check if the path is correct and if the daemon is running: open //./pipe/dockerDesktopLinuxEngine: The system cannot find the file specified.\n"
+    }
+  },
+  "preservation": {
+    "unchanged": true,
+    "originalHead": "bcf4fcb711fe6b0dbcab327ea6079ba598cb26c4",
+    "originalStatus": " M docs/STATE.md\u0000",
+    "originalStateHash": "764190b8bce117ebde8803d9a85b1c8cb2949c06f2b9540912032566c6c6c3f4",
+    "currentFeishuLauncherHash": "4509d93e3ae2d7dfd056c73d042e897decab2abe4fa1bce06f5c56af6fc6c419"
+  },
+  "evidenceRoot": "E:\\AgentWork\\validation\\personal-agent-t2b-t3-offline",
+  "knownLimits": [
+    "No new real-model/Feishu verification; mock behavior is not semantic quality evidence.",
+    "Flat local output files only: UTF-8 nonempty md/txt, 8KiB per file, 16 files and 128KiB.",
+    "Single-process exclusive output directory; no OS sandbox, cross-process file Hash CAS or guaranteed Windows ACL isolation.",
+    "Final-check/rename gap is outside malicious same-user writer protection; external edits require service shutdown.",
+    "File/SQLite cannot commit atomically: reserved unknown outcomes block and are never automatically replayed.",
+    "Normal Chat has no persistent round-wide monetary limit.",
+    "Existing historical P1/N1 and M5/M8 semantic failures unchanged."
+  ],
+  "configSmoke": {
+    "powershellParser": "passed",
+    "cli": "initialize new isolated output directory only",
+    "configEnabled": [
+      "skills",
+      "localFiles",
+      "search",
+      "write"
+    ],
+    "configDisabled": [
+      "goal",
+      "web",
+      "proactive",
+      "formation"
+    ],
+    "realModelRequests": 0
+  }
+}

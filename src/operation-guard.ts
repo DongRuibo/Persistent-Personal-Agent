@@ -18,6 +18,9 @@ import type { WebReadStore } from './web-read-store.js';
 import { defaultWebResources, webHash } from './web-read-types.js';
 import type { WebView } from './web-read-types.js';
 import { confirmsWebRequest, rejectsWebRequest, webPreview, webRequestSelection } from './web-read-authorization.js';
+import type { FileOutputService } from './file-output-service.js';
+import { fileHash } from './file-operation-store.js';
+import type { FileActor } from './file-operation-store.js';
 
 const text = Type.String({ maxLength: 12000 });
 export const intentSchema = Type.Object({
@@ -52,7 +55,7 @@ export interface DialogueReferences {
   goalView?: GoalDisplay;
   webView?: WebView;
 }
-interface Frame { request: ExecutionRequest; references: DialogueReferences; plan?: Promise<WriteOperation | string>; used: boolean; webUsed?: boolean; goalUsed?: boolean; answer?: string; contextResult?: string }
+interface Frame { request: ExecutionRequest; references: DialogueReferences; plan?: Promise<WriteOperation | string>; used: boolean; webUsed?: boolean; goalUsed?: boolean; fileUsed?: boolean; answer?: string; contextResult?: string }
 export type Interpret = (message: string, pending: { tool?: Tool | 'memory_review' | 'goal_manage'; count?: number; confirmation?: boolean; goalAction?: GoalAction }, request: ExecutionRequest) => Promise<unknown>;
 const normalize = (value: string) => value.normalize('NFKC').toLowerCase().replace(/\s+/gu, '');
 const segmenter = new Intl.Segmenter('zh', { granularity: 'word' });
@@ -137,9 +140,10 @@ export class OperationGuard {
   constructor(private readonly tasks: TaskService, private readonly memory: FileMemoryService | undefined,
     private readonly interpret: Interpret, private readonly state: DialogueReferences,
     private readonly saveState: (value: DialogueReferences) => void = () => {},
-    private readonly web?: { service: WebReadService; store: WebReadStore; owner: string }) {}
+    private readonly web?: { service: WebReadService; store: WebReadStore; owner: string },
+    private readonly files?: { service: FileOutputService; owner: string }) {}
 
-  async withRequest<T extends { text: string }>(request: ExecutionRequest, action: () => Promise<T>, formation?: FormationService, saveGoalResult?: (text: string) => Promise<void>): Promise<T> {
+  async withRequest<T extends { text: string }>(request: ExecutionRequest, action: () => Promise<T>, formation?: FormationService, saveGoalResult?: (text: string) => Promise<void>, saveFileResult?: (text: string) => Promise<void>): Promise<T> {
     if (request.scope !== 'chat') return action();
     if (this.web && this.state.webView) {
       // 后台Goal通知可能在Web等待确认时到达；先清理冲突视图，再建立本轮授权上下文。
@@ -150,15 +154,18 @@ export class OperationGuard {
     const frame: Frame = { request, references: structuredClone(this.state), used: false };
     return this.context.run(frame, async () => {
       try {
+        if(this.files && /^(?:确认|取消)文件操作(?:\s|$)/u.test(request.prompt.trim())) {
+          const answer=this.confirmFile(); await saveFileResult?.(answer); return {text:answer} as T;
+        }
         let result: T;
         try { result = await action(); }
         catch (error) {
-          if (!frame.goalUsed || !frame.answer || request.signal.aborted) {
+          if ((!frame.goalUsed && !frame.fileUsed) || !frame.answer || request.signal.aborted) {
             if (frame.goalUsed && !request.signal.aborted) await saveGoalResult?.('本轮Goal工具执行失败，不能凭模型解释推断成功、未保存或已取消；请重新查看宿主当前状态，不自动重试。');
             throw error;
           }
           // 控制收据已经落盘时，模型收尾失败不能把成功操作说成失败，更不能重做操作。
-          request.observer.event('goal_model_finalization_failed', String(error));
+          request.observer.event(frame.fileUsed?'file_model_finalization_failed':'goal_model_finalization_failed',frame.fileUsed?'model_finalization_failed':String(error));
           result = { text: frame.answer } as T;
         }
         // 主模型可能只口头答应拒绝；仅对当前原话中的有界拒绝补执行，仍走原显示/序号/版本校验。
@@ -168,11 +175,57 @@ export class OperationGuard {
           // 不把后台成果或动态Memory复制到交互Session；只追加宿主控制状态收据。
           await saveGoalResult?.(frame.contextResult ?? '本轮宿主要求澄清，未提交新的Goal控制；请重新查看当前状态。');
         }
+        if(frame.fileUsed && frame.answer){request.signal.throwIfAborted();await saveFileResult?.(frame.answer);}
         return frame.answer ? { ...result, text: frame.answer } : result;
       } finally {
         if (!frame.plan && (this.state.choices || this.state.confirmation || this.state.candidateReview)) { delete this.state.choices; delete this.state.confirmation; delete this.state.candidateReview; this.saveState(this.state); }
       }
     });
+  }
+
+  private fileActor(): FileActor {
+    const frame=this.frame(), target=this.tasks.currentTarget();
+    if(!this.files||frame.request.source?.channel!==target.channel)throw new Error('file_chat_identity_required');
+    return {owner:this.files.owner,channel:JSON.stringify(target)};
+  }
+  async proposeFile(kind:'write'|'edit', path:string, prepare:(service:FileOutputService,actor:FileActor)=>Promise<{content:string;oldIdentity:string|null;oldHash:string|null;modificationHash:string;diff:string}>):Promise<unknown> {
+    const frame=this.frame();if(!this.files||frame.used||frame.plan)throw new Error('file_operation_not_available');
+    frame.used=true;frame.fileUsed=true;this.clearWebConflicts();delete this.state.webView;this.saveState(this.state);
+    try {
+      const actor=this.fileActor(), service=this.files.service, expected=`本次允许${kind==='write'?'创建':'编辑'}输出文件：${service.path(path)}`;
+      if(frame.request.prompt.trim().split('\n')[0]!==expected||/(?:不要|禁止|不允许|暂不)\s*(?:创建|编辑|写入)/u.test(frame.request.prompt))throw new Error('file_current_request_required');
+      const prepared=await prepare(service,actor);frame.request.signal.throwIfAborted();service.content(prepared.content);
+      const p=service.store.propose({actor,root:service.key,runId:frame.request.source!.reference,requestHash:fileHash(frame.request.prompt),kind,path,
+        oldIdentity:prepared.oldIdentity,oldHash:prepared.oldHash,content:prepared.content,contentHash:fileHash(prepared.content),modificationHash:prepared.modificationHash,expires:this.tasks.now().getTime()+ttl},prepared.diff);
+      frame.answer=p.preview;frame.request.observer.event('file_operation_proposed',JSON.stringify({id:p.id,kind,path,hash:p.hash,contentHash:p.contentHash}));
+      return {status:'awaiting_confirmation',id:p.id,hash:p.hash,path,contentHash:p.contentHash,preview:p.preview};
+    } catch(error) {
+      const reason=error instanceof Error&&/^(?:file_[a-z_]+|output_[a-z_]+|preview_capacity)$/u.test(error.message)?error.message:'file_proposal_rejected';
+      frame.answer=`文件提议被拒绝：${reason}；未执行文件写入。`;
+      frame.request.observer.event('file_operation_denied',reason);return {status:'rejected',reason};
+    }
+  }
+  private confirmFile():string {
+    const frame=this.frame(), files=this.files!;frame.used=true;frame.fileUsed=true;
+    this.clearWebConflicts();delete this.state.webView;this.saveState(this.state);
+    let consumed:string|undefined, mutated=false;
+    try {
+      const match=/^(确认|取消)文件操作 ([a-f0-9-]{36}) ([a-f0-9]{64})$/u.exec(frame.request.prompt.trim());
+      if(!match)throw new Error('file_confirmation_invalid');
+      const actor=this.fileActor();files.service.verify();
+      const p=files.service.store.consume(match[2]!,match[3]!,actor,files.service.key,frame.request.source!.reference,this.tasks.now().getTime(),fileHash(frame.request.prompt),match[1]==='取消');
+      if(match[1]==='取消')return `已取消文件操作：${p.id}；未写入文件。`;
+      consumed=p.id;frame.request.signal.throwIfAborted();
+      // 预留先落盘；文件提交与SQLite不能构成一个事务，任何未知窗口都不自动重放。
+      const identity=files.service.apply(p,actor,frame.request.signal,()=>{mutated=true;});frame.request.signal.throwIfAborted();
+      files.service.store.finish(p.id,identity);frame.request.observer.event('file_operation_committed',JSON.stringify({id:p.id,kind:p.kind,path:p.path,hash:p.hash,contentHash:p.contentHash}));
+      return `文件操作已提交：${p.kind}\n文件：${p.path}\n操作ID：${p.id}\n确认Run：${frame.request.source!.reference}\n内容Hash：${p.contentHash}\n本次仅执行已批准的一次修改。`;
+    } catch(error) {
+      const reason=error instanceof Error&&/^(?:file_[a-z_]+|output_[a-z_]+|snapshot_changed|read_race|link_not_allowed|file_type_or_hardlink)$/u.test(error.message)?error.message:'file_operation_unknown';
+      if(consumed)files.service.store.fail(consumed,mutated,reason);
+      frame.request.observer.event('file_operation_denied',JSON.stringify({id:consumed,reason}));
+      return consumed&&mutated?`文件操作结果不确定：${consumed}；请人工核对专用输出目录和账本，不自动重试。`:`文件操作拒绝：${reason}；没有执行新的有效文件修改。`;
+    }
   }
 
   private frame(): Frame {

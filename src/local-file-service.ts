@@ -22,7 +22,7 @@ export function localRelative(path: string, directory = false): string {
   return path;
 }
 
-function checked(root: string, rel: string): BigIntStats {
+export function checked(root: string, rel: string): BigIntStats {
   const path = rel === '.' ? root : join(root, rel);
   for (let part = path; ; part = dirname(part)) {
     const stat = lstatSync(part, { bigint: true });
@@ -35,7 +35,7 @@ function checked(root: string, rel: string): BigIntStats {
 }
 
 // 有界FD读取只负责宿主边界；分页、行号、文本呈现全部交回Pi原生read。
-function bytes(root: string, file: Pick<ApprovedLocalFile, 'path' | 'identity' | 'bytes'>, observed?: (bytes: number) => void): Buffer {
+export function bytes(root: string, file: Pick<ApprovedLocalFile, 'path' | 'identity' | 'bytes'>, observed?: (bytes: number) => void): Buffer {
   const before = checked(root, file.path);
   if (!before.isFile() || identity(before) !== file.identity || before.size !== BigInt(file.bytes) || before.size > BigInt(localFileLimits.fileBytes)) throw new LocalFileError('snapshot_changed');
   const fd = openSync(join(root, file.path), constants.O_RDONLY | (constants.O_NOFOLLOW ?? 0) | (constants.O_NONBLOCK ?? 0));
@@ -135,5 +135,10 @@ export class LocalFileService {
       entries.set(name!, rest.includes('/'));
     }
     return [...entries].map(([name, directory]) => ({ name, directory }));
+  }
+  filesIn(path: string): string[] {
+    this.verify(); if (!Object.hasOwn(this.manifest.directories, path)) throw new LocalFileError('directory_not_approved');
+    const prefix = path === '.' ? '' : path + '/';
+    return this.manifest.files.filter(file => file.path.startsWith(prefix)).map(file => file.path).sort();
   }
 }

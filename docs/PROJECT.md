@@ -56,6 +56,7 @@ Pi SDK 使用公开 API，不 Fork、不修改内部源码和 Agent Loop。宿�
 | [src/contracts.ts](../src/contracts.ts) | Task / Run、AgentExecutor、Channel、Scheduler、MemoryService 业务接口 |
 | [src/pi-executor.ts](../src/pi-executor.ts) | 原生 Session 文件创建/恢复与权限、后台隔离、白名单检查、执行生命周期、取消超时和用量观察 |
 | [src/local-file-service.ts](../src/local-file-service.ts)、[src/local-file-tools.ts](../src/local-file-tools.ts) | 默认关闭的Chat资料副本read/ls；宿主批准文件身份/Hash、当前请求范围与有界读取，复用Pi原生工具；不提供后台或写权限 |
+| [src/file-operation-store.ts](../src/file-operation-store.ts)、[src/file-output-service.ts](../src/file-output-service.ts)、[src/file-output-tools.ts](../src/file-output-tools.ts) | 默认关闭的Chat输出write/edit提议；原生内存预览、Guard确认、同库一次消费与保守提交；不提供后台工具 |
 | [src/operation-guard.ts](../src/operation-guard.ts) | 当前意图与操作提议分离、宿主候选筛选、澄清/确认引用、一次性权限及操作审计 |
 | [src/task-tools.ts](../src/task-tools.ts) | Pi 工具适配：创建、查询、取消任务，调用 Task Service |
 | [src/memory-service.ts](../src/memory-service.ts) | 四类 Memory CRUD、来源/版本/Hash、原子文件提交、索引修复、关键词检索和有预算的临时 Context |
@@ -207,7 +208,17 @@ Runner在门外准备包快照，重新入门后复核Task优先、Goal/Plan/Gra
 
 独立`LOCAL_FILES_ENABLED=false`，仅显式绝对资料副本目录、宿主批准清单和当前请求三者共同允许读取。`local-files-admin.ts`只供操作者批准最多16份UTF-8 md/txt，固定目录/文件ID、Hash与大小；不是模型工具。运行中每次操作重新检查路径、类型、链接及批准状态，读取前后核对有界FD和内容Hash。原生read保留分页/呈现，ls只投影批准条目。拒绝越界、链接/junction、硬链接及典型配置/凭据路径和可识别凭据正文；不宣称能自动判断任意文本是否含秘密或隔离同账户恶意进程。
 
-仅普通Chat注册原生read/ls，不给后台Goal/Task/Proactive新增能力；Skills继续独立批准、固定Hash及原额度，通过唯一read名分流。文件工具每轮4调用/2文件/16KiB返回，Chat的8次模型请求上限与Skills/Web共用。正文是低信任ToolResult，只能作为材料，不能授权Task/Memory/Goal写入。无新依赖、数据库或工作流；操作与限制见[试用说明](t1-t2a-trial.md)。grep/find的默认rg/fd子进程及可能工具下载留待T2-B单独设计，本轮不启用。
+仅普通Chat注册原生read/ls，不给后台Goal/Task/Proactive新增能力；Skills继续独立批准、固定Hash及原额度，通过唯一read名分流。文件工具每轮4调用/2直接读取文件/16KiB返回，Chat的8次模型请求上限与Skills/Web共用。正文是低信任ToolResult，只能作为材料，不能授权Task/Memory/Goal写入。无新依赖或工作流；T2-A操作与限制见[试用说明](t1-t2a-trial.md)。
+
+### T2-B / T3：受控搜索与确认后文件输出
+
+搜索独立默认关闭；find复用公开自定义glob，在批准清单中通过Node matchesGlob匹配；原生grep仍会ensureTool/spawn，故采用已批准16文件/128KiB内的宿主有界字面量扫描。新授权明确搜索目录，不借列目录授权读取正文，也不因搜索结果增加read范围。四个只读工具共用4调用/16KiB返回与128KiB原始读取预留，不执行或下载rg/fd。
+
+写入独立默认关闭；专用输出目录由宿主CLI人工初始化，marker绑定目录身份；只接受平铺非敏感md/txt。write/edit复用Pi原生定义和注入操作，首次调用只在内存准备内容/原生Diff；编辑旧文本必须唯一精确命中，不使用SDK宽松匹配兜底。OperationGuard核对当前请求、一次操作Frame、身份/渠道，固定路径、旧身份/Hash、新内容Hash和修改Hash。成功投递后5分钟内的独立完整确认命令才消费；不是主模型可调用的确认工具，确认不用主模型。
+
+同应用库增量file_operations表保留pending→executing→committed/failed/uncertain，以及cancelled；有效确认先持久消费，再做FS修改，无法与SQLite形成单一事务的窗口不重放。创建以同目录完整临时文件无覆盖发布，编辑同目录临时文件fsync、复核旧内容后rename原子替换。崩溃executing转uncertain，任何uncertain或未知输出条目均阻塞后续写入，不自动修复/删除/重批。仅能编辑该用户/渠道经T3创建且身份/Hash仍一致的文件；输出不会被自动加入资料或Skill清单。
+
+正式开关、旧Task/Goal/Memory语义不改；只在前台Chat激活，收据使用公开Session custom message并保留模型错误原文，宿主最终输出以真实提议/提交为准。此方案依赖单进程专用目录，Node没有跨进程文件Hash CAS，不承诺抵御同账户恶意修改、挂载变化或Windows ACL越权。离线验证与真实使用分开；见[说明](t2b-t3-trial.md)。
 
 ## S1-A Chat固定资源只读Web
 

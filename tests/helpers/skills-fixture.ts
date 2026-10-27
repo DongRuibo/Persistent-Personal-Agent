@@ -36,7 +36,7 @@ export async function skillFixture(handle: (payload: Payload, call: number) => s
   const config = readConfig({ DATABASE_PATH: join(root, 'app.db'), SKILLS_ENABLED: String(enabled), SKILLS_DIR: managed,
     GOAL_ENABLED: 'true', LLM_API_KEY: 'fake-skills', LLM_MODEL: 'local-stub', LLM_BASE_URL: `http://127.0.0.1:${address.port}/v1` });
   const store = new SqliteStore(config.databasePath), tasks = new TaskService(store, config.timeZone);
-  let executor = await createPiExecutor(config, tasks);
+  let executor = await createPiExecutor(config, tasks,'console',undefined,undefined,undefined,undefined,undefined,store.files);
   return { root, managed, config, store, tasks, payloads, errors, get executor() { return executor; },
     async chat(prompt = '整理资料') {
       const run = store.beginRun(null, new Date().toISOString());
@@ -45,7 +45,7 @@ export async function skillFixture(handle: (payload: Payload, call: number) => s
         store.finishRun(run.id, 'succeeded', new Date().toISOString(), result.text); return { run, ...result };
       } catch (error) { store.finishRun(run.id, 'failed', new Date().toISOString(), undefined, String(error)); throw error; }
     },
-    async restart() { await executor.close(); executor = await createPiExecutor(config, tasks); },
+    async restart() { await executor.close(); executor = await createPiExecutor(config, tasks,'console',undefined,undefined,undefined,undefined,undefined,store.files); },
     async close() { await executor.close(); store.close(); server.closeAllConnections(); await new Promise<void>(done => server.close(() => done())); },
   };
 }

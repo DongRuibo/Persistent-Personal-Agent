@@ -20,7 +20,8 @@ export interface Config {
   skillsEnabled?: boolean;
   webReadEnabled?: boolean;
   skillsDir?: string;
-  localFiles?: { enabled: boolean; workspace: string };
+  localFiles?: { enabled: boolean; workspace: string; searchEnabled?: boolean };
+  localOutput?: { enabled: boolean; workspace: string };
   proactive?: ProactiveOptions;
   pollIntervalMs: number;
   executionTimeoutMs: number;
@@ -88,6 +89,9 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env): Config {
     || [databasePath, sessionDir, memoryDir].some(path => contains(skillsDir, path) || contains(path, skillsDir)))) throw new Error('SKILLS_DIR必须是独立受管目录');
   if (env.LOCAL_FILES_ENABLED !== undefined && !['true', 'false'].includes(env.LOCAL_FILES_ENABLED)) throw new Error('LOCAL_FILES_ENABLED 必须为 true 或 false');
   const localFilesEnabled = env.LOCAL_FILES_ENABLED === 'true', workspace = env.LOCAL_FILES_WORKSPACE ? resolve(env.LOCAL_FILES_WORKSPACE) : '';
+  if (env.LOCAL_FILES_SEARCH_ENABLED !== undefined && !['true', 'false'].includes(env.LOCAL_FILES_SEARCH_ENABLED)) throw new Error('LOCAL_FILES_SEARCH_ENABLED 必须为 true 或 false');
+  const searchEnabled = env.LOCAL_FILES_SEARCH_ENABLED === 'true';
+  if (searchEnabled && !localFilesEnabled) throw new Error('文件搜索需要LOCAL_FILES_ENABLED=true和批准副本');
   const localContains = (a: string, b: string) => contains(process.platform === 'win32' ? a.toLowerCase() : a, process.platform === 'win32' ? b.toLowerCase() : b);
   if (localFilesEnabled && (!env.LOCAL_FILES_WORKSPACE || !isAbsolute(env.LOCAL_FILES_WORKSPACE) || /^(?:\\\\|\/\/)/u.test(env.LOCAL_FILES_WORKSPACE) || workspace === dirname(workspace)
     || localContains(workspace, homedir()) || localContains(workspace, process.cwd()) || localContains(process.cwd(), workspace)
@@ -96,6 +100,12 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env): Config {
     if (existsSync(resolve(parent, '.git'))) throw new Error('LOCAL_FILES_WORKSPACE 不能位于Git仓库内，请使用专用资料副本');
     if (parent === dirname(parent)) break;
   }
+  if (env.LOCAL_FILES_WRITE_ENABLED !== undefined && !['true','false'].includes(env.LOCAL_FILES_WRITE_ENABLED)) throw new Error('LOCAL_FILES_WRITE_ENABLED 必须为 true 或 false');
+  const outputEnabled=env.LOCAL_FILES_WRITE_ENABLED==='true', output=env.LOCAL_FILES_OUTPUT?resolve(env.LOCAL_FILES_OUTPUT):'';
+  if(outputEnabled&&(!env.LOCAL_FILES_OUTPUT||!isAbsolute(env.LOCAL_FILES_OUTPUT)||/^(?:\\\\|\/\/)/u.test(env.LOCAL_FILES_OUTPUT)||output===dirname(output)
+    ||localContains(output,homedir())||localContains(output,process.cwd())||localContains(process.cwd(),output)
+    ||[databasePath,sessionDir,memoryDir,skillsDir,...(localFilesEnabled?[workspace]:[])].some(p=>localContains(output,p)||localContains(p,output))))throw new Error('LOCAL_FILES_OUTPUT 必须是与资料、代码和应用数据分离的绝对输出目录');
+  if(outputEnabled)for(let parent=output;;parent=dirname(parent)){if(existsSync(resolve(parent,'.git')))throw new Error('LOCAL_FILES_OUTPUT 不能位于Git仓库内');if(parent===dirname(parent))break;}
   if (env.PROACTIVE_ENABLED !== undefined && !['true', 'false'].includes(env.PROACTIVE_ENABLED)) throw new Error('PROACTIVE_ENABLED 必须为 true 或 false');
   const proactiveEnabled = env.PROACTIVE_ENABLED === 'true';
   if (proactiveEnabled && env.GOAL_ENABLED !== 'true') throw new Error('主动执行还需要 GOAL_ENABLED=true');
@@ -123,7 +133,8 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env): Config {
     memoryQueryRewrite: env.MEMORY_QUERY_REWRITE === 'true',
     goalEnabled: env.GOAL_ENABLED === 'true',
     skillsEnabled: env.SKILLS_ENABLED === 'true', skillsDir,
-    localFiles: { enabled: localFilesEnabled, workspace },
+    localFiles: { enabled: localFilesEnabled, workspace, searchEnabled },
+    localOutput: { enabled: outputEnabled, workspace: output },
     webReadEnabled: env.WEB_READ_ENABLED === 'true',
     proactive: { enabled: proactiveEnabled, inputRate: proactiveNumber('PROACTIVE_INPUT_CNY_PER_MILLION', 0),
       outputRate: proactiveNumber('PROACTIVE_OUTPUT_CNY_PER_MILLION', 0), dailyCalls: proactiveNumber('PROACTIVE_DAILY_CALLS', 20, true),

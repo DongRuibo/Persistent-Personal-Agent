@@ -100,6 +100,14 @@ T1沿用现有两个Skill、宿主批准清单和原生目录/read，不新增�
 
 完整配置、额度、隔离试用及未来飞书人工切换步骤见[T1/T2-A操作说明](docs/t1-t2a-trial.md)。配置示例只创建虚构资料并批准两个现有包，不启动Agent、不读取.env；本轮仅模拟验证，未更改正在使用的飞书实例。普通Chat无整轮人民币硬上限；正文会发给模型并进入原生Session，审计事件只保存相对路径/字节/拒绝原因。
 
+## T2-B / T3：资料搜索与确认后输出（默认关闭）
+
+`LOCAL_FILES_SEARCH_ENABLED=false`；显式开启且已有T2-A批准副本时，Chat增加find/grep。find使用Pi1.3.0公开自定义glob与Node匹配；grep因锁定SDK无法阻止rg，仅在批准的小文件集合内做有界字面量匹配。均不下载/运行rg/fd，与read/ls共用4次调用、16KiB返回及128KiB本轮读取预留。
+
+独立`LOCAL_FILES_WRITE_ENABLED=false`与`LOCAL_FILES_OUTPUT`。仅宿主初始化的全新平铺输出目录内md/txt，不与资料、源码或应用数据重叠。Pi原生write先在内存生成完整内容，edit先在内存精确编辑并生成原生Diff；展示内容/变化和Hash后等待用户。当前用户复制宿主给出的`确认文件操作 <ID> <Hash>`，宿主核对身份、成功投递、5分钟TTL及旧文件Hash后一次提交；这个确认不调用主模型。创建绝不覆盖，编辑冻结已批准内容并原子替换；未知文件/SQLite窗口不重放。账本在原应用库的file_operations中，事件只记元数据，预览与成果会持久化。
+
+仅前台Chat开启，后台Goal/Task/Proactive仍无工具。读、搜索和写入分别授权，不能借Skill/资料正文或模型声称“已批准”执行。未开启写入时白名单无write/edit。配置和精简未来人工步骤见[T2-B/T3说明](docs/t2b-t3-trial.md)。本轮仅本机模拟验证，未切换现用飞书或调用真实模型；普通Chat仍无整轮人民币费用硬闸。
+
 ## S1-A：Chat 受控只读 Web（默认关闭）
 
 `WEB_READ_ENABLED=false`，独立于Skills/Goal/Proactive；开启开关也不能代替当前用户读取许可。首批宿主目录仅包含Pi1.3.0的“Pi Skills 文档”和“Pi SDK 文档”，资源的固定HTTPS地址、版本、启用状态及目录Hash由代码维护，不支持模型提交URL、在线安装或热更新。目录Hash约束来源配置；抓取后的contentHash另行记录正文，不把网页内容当已批准指令。
@@ -579,7 +587,7 @@ Console 输入 → Task Service / AgentExecutor → Pi 交互 Session
 
 ## 安全与日志
 
-- 交互白名单为create_task/list_tasks/cancel_task及五项Memory工具；显式开启Formation后另加memory_review，SKILLS_ENABLED开启后另加仅批准Skill文件的受限read，LOCAL_FILES_ENABLED开启后增加受控资料read/ls（与Skill共享唯一read名），WEB_READ_ENABLED开启后另加固定资源web_get。后台Session/形成请求无工具，允许宿主只读检索。没有Shell、任意文件读写、浏览器或通用网络工具。
+- 交互白名单为create_task/list_tasks/cancel_task及五项Memory工具；显式开启Formation后另加memory_review，SKILLS_ENABLED开启后另加仅批准Skill文件的受限read，LOCAL_FILES_ENABLED开启后增加受控资料read/ls（与Skill共享唯一read名），LOCAL_FILES_SEARCH_ENABLED另加find/字面量grep，LOCAL_FILES_WRITE_ENABLED另加只提议的write/edit，WEB_READ_ENABLED另加固定资源web_get。后台Session/形成请求无工具，允许宿主只读检索。没有Shell、任意目录读写、浏览器或通用网络工具。
 - SDK使用内存凭据和设置；交互Session使用宿主指定私有文件。资源加载器只注册宿主内联扩展，关闭本机扩展、AGENTS、模板及MCP自动发现；Skills也不自动发现，只有SKILLS_ENABLED显式开启后加载受管批准包。不读取全局Pi配置，不保存Key到Pi认证文件。
 - 关闭 Agent 自动重试、Provider HTTP 重试、自动压缩、缓存预热和 SDK 可配置的分析功能。保留原版 Pi SDK 及 Agent Loop。
 - 服务自身仍会写 SQLite，并向指定 LLM API 和启用的飞书服务发请求。工具白名单属于应用能力边界，不是操作系统沙箱。模型会收到对话和当前任务内容。
