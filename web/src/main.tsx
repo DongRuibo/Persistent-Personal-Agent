@@ -208,6 +208,10 @@ function App() {
     [filter, setFilter] = useState("all");
   const [selectedFile, setSelectedFile] = useState<string | null>(null),
     [selectedGoal, setSelectedGoal] = useState<string | null>(null);
+  const [fileDetail, setFileDetail] = useState<WebFile | null>(null),
+    [fileBusy, setFileBusy] = useState(false),
+    [fileError, setFileError] = useState(""),
+    [fileRetry, setFileRetry] = useState(0);
   const [goal, setGoal] = useState<WebGoalDetail | null>(null),
     [goalBusy, setGoalBusy] = useState(false);
   const [decision, setDecision] = useState<{
@@ -271,6 +275,31 @@ function App() {
     if (page === "chat")
       chatEnd.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [page, data?.chats.length, data?.capabilities.busy]);
+  const fileSummary = data?.files.find((f) => f.id === selectedFile);
+  useEffect(() => {
+    if (!auth || !selectedFile || page !== "approvals") {
+      setFileDetail(null);
+      return;
+    }
+    let disposed = false;
+    setFileBusy(true);
+    setFileDetail(null);
+    setFileError("");
+    // 只在进入详情或切换操作时获取冻结内容，轮询继续只同步状态和展示ACK。
+    void api<WebFile>(`/files/${selectedFile}`)
+      .then((detail) => {
+        if (!disposed) setFileDetail(detail);
+      })
+      .catch((e) => {
+        if (!disposed) setFileError(e.message);
+      })
+      .finally(() => {
+        if (!disposed) setFileBusy(false);
+      });
+    return () => {
+      disposed = true;
+    };
+  }, [auth, page, selectedFile, fileSummary?.hash, fileRetry]);
   useEffect(() => {
     if (!auth || !selectedGoal || page !== "goals") return;
     let disposed = false;
@@ -325,6 +354,10 @@ function App() {
   }, [decision, decisionBusy]);
   const navigate = (next: Page) => {
     location.hash = next;
+  };
+  const openFile = (id: string) => {
+    setSelectedFile(id);
+    navigate("approvals");
   };
   const login = async (event: FormEvent) => {
     event.preventDefault();
@@ -405,7 +438,17 @@ function App() {
   const filesPending =
     data?.files.filter((f) => f.status === "pending").length ?? 0;
   const unread = data?.inbox.filter((n) => !n.viewedAt).length ?? 0;
-  const file = data?.files.find((f) => f.id === selectedFile);
+  const file =
+    fileDetail?.id === selectedFile
+      ? {
+          ...fileDetail,
+          ...fileSummary,
+          run: {
+            ...fileDetail.run,
+            viewed: fileSummary?.acknowledged ?? fileDetail.run.viewed,
+          },
+        }
+      : null;
   const title = pages.find((p) => p.id === page)!.label;
   if (auth === null)
     return (
@@ -436,7 +479,7 @@ function App() {
             <ShieldCheck size={18} /> 仅在本机运行 · 单用户私有空间
           </div>
         </div>
-        <form className="login-card" onSubmit={login}>
+        <form className="login-card" onSubmit={login} autoComplete="off">
           <div className="mini-logo">
             <Sparkles size={21} />
           </div>
@@ -448,7 +491,7 @@ function App() {
             type="password"
             value={key}
             onChange={(e) => setKey(e.target.value)}
-            autoComplete="current-password"
+            autoComplete="off"
             required
             placeholder="输入你的访问密钥"
             maxLength={4096}
@@ -466,7 +509,9 @@ function App() {
             )}
             进入工作台
           </button>
-          <small>密钥只用于本次登录，不保存在浏览器中。</small>
+          <small>
+            应用不会主动保存访问密钥；浏览器或密码管理器仍可能提示保存，请按需选择。
+          </small>
         </form>
         <span className="login-foot">PERSONAL AGENT · WEB APP V1</span>
       </main>
@@ -865,23 +910,16 @@ function App() {
                             <div className="assistant-label">
                               Personal Agent <Badge status={c.run.status} />
                             </div>
-                            {c.run.output ? (
-                              <Viewed
-                                run={c.run}
-                                file={data.files.find(
-                                  (f) => f.runId === c.run.id,
-                                )}
-                                onAck={() => void refresh()}
+                            {c.run.fileOperationId ? (
+                              <button
+                                onClick={() => openFile(c.run.fileOperationId!)}
                               >
-                                {data.files.some(
-                                  (f) => f.runId === c.run.id,
-                                ) ? (
-                                  <pre className="frozen-preview">
-                                    {c.run.output}
-                                  </pre>
-                                ) : (
-                                  <Prose text={c.run.output} />
-                                )}
+                                查看完整文件预览
+                                <FileText size={15} />
+                              </button>
+                            ) : c.run.output ? (
+                              <Viewed run={c.run} onAck={() => void refresh()}>
+                                <Prose text={c.run.output} />
                               </Viewed>
                             ) : c.run.status === "running" ? (
                               <div className="thinking">
@@ -1283,7 +1321,31 @@ function App() {
                         </Empty>
                       )}
                     </section>
-                    {file ? (
+                    {selectedFile && (fileBusy || fileError) ? (
+                      <section
+                        className="panel approval-detail"
+                        aria-live="polite"
+                      >
+                        {fileBusy ? (
+                          <p className="thinking">
+                            <LoaderCircle className="spin" size={16} />
+                            加载完整文件预览…
+                          </p>
+                        ) : (
+                          <>
+                            <p className="error" role="alert">
+                              {fileError}
+                            </p>
+                            <button
+                              disabled={!online}
+                              onClick={() => setFileRetry((n) => n + 1)}
+                            >
+                              重新加载预览
+                            </button>
+                          </>
+                        )}
+                      </section>
+                    ) : file ? (
                       <section className="panel approval-detail">
                         <div className="detail-heading">
                           <div>
@@ -1532,6 +1594,14 @@ function App() {
                             仅统计供应商已报告的调用，缺失用量不代表零消耗。
                           </small>
                           {r.output && <Prose text={r.output} />}
+                          {r.fileOperationId && (
+                            <button
+                              onClick={() => openFile(r.fileOperationId!)}
+                            >
+                              查看完整文件预览
+                              <FileText size={15} />
+                            </button>
+                          )}
                           {r.error && <p className="error">{r.error}</p>}
                         </div>
                       </details>

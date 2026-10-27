@@ -267,4 +267,6 @@ V3.0.1修复区分有效唯一视图中的类别泛称与具名交集；Goal工�
 
 T3冻结提议额外保存参与Hash的结构化原生Diff；旧账本记录保持兼容。Web只能投影账本正文与Diff，页面完成可见渲染后ACK对应Run/Hash，宿主才记聊天delivery_succeeded。按钮精确确认/拒绝经Web身份绑定进入原Guard，保留归属、TTL、来源输出/投递、Hash和一次消费检查；API不调用apply、不直接改账本状态。ACK不表示同意。Web后台Goal入箱不会提前建立用户已看见的计划引用，须在Chat重新查看并ACK。
 
+snapshot只投影文件元数据，文件提议的Chat/活动Run只带详情引用；现有文件详情API按需返回完整冻结正文、Diff、预览和来源Run，读取不产生展示ACK或授权。详情页面继续以可见渲染ACK及独立Confirm进入原Guard。访问密钥仅用于登录，应用不写浏览器存储；autocomplete=off只是请求，不能保证浏览器/密码管理器不保存。
+
 React/Vite手机优先工作台提供Chat、Task/Goal、审批、活动与收件箱；最多100条列表/60项文件操作，无历史分页。Markdown禁用不可信HTML和远程图片。Manifest/图标/standalone与安全区已提供；无Service Worker或Web Push，不缓存私有API，不申请通知权限。实际离线验证及未验收边界见STATE，操作方法见[Web说明](web-app.md)。

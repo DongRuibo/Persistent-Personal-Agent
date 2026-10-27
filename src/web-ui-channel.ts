@@ -21,13 +21,15 @@ export class WebUiChannel implements Channel {
     private readonly config: Config, private readonly goals?: GoalService, private readonly lane?: BackgroundLane,
     private readonly reportError: (error: unknown) => void = () => {}) {}
 
-  run(id: string): WebRun {
+  run(id: string, includeFileOutput = true): WebRun {
     if (!this.store.webUi.ownsRun(webOwner, targetJson, id)) throw new WebUiError(404, '执行记录不存在');
     const r = this.store.getRun(id)!;
+    const fileOperationId = includeFileOutput ? undefined : this.store.webUi.fileForRun(webOwner, targetJson, id);
     const calls = this.store.modelCalls(id);
     const sum = (key: 'inputTokens' | 'outputTokens' | 'cacheReadTokens' | 'cacheWriteTokens') => calls.reduce((n, c) => n + c[key], 0);
     return { id: r.id, taskId: r.taskId, status: r.status, startedAt: r.startedAt, finishedAt: r.finishedAt,
-      output: r.output?.slice(0, 32768) ?? null, truncated: (r.output?.length ?? 0) > 32768,
+      // 轮询中的文件Run只带详情引用，避免通过聊天/活动再次携带完整审批预览。
+      output: fileOperationId ? null : r.output?.slice(0, 32768) ?? null, ...(fileOperationId ? { fileOperationId } : {}), truncated: (r.output?.length ?? 0) > 32768,
       error: r.error ? '执行失败或中断，请核对状态；详细诊断保留在本机。' : null,
       viewed: this.store.events(id).some(e => e.type === 'delivery_succeeded'),
       usage: { calls: calls.length, inputTokens: sum('inputTokens'), outputTokens: sum('outputTokens'), cacheReadTokens: sum('cacheReadTokens'),
@@ -65,7 +67,7 @@ export class WebUiChannel implements Channel {
     const run = this.run(p.runId);
     return { run, id: p.id, runId: p.runId, path: p.path, kind: p.kind, hash: p.hash, contentHash: p.contentHash,
       content: p.content, preview: p.preview, diff: p.diff ?? '',
-      expires: p.expires, status: status === 'pending' && p.expires <= Date.now() ? 'expired' : status, acknowledged: run.viewed };
+      createdAt: run.startedAt, expires: p.expires, status: status === 'pending' && p.expires <= Date.now() ? 'expired' : status, acknowledged: run.viewed };
   }
   acknowledge(id: string, hash?: string): void {
     const run = this.run(id);
@@ -95,14 +97,19 @@ export class WebUiChannel implements Channel {
       pendingPlan: g.pendingAction?.spec.steps.map(s => ({ title: s.title, instruction: s.instruction, deliverable: s.deliverable, doneWhen: s.doneWhen })) ?? null };
   }
   snapshot(): WebSnapshot {
-    const chats = this.store.webUi.chats(webOwner).reverse().map(c => ({ requestId: c.requestId, text: c.text, run: this.run(c.runId) }));
+    const chats = this.store.webUi.chats(webOwner).reverse().map(c => ({ requestId: c.requestId, text: c.text, run: this.run(c.runId, false) }));
     const inbox = this.store.webUi.inbox(webOwner);
     const tasks = this.store.tasksForTarget(webTarget).slice(0, 100).map(t => ({ id: t.id, instruction: t.instruction, dueAt: t.dueAt,
       status: t.status, updatedAt: t.updatedAt, result: this.store.webUi.taskResult(targetJson, t.id) }));
     const goals = this.tasks.withTarget(webTarget, () => this.goals?.list() ?? []).slice(0, 100).map(g => ({
       id: g.id, objective: g.objective, status: g.status, updatedAt: g.updatedAt, blockedReason: g.blockedReason }));
-    return { chats, tasks, goals, files: this.store.webUi.fileIds(webOwner, targetJson).map(id => this.file(id)),
-      activity: this.store.webUi.runs(webOwner, targetJson).map(id => this.run(id)), inbox,
+    const files = this.store.webUi.fileIds(webOwner, targetJson).map(id => {
+      const f = this.file(id);
+      return { id: f.id, runId: f.runId, path: f.path, kind: f.kind, hash: f.hash, contentHash: f.contentHash,
+        createdAt: f.createdAt, expires: f.expires, status: f.status, acknowledged: f.acknowledged };
+    });
+    return { chats, tasks, goals, files,
+      activity: this.store.webUi.runs(webOwner, targetJson).map(id => this.run(id, false)), inbox,
       capabilities: { goal: !!this.goals, skills: this.executor.skills?.list().map(s => s.id) ?? [], filesRead: !!this.config.localFiles?.enabled,
         filesWrite: !!this.config.localOutput?.enabled, webRead: !!this.config.webReadEnabled, busy: !!this.work, push: false } };
   }

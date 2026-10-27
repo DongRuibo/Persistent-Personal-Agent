@@ -68,11 +68,14 @@ npm run web:start
 
 - Chat提交持久化请求ID和Run后返回，结果轮询。一次只接纳一个前台请求；断连不会取消模型，重试同一ID不重放。页面刷新只查询历史，不能自动重发。失败或中断需先核对状态，有副作用时不保证外部恰好一次。
 - Task/Goal创建、取消、继续、暂停和计划批准通过对话及原Guard，不通过直接数据库写API。Goal详情只读；未开启Goal时明确显示关闭。Web后台Goal入箱不当成用户已看见计划，需要Chat重新查看后批准。
+- 每3秒的snapshot轮询只带文件ID、文件名、状态、时间、Hash及展示ACK等元数据；文件提议在Chat/活动中显示详情入口，不随轮询重复返回冻结预览。打开具体审批详情才GET现有文件详情API，期间状态仍由元数据轮询更新。读取详情不等于ACK，更不等于同意执行。
 - 文件预览是账本冻结正文及结构化原生Diff。客户端可见渲染后ACK，宿主核对Run/Hash记录展示；ACK不等于用户同意，也不是已经阅读全部文字的证明。确认/拒绝再进入原Guard核验身份、5分钟TTL、来源完整预览及投递、Hash和一次消费。过期/消费/failed/uncertain均不可再批；uncertain须人工核对，不自动修复或重试。
 - 任务结果先提交，再存入应用收件箱。界面区分入箱和用户已查看，Web Push及iPhone推送未实现。入箱失败不重跑Task/Goal，Task结果仍可从Run查看；旧Task/手动Goal无新增必达保证。
 - 列表最多100项、文件最多60项，没有分页。Chat/Run长输出显示最多32768字符，节选不自动ACK；Checkpoint正文最多16000字符。Session完整JSONL、原始表、内部路径和凭据不导出。没有Memory浏览器管理页面，Memory操作仅走原聊天工具。
-- Markdown不执行原始HTML，不加载远程图片；站点限制同源脚本/请求。HTTP回环Cookie为HttpOnly/SameSite=Strict，状态变更强制Origin+CSRF；登录10次/分钟、全部请求600次/分钟、写请求90次/分钟，JSON最多32KiB。访问密钥不进URL、浏览器存储或构建产物。
+- Markdown不执行原始HTML，不加载远程图片；站点限制同源脚本/请求。HTTP回环Cookie为HttpOnly/SameSite=Strict，状态变更强制Origin+CSRF；登录10次/分钟、全部请求600次/分钟、写请求90次/分钟，JSON最多32KiB。应用不将访问密钥写入URL、localStorage/sessionStorage或构建产物；登录表单和输入框请求关闭自动完成，但浏览器或密码管理器仍可能提示保存，由用户自行选择。
 - PWA只有Manifest、192/512图标、standalone与移动安全区。无Service Worker，不缓存API/Chat/Memory/审批，也不提供断网刷新启动；当前页面可显示离线提示。只在PC回环服务，iPhone/LAN/HTTPS实机使用不在本轮范围。
+
+更新本分支后，请退出并重新启动自己的本地Web预览，再刷新浏览器，使前后端使用同一版API投影；不需要操作飞书服务。
 
 ## 检查命令
 

@@ -4,11 +4,11 @@
 
 ## 当前阶段
 
-- Web App V1在远端main固定基线`4ac6089a823fe5a6815499aa0ca9084bfd40bc58`上开发，独立worktree `C:/Users/Dongr/.codex/worktrees/web-app-w1-mvp/Persistent Personal Agent`，专用分支`codex/web-app-w1-mvp`。原E盘main树及其未提交STATE保留；未读正式.env，未连接或重启飞书，未操作正式/历史数据库、Session或Memory。
-- P0认证/API与P1真实Pi接入、Task/Goal只读工作台和T3文件审批已实现；P2持久收件箱/活动、Manifest/图标/standalone与响应式布局已实现。所有本次模型调用仅到127.0.0.1模拟服务，真实模型调用0、额外API费用0；不把模拟语义表现视为真实验收。
-- Web身份由宿主固定，独立原生Session；Chat持久请求ID关联Run，单前台请求、无自动重放。预览ACK与用户Confirm分离，T3确认继续使用原Guard；后台通知只入箱，无手机推送。权限默认关闭，未新增Shell/MCP/任意文件工具，Pi SDK仍1.3.0。
-- 最终Windows/Node24.19.0：typecheck、build、前端TypeScript+production build、eval:memory、eval:formation均退出0；完整557项554通过/0失败/3既有平台跳过，新增Web专项13/13。包含实际--web-ui主入口/锁/正常停止、真实Pi模拟Chat/Memory/Task/Goal及T3。首轮在源码仍编辑期间两项冻结Hash测试失败；源码冻结后两次完整回归均无失败，最终以557项为准。
-- 实现提交`06ad8f966fb5560d14a66345bdec633009d65d28`已推送专用分支，并创建[PR #2](https://github.com/DongRuibo/Persistent-Personal-Agent/pull/2)面向main审查；远端main仍为`4ac6089`。本轮临时离线预览已停止，不合并main、不部署、不切换日常实例。T3真实Console的限定成功、原M5/M8/N1/P1失败和Linux/Mac/手机/长跑缺口继续保留，历史报告链接见下文。
+- PR #2本轮固定审查基线`2e04203870b276479b637f895ca4ec5f194dec95`，分支`codex/web-app-w1-mvp`，工作区起始干净，远端同SHA。仅优化snapshot文件载荷和登录密钥自动完成/说明；沿用既有Web API、Pi、Task/Goal及T3链路，不改Guard、审批提交、SDK、CSS、依赖或权限。
+- snapshot文件列表改为元数据；Chat/活动中的文件提议Run不再夹带完整预览，显示详情入口。进入详情才调用现有API取得冻结完整内容，轮询仅同步状态/ACK。客户端可见渲染后仍单独ACK，用户Confirm仍经原Guard，不因读取、轮询或刷新自动批准。
+- 登录表单/输入框请求autocomplete=off；应用没有浏览器存储写入，错误/成功登录后清空React输入状态。文案明确应用不主动保存密钥，浏览器或密码管理器仍可能提示保存；不保证其行为完全受应用控制。
+- 本轮Windows/Node24.19.0：后端typecheck/build、前端TypeScript/production build均退出0，Web/T3定点41项41通过/0失败/0跳过。60项固定虚构提议样本的snapshot从1,358,466降到74,326字节（约94.5%）；非生产或通用性能指标。未重跑全量或两个eval；初版557项554通过/3跳过仅作为下文历史证据。
+- 浏览器验证按需GET、渲染ACK、创建确认、编辑拒绝、元数据状态同步和刷新不重放；本轮独立QA辅助进程已停止，未操作用户现有Web预览、正式.env或飞书实例，零收费模型。现有Diff行在Edge横向排布已记为待人工体验项，本轮不扩展CSS修改。推送仅本PR分支，不合并main/不部署，之后等待人工体验与最终审查。
 
 ## 已完成功能
 
@@ -37,13 +37,21 @@
 
 | 日期 | 修改及位置 |
 | --- | --- |
+| 2026-10-28 | PR #2基于2e04203定点优化：snapshot文件只带元数据，Chat/活动文件Run只带引用，详情按需获取；登录autocomplete=off及准确说明。60项样本1,358,466→74,326字节，Web/T3专项41/41和两端类型/构建通过；原Guard/SDK/权限不变，等待人工体验与审查 |
 | 2026-10-28 | Web V1：独立--web-ui认证/API与可信web身份；原Pi Chat/Task/Goal/T3 Guard接入、请求幂等与渲染ACK；React手机工作台、持久收件箱与PWA基础。专项13/13、全量557项554通过/3既有跳过、两端构建与两个eval退出0；零真实模型/飞书/公网服务，未改日常目录 |
 | 2026-10-27 | 用户亲自完成真实edit→宿主待批Diff→自然“确认”提交：两Run投递成功，SQLite/Session/文件Hash一致；提议2条SDK模型记录、确认0条。保留原始Diff复述“与/及”差异，不外推全语义正确。Codex只读审计并发布报告/STATE，保持现用de127b3树及启动器不变，不新增请求或改main |
 | 2026-10-27 | T3只补编辑提示契约：旧审批过期不使已提交文件失效，edit自带受限内部读取并生成原生Diff，不要求追加资料read。新4项红1→绿、专项27/27；Windows544项541通过/3既有跳过、五关退出0，真实调用0。原a31与56项文件Hash保全；未改权限/确认/SDK、未提交推送或切换运行实例 |
 | 2026-10-27 | T2-B原生find注入glob与宿主有界字面grep，T3原生内存write/edit预览、Guard成功投递后一次确认、同库账本与保守恢复；开关默认关闭、后台零工具。Windows五关0，525项522通过/3平台跳过；原E盘和现用飞书启动器Hash不变。未真实模型/公网/飞书，历史失败和平台缺口保留；用户随后仅授权发布本批22文件到同名审查分支，发布只补STATE，不改产品/测试或main |
-| 2026-10-27 | T1复用现有两个Skill并补独立试用配置；T2-A默认关闭的Chat资料read/ls，固定副本身份/Hash、当前授权与有界注入操作，后台零工具，模拟飞书去重/身份保持。Windows五关0、513项510通过/3平台跳过；原E盘工作区和启动器Hash不变。仅离线、未启用正式环境，Linux引擎缺口及历史真实失败保留；用户随后仅授权发布本批15文件到同名审查分支，发布只补STATE，不改产品/测试或main |
 
 ## 验证记录与证据边界
+
+### Web App V1 PR #2定点优化（2026-10-28，基线2e04203）
+
+- 新增一项60文件真实临时SQLite/API回归，先红（snapshot仍含冻结正文）后绿；文件列表不带content/diff/preview/run，Chat/活动关联文件Run的output省略并提供详情引用，普通Chat输出保持。现有详情API完整内容/原Hash不变，GET不会ACK或授权，错误Hash拒绝，正确ACK后仍pending且没有新文件。原生编辑Diff/确认/过期/重复/身份等回归保持通过。
+- `npm run typecheck`、`npm run build`、`npm run web:build`退出0；`node --import tsx --test tests/web-ui.test.ts tests/web-ui-process.test.ts tests/file-output.test.ts tests/file-natural-confirm.test.ts tests/file-edit-contract.test.ts tests/file-proposal-contract.test.ts`最终41/41通过。没有运行新全量回归或eval；前端仍有原有两条lucide use-client非阻断警告。
+- 固定60项虚构提议样本（每项约3.6KiB正文）序列化响应1,358,466→74,326字节，约减少94.5%；只证明此样本的网络载荷缩小，没有声称SQL/CPU、真实长跑或全部应用请求按同等比例改善。
+- 独立Edge标签页/本机模拟模型验证：登录表单与输入框autocomplete都为off，错误登录后输入为空；聊天文件提议只显示详情入口，创建/编辑各打开一次详情、各一个GET，连续snapshot和刷新没有重拉正文；ACK后创建Confirm得到committed，编辑Reject得到cancelled，两者按钮禁用；刷新回列表且没有重放写操作。请求记录仅本机，不提交测试数据或截图。浏览器另有Zotero扩展连接错误，未发现来自应用的错误；一次全页截图超时，常规截图已成功保存在本机visualizations。
+- 已观察到现有原生Diff行在Edge中横向排布，下方完整宿主预览仍含冻结Diff；CSS与此布局未在本轮修改，留给人工体验和最终审查。真实密码管理器是否提示/保存由浏览器策略决定，不能由autocomplete=off保证。真实LLM/iPhone/公网部署和合并main均未执行。
 
 ### Web App V1（2026-10-28）
 

@@ -13,6 +13,7 @@ import { ChannelRouter } from '../src/channel-router.js';
 import { TaskScheduler } from '../src/scheduler.js';
 import { GoalRunner } from '../src/goal-runner.js';
 import { fileHash } from '../src/file-operation-store.js';
+import { FileOutputService } from '../src/file-output-service.js';
 import { intentReply } from './helpers/intent-stub.js';
 import type { WebFile, WebSnapshot } from '../src/web-ui-types.js';
 
@@ -55,6 +56,43 @@ test('登录限流不调用模型', async () => {
   } finally { await f.close(); }
 });
 
+test('snapshot只投影文件元数据，聊天和活动不夹带冻结预览；详情读取不等于ACK或批准', async () => {
+  const f = await webUiFixture(); try {
+    await f.login(); const now = new Date().toISOString(), root = new FileOutputService(f.output, f.store.files).key;
+    let lastId = '', lastRunId = '', lastHash = '', lastPreview = '';
+    for (let i = 0; i < 60; i++) {
+      const run = f.store.webUi.accept(webOwner, randomUUID(), `提议文件 ${i}`, now);
+      const content = `冻结正文标记-${i}\n` + '正文'.repeat(600);
+      const p = f.store.files.propose({ actor: { owner: webOwner, channel: JSON.stringify(webTarget) }, root, runId: run.id,
+        requestHash: fileHash(`当前请求-${i}`), kind: 'write', path: `file-${i}.md`, oldIdentity: null, oldHash: null,
+        content, contentHash: fileHash(content), modificationHash: fileHash(`修改-${i}`), expires: Date.now() + 300000 }, `+冻结Diff标记-${i}`);
+      f.store.finishRun(run.id, 'succeeded', now, p.preview);
+      lastId = p.id; lastRunId = run.id; lastHash = p.hash; lastPreview = p.preview;
+    }
+    const response = await f.request('/api/snapshot'), raw = await response.text(), snapshot = JSON.parse(raw) as WebSnapshot;
+    console.log(JSON.stringify({ snapshotBytes: Buffer.byteLength(raw), files: snapshot.files.length }));
+    assert.equal(snapshot.files.length, 60);
+    assert.ok(!raw.includes('冻结正文标记')); assert.ok(!raw.includes('冻结Diff标记')); assert.ok(!raw.includes('待批准文件操作（未写入）'));
+    for (const file of snapshot.files) {
+      assert.ok(!('content' in file)); assert.ok(!('diff' in file)); assert.ok(!('preview' in file)); assert.ok(!('run' in file));
+      assert.equal(file.acknowledged, false); assert.equal(file.status, 'pending');
+      assert.equal(file.createdAt, now); assert.match(file.hash, /^[a-f0-9]{64}$/u); assert.ok(file.expires > Date.now());
+    }
+    assert.equal(snapshot.chats.at(-1)?.run.output, null); assert.equal(snapshot.activity[0]?.output, null);
+    assert.equal(snapshot.chats.at(-1)?.run.fileOperationId, lastId);
+    const details = await (await f.request(`/api/files/${lastId}`)).json() as WebFile;
+    assert.equal(details.preview, lastPreview); assert.match(details.content, /冻结正文标记-59/); assert.equal(details.diff, '+冻结Diff标记-59');
+    assert.equal(details.hash, lastHash); assert.equal(details.run.output, lastPreview); assert.equal(details.acknowledged, false);
+    assert.ok(!f.store.events(lastRunId).some(e => e.type === 'delivery_succeeded'));
+    assert.equal((await f.request(`/api/files/${lastId}/decision`, { requestId: randomUUID(), hash: lastHash, action: 'confirm' })).status, 409);
+    assert.equal((await f.request(`/api/runs/${lastRunId}/ack`, { hash: '0'.repeat(64) })).status, 409);
+    assert.equal((await f.request(`/api/runs/${lastRunId}/ack`, { hash: lastHash })).status, 200);
+    const after = await (await f.request('/api/snapshot')).json() as WebSnapshot;
+    assert.equal(after.files[0]?.acknowledged, true); assert.equal(after.files[0]?.status, 'pending'); assert.ok(!existsSync(join(f.output, 'file-59.md')));
+    assert.equal(f.payloads.length, 0);
+  } finally { await f.close(); }
+});
+
 test('真实Pi调用：持久请求去重、并发拒绝、刷新和重启不重放；原生Session恢复', async () => {
   let release: (() => void) | undefined;
   const gate = new Promise<void>(done => { release = done; });
@@ -73,7 +111,9 @@ test('真实Pi调用：持久请求去重、并发拒绝、刷新和重启不重
     assert.equal(f.payloads.length, 1);
     await f.request('/api/chat', { requestId: randomUUID(), text: '第二轮读取上下文' }); await f.channel.drain();
     assert.match(JSON.stringify(f.payloads[1]!.messages), /第一轮中文消息/);
-    assert.equal((await (await f.request('/api/snapshot')).json() as WebSnapshot).chats.length, 2);
+    const snapshot = await (await f.request('/api/snapshot')).json() as WebSnapshot;
+    assert.equal(snapshot.chats.length, 2); assert.equal(snapshot.chats[0]?.run.output, '已收到第一轮中文消息');
+    assert.equal(snapshot.activity[0]?.output, '已收到第一轮中文消息');
     assert.deepEqual(f.errors, []);
   } finally { release!(); await f.close(); }
 });
@@ -151,7 +191,8 @@ test('T3完整预览ACK与用户Confirm分离，原Guard一次性提交；真实
     await f.login();
     const propose = async () => {
       await f.request('/api/chat', { requestId: randomUUID(), text: `本次允许${kind === 'write' ? '创建' : '编辑'}输出文件：answer.md\n只提出预览` });
-      await f.channel.drain(); return (await (await f.request('/api/snapshot')).json() as WebSnapshot).files[0]!;
+      await f.channel.drain(); const summary = (await (await f.request('/api/snapshot')).json() as WebSnapshot).files[0]!;
+      return await (await f.request(`/api/files/${summary.id}`)).json() as WebFile;
     };
     const p = await propose(); assert.equal(p.status, 'pending'); assert.equal(p.acknowledged, false);
     assert.equal(p.content, '第一句。\n第二句。\n'); assert.equal(existsSync(join(f.output, 'answer.md')), false);

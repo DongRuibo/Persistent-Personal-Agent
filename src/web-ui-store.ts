@@ -47,6 +47,10 @@ export class WebUiStore {
     return this.db.prepare('SELECT id FROM file_operations WHERE owner=? AND channel=? ORDER BY rowid DESC LIMIT 60')
       .all(owner, target).map(row => String(row.id));
   }
+  fileForRun(owner: string, target: string, runId: string): string | undefined {
+    const row = this.db.prepare('SELECT id FROM file_operations WHERE owner=? AND channel=? AND runId=?').get(owner, target, runId);
+    return row ? String(row.id) : undefined;
+  }
   taskResult(target: string, id: string): string | null {
     const row = this.db.prepare('SELECT r.output,r.error FROM runs r JOIN tasks t ON t.id=r.taskId WHERE t.id=? AND t.target=?').get(id, target);
     return row?.output ? String(row.output).slice(0, 32768) : row?.error ? '任务失败或中断；请查看活动中的执行状态。' : null;

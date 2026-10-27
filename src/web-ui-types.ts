@@ -1,6 +1,7 @@
 export interface WebRun {
   id: string; taskId: string | null; status: string; startedAt: string; finishedAt: string | null;
   output: string | null; error: string | null; viewed: boolean; truncated: boolean;
+  fileOperationId?: string;
   usage: { calls: number; inputTokens: number; outputTokens: number; cacheReadTokens: number; cacheWriteTokens: number; cost: number | null };
 }
 export interface WebChat { requestId: string; text: string; run: WebRun }
@@ -11,13 +12,16 @@ export interface WebGoalDetail extends WebGoal {
   checkpoint: { artifactText: string; progressSummary: string; question: string } | null;
   pendingPlan: { title: string; instruction: string; deliverable: string; doneWhen: string }[] | null;
 }
-export interface WebFile {
-  run: WebRun;
+export interface WebFileSummary {
   id: string; runId: string; path: string; kind: string; hash: string; contentHash: string;
-  content: string; preview: string; diff: string; expires: number; status: string; acknowledged: boolean;
+  createdAt: string; expires: number; status: string; acknowledged: boolean;
+}
+export interface WebFile extends WebFileSummary {
+  run: WebRun;
+  content: string; preview: string; diff: string;
 }
 export interface WebNotice { runId: string; text: string; at: string; viewedAt: string | null; taskId: string | null; goalId: string | null }
 export interface WebSnapshot {
-  chats: WebChat[]; tasks: WebTask[]; goals: WebGoal[]; files: WebFile[]; activity: WebRun[]; inbox: WebNotice[];
+  chats: WebChat[]; tasks: WebTask[]; goals: WebGoal[]; files: WebFileSummary[]; activity: WebRun[]; inbox: WebNotice[];
   capabilities: { goal: boolean; skills: string[]; filesRead: boolean; filesWrite: boolean; webRead: boolean; busy: boolean; push: false };
 }
