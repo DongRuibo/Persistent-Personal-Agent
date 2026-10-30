@@ -257,16 +257,22 @@ V3.0.1修复区分有效唯一视图中的类别泛称与具名交集；Goal工�
 
 ## Web App V1：独立本机工作空间
 
-显式 `--web-ui` / `WEB_UI_ENABLED=true` 启动同一main生命周期，默认仅127.0.0.1；不与飞书并行，不读取正式.env。Web专用数据根需为空目录或带本模式marker，固定agent.db/sessions/memory三个位置，原数据库/Memory锁及恢复流程保留；存在其他渠道pending Task时拒绝启动Scheduler。默认不开其他工具权限。
+显式 `--web-ui` / `WEB_UI_ENABLED=true` 启动同一main生命周期，默认仅127.0.0.1；不与飞书并行，不读取正式.env。Web专用数据根需为空目录或带本模式marker，固定agent.db/sessions/memory三个位置，原数据库/Memory锁及恢复流程保留；存在其他渠道pending Task时拒绝启动Scheduler。此模式按本次用户授权默认开启免费免Key Tavily；其余工具开关保留原值。
 
 可信身份固定为宿主 `web/local-user`，chatKey=`["web","local-user"]`，与Console和飞书分离；Task目标查询、Goal绑定、Memory来源、文件账本和ChannelRouter都显式支持web。用户不能传owner/target/channel；Task与Goal控制仍走聊天和原OperationGuard。
 
 `web-ui-server.ts`负责原生HTTP、独立访问密钥、12小时HttpOnly/SameSite=Strict Cookie、精确Host/Origin/CSRF、32KiB请求体及限流。只服务构建静态资源和经过认证的有界DTO，不提供任意文件、SQL、原生Session导出或Memory写入API。Cookie仅服务HTTP回环；不支持LAN/HTTPS、公网或多用户。
 
+本机启动器可持独立Web密钥调用`POST /api/launch`，取得60秒有效的一次性登录入口，浏览器兑换后使用同一会话逻辑并跳转聊天页；后台密钥不交给用户复制，也不进入浏览器URL。入口重新签发、消费或服务重启后失效；此流程只负责登录，不代替业务API鉴权、展示ACK或用户审批。原手动登录作为高级方式保留。
+
 `web-ui-channel.ts`把Chat提交持久关联到Run后才调用既有PiExecutor；每次至多一个前台请求，重复ID返回原Run，内容冲突拒绝，断连和重启不重放。`web-ui-store.ts`仅两张展示投影/收件箱表，与Task/Goal/Run同库；Pi Session仍是模型上下文，Memory仍由原服务唯一写入。后台仍由原Scheduler/GoalRunner执行，入箱失败不重跑模型。
+
+前端`chat-timeline.ts`将前台聊天与Task持久通知按时间合并展示，Task通知作为带事项/原文/时间的主动消息出现在Chat，仍与收件箱引用同一Run。没有新建聊天记录、调模型或改Pi Session；查看状态沿用原手动标记，Goal计划不经此入口展示或ACK。
 
 T3冻结提议额外保存参与Hash的结构化原生Diff；旧账本记录保持兼容。Web只能投影账本正文与Diff，页面完成可见渲染后ACK对应Run/Hash，宿主才记聊天delivery_succeeded。按钮精确确认/拒绝经Web身份绑定进入原Guard，保留归属、TTL、来源输出/投递、Hash和一次消费检查；API不调用apply、不直接改账本状态。ACK不表示同意。Web后台Goal入箱不会提前建立用户已看见的计划引用，须在Chat重新查看并ACK。
 
 snapshot只投影文件元数据，文件提议的Chat/活动Run只带详情引用；现有文件详情API按需返回完整冻结正文、Diff、预览和来源Run，读取不产生展示ACK或授权。详情页面继续以可见渲染ACK及独立Confirm进入原Guard。访问密钥仅用于登录，应用不写浏览器存储；autocomplete=off只是请求，不能保证浏览器/密码管理器不保存。
+
+Tavily通过公开SDK新增`web_search`/`web_fetch`，主入口仅向Web的普通Chat注入服务，`WEB_SEARCH_ENABLED=false`可关闭；Console/飞书/Task/Goal不注册。固定端点的basic Search/Extract采用keyless请求头，不复用模型凭据。只取当前用户或本轮搜索中的公开网址，工具结果按低信任资料处理；单轮4次/24KiB工具结果及每次15秒/1MiB响应限制，单页16KiB正文。原context扩展只投影最近24KiB网页正文，Session原记录和其他工具不改。调用元数据复用run_events，snapshot仅状态/次数/来源数量，已有Run详情API按需返回来源，不增加表或审批链。模型Key、费用与搜索免费模式相互独立；实现和真实证据见[接入报告](evaluations/tavily-web-integration.md)。
 
 React/Vite手机优先工作台提供Chat、Task/Goal、审批、活动与收件箱；最多100条列表/60项文件操作，无历史分页。Markdown禁用不可信HTML和远程图片。Manifest/图标/standalone与安全区已提供；无Service Worker或Web Push，不缓存私有API，不申请通知权限。实际离线验证及未验收边界见STATE，操作方法见[Web说明](web-app.md)。

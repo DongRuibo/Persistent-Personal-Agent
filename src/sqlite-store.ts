@@ -233,8 +233,12 @@ export class SqliteStore {
   }
 
   event(runId: string, type: string, details?: string, now = new Date().toISOString()): void {
+    // 新来源事件是结构化JSON；逐字段脱敏后再序列化，避免凭据样式吃掉闭合引号。
+    const stored = details === undefined ? null : type === 'tavily_call'
+      ? JSON.stringify(JSON.parse(details), (_key, value: unknown) => typeof value === 'string' ? this.redact(value) : value)
+      : this.redact(details);
     this.db.prepare('INSERT INTO run_events (runId, at, type, details) VALUES (?, ?, ?, ?)')
-      .run(runId, now, type, details === undefined ? null : this.redact(details));
+      .run(runId, now, type, stored);
   }
 
   observer(runId: string): ExecutionObserver {

@@ -33,6 +33,8 @@ import type {
   WebRun,
 } from "../../src/web-ui-types.js";
 import "./style.css";
+import { chatTimeline } from "./chat-timeline.js";
+import { WebSources } from "./web-sources.js";
 
 const pages = [
   { id: "home", label: "工作台", icon: House },
@@ -197,7 +199,7 @@ function App() {
     [loginBusy, setLoginBusy] = useState(false);
   const [data, setData] = useState<WebSnapshot | null>(null),
     [error, setError] = useState(""),
-    [online, setOnline] = useState(navigator.onLine);
+    [online, setOnline] = useState(true);
   const [page, setPage] = useState<Page>("home"),
     [draft, setDraft] = useState(""),
     [sending, setSending] = useState(false);
@@ -222,13 +224,17 @@ function App() {
   } | null>(null);
   const [decisionError, setDecisionError] = useState(""),
     [decisionBusy, setDecisionBusy] = useState(false);
+  const timeline = data ? chatTimeline(data) : [];
   const chatEnd = useRef<HTMLDivElement>(null),
     textarea = useRef<HTMLTextAreaElement>(null);
   const refresh = useCallback(async () => {
     try {
       setData(await api<WebSnapshot>("/snapshot"));
+      setOnline(true);
       setError("");
     } catch (e) {
+      // 浏览器的联网标志不能判断回环服务；以实际API响应判断可达性。
+      setOnline(e instanceof ApiError);
       if (e instanceof ApiError && e.status === 401) {
         setAuth(false);
         setData(null);
@@ -239,28 +245,25 @@ function App() {
   useEffect(() => {
     void api<{ authenticated: boolean; csrf?: string }>("/session")
       .then((s) => {
+        setOnline(true);
         csrf = s.csrf ?? "";
         setAuth(s.authenticated);
       })
       .catch(() => {
+        setOnline(false);
         setAuth(false);
         setError("无法连接本机服务");
       });
-    const network = () => setOnline(navigator.onLine),
-      route = () => {
-        const value = location.hash.slice(1);
-        setPage(pages.some((p) => p.id === value) ? (value as Page) : "home");
-        window.scrollTo(0, 0);
-        setFilter("all");
-      };
+    const route = () => {
+      const value = location.hash.slice(1);
+      setPage(pages.some((p) => p.id === value) ? (value as Page) : "home");
+      window.scrollTo(0, 0);
+      setFilter("all");
+    };
     route();
     window.addEventListener("hashchange", route);
-    window.addEventListener("online", network);
-    window.addEventListener("offline", network);
     return () => {
       window.removeEventListener("hashchange", route);
-      window.removeEventListener("online", network);
-      window.removeEventListener("offline", network);
     };
   }, []);
   useEffect(() => {
@@ -274,7 +277,7 @@ function App() {
   useEffect(() => {
     if (page === "chat")
       chatEnd.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-  }, [page, data?.chats.length, data?.capabilities.busy]);
+  }, [page, timeline.at(-1)?.id, data?.capabilities.busy]);
   const fileSummary = data?.files.find((f) => f.id === selectedFile);
   useEffect(() => {
     if (!auth || !selectedFile || page !== "approvals") {
@@ -365,6 +368,7 @@ function App() {
     setError("");
     try {
       const result = await api<{ csrf: string }>("/login", { key });
+      setOnline(true);
       csrf = result.csrf;
       setKey("");
       setAuth(true);
@@ -484,34 +488,37 @@ function App() {
             <Sparkles size={21} />
           </div>
           <h2>欢迎回来</h2>
-          <p>输入本机配置的 Web 访问密钥。</p>
-          <label htmlFor="access-key">访问密钥</label>
-          <input
-            id="access-key"
-            type="password"
-            value={key}
-            onChange={(e) => setKey(e.target.value)}
-            autoComplete="off"
-            required
-            placeholder="输入你的访问密钥"
-            maxLength={4096}
-          />
-          {error && (
-            <p className="error" role="alert">
-              {error}
-            </p>
-          )}
-          <button className="primary" disabled={loginBusy || !key || !online}>
-            {loginBusy ? (
-              <LoaderCircle className="spin" size={17} />
-            ) : (
-              <ArrowUpRight size={17} />
+          <p>双击本机启动器即可自动进入工作台，无需填写密钥。会话过期时，也可以再次双击启动器。</p>
+          <details>
+            <summary>手动登录（高级）</summary>
+            <label htmlFor="access-key">访问密钥</label>
+            <input
+              id="access-key"
+              type="password"
+              value={key}
+              onChange={(e) => setKey(e.target.value)}
+              autoComplete="off"
+              required
+              placeholder="输入你的访问密钥"
+              maxLength={4096}
+            />
+            {error && (
+              <p className="error" role="alert">
+                {error}
+              </p>
             )}
-            进入工作台
-          </button>
-          <small>
-            应用不会主动保存访问密钥；浏览器或密码管理器仍可能提示保存，请按需选择。
-          </small>
+            <button className="primary" disabled={loginBusy || !key}>
+              {loginBusy ? (
+                <LoaderCircle className="spin" size={17} />
+              ) : (
+                <ArrowUpRight size={17} />
+              )}
+              进入工作台
+            </button>
+            <small>
+              应用不会主动保存访问密钥；浏览器或密码管理器仍可能提示保存，请按需选择。
+            </small>
+          </details>
         </form>
         <span className="login-foot">PERSONAL AGENT · WEB APP V1</span>
       </main>
@@ -558,7 +565,7 @@ function App() {
             <div>
               本机工作空间
               <small>
-                {online ? "127.0.0.1 · 私有访问" : "当前处于离线状态"}
+                {online ? "127.0.0.1 · 私有访问" : "本机服务暂不可达"}
               </small>
             </div>
           </div>
@@ -611,10 +618,10 @@ function App() {
             <div className="banner" role="alert">
               <span>
                 {!online
-                  ? "当前离线。历史内容仅保留在此页面；连接恢复后刷新，不会自动重发操作。"
+                  ? "暂时无法连接本机服务。已保存的聊天记录不受影响；连接恢复后会重新加载，不会自动重发操作。"
                   : error}
               </span>
-              <button onClick={() => void refresh()} disabled={!online}>
+              <button onClick={() => void refresh()}>
                 <RefreshCw size={14} />
                 刷新
               </button>
@@ -809,6 +816,11 @@ function App() {
                             data.capabilities.skills.length > 0,
                           ],
                           [
+                            "联网搜索 / 网页读取",
+                            "Tavily 免费免 Key，按需自动联网",
+                            data.capabilities.webSearch,
+                          ],
+                          [
                             "本地资料 / 网页读取",
                             "仅使用既有受控能力",
                             data.capabilities.filesRead ||
@@ -860,7 +872,7 @@ function App() {
                     </div>
                   </div>
                   <div className="messages" aria-live="polite">
-                    {data.chats.length === 0 && (
+                    {timeline.length === 0 && (
                       <div className="chat-welcome">
                         <div className="welcome-symbol">
                           <Sparkles size={34} />
@@ -887,64 +899,107 @@ function App() {
                           >
                             <Clock3 size={19} />
                             <strong>安排一个提醒</strong>
-                            <span>到时把结果放入收件箱</span>
+                            <span>到时在对话中提醒你</span>
                             <ArrowUpRight size={14} />
                           </button>
                         </div>
                       </div>
                     )}
-                    {data.chats.map((c) => (
-                      <div key={c.run.id} className="chat-turn">
-                        <div className="message user">
-                          <div className="message-content">
-                            <p>{c.text}</p>
-                            <small>你 · {time(c.run.startedAt)}</small>
-                          </div>
-                          <div className="avatar small">我</div>
-                        </div>
-                        <div className="message assistant">
-                          <div className="agent-avatar small">
-                            <Sparkles size={17} />
-                          </div>
-                          <div className="message-content">
-                            <div className="assistant-label">
-                              Personal Agent <Badge status={c.run.status} />
+                    {timeline.map((item) => {
+                      if (item.kind === "task") return (
+                        <div
+                          key={item.id}
+                          className="chat-turn"
+                          aria-label="任务提醒"
+                        >
+                          <div className="message assistant">
+                            <div className="agent-avatar small">
+                              <Bell size={17} />
                             </div>
-                            {c.run.fileOperationId ? (
-                              <button
-                                onClick={() => openFile(c.run.fileOperationId!)}
-                              >
-                                查看完整文件预览
-                                <FileText size={15} />
-                              </button>
-                            ) : c.run.output ? (
-                              <Viewed run={c.run} onAck={() => void refresh()}>
-                                <Prose text={c.run.output} />
-                              </Viewed>
-                            ) : c.run.status === "running" ? (
-                              <div className="thinking">
-                                <LoaderCircle className="spin" size={15} />
-                                Agent 正在处理…
+                            <div className="message-content">
+                              <div className="assistant-label">
+                                Personal Agent · 任务提醒
                               </div>
-                            ) : (
-                              <p className="error">
-                                {c.run.error ??
-                                  "没有最终回复，请核对执行状态。"}
-                              </p>
-                            )}
-                            {c.run.truncated && (
-                              <p className="muted">
-                                内容过长，当前显示节选；不自动标记完整投递。
-                              </p>
-                            )}
-                            <small className="run-meta">
-                              Run {c.run.id.slice(0, 8)} · {c.run.usage.calls}{" "}
-                              次模型响应
-                            </small>
+                              {item.task && (
+                                <p><strong>提醒你：{item.task.instruction}</strong></p>
+                              )}
+                              <Prose text={item.notice.text} />
+                              <small className="run-meta">
+                                {time(item.at)} · Run {item.notice.runId.slice(0, 8)}
+                              </small>
+                              {!item.notice.viewedAt ? (
+                                <button
+                                  className="text-button"
+                                  onClick={() =>
+                                    void api(`/inbox/${item.notice.runId}/view`, {})
+                                      .then(refresh)
+                                      .catch((e) => setError(e.message))
+                                  }
+                                >
+                                  <Check size={14} />标为已查看
+                                </button>
+                              ) : (
+                                <small className="run-meta">已查看</small>
+                              )}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                      const c = item.chat;
+                      return (
+                        <div key={c.run.id} className="chat-turn">
+                          <div className="message user">
+                            <div className="message-content">
+                              <p>{c.text}</p>
+                              <small>你 · {time(c.run.startedAt)}</small>
+                            </div>
+                            <div className="avatar small">我</div>
+                          </div>
+                          <div className="message assistant">
+                            <div className="agent-avatar small">
+                              <Sparkles size={17} />
+                            </div>
+                            <div className="message-content">
+                              <div className="assistant-label">
+                                Personal Agent <Badge status={c.run.status} />
+                              </div>
+                              {c.run.fileOperationId ? (
+                                <button
+                                  onClick={() => openFile(c.run.fileOperationId!)}
+                                >
+                                  查看完整文件预览
+                                  <FileText size={15} />
+                                </button>
+                              ) : c.run.output ? (
+                                <Viewed run={c.run} onAck={() => void refresh()}>
+                                  <Prose text={c.run.output} />
+                                </Viewed>
+                              ) : c.run.status === "running" ? (
+                                <div className="thinking">
+                                  <LoaderCircle className="spin" size={15} />
+                                  Agent 正在处理…
+                                </div>
+                              ) : (
+                                <p className="error">
+                                  {c.run.error ??
+                                    "没有最终回复，请核对执行状态。"}
+                                </p>
+                              )}
+                              {c.run.truncated && (
+                                <p className="muted">
+                                  内容过长，当前显示节选；不自动标记完整投递。
+                                </p>
+                              )}
+                              <WebSources run={c.run} load={() => api<WebRun>(`/runs/${c.run.id}`)} />
+                              <small className="run-meta">
+                                Run {c.run.id.slice(0, 8)} · {c.run.usage.calls}{" "}
+                                次模型响应
+                              </small>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
                     <div ref={chatEnd} />
                   </div>
                   <div className="composer-area">

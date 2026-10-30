@@ -16,6 +16,7 @@ import { fileHash } from '../src/file-operation-store.js';
 import { FileOutputService } from '../src/file-output-service.js';
 import { intentReply } from './helpers/intent-stub.js';
 import type { WebFile, WebSnapshot } from '../src/web-ui-types.js';
+import { chatTimeline } from '../web/src/chat-timeline.js';
 
 test('Web 默认关闭、仅回环、独立密钥和数据根；拒绝接管已有非Web目录', async () => {
   assert.throws(() => readWebUiConfig({}), /WEB_UI_ENABLED/);
@@ -46,6 +47,49 @@ test('认证保护全部数据与写入口；Cookie、Origin、CSRF、Host和有
     assert.equal(f.payloads.length, 0);
     assert.equal((await f.request('/api/logout', {})).status, 200);
     assert.equal((await f.request('/api/snapshot')).status, 401);
+  } finally { await f.close(); }
+});
+
+test('本机启动一次性登录：需要密钥签发，换取原有会话后跳转聊天；不放宽CSRF或调用模型', async () => {
+  const f = await webUiFixture(); try {
+    assert.equal((await f.request('/api/launch', { key: 'wrong' })).status, 401);
+    assert.equal((await f.request('/api/launch', { key: f.key }, { Origin: 'https://evil.test' })).status, 403);
+    const issued = await f.request('/api/launch', { key: f.key });
+    assert.equal(issued.status, 200); assert.equal(issued.headers.get('set-cookie'), null);
+    const { url } = await issued.json() as { url: string };
+    assert.equal(new URL(url).origin, f.origin); assert.ok(!url.includes(f.key));
+    assert.equal((await f.request('/api/snapshot')).status, 401);
+    const login = await fetch(url, { redirect: 'manual' });
+    assert.equal(login.status, 303); assert.equal(login.headers.get('location'), '/#chat');
+    assert.equal(login.headers.get('cache-control'), 'no-store');
+    assert.equal(login.headers.get('referrer-policy'), 'no-referrer');
+    const cookie = login.headers.get('set-cookie')!;
+    assert.match(cookie, /HttpOnly/); assert.match(cookie, /SameSite=Strict/); assert.match(cookie, /Max-Age=43200/);
+    const headers = { Cookie: cookie.split(';')[0]! };
+    assert.equal((await f.request('/api/snapshot', undefined, headers)).status, 200);
+    assert.equal((await f.request('/api/chat', { requestId: randomUUID(), text: 'hello' }, headers)).status, 403);
+    const session = await (await f.request('/api/session', undefined, headers)).json() as { csrf: string };
+    assert.equal((await f.request('/api/logout', {}, { ...headers, 'X-CSRF-Token': session.csrf })).status, 200);
+    assert.equal((await f.request('/api/snapshot', undefined, headers)).status, 401);
+    assert.equal((await fetch(url, { redirect: 'manual' })).status, 401);
+    assert.equal(f.payloads.length, 0);
+  } finally { await f.close(); }
+});
+
+test('本机启动登录凭据短时有效，重新签发及重启后旧入口失效', async t => {
+  const f = await webUiFixture(); try {
+    let now = Date.now(); t.mock.method(Date, 'now', () => now);
+    const first = await (await f.request('/api/launch', { key: f.key })).json() as { url: string };
+    assert.ok(first.url);
+    now += 60001;
+    assert.equal((await fetch(first.url, { redirect: 'manual' })).status, 401);
+    const second = await (await f.request('/api/launch', { key: f.key })).json() as { url: string };
+    const third = await (await f.request('/api/launch', { key: f.key })).json() as { url: string };
+    assert.equal((await fetch(second.url, { redirect: 'manual' })).status, 401);
+    const path = new URL(third.url).pathname;
+    await f.restart();
+    assert.equal((await fetch(f.origin + path, { redirect: 'manual' })).status, 401);
+    assert.equal(f.payloads.length, 0);
   } finally { await f.close(); }
 });
 
@@ -236,15 +280,22 @@ test('T3通过Chat命令也不能跳过投递；过期、错误Hash/ID、已拒�
   } finally { t.mock.restoreAll(); await f.close(); }
 });
 
-test('后台Task通过原Scheduler/Pi执行，收件箱持久化与已查看分离；刷新不重跑', async () => {
+test('后台Task通过原Scheduler/Pi执行并投影到Chat，收件箱持久化与已查看分离；刷新不重跑', async () => {
   const f = await webUiFixture(p => { assert.deepEqual(p.tools ?? [], []); return reply('后台完成结果'); });
   try {
     await f.login(); const now = new Date().toISOString(), task = f.store.createTask('测试提醒', now, now, webTarget);
     const router = new ChannelRouter({ async sendMessage() { throw new Error('wrong channel'); } }, undefined, f.channel);
     const scheduler = new TaskScheduler(f.store, f.executor, router, 1000, error => f.errors.push(error), () => new Date(), f.lane);
+    assert.equal(chatTimeline(f.channel.snapshot()).length, 0);
     await scheduler.tick(); await scheduler.tick(); assert.equal(f.payloads.length, 1);
     const notice = f.channel.snapshot().inbox[0]!; assert.equal(notice.taskId, task.id); assert.equal(notice.viewedAt, null);
+    const timeline = chatTimeline(f.channel.snapshot());
+    assert.equal(timeline.length, 1); assert.equal(timeline[0]!.id, `task:${notice.runId}`);
+    assert.equal(f.channel.snapshot().chats.length, 0);
+    assert.deepEqual(chatTimeline(f.channel.snapshot()), timeline);
     await f.restart(); await f.login(); assert.equal(f.payloads.length, 1); assert.equal(f.channel.snapshot().inbox.length, 1);
+    assert.deepEqual(chatTimeline(f.channel.snapshot()), timeline);
+    assert.equal(f.channel.snapshot().inbox[0]!.viewedAt, null);
     assert.equal((await f.request(`/api/inbox/${notice.runId}/view`, {})).status, 200);
     assert.ok(f.channel.snapshot().inbox[0]!.viewedAt); assert.equal(f.channel.snapshot().capabilities.push, false);
     assert.deepEqual(f.errors, []);

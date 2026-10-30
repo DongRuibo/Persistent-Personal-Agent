@@ -1358,6 +1358,18 @@ button.primary,
   color: #68768e;
   line-height: 2;
 }
+.web-sources {
+  color: #64738c;
+  font-size: 12px;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+.web-sources summary {
+  cursor: pointer;
+}
+.web-sources a {
+  color: #4b6bba;
+}
 .prose {
   font-size: 13px;
   line-height: 1.95;

@@ -15,7 +15,9 @@ V2.1b.3 按授权定点修复上述三个问题：有成功显示的候选时，
 
 ## Web App V1（独立本机模式）
 
-Node.js >=24.15.0（本次 Windows 使用24.19.0）。React/Vite 前端与 Node HTTP API 同源，固定绑定 `127.0.0.1`，默认关闭。本模式不读取 `.env`，不启动飞书；不要使用会自动加载正式配置的 `npm start/dev`。完整启动说明见 [Web App](docs/web-app.md)。
+Node.js >=24.15.0（当前Mac使用24.19.0）。React/Vite 前端与 Node HTTP API 同源，固定绑定 `127.0.0.1`，默认关闭。本模式不读取 `.env`，不启动飞书；不要使用会自动加载正式配置的 `npm start/dev`。完整启动说明见 [Web App](docs/web-app.md)。
+
+macOS日常启动：在当前代码目录运行`npm run web:local`，自动构建、复用主项目四项LLM配置并打开浏览器自动登录，无需填写访问密钥。数据固定在主项目`data/web-ui`；保持终端运行，`Ctrl+C`停止，重复运行只打开现有实例。首次Mac运行不会自动导入旧Windows历史。下面是离线界面检查命令，日常使用无需运行它。
 
 ```powershell
 npm ci
@@ -25,8 +27,10 @@ npm run web:build
 npm run web:preview:offline
 ```
 
-上面命令会输出本机地址及固定测试登录密钥，数据仅为新建临时目录。该模式用来检查界面和离线路径，不是收费模型验收。正式模型连接需操作者自行安全注入独立配置，再运行 `npm run web:start`；本次未执行。Chat、Task/Goal、T3审批均复用原服务；通知仅存入应用收件箱，没有Web Push或iPhone推送。
+上面命令会输出本机地址及固定测试登录密钥，数据仅为新建临时目录。该模式用来检查界面和离线路径，不是收费模型验收。正式模型连接需操作者自行安全注入独立配置，再运行 `npm run web:start`。Chat、Task/Goal、T3审批均复用原服务；通知仅存入应用收件箱，没有Web Push或iPhone推送。
 
+
+网页普通聊天现已接入免费免 Key Tavily `web_search` / `web_fetch`，需要最新资料时由模型自动决定搜索并读取来源，无需申请或填写搜索 Key。`--web-ui` 下默认开启，可在启动环境设置 `WEB_SEARCH_ENABLED=false` 关闭；Console、飞书、后台Task/Goal不新增工具。Tavily免费模式有限流，模型调用仍按原服务商计费，不自动切换收费搜索。更新代码后重新构建、重启本机Web服务并刷新浏览器即可；运行限制见 [Web说明](docs/web-app.md#自动联网与来源)，本轮隔离真实验证见 [接入验证](docs/evaluations/tavily-web-integration.md)。
 
 ## V3.0：可手动继续的长期目标（默认关闭，电脑核心验收通过）
 

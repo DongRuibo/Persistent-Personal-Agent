@@ -40,6 +40,7 @@ const hashPattern = /^[a-f0-9]{64}$/u;
 
 export class WebUiServer {
   private readonly sessions = new Map<string, Session>();
+  private launchTicket?: { hash: Buffer; expires: number };
   private window = Date.now();
   private requests = 0;
   private logins = 0;
@@ -62,6 +63,15 @@ export class WebUiServer {
   }
   private json(res: ServerResponse, status: number, data: unknown): void {
     res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' }); res.end(JSON.stringify(data));
+  }
+  private createSession(res: ServerResponse, previous?: string): string {
+    for (const [id, s] of this.sessions) if (s.expires <= Date.now()) this.sessions.delete(id);
+    if (previous) this.sessions.delete(previous);
+    if (this.sessions.size >= 4) this.sessions.delete(this.sessions.keys().next().value!);
+    const id = randomBytes(32).toString('hex'), csrf = randomBytes(32).toString('hex');
+    this.sessions.set(id, { csrf, expires: Date.now() + 12 * 3600000 });
+    res.setHeader('Set-Cookie', `ppa_web=${id}; HttpOnly; SameSite=Strict; Path=/; Max-Age=43200`);
+    return csrf;
   }
   private async body(req: IncomingMessage, keys: string[]): Promise<Record<string, unknown>> {
     if (req.headers['content-type'] !== 'application/json') throw new WebUiError(415, '请使用 JSON 请求');
@@ -93,17 +103,26 @@ export class WebUiServer {
       if (req.headers.origin !== this.origin) throw new WebUiError(403, '请求来源不匹配');
       if (++this.mutations > 90) throw new WebUiError(429, '操作过于频繁，请稍后重试');
     }
-    if (path === '/api/login' && req.method === 'POST') {
+    if ((path === '/api/login' || path === '/api/launch') && req.method === 'POST') {
       if (++this.logins > 10) throw new WebUiError(429, '登录尝试过多，请一分钟后重试');
       const data = await this.body(req, ['key']);
       if (typeof data.key !== 'string' || !timingSafeEqual(digest(data.key), digest(this.key))) throw new WebUiError(401, '访问密钥不正确');
-      for (const [id, s] of this.sessions) if (s.expires <= Date.now()) this.sessions.delete(id);
-      if (token) this.sessions.delete(token);
-      if (this.sessions.size >= 4) this.sessions.delete(this.sessions.keys().next().value!);
-      const id = randomBytes(32).toString('hex'), csrf = randomBytes(32).toString('hex');
-      this.sessions.set(id, { csrf, expires: Date.now() + 12 * 3600000 });
-      res.setHeader('Set-Cookie', `ppa_web=${id}; HttpOnly; SameSite=Strict; Path=/; Max-Age=43200`);
+      if (path === '/api/launch') {
+        // 启动器持有密钥；浏览器只接收60秒内有效、用后即失效的登录入口。
+        const ticket = randomBytes(32).toString('hex');
+        this.launchTicket = { hash: digest(ticket), expires: Date.now() + 60000 };
+        return this.json(res, 200, { url: `${this.origin}/launch/${ticket}` });
+      }
+      const csrf = this.createSession(res, token);
       return this.json(res, 200, { authenticated: true, csrf });
+    }
+    if (path.startsWith('/launch/') && req.method === 'GET') {
+      const ticket = path.slice('/launch/'.length), pending = this.launchTicket;
+      if (!hashPattern.test(ticket) || !pending || pending.expires <= Date.now()
+        || !timingSafeEqual(digest(ticket), pending.hash)) throw new WebUiError(401, '登录入口已失效，请重新双击本机启动器。');
+      this.launchTicket = undefined;
+      this.createSession(res, token);
+      res.writeHead(303, { Location: '/#chat' }); res.end(); return;
     }
     if (path === '/api/session' && req.method === 'GET') return this.json(res, 200, { authenticated, ...(authenticated ? { csrf: session!.csrf } : {}) });
     if (path.startsWith('/api/')) {
@@ -159,6 +178,7 @@ export class WebUiServer {
     res.writeHead(200, { 'Content-Type': `${mime[ext] ?? 'application/octet-stream'}; charset=utf-8` }); res.end(content);
   }
   async stop(): Promise<void> {
+    this.launchTicket = undefined;
     this.sessions.clear(); this.server.closeAllConnections();
     if (this.server.listening) await new Promise<void>(done => this.server.close(() => done()));
     await this.channel.stop();

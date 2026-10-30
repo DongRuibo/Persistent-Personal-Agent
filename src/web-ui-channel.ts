@@ -7,6 +7,7 @@ import type { GoalService } from './goal-service.js';
 import type { BackgroundLane } from './background-lane.js';
 import type { Config } from './config.js';
 import type { WebFile, WebGoalDetail, WebRun, WebSnapshot } from './web-ui-types.js';
+import type { WebSearchCall } from './web-search-types.js';
 
 export const webTarget: MessageTarget & { channel: 'web' } = { channel: 'web', userId: 'local-user' };
 export const webChatKey = JSON.stringify(['web', webTarget.userId]);
@@ -21,17 +22,32 @@ export class WebUiChannel implements Channel {
     private readonly config: Config, private readonly goals?: GoalService, private readonly lane?: BackgroundLane,
     private readonly reportError: (error: unknown) => void = () => {}) {}
 
-  run(id: string, includeFileOutput = true): WebRun {
+  run(id: string, includeDetails = true): WebRun {
     if (!this.store.webUi.ownsRun(webOwner, targetJson, id)) throw new WebUiError(404, '执行记录不存在');
     const r = this.store.getRun(id)!;
-    const fileOperationId = includeFileOutput ? undefined : this.store.webUi.fileForRun(webOwner, targetJson, id);
+    const fileOperationId = includeDetails ? undefined : this.store.webUi.fileForRun(webOwner, targetJson, id);
     const calls = this.store.modelCalls(id);
+    const events = this.store.events(id), webCalls = new Map<string, WebSearchCall>();
+    for (const event of events) {
+      if (event.type !== 'tavily_call' || !event.details) continue;
+      const call = JSON.parse(event.details) as WebSearchCall;
+      // 进程退出不会重放请求；未结束的工具随原Run终态显示为失败。
+      if (call.status === 'running' && r.status !== 'running') {
+        call.status = 'failed'; call.message = '网页请求已中断，未自动重试。';
+      }
+      webCalls.set(call.id, call);
+    }
+    const web = [...webCalls.values()], last = web.at(-1);
+    const summary = last ? { calls: web.length, searches: web.filter(c => c.kind === 'search' && c.status === 'succeeded').length,
+      reads: web.filter(c => c.kind === 'fetch' && c.status === 'succeeded').length, sources: new Set(web.flatMap(c => c.sources.map(s => s.url))).size,
+      status: last.status, kind: last.kind, ...(last.message ? { message: last.message } : {}) } : undefined;
     const sum = (key: 'inputTokens' | 'outputTokens' | 'cacheReadTokens' | 'cacheWriteTokens') => calls.reduce((n, c) => n + c[key], 0);
     return { id: r.id, taskId: r.taskId, status: r.status, startedAt: r.startedAt, finishedAt: r.finishedAt,
       // 轮询中的文件Run只带详情引用，避免通过聊天/活动再次携带完整审批预览。
       output: fileOperationId ? null : r.output?.slice(0, 32768) ?? null, ...(fileOperationId ? { fileOperationId } : {}), truncated: (r.output?.length ?? 0) > 32768,
       error: r.error ? '执行失败或中断，请核对状态；详细诊断保留在本机。' : null,
-      viewed: this.store.events(id).some(e => e.type === 'delivery_succeeded'),
+      viewed: events.some(e => e.type === 'delivery_succeeded'),
+      ...(summary ? { web: summary, ...(includeDetails ? { webCalls: web } : {}) } : {}),
       usage: { calls: calls.length, inputTokens: sum('inputTokens'), outputTokens: sum('outputTokens'), cacheReadTokens: sum('cacheReadTokens'),
         cacheWriteTokens: sum('cacheWriteTokens'), cost: calls.length && calls.every(c => c.cost !== null) ? calls.reduce((n, c) => n + c.cost!, 0) : null } };
   }
@@ -111,7 +127,7 @@ export class WebUiChannel implements Channel {
     return { chats, tasks, goals, files,
       activity: this.store.webUi.runs(webOwner, targetJson).map(id => this.run(id, false)), inbox,
       capabilities: { goal: !!this.goals, skills: this.executor.skills?.list().map(s => s.id) ?? [], filesRead: !!this.config.localFiles?.enabled,
-        filesWrite: !!this.config.localOutput?.enabled, webRead: !!this.config.webReadEnabled, busy: !!this.work, push: false } };
+        filesWrite: !!this.config.localOutput?.enabled, webRead: !!this.config.webReadEnabled, webSearch: !!this.config.webSearchEnabled, busy: !!this.work, push: false } };
   }
   async sendMessage(message: OutboundMessage): Promise<void> {
     if (message.target?.channel !== 'web' || message.target.userId !== webTarget.userId || !message.runId

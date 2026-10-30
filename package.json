@@ -14,6 +14,7 @@
     "web:build": "tsc -p web/tsconfig.json && vite build --config web/vite.config.ts",
     "web:watch": "vite build --watch --config web/vite.config.ts",
     "web:start": "node dist/main.js --web-ui",
+    "web:local": "npm run build && npm run web:build && node scripts/start-web-local.mjs",
     "web:dev": "node --import tsx src/main.ts --web-ui",
     "web:preview:offline": "node --import tsx scripts/preview-web-ui.ts",
     "test": "node --import tsx --test tests/*.test.ts",
