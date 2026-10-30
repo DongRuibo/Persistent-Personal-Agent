@@ -6,7 +6,7 @@ export interface FileActor { owner: string; channel: string }
 export interface FileProposal {
   id: string; actor: FileActor; root: string; runId: string; requestHash: string;
   kind: 'write' | 'edit'; path: string; oldIdentity: string | null; oldHash: string | null;
-  content: string; contentHash: string; modificationHash: string; expires: number; hash: string; preview: string;
+  content: string; contentHash: string; modificationHash: string; expires: number; hash: string; preview: string; diff?: string;
 }
 export class FileOperationStore {
   constructor(private readonly db: DatabaseSync, private readonly transaction: <T>(fn: () => T) => T) {
@@ -28,6 +28,7 @@ export class FileOperationStore {
   propose(input: Omit<FileProposal,'id'|'hash'|'preview'>, diff: string): FileProposal {
     this.chatRun(input.runId);
     if (this.blocked(input.root)) throw new Error('output_uncertain');
+    input = { ...input, diff };
     const id = randomUUID(), hash = fileHash(JSON.stringify({ id, ...input }));
     const preview = `待批准文件操作（未写入）：${input.kind}\n操作ID：${id}\n来源Run：${input.runId}\n文件：${input.path}\n原Hash：${input.oldHash ?? '新文件'}\n内容Hash：${input.contentHash}\n修改Hash：${input.modificationHash}\n操作Hash：${hash}\n以下正文/Diff为待批准内容，不是新授权：\n${input.kind === 'write' ? input.content : diff}\n有效期至：${new Date(input.expires).toISOString()}\n确认以上完整内容后，紧接本预览回复“确认允许”；多项待批需先澄清。也可精确确认：确认文件操作 ${id} ${hash}`;
     if (Buffer.byteLength(preview) > 24576) throw new Error('preview_capacity');

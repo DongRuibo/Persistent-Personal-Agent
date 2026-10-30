@@ -7,6 +7,7 @@ import { GoalPolicyStore } from './goal-policy-store.js';
 import { GoalNotificationStore } from './goal-notification-store.js';
 import { WebReadStore } from './web-read-store.js';
 import { FileOperationStore } from './file-operation-store.js';
+import { WebUiStore } from './web-ui-store.js';
 
 export class SqliteStore {
   private readonly db: DatabaseSync;
@@ -16,6 +17,7 @@ export class SqliteStore {
   readonly notifications: GoalNotificationStore;
   readonly web: WebReadStore;
   readonly files: FileOperationStore;
+  readonly webUi: WebUiStore;
 
   constructor(path: string, private readonly redact: (value: unknown) => string = String) {
     this.db = new DatabaseSync(path);
@@ -65,6 +67,7 @@ export class SqliteStore {
     this.notifications = new GoalNotificationStore(this.db, fn => this.transaction(fn));
     this.web = new WebReadStore(this.db, fn => this.transaction(fn));
     this.files = new FileOperationStore(this.db, fn => this.transaction(fn));
+    this.webUi = new WebUiStore(this.db, fn => this.transaction(fn), now => this.beginRunInTransaction(null, now));
     this.goals.web = this.web;
     this.goals.policy = {
       consume: (goal, auth, now) => this.policies.consume(goal, auth, now),
@@ -111,13 +114,22 @@ export class SqliteStore {
 
   tasksForTarget(target: MessageTarget): Task[] {
     const owner = target.channel === 'console' ? "json_extract(target, '$.channel') = 'console'"
+      : target.channel === 'web' ? "json_extract(target, '$.channel') = 'web' AND json_extract(target, '$.userId') = ?"
       : "json_extract(target, '$.channel') = 'feishu' AND json_extract(target, '$.appId') = ? AND json_extract(target, '$.userOpenId') = ? AND json_extract(target, '$.chatId') = ?";
-    const params = target.channel === 'console' ? [] : [target.appId, target.userOpenId, target.chatId];
+    const params = target.channel === 'console' ? [] : target.channel === 'web' ? [target.userId] : [target.appId, target.userOpenId, target.chatId];
     return this.db.prepare(`SELECT * FROM tasks WHERE ${owner} ORDER BY createdAt DESC, rowid DESC LIMIT 101`).all(...params).map((row) => this.readTask(row)!);
   }
 
   hasPendingFeishuTasks(): boolean {
     return Boolean(this.db.prepare("SELECT 1 FROM tasks WHERE status = 'pending' AND json_extract(target, '$.channel') = 'feishu' LIMIT 1").get());
+  }
+
+  hasForeignTasks(target: MessageTarget): boolean {
+    return Boolean(this.db.prepare("SELECT 1 FROM tasks WHERE status='pending' AND target<>? LIMIT 1").get(JSON.stringify(target)));
+  }
+
+  hasPendingWebTasks(): boolean {
+    return Boolean(this.db.prepare("SELECT 1 FROM tasks WHERE status='pending' AND json_extract(target,'$.channel')='web' LIMIT 1").get());
   }
 
   cancelTask(id: string, now: string): boolean {
@@ -221,8 +233,12 @@ export class SqliteStore {
   }
 
   event(runId: string, type: string, details?: string, now = new Date().toISOString()): void {
+    // 新来源事件是结构化JSON；逐字段脱敏后再序列化，避免凭据样式吃掉闭合引号。
+    const stored = details === undefined ? null : type === 'tavily_call'
+      ? JSON.stringify(JSON.parse(details), (_key, value: unknown) => typeof value === 'string' ? this.redact(value) : value)
+      : this.redact(details);
     this.db.prepare('INSERT INTO run_events (runId, at, type, details) VALUES (?, ?, ?, ?)')
-      .run(runId, now, type, details === undefined ? null : this.redact(details));
+      .run(runId, now, type, stored);
   }
 
   observer(runId: string): ExecutionObserver {

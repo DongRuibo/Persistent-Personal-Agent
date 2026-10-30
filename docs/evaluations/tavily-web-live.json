@@ -1,0 +1,141 @@
+{
+  "date": "2026-10-30",
+  "mode": "live-model-and-keyless-tavily",
+  "dataIsolation": "new temporary Web SQLite/Session/Memory; no existing business history",
+  "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+  "provider": "api.siliconflow.cn",
+  "prompt": "Tavily目前不注册账号、不填写API Key，可以使用哪些接口？请根据官方资料，并打开最相关的官方说明页核对后回答，注明来源链接，200字以内。",
+  "run": {
+    "id": "de8963b7-b6cf-4fc6-8d6b-7fb946fdc4f8",
+    "taskId": null,
+    "status": "succeeded",
+    "startedAt": "2026-10-30T13:45:33.845Z",
+    "finishedAt": "2026-10-30T13:45:54.214Z",
+    "output": "Tavily 官方的“Keyless Access”（无需密钥）文档明确说明：不用注册、不用 API Key 时，可免费调用两个接口（有速率限制）：\n\n- `/search`（完整搜索，支持全部参数）\n- `/extract`（从 URL 提取正文）\n\n请求时需加请求头 `X-Tavily-Access-Mode: keyless`。远程 MCP（`https://mcp.tavily.com/mcp/`）同样带此头可获 `tavily-search`、`tavily-extract` 两个工具。`/crawl`、`/map`、`/research` 必须使用 API Key。\n\n来源：https://docs.tavily.com/documentation/keyless （已打开正文核对）",
+    "truncated": false,
+    "error": null,
+    "viewed": false,
+    "web": {
+      "calls": 4,
+      "searches": 3,
+      "reads": 1,
+      "sources": 10,
+      "status": "succeeded",
+      "kind": "fetch"
+    },
+    "webCalls": [
+      {
+        "id": "0d7f0e24-d164-4aad-89f9-50e43d03c1b4",
+        "kind": "search",
+        "status": "succeeded",
+        "at": "2026-10-30T13:45:35.281Z",
+        "query": "Tavily API without API key free no registration",
+        "sources": [
+          {
+            "title": "How to Add Real-Time Web Search to Your LLM Using Tavily",
+            "url": "https://www.freecodecamp.org/news/how-to-add-real-time-web-search-to-your-llm-using-tavily"
+          },
+          {
+            "title": "Making Search Free 4 All : r/LocalLLaMA",
+            "url": "https://www.reddit.com/r/LocalLLaMA/comments/1jkkqs3/free_search_making_search_free_4_all"
+          }
+        ],
+        "fetchedAt": "2026-10-30T13:45:37.838Z",
+        "truncated": false
+      },
+      {
+        "id": "2cefe001-3fc5-4ffa-8717-c2d8a99e6478",
+        "kind": "search",
+        "status": "succeeded",
+        "at": "2026-10-30T13:45:37.840Z",
+        "query": "Tavily official docs API key required endpoints",
+        "sources": [
+          {
+            "title": "GitHub - break-even-roas-calculator/tavily-api-key: <REDACTED> guide to getting a Tavily API key: free monthly credits, first search in Python, JS and cURL, gotchas. · GitHub",
+            "url": "https://github.com/break-even-roas-calculator/tavily-api-key"
+          },
+          {
+            "title": "Try Tavily Without an API Key - Tavily Docs",
+            "url": "https://docs.tavily.com/documentation/keyless?probe=23009"
+          },
+          {
+            "title": "HTTP API Guide - Tavily Hikari Docs",
+            "url": "https://ivanli-cn.github.io/tavily-hikari/http-api-guide.html"
+          },
+          {
+            "title": "Tavily API reference — AI search, extract, crawl and map | NativePort Docs",
+            "url": "https://docs.nativeport.ai/tavily"
+          },
+          {
+            "title": "Tavily Search and Extract API - looot docs",
+            "url": "https://docs.looot.ai/providers/tavily"
+          }
+        ],
+        "fetchedAt": "2026-10-30T13:45:44.020Z",
+        "truncated": false
+      },
+      {
+        "id": "1442f694-c9ee-452f-951c-6cf502ac378b",
+        "kind": "search",
+        "status": "succeeded",
+        "at": "2026-10-30T13:45:46.722Z",
+        "query": "docs.tavily.com keyless supported endpoints search extract",
+        "sources": [
+          {
+            "title": "Try Tavily Without an API Key - Tavily Docs",
+            "url": "https://docs.tavily.com/documentation/keyless"
+          },
+          {
+            "title": "Connect your AI agent to the web - Tavily Docs",
+            "url": "https://docs.tavily.com/"
+          },
+          {
+            "title": "Tavily Search - Tavily Docs",
+            "url": "https://docs.tavily.com/documentation/api-reference/endpoint/search"
+          }
+        ],
+        "fetchedAt": "2026-10-30T13:45:50.057Z",
+        "truncated": false
+      },
+      {
+        "id": "4af68bcf-31fe-42f3-9eb5-ca7a6526c8ea",
+        "kind": "fetch",
+        "status": "succeeded",
+        "at": "2026-10-30T13:45:51.134Z",
+        "url": "https://docs.tavily.com/documentation/keyless",
+        "sources": [
+          {
+            "title": "Try Tavily Without an API Key - Tavily Docs",
+            "url": "https://docs.tavily.com/documentation/keyless"
+          }
+        ],
+        "fetchedAt": "2026-10-30T13:45:51.604Z",
+        "truncated": false
+      }
+    ],
+    "usage": {
+      "calls": 5,
+      "inputTokens": 8307,
+      "outputTokens": 388,
+      "cacheReadTokens": 17920,
+      "cacheWriteTokens": 0,
+      "cost": null
+    }
+  },
+  "automaticWebDefault": true,
+  "searchSucceeded": true,
+  "fetchSucceeded": true,
+  "citedKnownSource": true,
+  "snapshotContainsWebCalls": false,
+  "fetchedBodies": [
+    {
+      "url": "https://docs.tavily.com/documentation/keyless",
+      "bytes": 6722,
+      "sha256": "82dcc435c08381c23450cc3430a4bfc911ba8c102ee16c7d989965c40ec99482",
+      "fetchedAt": "2026-10-30T13:45:51.604Z",
+      "truncated": false
+    }
+  ],
+  "billing": "Tavily keyless; model usage as reported, actual invoice not queried; cost null does not mean free",
+  "validationBoundary": "One public live question with Goal/Formation/Skills/local files disabled; final extract-failure consistency, structured-log redaction, and source styling validated offline without another paid run."
+}

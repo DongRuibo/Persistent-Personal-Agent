@@ -102,7 +102,7 @@ export class WebReadStore {
   private goalActor(actor: GoalActor): WebActor {
     // 与main的可信chatKey一致；还核对完整投递渠道，不以模型或Session正文中的身份匹配。
     const target = actor.target;
-    const key = target.channel === 'console' ? 'console' : JSON.stringify(['feishu', target.appId, target.userOpenId]);
+    const key = target.channel === 'console' ? 'console' : target.channel === 'web' ? JSON.stringify(['web', target.userId]) : JSON.stringify(['feishu', target.appId, target.userOpenId]);
     return { owner: createHash('sha256').update(key).digest('hex'), channel: JSON.stringify(target) };
   }
 

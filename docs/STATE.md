@@ -1,16 +1,34 @@
 # Personal Agent 当前状态与交接
 
-更新日期：2026-10-27（Asia/Shanghai）。此文件是当前快照；稳定架构见 [PROJECT.md](PROJECT.md)，开发规则见 [AGENTS.md](../AGENTS.md)，运行方法见 [README.md](../README.md)。
+更新日期：2026-10-31（Asia/Shanghai）。此文件是当前快照；稳定架构见 [PROJECT.md](PROJECT.md)，开发规则见 [AGENTS.md](../AGENTS.md)，运行方法见 [README.md](../README.md)。
 
 ## 当前阶段
 
-- T3编辑及自然确认取得一个限定真实人工成功样本：用户亲自使用固定`de127b35ed62bb4ec231ee315a088135a9c545e7`的普通隔离Console，输入编辑授权后收到真实待批准Diff，再以“确认”提交。Codex仅事后只读审计并记录，不追加模型/公网请求、不操作飞书或正式.env。
-- 提议Run `556fde91-6f0f-41b1-93cf-fe575c193bf2`只调用edit；确认Run `9cfd0e94-6f35-4dec-b2c5-2e0f3c4d4a12`没有工具或模型调用。两次投递成功，操作`27312590-eb0c-4686-a7f1-8634e6c55aed`为committed；批准完整内容、收据及实际summary.md的Hash均为`2696f545ee6837f4b328d200cf2689b6f9b87ade5cef76c864f8e057390683a2`，与旧正文相比只替换指定一句。
-- 本样本证明旧创建审批过期不妨碍已提交文件新编辑，无需追加资料read授权；原生Diff、新5分钟TTL及用户自然确认边界保留。原始模型复述Diff将一处未修改上下文“与”写为“及”，保留该差异，不记为原始文本逐字全对；用户实际收到的宿主Diff及文件没有这处误改。不外推其他确认/多目标/并发场景。
-- 本次只改报告和STATE，核对真实Run、Session、账本、文件、UTF-8/链接/差异及源码Hash，不重跑离线测试。修复源码既有Windows结果仍为typecheck/build/两个eval退出0、544项541通过/0失败/3平台跳过，专项27/27；Linux/Mac缺口保留。真实提议有2条SDK模型调用记录，确认0条；费用和供应商账单未核对，普通Console无整轮费用硬限额。
-- 见[修复报告及真实试用记录](evaluations/t3-edit-contract-fix.md)；只读证据在`E:/AgentWork/validation/t3-edit-natural-confirm-live-20261027`。文档在独立树`t3-edit-live-record`提交推送到`codex/t3-edit-contract-fix`；现用de127b3源码树、HEAD、构建、启动器及试用数据保留，不影响下次启动、不合并main。原错误Run和旧P1/N1、M5/M8失败及R2/S1/N3限定成功保持原结论。
+- 2026-10-31用户明确授权将现有27个Web改动文件提交并推送至`codex/web-app-w1-mvp`，交付仍使用开放的PR #2，`main`不合并、不改写。范围为Tavily免费联网/来源、一次性自动登录、连接状态/Task提醒、Mac日常入口及相关测试文档；此前“不自动提交推送”限制由本次明确授权解除。数据库、Pi Session、Memory正文、恢复备份及配置密钥继续只在本机，不纳入Git。
+- 本轮重新执行启动器语法、`npm run typecheck`、`npm run build`、`npm run web:build`均退出0；完整`TMPDIR=/private/tmp npm test`577通过/0失败/0跳过（约67.05秒），2条既有lucide构建警告保留。提交前按路径与敏感模式核对完整文件清单，验证期间业务文件Hash未变；只使用临时数据和模拟服务，未新增收费模型调用或真实Tavily请求。交付SHA及远端一致性由本轮发布核对并回报。
+
+以下为2026-10-30本机使用、恢复与验证记录，服务实际运行状态以当前启动终端为准。
+
+- 2026-10-30按用户要求正常停止当前Mac Web实例（已核实PID49639及其代码/数据目录后SIGINT）。4317监听关闭，启动器socket和数据库/Memory锁已释放；停服后保留8轮对话、2条收件箱、10条Run、2条Task、15条既有模型调用记录。等待用户自行使用`npm run web:local`重启，不改配置或重放请求。
+- 2026-10-30按用户要求恢复旧Windows Web数据：在已挂载旧E盘`/Volumes/新加卷/AgentWork/PersonalAgentWeb/data`找到原库、WAL和原生Session，先保留逐文件Hash副本，再通过SQLite backup合并WAL，接回主项目`data/web-ui`。6轮对话、2条已完成Task/收件箱、8条成功Run及原Session已恢复；浏览器刷新后显示6轮对话和2条提醒。恢复验收时4317运行正常，恢复操作新增模型调用/Run均0，未重跑旧任务；当前停服状态见首项。
+- 2026-10-30按当前Mac启动需求新增`scripts/start-web-local.mjs`及`npm run web:local`，命令构建前后端、只读Git主项目四项LLM配置，沿用原一次性入口自动登录。默认数据固定于主项目`data/web-ui`；私有Unix socket仅复用运行实例，模型/Web密钥不落盘或传给浏览器打开器；Ctrl+C正常停服。
+- 启动器语法、npm命令、构建及临时目录启动/复用/停止/重启检查通过；已只读现有LLM字段启动到HTTP200，实际模型请求0。终端真实Ctrl+C退出0、socket移除；本次恢复后使用同一`web:local`入口构建并启动日常实例，前后端构建通过。恢复仅操作本地数据并更新STATE，不改业务代码或模型配置，不重跑上一轮577项全量。操作说明见[Mac启动](web-app.md#macos日常启动)。
+- 2026-10-30在Mac按用户确认方案接入免费免Key Tavily：Web普通Chat默认启用`web_search/web_fetch`并自动判断联网，`WEB_SEARCH_ENABLED=false`可关闭。固定`web_get`及Console/飞书/Task/Goal权限不改；不增加数据库表、MCP或SDK内核改动，所有写入仍走原Guard。
+- 最终新增定点14/14、完整577/577通过（Mac、Node24.19.0，无跳过）；后端类型/构建和前端类型/构建通过。真实Web API+原Pi+现有硅基流动模型完成1轮公开问题：3次Search、1次Extract、5次模型响应，读取官方页6722字节并正确引用；费用未查，Tavily免费不表示模型免费。来源按需加载和浏览器无错误已验；详见[报告](evaluations/tavily-web-integration.md)。
+- Tavily验收使用的临时服务已停止；Mac日常入口为`web:local`，当前已按用户要求正常停止，数据恢复记录见上文。启动仅沿用已授权的四项LLM连接字段，不改正式.env；下述2026-10-28启动器/Edge记录属于历史Windows环境。该轮工作区改动保留，当时未提交、推送或合并；2026-10-31的发布授权见上文。
+
+- 用户反馈Task到时只进收件箱、Chat无提醒。只读核对实际记录：调度按时领取，约3秒后成功入箱，无投递错误；根因是Chat仅渲染前台聊天。新增`web/src/chat-timeline.ts`把原Task收件箱记录按到达时间投影为主动消息，显示任务事项/原结果/时间，轮询到新消息时沿用对话滚动；刷新不复制通知、不创建新Run或调用模型。Goal计划仍需原Chat展示/ACK，不借此投影。
+- 本轮新增`tests/web-chat-timeline.test.ts`3项，并增强原Scheduler/Pi→入箱→Chat投影集成断言，覆盖排序、重复刷新、空聊天、旧Task列表外记录、重启、原文/查看状态，以及文件/Goal边界。Web/T3及投影相关46/46通过，类型检查和前端生产构建通过；实际浏览器验证原提醒显示且轮询后仍仅1条，未重跑任务或新增收费请求。后端源代码未改，本轮未重跑全量/eval。
+- 用户反馈“当前离线”黄条：本机4317仍监听且session接口HTTP200；根因是前端以`navigator.onLine`判断回环服务并禁用发送/刷新。已改为实际session/snapshot结果决定连接状态，成功查询恢复可用；断连仍允许手动刷新，提示明确已保存记录不受影响，不自动重发操作。前端类型/生产构建通过，Edge刷新恢复现有历史且无黄条；本轮未提交模型请求，未重跑后端测试。
+- 用户要求取消日常手工密钥登录；已基于`1d21fcabfaa9a0f0057a8d03026447847a15f4a3`增量实现启动器自动登录。双击`E:/AgentWork/PersonalAgentWeb/start-web.cmd`自动在默认浏览器打开聊天；已运行时再次双击只打开现有实例，退出或会话过期后同样操作即可。手动登录折叠为高级方式。
+- 后端新增持原Web密钥签发的60秒一次性入口，兑换后沿用原12小时HttpOnly/SameSite会话并跳转干净的`/#chat`地址；重新签发、消费、过期、重启后旧入口失效。Host/Origin/CSRF、API鉴权、T3展示ACK和OperationGuard不放宽。启动器不再复制密钥，不将密钥写入文件、浏览器或日志。
+- 实际重启`http://127.0.0.1:4317`并验证Edge自动进入聊天页，退出后再次运行启动器也成功，监听PID保持同一进程、剪贴板保持不变。原有两条聊天/3次既有模型响应恢复；本轮未提交聊天、零新增模型调用。此前由Codex发起的最小真实检查为1次、2243输入/6输出token，SDK价格null不表示免费。
+- 后端typecheck/build、前端TypeScript/production构建通过；新增2项登录测试先红后绿，最终Web/T3相关43/43通过、0失败/跳过。覆盖签发鉴权、原Cookie/CSRF、一次消费、过期/重新签发/重启失效；未重跑全量测试或eval。前端原有2条lucide use-client非阻断警告仍在。
+- 本机PS1/MJS/CMD及说明已更新，旧无凭据脚本备份于`E:/AgentWork/PersonalAgentWeb/before-auto-login-20261028`；固定`data`目录和已授权只读的四项LLM配置保持，模型仍为现有硅基流动。未提交推送或合并main，未切换飞书/公网部署。Chat/Task/Memory/手动Goal可用，主动执行、Formation、Skills、固定目录Web/本地文件读取及文件输出保持关闭；新增Tavily独立控制；完整真实功能验收及现有Diff排版问题仍开放。
 
 ## 已完成功能
+
+- Web V1认证/API、真实Pi Chat与历史/Run恢复、Task/Goal只读工作台、T3创建/编辑Diff审批、活动/持久收件箱均已实现并通过离线测试。前端页面连接实际业务服务，不使用生产假数据；新建工作空间初始为空，使用既有数据目录时恢复历史。PWA只完成Manifest/图标/standalone基础，没有Service Worker或Push。
 
 - 终端对话与一次性任务创建、查询、仅 pending 取消；确定性命令可直接调用 Task Service。
 - 独立 Scheduler 与 `--daemon` 入口，不依赖 stdin；后台串行执行，结果通过统一 `Channel.sendMessage()` 输出到控制台。
@@ -35,13 +53,58 @@
 
 | 日期 | 修改及位置 |
 | --- | --- |
-| 2026-10-27 | 用户亲自完成真实edit→宿主待批Diff→自然“确认”提交：两Run投递成功，SQLite/Session/文件Hash一致；提议2条SDK模型记录、确认0条。保留原始Diff复述“与/及”差异，不外推全语义正确。Codex只读审计并发布报告/STATE，保持现用de127b3树及启动器不变，不新增请求或改main |
-| 2026-10-27 | T3只补编辑提示契约：旧审批过期不使已提交文件失效，edit自带受限内部读取并生成原生Diff，不要求追加资料read。新4项红1→绿、专项27/27；Windows544项541通过/3既有跳过、五关退出0，真实调用0。原a31与56项文件Hash保全；未改权限/确认/SDK、未提交推送或切换运行实例 |
-| 2026-10-27 | T2-B原生find注入glob与宿主有界字面grep，T3原生内存write/edit预览、Guard成功投递后一次确认、同库账本与保守恢复；开关默认关闭、后台零工具。Windows五关0，525项522通过/3平台跳过；原E盘和现用飞书启动器Hash不变。未真实模型/公网/飞书，历史失败和平台缺口保留；用户随后仅授权发布本批22文件到同名审查分支，发布只补STATE，不改产品/测试或main |
-| 2026-10-27 | T1复用现有两个Skill并补独立试用配置；T2-A默认关闭的Chat资料read/ls，固定副本身份/Hash、当前授权与有界注入操作，后台零工具，模拟飞书去重/身份保持。Windows五关0、513项510通过/3平台跳过；原E盘工作区和启动器Hash不变。仅离线、未启用正式环境，Linux引擎缺口及历史真实失败保留；用户随后仅授权发布本批15文件到同名审查分支，发布只补STATE，不改产品/测试或main |
-| 2026-10-26 | v2真实M1～M9各一次完整闭环：M3原始解释正确；M5/M8语义问题保留，按人工五维审阅后继续，宿主/交付/持久化/安全9/9。29HTTP全200/预留¥2.019916/零文档GET，3 Checkpoint引用链、重启和暂停、完整反馈及明确完成真实通过；正常停服，792历史文件及8树保全，仅新增报告/JSON/STATE，未改产品；用户随后授权仅向codex/manual-goal-console-prep提交推送这3份文件，发布只补STATE，不合并main或启动新验收 |
+| 2026-10-31 | 按用户授权整理现有27文件交付PR #2分支，涵盖免费联网、自动登录、连接/提醒及Mac入口；本轮类型/两端构建和完整577/577重验通过，密钥/聊天数据/恢复备份排除，不合并main |
+| 2026-10-30 | 旧Windows Web历史恢复：原盘保留、包含WAL的SQLite backup及原生Session接入主项目data/web-ui；6轮对话/2条提醒/8条Run恢复，完整性与Hash/浏览器刷新验证通过，模型调用及Run新增0。恢复副本和原Mac目录备份见下节；未改业务代码或提交推送 |
+| 2026-10-30 | Mac日常启动入口：web:local自动构建、复用LLM四字段、自动登录及固定Web数据；私有控制socket复用现有实例。临时/现有配置零模型请求启动、重启及终端Ctrl+C验证通过；README/Web说明更新，未提交推送 |
+| 2026-10-30 | 免费Tavily接入：Web自动Search/Fetch、预算与低信任Context、事件来源投影和按需展示。新增14/14、最终全量577/577、类型/两端构建及1轮真实搜索→读取→引用通过；保留现有模型和Guard，未提交推送 |
+| 2026-10-30 | 当前Key搜索核实：硅基流动凭据及模型可用；一次兼容Messages原生搜索请求仅返回客户端工具调用，没有检索结果。只读配置/核对官方文档，1次模型请求254输入/46输出token，账单未查；未接入搜索、修改配置或提交推送 |
 
 ## 验证记录与证据边界
+
+### Web本地改动提交推送前复核（2026-10-31）
+
+- 发布基线`1d21fcabfaa9a0f0057a8d03026447847a15f4a3`，目标`codex/web-app-w1-mvp`/PR #2；发布前`git ls-remote`核对远程分支同SHA，远程main仍`4ac6089a823fe5a6815499aa0ca9084bfd40bc58`。仅正常提交和快进推送，不切换/合并/重置main或其他工作树。
+- 27个文件均为已实现Web功能、测试及说明。整份候选清单UTF-8/敏感模式/路径检查通过，没有正式.env、数据库、Session、Memory、恢复副本、node_modules或构建产物；本轮不读取正式模型配置，不重跑公开问题真实验收或操作日常数据。
+- 启动器`node --check`、后端typecheck/build、前端TypeScript/生产构建通过；完整577/577通过，0失败/取消/跳过，约67.05秒。原有2条lucide use-client警告未新增。当前公开问题真实证据仍是10月30日的单问题样本，不把本轮模拟测试当新模型质量验证；Memory/Formation eval及浏览器交互本轮未重复运行。
+
+### 旧Windows Web历史恢复（2026-10-30）
+
+- 用户授权实际接入旧数据。原目录为已挂载旧E盘`/Volumes/新加卷/AgentWork/PersonalAgentWeb/data`；原盘只读，逐文件复制与SHA256复核一致。通过隔离SQLite副本和backup API纳入WAL，不直接搬运运行锁；源库与恢复后库的完整逻辑Dump一致，integrity_check=ok、foreign_key_check=0。
+- 停止已核实的空Mac Web实例后，以同盘目录重命名保留原工作空间为主项目`data/web-restores/20261030T145749Z/mac-before`，旧源完整副本在同级`raw-source`，当前固定数据为主项目`data/web-ui`。恢复报告为同级`recovery-report.json`；这些含私人历史的数据、清单和截图只在忽略的本地data目录，不进入Git。
+- 恢复web_ui_chats=6、web_ui_inbox=2、runs=8、tasks=2、model_calls=13；Task/Run全部succeeded，没有pending/running Task或Goal，不重放旧任务。原生Pi JSONL共28行，6个user/9个assistant/3个toolResult及原system，恢复启动后仍逐字节一致；原数据没有Memory Markdown。旧Console/飞书的`data/agent.db`未混入或改写。
+- 使用日常`npm run web:local`构建并启动4317，后端构建及前端类型/生产构建退出0，沿用既有2条lucide use-client非阻断警告。实际Chrome自动登录，6轮对话、2条任务提醒显示正常，刷新后仍存在且无离线提示；数据库/原生Session与源副本再核对通过，新增模型调用0、Run0。没有发送真实模型测试请求；本轮属于数据恢复，未改业务代码、未重跑全量测试，未提交/推送/合并。
+
+### Tavily免费搜索与网页读取（2026-10-30）
+
+- 新增`TavilyService`及两项公开SDK工具，固定keyless basic请求、公开网址入口和本轮来源范围；4请求/24KiB工具结果、单页16KiB、15秒/1MiB，限流即停止本轮后续请求。原context事件只投影最近24KiB网页正文，持久Session不改。原Run事件保存有界元数据，snapshot不携带来源列表/正文，Run详情才按需返回来源。
+- 最终`npm run typecheck`、`npm run build`、`npm run web:build`均退出0，完整`TMPDIR=/private/tmp npm test`577通过/0失败/0跳过（约69.81秒），新增定点14/14覆盖正常路径、边界、上下文、重复/重启、来源读取不ACK与Guard。新异常响应一致性及结构化日志脱敏检查在最终全量覆盖，未追加收费复验；两个eval未重跑，Memory/Formation实现未变。
+- 工作区原Windows依赖不适配Mac，按现有lock执行`npm ci`，lockfile不变；沙箱127.0.0.1监听EPERM后授权本机测试；Mac原`/var`临时目录别名触发已有link保护，改用真实`/private/tmp`，未放宽Guard。前端仍有既有2条lucide use-client非阻断警告。
+- 真实验收Run `de8963b7-b6cf-4fc6-8d6b-7fb946fdc4f8`，全新临时Web数据、只读四项现有LLM配置、未设置搜索开关，证明Web默认开启；3个不同查询/1次提取均成功，正文来源`https://docs.tavily.com/documentation/keyless`、6722字节且未截断，最终回答实际引用该页。5次模型响应，供应商统计输入8307/输出388/cacheRead17920，cost=null、账单未查询。原始公开回答/来源/正文Hash见[JSON](evaluations/tavily-web-live.json)，不外推其他问题的搜索质量。
+- 浏览器使用模拟模型/Tavily及临时库检查，展示搜索读取完成/来源/时间；轮询只读summary，首次展开detail计数2→3，反复展开及轮询仍3，无浏览器error/warn。截图在`/private/tmp/ppa-tavily-ui.png`，不提交截图。完整报告及逐文件目的见[接入说明](evaluations/tavily-web-integration.md)。
+
+### 接入前的模型Key与联网搜索核实（2026-10-30）
+
+- 仅只读主项目`.env`中的`LLM_PROVIDER/LLM_MODEL/LLM_BASE_URL/LLM_API_KEY`，当前是硅基流动兼容端点`https://api.siliconflow.cn/v1`、模型`deepseek-ai/DeepSeek-V4.1-Flash`。不以历史Windows启动记录证明当前运行状态，不读取其他配置、会话或业务数据，不展示密钥。
+- 向原服务商`GET /v1/models`得到HTTP200且包含当前模型；最多一次`POST /v1/messages`携带`web_search_20250305`原生工具定义、`max_uses=1`、关闭推理、输出上限96token。响应HTTP200、`stop_reason=tool_use`，仅一个客户端`tool_use`块，没有`web_search_tool_result`或实际搜索结果；没有执行该客户端工具或继续模型循环。凭据及模型调用可用，服务端搜索未成立。
+- [硅基流动Chat接口](https://docs.siliconflow.cn/docs/api/chat-completions-post)仅说明function工具，由客户端执行；[Messages接口](https://docs.siliconflow.cn/docs/api/messages-post)同样描述`input_schema`及`tool_use`，未找到可直接复用的托管搜索契约。[DeepSeek官方搜索](https://api-docs.deepseek.com/guides/search/)使用官方Key，不能将当前硅基流动Key当作官方Key发送。搜索工具接入仍未实施。
+- 实际1次模型请求，供应商返回254输入/46输出token；未查账单，不宣称免费。首次沙箱DNS受限未发出HTTP，申请联网后完成上述检查；没有自动重试模型、读取私人历史、修改配置/产品代码、重启服务或提交推送。仅补本页证据记录，未运行代码测试或构建。
+
+### Web App V1 PR #2定点优化（2026-10-28，基线2e04203）
+
+- 新增一项60文件真实临时SQLite/API回归，先红（snapshot仍含冻结正文）后绿；文件列表不带content/diff/preview/run，Chat/活动关联文件Run的output省略并提供详情引用，普通Chat输出保持。现有详情API完整内容/原Hash不变，GET不会ACK或授权，错误Hash拒绝，正确ACK后仍pending且没有新文件。原生编辑Diff/确认/过期/重复/身份等回归保持通过。
+- `npm run typecheck`、`npm run build`、`npm run web:build`退出0；`node --import tsx --test tests/web-ui.test.ts tests/web-ui-process.test.ts tests/file-output.test.ts tests/file-natural-confirm.test.ts tests/file-edit-contract.test.ts tests/file-proposal-contract.test.ts`最终41/41通过。没有运行新全量回归或eval；前端仍有原有两条lucide use-client非阻断警告。
+- 固定60项虚构提议样本（每项约3.6KiB正文）序列化响应1,358,466→74,326字节，约减少94.5%；只证明此样本的网络载荷缩小，没有声称SQL/CPU、真实长跑或全部应用请求按同等比例改善。
+- 独立Edge标签页/本机模拟模型验证：登录表单与输入框autocomplete都为off，错误登录后输入为空；聊天文件提议只显示详情入口，创建/编辑各打开一次详情、各一个GET，连续snapshot和刷新没有重拉正文；ACK后创建Confirm得到committed，编辑Reject得到cancelled，两者按钮禁用；刷新回列表且没有重放写操作。请求记录仅本机，不提交测试数据或截图。浏览器另有Zotero扩展连接错误，未发现来自应用的错误；一次全页截图超时，常规截图已成功保存在本机visualizations。
+- 已观察到现有原生Diff行在Edge中横向排布，下方完整宿主预览仍含冻结Diff；CSS与此布局未在本轮修改，留给人工体验和最终审查。真实密码管理器是否提示/保存由浏览器策略决定，不能由autocomplete=off保证。真实LLM/iPhone/公网部署和合并main均未执行。
+
+### Web App V1（2026-10-28）
+
+- `npm run typecheck`、`npm run build`、`npm run web:build`、`npm test`、`npm run eval:memory`、`npm run eval:formation`均退出0。最终557项554通过、0失败、3既有Windows平台跳过。新增13项覆盖认证/来源/CSRF/限流、有界请求、身份隔离、Pi调用、请求去重、重启中断不重放、Memory来源、Task/Goal入箱及失败不重跑、T3真实Diff/ACK/一次确认/过期/错误Hash/拒绝。Pi两包仍精确1.3.0，无SDK内核修改。
+- eval:memory为offline-lexical，无新模型请求；原固定样本Recall@5=0.75、4/4无答案拒答、支持记录精度1，不外推真实回答质量。eval:formation固定30条30通过、0未授权写、apiRequests=0；其自动生成的旧评测JSON已恢复到基线，不提交本地测试数据。
+- 实际浏览器390×844及1440×1000检查登录、导航、空状态、Chat/Markdown/代码块、Enter发送/Shift+Enter换行、刷新恢复、T3可见预览ACK→授权→宿主committed和禁用状态。两宽度无横向溢出，浏览器error/warn日志为空，不可信HTML未插入脚本。仅用新临时数据和本地模拟模型，截图保存在本机visualizations，不提交仓库。不等于真实iPhone、软键盘、真实模型语义或网络故障注入验收。
+- 前端构建约379kB JS（gzip约118kB）/33kB CSS；lucide-react的use-client被客户端打包器忽略有两条非阻断警告，production build退出0。无SSR路径，浏览器运行正常。敏感路径/常见凭据模式/UTF-8/差异检查通过；没有.env、SQLite、Session、Memory正文、测试数据或截图进入提交。
+- 未实现：Token流式、Memory管理页面、历史分页、Service Worker离线启动、Web Push、LAN/HTTPS及公网部署；未进行真实收费模型、iPhone、Linux/Mac和长期运行验收。Task/Goal控制通过原Chat+Guard，详情页面只读；通知入箱和用户已查看明确分开，不冒充推送。真实模型费用未确认。
+
 
 ### V3.0.1本地真实模型复验（2026-10-23，未全通过）
 
@@ -470,11 +533,9 @@ V1 原有自动化证据：39项测试使用模拟模型/飞书服务和虚拟�
 
 ## 下一步与需要提供的信息
 
-1. ChatGPT审阅[本地RC报告](evaluations/local-rc-review.md)、本STATE及固定候选b7a8735的差异；R2/S1/N3只在各自真实范围认可，历史失败不改判。
-2. 本轮仅获批RC报告/STATE向独立审查分支提交推送；若决定main发布，仍需另行授权并重新固定分支SHA，执行前核对远端，使用新detached发布目录，保留E盘8项和main工作树3项修改。
-3. 若决定手动Goal体验，先审查9条消息与最多40请求/¥6.60/零GET建议，重新核价、安全注入并为普通Console复用现有持久预留器的薄入口；本轮无实现或费用授权，不沿用旧额度。运行中pause/cancel竞态另冻结，不暗加到普通体验。
-4. N1/P1过度澄清列P1体验改进，允许合理澄清，不强迫凭空计划；如授权后改提示，应另做针对性回放与真实验证。本次只分析，没有修改。跨平台正式使用或主动执行前补Linux/Mac和完整生命周期证据。
-5. 按后续授权仅提交推送RC报告和STATE到codex/natural-pause-prep，独立核验远端SHA后停止；不启动真实模型/公网文档GET/飞书，不修改正式配置数据，不修复产品、不部署、不合并main。
+1. 审阅[Web V1 PR #2](https://github.com/DongRuibo/Persistent-Personal-Agent/pull/2)，按Web说明在独立数据中试用；本轮不合并或部署。使用[npm离线预览](web-app.md)无需提供Key；真实模型试用由操作者安全配置，勿发凭据到聊天。
+2. 本机Web目前仅PC回环访问。iPhone实机/LAN/HTTPS、Service Worker离线启动、Web Push、历史分页与长期稳定性均未实施或未验证，需后续明确任务。
+3. 历史真实语义失败及平台缺口不改判；若继续Goal/文件真实模型验收，需另行确定新隔离数据、用量边界及验收目标，不沿用旧额度或连接现用飞书。
 
 ## V2.0.2 关键文件（主体及本轮修复）
 

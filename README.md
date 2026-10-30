@@ -12,6 +12,26 @@ V2.1b.2 已按授权完成12次隔离真实复验：原六窗6/6，新两窗0/2�
 
 V2.1b.3 按授权定点修复上述三个问题：有成功显示的候选时，宿主为“第一条先不保存”等有界拒绝补执行；H01明确新项目丢弃错误旧目标，仅建议新增；H02只有能够从当前原文唯一核对的否定漏字才恢复完整属性。批准/版本/来源校验保留，未批准仍不保存。相同真实提取输出离线回放6/8→8/8；主模型漏工具由真实Pi＋模拟模型验证，不是新的收费模型或手机验收。复核命令：`node --import tsx scripts/replay-formation-revalidation.ts`；[修复与回归说明](docs/evaluations/v2.1b.3-formation-fixes.md)保留原始失败、前后对比和适用限制。正式Formation继续关闭。
 
+
+## Web App V1（独立本机模式）
+
+Node.js >=24.15.0（当前Mac使用24.19.0）。React/Vite 前端与 Node HTTP API 同源，固定绑定 `127.0.0.1`，默认关闭。本模式不读取 `.env`，不启动飞书；不要使用会自动加载正式配置的 `npm start/dev`。完整启动说明见 [Web App](docs/web-app.md)。
+
+macOS日常启动：在当前代码目录运行`npm run web:local`，自动构建、复用主项目四项LLM配置并打开浏览器自动登录，无需填写访问密钥。数据固定在主项目`data/web-ui`；保持终端运行，`Ctrl+C`停止，重复运行只打开现有实例。首次Mac运行不会自动导入旧Windows历史。下面是离线界面检查命令，日常使用无需运行它。
+
+```powershell
+npm ci
+npm run build
+npm run web:build
+# 零费用体验：临时SQLite + 原版Pi + 本机模拟模型，不需要任何真实Key。
+npm run web:preview:offline
+```
+
+上面命令会输出本机地址及固定测试登录密钥，数据仅为新建临时目录。该模式用来检查界面和离线路径，不是收费模型验收。正式模型连接需操作者自行安全注入独立配置，再运行 `npm run web:start`。Chat、Task/Goal、T3审批均复用原服务；通知仅存入应用收件箱，没有Web Push或iPhone推送。
+
+
+网页普通聊天现已接入免费免 Key Tavily `web_search` / `web_fetch`，需要最新资料时由模型自动决定搜索并读取来源，无需申请或填写搜索 Key。`--web-ui` 下默认开启，可在启动环境设置 `WEB_SEARCH_ENABLED=false` 关闭；Console、飞书、后台Task/Goal不新增工具。Tavily免费模式有限流，模型调用仍按原服务商计费，不自动切换收费搜索。更新代码后重新构建、重启本机Web服务并刷新浏览器即可；运行限制见 [Web说明](docs/web-app.md#自动联网与来源)，本轮隔离真实验证见 [接入验证](docs/evaluations/tavily-web-integration.md)。
+
 ## V3.0：可手动继续的长期目标（默认关闭，电脑核心验收通过）
 
 V3.0.1只做Batch5定点收尾：明确的正式计划步数会在草稿/审批时核对；“一项安排”拆成多个正式Step时保留完整草稿并要求确认口径，不静默裁剪。多重或二选一指代只澄清。详见[离线修复报告](docs/evaluations/v3.0.1-closeout.md)。用户随后批准[最小真实复验方案](docs/evaluations/v3.0.1-live-retest-plan.md)，专用Console入口落实16次/2元及32KiB限制后，实际14次/0.605440元预留即停服；数量和取消局部通过，自然暂停失败，暂不能完整收尾，见[真实复验报告](docs/evaluations/v3.0.1-live-retest.md)。本轮已结束，旧48/5入口不适用，不自动使用剩余额度。
