@@ -40,6 +40,7 @@ API Key 只从环境变量读取，仓库仅放脱敏样例。准确依赖版本
 | 概念 | 职责与生命周期 |
 | --- | --- |
 | Task / Run | SQLite 保存指令、下次执行时间、渠道接收目标、状态、执行结果与日志，跨进程重启保留 |
+| WorkThread | 当前本机Web工作主题；同应用库的独立关系元数据，按ID组织Goal/Task/Run/Memory，不代替其事实源、权限或执行 |
 | Pi Session | 短期对话上下文；交互使用 Pi JSONL 文件跨重启恢复，每个后台任务使用独立内存 Session 并释放；不是长期记忆 |
 | Memory Service | 跨 Session 的四类长期知识；Markdown 为事实源，独立 SQLite 为索引，不负责任务状态或完整聊天历史 |
 | Goal（V3.0） | 同应用库四表持久目标/不可变计划/稳定步骤/执行；Checkpoint 嵌入已提交 Execution。独立Runner每次授权最多推进一段，随后等待；不以Memory或Session代替进度 |
@@ -63,6 +64,7 @@ Pi SDK 使用公开 API，不 Fork、不修改内部源码和 Agent Loop。宿�
 | [src/memory-retriever.ts](../src/memory-retriever.ts) | 纯只读检索、原问题主体/日期/排除约束、IDF/类型/字段排序、同主体子句证明与候选/证据分离、有界改写协议 |
 | [src/memory-tools.ts](../src/memory-tools.ts) | 五项受控 Pi 工具，只返回操作收据，正文由 Context 临时提供 |
 | [src/task-service.ts](../src/task-service.ts) | 任务内容与时间校验、查询和 pending 取消规则 |
+| [src/work-thread-types.ts](../src/work-thread-types.ts)、[src/work-thread-store.ts](../src/work-thread-store.ts)、[src/work-thread-service.ts](../src/work-thread-service.ts) | 工作主题类型、增量关系表、当前Web归属校验与原对象元数据查询 |
 | [src/sqlite-store.ts](../src/sqlite-store.ts) | SQLite 表、原子领取、执行状态、日志、恢复与投递记录 |
 | [src/goal-types.ts](../src/goal-types.ts)、[src/goal-store.ts](../src/goal-store.ts) | Goal 最小类型、同连接事务、一次授权领取、版本计划、Checkpoint、控制收据与保守恢复；没有模型/渠道依赖 |
 | [src/goal-runner.ts](../src/goal-runner.ts)、[src/background-lane.ts](../src/background-lane.ts) | 有界快照与结果校验、独立片段、提交异常重读和停止、结果通知；与Task共享后台门，旧到期Task优先 |
@@ -276,3 +278,11 @@ snapshot只投影文件元数据，文件提议的Chat/活动Run只带详情引�
 Tavily通过公开SDK新增`web_search`/`web_fetch`，主入口仅向Web的普通Chat注入服务，`WEB_SEARCH_ENABLED=false`可关闭；Console/飞书/Task/Goal不注册。固定端点的basic Search/Extract采用keyless请求头，不复用模型凭据。只取当前用户或本轮搜索中的公开网址，工具结果按低信任资料处理；单轮4次/24KiB工具结果及每次15秒/1MiB响应限制，单页16KiB正文。原context扩展只投影最近24KiB网页正文，Session原记录和其他工具不改。调用元数据复用run_events，snapshot仅状态/次数/来源数量，已有Run详情API按需返回来源，不增加表或审批链。模型Key、费用与搜索免费模式相互独立；实现和真实证据见[接入报告](evaluations/tavily-web-integration.md)。
 
 React/Vite手机优先工作台提供Chat、Task/Goal、审批、活动与收件箱；最多100条列表/60项文件操作，无历史分页。Markdown禁用不可信HTML和远程图片。Manifest/图标/standalone与安全区已提供；无Service Worker或Web Push，不缓存私有API，不申请通知权限。实际离线验证及未验收边界见STATE，操作方法见[Web说明](web-app.md)。
+
+## WorkThread 第一阶段：工作主题与对象关联
+
+WorkThread 是长期存在的工作主题，与 Pi Session、Goal 的生命周期分离。`work_threads` / `work_links` 在现有应用SQLite增量建表，只保存名称、归属、状态、ID和来源等关系元数据，不回填旧业务数据，不复制正文或业务状态。关闭功能也保留表及关系，旧版本可以忽略新增表；这不是自动降级/数据库回滚方案。
+
+`work-thread-store.ts`负责同连接事务、主题归属与唯一关系；`work-thread-service.ts`复用Task目标、Goal actor、Web Run归属和Memory来源进行对象存在性/访问检查，按主题ID读取关联并实时投影原对象元数据。Memory来源必须为web，且来源Run属于当前Web身份；关联不增加访问权，原对象删除或不可见时保留ID并显示不可用。只在可信Web宿主组装服务，不接受用户提供owner/target/channel。
+
+`WORK_THREADS_ENABLED=false`为默认值。开启只增加Web“工作主题”页及认证/CSRF保护的管理API，支持明确的创建、改名、归档/恢复、关联和移除；归档不影响原业务执行。工作空间限100主题、主题限100关联，列表与每类候选上限100；无分页。用户仍通过原Chat与OperationGuard控制业务对象；没有新增Pi工具、Router、Worker、事件订阅、自动归类、自动Memory写入或Chain of Recall。实现与验证见[阶段交付记录](evaluations/workthread-foundation.md)，启用方法统一见[README](../README.md#workthread工作主题与关联默认关闭)。

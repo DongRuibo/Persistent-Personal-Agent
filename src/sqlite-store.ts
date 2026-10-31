@@ -8,6 +8,7 @@ import { GoalNotificationStore } from './goal-notification-store.js';
 import { WebReadStore } from './web-read-store.js';
 import { FileOperationStore } from './file-operation-store.js';
 import { WebUiStore } from './web-ui-store.js';
+import { WorkThreadStore } from './work-thread-store.js';
 
 export class SqliteStore {
   private readonly db: DatabaseSync;
@@ -18,6 +19,7 @@ export class SqliteStore {
   readonly web: WebReadStore;
   readonly files: FileOperationStore;
   readonly webUi: WebUiStore;
+  readonly workThreads: WorkThreadStore;
 
   constructor(path: string, private readonly redact: (value: unknown) => string = String) {
     this.db = new DatabaseSync(path);
@@ -68,6 +70,7 @@ export class SqliteStore {
     this.web = new WebReadStore(this.db, fn => this.transaction(fn));
     this.files = new FileOperationStore(this.db, fn => this.transaction(fn));
     this.webUi = new WebUiStore(this.db, fn => this.transaction(fn), now => this.beginRunInTransaction(null, now));
+    this.workThreads = new WorkThreadStore(this.db, fn => this.transaction(fn));
     this.goals.web = this.web;
     this.goals.policy = {
       consume: (goal, auth, now) => this.policies.consume(goal, auth, now),

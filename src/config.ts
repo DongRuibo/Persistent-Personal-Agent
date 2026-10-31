@@ -20,6 +20,7 @@ export interface Config {
   skillsEnabled?: boolean;
   webReadEnabled?: boolean;
   webSearchEnabled?: boolean;
+  workThreadsEnabled?: boolean;
   skillsDir?: string;
   localFiles?: { enabled: boolean; workspace: string; searchEnabled?: boolean };
   localOutput?: { enabled: boolean; workspace: string };
@@ -85,6 +86,7 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env): Config {
   if (env.GOAL_ENABLED !== undefined && !['true', 'false'].includes(env.GOAL_ENABLED)) throw new Error('GOAL_ENABLED 必须为 true 或 false');
   if (env.SKILLS_ENABLED !== undefined && !['true', 'false'].includes(env.SKILLS_ENABLED)) throw new Error('SKILLS_ENABLED 必须为 true 或 false');
   if (env.WEB_READ_ENABLED !== undefined && !['true', 'false'].includes(env.WEB_READ_ENABLED)) throw new Error('WEB_READ_ENABLED 必须为 true 或 false');
+  if (env.WORK_THREADS_ENABLED !== undefined && !['true', 'false'].includes(env.WORK_THREADS_ENABLED)) throw new Error('WORK_THREADS_ENABLED 必须为 true 或 false');
   if (env.WEB_SEARCH_ENABLED !== undefined && !['true', 'false'].includes(env.WEB_SEARCH_ENABLED)) throw new Error('WEB_SEARCH_ENABLED 必须为 true 或 false');
   const skillsDir = resolve(env.SKILLS_DIR || `${databasePath}.skills`);
   if (env.SKILLS_ENABLED === 'true' && (skillsDir === dirname(skillsDir) || contains(skillsDir, process.cwd())
@@ -139,6 +141,7 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env): Config {
     localOutput: { enabled: outputEnabled, workspace: output },
     webReadEnabled: env.WEB_READ_ENABLED === 'true',
     webSearchEnabled: env.WEB_SEARCH_ENABLED === 'true',
+    workThreadsEnabled: env.WORK_THREADS_ENABLED === 'true',
     proactive: { enabled: proactiveEnabled, inputRate: proactiveNumber('PROACTIVE_INPUT_CNY_PER_MILLION', 0),
       outputRate: proactiveNumber('PROACTIVE_OUTPUT_CNY_PER_MILLION', 0), dailyCalls: proactiveNumber('PROACTIVE_DAILY_CALLS', 20, true),
       dailyExecutions: proactiveNumber('PROACTIVE_DAILY_EXECUTIONS', 20, true), dailyBudgetCny: proactiveNumber('PROACTIVE_DAILY_BUDGET_CNY', 1),

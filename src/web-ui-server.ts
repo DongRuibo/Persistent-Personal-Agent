@@ -5,6 +5,8 @@ import { readFile, mkdir, readdir, writeFile } from 'node:fs/promises';
 import { resolve, sep, join, isAbsolute } from 'node:path';
 import { once } from 'node:events';
 import { WebUiChannel, WebUiError } from './web-ui-channel.js';
+import { WorkThreadError } from './work-thread-store.js';
+import type { WorkObjectKind } from './work-thread-types.js';
 
 export interface WebUiConfig { key: string; port: number; dataDir: string }
 export async function prepareWebUiData(dataDir: string): Promise<void> {
@@ -48,8 +50,8 @@ export class WebUiServer {
   private origin = '';
   readonly server = createServer({ maxHeaderSize: 8192, requestTimeout: 15000, headersTimeout: 10000 }, (req, res) => {
     void this.handle(req, res).catch(error => {
-      if (!res.headersSent) this.json(res, error instanceof WebUiError ? error.status : 500,
-        { error: error instanceof WebUiError ? error.message : '本机服务暂时无法完成请求，请检查本地日志。' });
+      if (!res.headersSent) this.json(res, error instanceof WebUiError || error instanceof WorkThreadError ? error.status : 500,
+        { error: error instanceof WebUiError || error instanceof WorkThreadError ? error.message : '本机服务暂时无法完成请求，请检查本地日志。' });
       else res.end();
     });
   });
@@ -132,6 +134,41 @@ export class WebUiServer {
         await this.body(req, []); this.sessions.delete(token!);
         res.setHeader('Set-Cookie', 'ppa_web=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0');
         return this.json(res, 200, { authenticated: false });
+      }
+      if (path.startsWith('/api/work-')) {
+        const threads = this.channel.workThreads;
+        if (!threads) throw new WebUiError(404, '接口不存在');
+        const objects = /^\/api\/work-objects\/(goal|task|run|memory)$/u.exec(path);
+        if (objects && req.method === 'GET') return this.json(res, 200, threads.candidates(objects[1] as WorkObjectKind));
+        if (path === '/api/work-threads') {
+          if (req.method === 'GET') return this.json(res, 200, threads.list());
+          const data = await this.body(req, ['id', 'title']);
+          if (typeof data.id !== 'string' || !uuid.test(data.id) || typeof data.title !== 'string'
+            || !data.title.trim() || data.title.trim().length > 120) throw new WebUiError(400, '主题 ID 或名称无效（名称限120字）');
+          return this.json(res, 200, threads.create(data.id, data.title.trim()));
+        }
+        const thread = /^\/api\/work-threads\/([a-f0-9-]{36})(\/links)?$/u.exec(path);
+        if (thread && uuid.test(thread[1]!)) {
+          if (!thread[2] && req.method === 'GET') return this.json(res, 200, threads.detail(thread[1]!));
+          if (!thread[2] && req.method === 'POST') {
+            const data = await this.body(req, ['title', 'status']);
+            if (!Object.keys(data).length || (data.title !== undefined && (typeof data.title !== 'string' || !data.title.trim() || data.title.trim().length > 120))
+              || (data.status !== undefined && data.status !== 'active' && data.status !== 'archived')) throw new WebUiError(400, '主题名称或状态无效');
+            return this.json(res, 200, threads.update(thread[1]!, {
+              ...(data.title !== undefined ? { title: (data.title as string).trim() } : {}),
+              ...(data.status !== undefined ? { status: data.status as 'active' | 'archived' } : {}),
+            }));
+          }
+          if (thread[2] && req.method === 'POST') {
+            const data = await this.body(req, ['kind', 'objectId', 'action']);
+            if (typeof data.kind !== 'string' || !['goal', 'task', 'run', 'memory'].includes(data.kind) || typeof data.objectId !== 'string' || !uuid.test(data.objectId)
+              || (data.action !== 'link' && data.action !== 'unlink')) throw new WebUiError(400, '关联参数无效');
+            if (data.action === 'link') threads.link(thread[1]!, data.kind as WorkObjectKind, data.objectId);
+            else threads.unlink(thread[1]!, data.kind as WorkObjectKind, data.objectId);
+            return this.json(res, 200, { changed: true });
+          }
+        }
+        throw new WebUiError(404, '接口不存在');
       }
       if (path === '/api/snapshot' && req.method === 'GET') return this.json(res, 200, this.channel.snapshot());
       if (path === '/api/chat' && req.method === 'POST') {

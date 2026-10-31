@@ -1801,7 +1801,8 @@ button.primary,
   }
   .sidebar nav {
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
     gap: 0;
     width: 100%;
     height: 64px;
@@ -2514,4 +2515,36 @@ button.primary,
     transition: none !important;
     animation: none !important;
   }
+}
+
+/* 工作主题复用工作台面板，窄屏按创建、列表、详情顺序展示。 */
+.work-thread-layout { display: grid; grid-template-columns: minmax(240px, 0.7fr) minmax(0, 1.7fr); gap: 20px; align-items: start; }
+.work-thread-list, .work-thread-detail { padding: 24px; min-width: 0; }
+.work-thread-create, .work-thread-title, .work-thread-link { display: grid; gap: 10px; }
+.work-thread-layout label { font-size: 12px; font-weight: 600; display: grid; gap: 8px; }
+.work-thread-layout input, .work-thread-layout select { font: inherit; width: 100%; min-width: 0; border: 1px solid #e2e6ed; border-radius: 8px; padding: 10px; background: white; color: inherit; }
+.work-thread-layout select:focus-visible { outline: 3px solid #a5b9fb; outline-offset: 3px; }
+.work-thread-items { display: grid; gap: 8px; margin-top: 24px; max-height: 560px; overflow: auto; }
+.work-thread-items button { text-align: left; justify-content: start; }
+.work-thread-items button.selected { background: #eff3ff; border-color: #afc0f7; color: var(--blue); }
+.work-thread-items span { display: grid; gap: 5px; overflow-wrap: anywhere; }
+.work-thread-items small { color: var(--muted); }
+.work-thread-title > div, .work-thread-meta, .work-thread-link > div, .work-thread-links article { display: flex; align-items: center; gap: 12px; }
+.work-thread-meta { justify-content: space-between; margin: 16px 0; color: var(--muted); font-size: 12px; flex-wrap: wrap; }
+.work-thread-layout button { flex-shrink: 0; }
+.work-thread-id, .work-thread-links p, .work-thread-links h3 { overflow-wrap: anywhere; }
+.work-thread-link { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 24px 0; margin: 20px 0; }
+.work-thread-link > div { align-items: end; }
+.work-thread-object { flex: 1; min-width: 0; }
+.work-thread-links { display: grid; gap: 16px; margin-top: 24px; }
+.work-thread-links article { justify-content: space-between; border-top: 1px solid var(--line); padding-top: 16px; }
+.work-thread-links article > div { min-width: 0; }
+.work-thread-links small { color: var(--muted); }
+.work-thread-links h3 { margin: 8px 0; }
+.work-thread-error { margin-bottom: 16px; }
+@media (max-width: 1000px) { .work-thread-layout { grid-template-columns: 1fr; } .work-thread-items { max-height: 240px; } }
+@media (max-width: 600px) {
+  .work-thread-list, .work-thread-detail { padding: 18px; }
+  .work-thread-title > div, .work-thread-link > div, .work-thread-links article { flex-direction: column; align-items: stretch; }
+  .work-thread-object { flex: auto; }
 }

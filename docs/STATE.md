@@ -1,33 +1,18 @@
 # Personal Agent 当前状态与交接
 
-更新日期：2026-10-31（Asia/Shanghai）。此文件是当前快照；稳定架构见 [PROJECT.md](PROJECT.md)，开发规则见 [AGENTS.md](../AGENTS.md)，运行方法见 [README.md](../README.md)。
+更新日期：2026-11-01（Asia/Shanghai）。此文件是当前快照；稳定架构见 [PROJECT.md](PROJECT.md)，开发规则见 [AGENTS.md](../AGENTS.md)，运行方法见 [README.md](../README.md)。
 
 ## 当前阶段
 
-- 2026-10-31用户明确授权将现有27个Web改动文件提交并推送至`codex/web-app-w1-mvp`，交付仍使用开放的PR #2，`main`不合并、不改写。范围为Tavily免费联网/来源、一次性自动登录、连接状态/Task提醒、Mac日常入口及相关测试文档；此前“不自动提交推送”限制由本次明确授权解除。数据库、Pi Session、Memory正文、恢复备份及配置密钥继续只在本机，不纳入Git。
-- 本轮重新执行启动器语法、`npm run typecheck`、`npm run build`、`npm run web:build`均退出0；完整`TMPDIR=/private/tmp npm test`577通过/0失败/0跳过（约67.05秒），2条既有lucide构建警告保留。提交前按路径与敏感模式核对完整文件清单，验证期间业务文件Hash未变；只使用临时数据和模拟服务，未新增收费模型调用或真实Tavily请求。交付SHA及远端一致性由本轮发布核对并回报。
-
-以下为2026-10-30本机使用、恢复与验证记录，服务实际运行状态以当前启动终端为准。
-
-- 2026-10-30按用户要求正常停止当前Mac Web实例（已核实PID49639及其代码/数据目录后SIGINT）。4317监听关闭，启动器socket和数据库/Memory锁已释放；停服后保留8轮对话、2条收件箱、10条Run、2条Task、15条既有模型调用记录。等待用户自行使用`npm run web:local`重启，不改配置或重放请求。
-- 2026-10-30按用户要求恢复旧Windows Web数据：在已挂载旧E盘`/Volumes/新加卷/AgentWork/PersonalAgentWeb/data`找到原库、WAL和原生Session，先保留逐文件Hash副本，再通过SQLite backup合并WAL，接回主项目`data/web-ui`。6轮对话、2条已完成Task/收件箱、8条成功Run及原Session已恢复；浏览器刷新后显示6轮对话和2条提醒。恢复验收时4317运行正常，恢复操作新增模型调用/Run均0，未重跑旧任务；当前停服状态见首项。
-- 2026-10-30按当前Mac启动需求新增`scripts/start-web-local.mjs`及`npm run web:local`，命令构建前后端、只读Git主项目四项LLM配置，沿用原一次性入口自动登录。默认数据固定于主项目`data/web-ui`；私有Unix socket仅复用运行实例，模型/Web密钥不落盘或传给浏览器打开器；Ctrl+C正常停服。
-- 启动器语法、npm命令、构建及临时目录启动/复用/停止/重启检查通过；已只读现有LLM字段启动到HTTP200，实际模型请求0。终端真实Ctrl+C退出0、socket移除；本次恢复后使用同一`web:local`入口构建并启动日常实例，前后端构建通过。恢复仅操作本地数据并更新STATE，不改业务代码或模型配置，不重跑上一轮577项全量。操作说明见[Mac启动](web-app.md#macos日常启动)。
-- 2026-10-30在Mac按用户确认方案接入免费免Key Tavily：Web普通Chat默认启用`web_search/web_fetch`并自动判断联网，`WEB_SEARCH_ENABLED=false`可关闭。固定`web_get`及Console/飞书/Task/Goal权限不改；不增加数据库表、MCP或SDK内核改动，所有写入仍走原Guard。
-- 最终新增定点14/14、完整577/577通过（Mac、Node24.19.0，无跳过）；后端类型/构建和前端类型/构建通过。真实Web API+原Pi+现有硅基流动模型完成1轮公开问题：3次Search、1次Extract、5次模型响应，读取官方页6722字节并正确引用；费用未查，Tavily免费不表示模型免费。来源按需加载和浏览器无错误已验；详见[报告](evaluations/tavily-web-integration.md)。
-- Tavily验收使用的临时服务已停止；Mac日常入口为`web:local`，当前已按用户要求正常停止，数据恢复记录见上文。启动仅沿用已授权的四项LLM连接字段，不改正式.env；下述2026-10-28启动器/Edge记录属于历史Windows环境。该轮工作区改动保留，当时未提交、推送或合并；2026-10-31的发布授权见上文。
-
-- 用户反馈Task到时只进收件箱、Chat无提醒。只读核对实际记录：调度按时领取，约3秒后成功入箱，无投递错误；根因是Chat仅渲染前台聊天。新增`web/src/chat-timeline.ts`把原Task收件箱记录按到达时间投影为主动消息，显示任务事项/原结果/时间，轮询到新消息时沿用对话滚动；刷新不复制通知、不创建新Run或调用模型。Goal计划仍需原Chat展示/ACK，不借此投影。
-- 本轮新增`tests/web-chat-timeline.test.ts`3项，并增强原Scheduler/Pi→入箱→Chat投影集成断言，覆盖排序、重复刷新、空聊天、旧Task列表外记录、重启、原文/查看状态，以及文件/Goal边界。Web/T3及投影相关46/46通过，类型检查和前端生产构建通过；实际浏览器验证原提醒显示且轮询后仍仅1条，未重跑任务或新增收费请求。后端源代码未改，本轮未重跑全量/eval。
-- 用户反馈“当前离线”黄条：本机4317仍监听且session接口HTTP200；根因是前端以`navigator.onLine`判断回环服务并禁用发送/刷新。已改为实际session/snapshot结果决定连接状态，成功查询恢复可用；断连仍允许手动刷新，提示明确已保存记录不受影响，不自动重发操作。前端类型/生产构建通过，Edge刷新恢复现有历史且无黄条；本轮未提交模型请求，未重跑后端测试。
-- 用户要求取消日常手工密钥登录；已基于`1d21fcabfaa9a0f0057a8d03026447847a15f4a3`增量实现启动器自动登录。双击`E:/AgentWork/PersonalAgentWeb/start-web.cmd`自动在默认浏览器打开聊天；已运行时再次双击只打开现有实例，退出或会话过期后同样操作即可。手动登录折叠为高级方式。
-- 后端新增持原Web密钥签发的60秒一次性入口，兑换后沿用原12小时HttpOnly/SameSite会话并跳转干净的`/#chat`地址；重新签发、消费、过期、重启后旧入口失效。Host/Origin/CSRF、API鉴权、T3展示ACK和OperationGuard不放宽。启动器不再复制密钥，不将密钥写入文件、浏览器或日志。
-- 实际重启`http://127.0.0.1:4317`并验证Edge自动进入聊天页，退出后再次运行启动器也成功，监听PID保持同一进程、剪贴板保持不变。原有两条聊天/3次既有模型响应恢复；本轮未提交聊天、零新增模型调用。此前由Codex发起的最小真实检查为1次、2243输入/6输出token，SDK价格null不表示免费。
-- 后端typecheck/build、前端TypeScript/production构建通过；新增2项登录测试先红后绿，最终Web/T3相关43/43通过、0失败/跳过。覆盖签发鉴权、原Cookie/CSRF、一次消费、过期/重新签发/重启失效；未重跑全量测试或eval。前端原有2条lucide use-client非阻断警告仍在。
-- 本机PS1/MJS/CMD及说明已更新，旧无凭据脚本备份于`E:/AgentWork/PersonalAgentWeb/before-auto-login-20261028`；固定`data`目录和已授权只读的四项LLM配置保持，模型仍为现有硅基流动。未提交推送或合并main，未切换飞书/公网部署。Chat/Task/Memory/手动Goal可用，主动执行、Formation、Skills、固定目录Web/本地文件读取及文件输出保持关闭；新增Tavily独立控制；完整真实功能验收及现有Diff排版问题仍开放。
+- PR #2已按此前确认严格快进合并，main与origin/main为`75b724f17d17a70ad51caf7c4697251259d7ef3c`；原4提交保留，GitHub已merged，合并状态见[PR #2](https://github.com/DongRuibo/Persistent-Personal-Agent/pull/2)。本轮从该基线创建本地`codex/workthread-foundation`，未再修改main。
+- 用户随后通过粘贴任务明确授权第一阶段WorkThread。已实现默认关闭的主题/关联底座：同SQLite增量建表、手动创建/改名/归档/恢复、四类对象关联/去重/移除、归属校验和Web页面；只保存关系元数据，不改变Pi/GoalRunner/Scheduler/Memory/OperationGuard。没有Router、Worker并行、事件订阅或Chain of Recall。
+- Mac/Node24.19.0完成typecheck、build、web:build及全量588/588测试，0失败/0跳过；含旧库迁移、真正Web进程重启、四类关联及跨渠道拒绝。隔离浏览器通过创建、关联、改名、归档/恢复、移除/恢复关联和刷新恢复；1280px/390px无横向溢出，控制台warn/error为空。详细文件、数据模型与限制见[WorkThread交付记录](evaluations/workthread-foundation.md)。
+- 原本未提交的STATE、路线图`docs/personal-agent-roadmap.md`和PR审查报告`docs/evaluations/web-app-v1-pr2-merge-review.md`在本轮开始前再次保全至`/private/tmp/ppa-workthread-79fv9hwm/original`；本轮仅发布WorkThread相关代码、测试、README/PROJECT/STATE与交付记录；另外两份文件字节不变，保留本地，不随本PR发布。旧stash `78da489cc33c66d153ec24552871c3f4e2beaed8`保留，禁止整份pop覆盖新版STATE。路线图中的旧main描述仍是历史快照。
+- 用户已明确授权将WorkThread代码、测试和相关文档提交到当前分支、推送并创建PR供审查；本次发布进行中，暂不合并main。未访问/修改正式.env、数据库、Session、Memory或备份；未启用正式WorkThread、运行飞书或发起收费模型/Tavily请求。验证只使用新临时数据与本机模拟端点，不能视为正式数据/真实模型/手机/长期运行验收。
 
 ## 已完成功能
 
+- WorkThread第一阶段：本机Web主题与Goal/Task/Run/Memory关系，默认关闭；只组织元数据，显式管理、去重/归属检查、增量迁移和重启保留，原对象状态与权限由原服务负责。
 - Web V1认证/API、真实Pi Chat与历史/Run恢复、Task/Goal只读工作台、T3创建/编辑Diff审批、活动/持久收件箱均已实现并通过离线测试。前端页面连接实际业务服务，不使用生产假数据；新建工作空间初始为空，使用既有数据目录时恢复历史。PWA只完成Manifest/图标/standalone基础，没有Service Worker或Push。
 
 - 终端对话与一次性任务创建、查询、仅 pending 取消；确定性命令可直接调用 Task Service。
@@ -53,13 +38,18 @@
 
 | 日期 | 修改及位置 |
 | --- | --- |
+| 2026-11-01 | WorkThread第一阶段：新增关系类型/存储/服务与Web页面，复用现有鉴权/CSRF和对象归属；默认关闭。类型/两端构建、588/588离线回归和桌面/窄屏浏览器验证通过。按用户授权准备在当前分支提交/推送并创建PR供审查；暂不合并main，正式数据未触碰 |
+| 2026-11-01 | PR #2按确认严格快进至75b724f，GitHub已merged；本地main同步、原4提交保留，三份本地文档先保全到stash再整合。日常目录按lock离线补齐依赖，语法/类型/两端构建通过；同SHA前轮577/577回归有效，零新收费调用。合并证据见审查报告，文档未另提交 |
 | 2026-10-31 | 按用户授权整理现有27文件交付PR #2分支，涵盖免费联网、自动登录、连接/提醒及Mac入口；本轮类型/两端构建和完整577/577重验通过，密钥/聊天数据/恢复备份排除，不合并main |
 | 2026-10-30 | 旧Windows Web历史恢复：原盘保留、包含WAL的SQLite backup及原生Session接入主项目data/web-ui；6轮对话/2条提醒/8条Run恢复，完整性与Hash/浏览器刷新验证通过，模型调用及Run新增0。恢复副本和原Mac目录备份见下节；未改业务代码或提交推送 |
 | 2026-10-30 | Mac日常启动入口：web:local自动构建、复用LLM四字段、自动登录及固定Web数据；私有控制socket复用现有实例。临时/现有配置零模型请求启动、重启及终端Ctrl+C验证通过；README/Web说明更新，未提交推送 |
-| 2026-10-30 | 免费Tavily接入：Web自动Search/Fetch、预算与低信任Context、事件来源投影和按需展示。新增14/14、最终全量577/577、类型/两端构建及1轮真实搜索→读取→引用通过；保留现有模型和Guard，未提交推送 |
-| 2026-10-30 | 当前Key搜索核实：硅基流动凭据及模型可用；一次兼容Messages原生搜索请求仅返回客户端工具调用，没有检索结果。只读配置/核对官方文档，1次模型请求254输入/46输出token，账单未查；未接入搜索、修改配置或提交推送 |
 
 ## 验证记录与证据边界
+
+### WorkThread第一阶段（2026-11-01，离线通过）
+
+- 10项新增WorkThread测试及新增1项开关开启的真实进程用例，原577项回归保留：588/588、0失败/0跳过，约73.54秒。typecheck、build、web:build退出0；仅保留2条既有lucide构建警告。测试中的Goal/文件来源Run必须处于原有合法状态，已修正夹具顺序，没有为测试放宽原服务。
+- 本机浏览器用新临时SQLite和合成Goal/Task/Run/Memory验证，页面未调用模型，控制台warn/error为空。正式数据与收费端点未访问；测试日志/截图在`/private/tmp/ppa-workthread-79fv9hwm`，覆盖矩阵及剩余边界见[交付记录](evaluations/workthread-foundation.md)。
 
 ### Web本地改动提交推送前复核（2026-10-31）
 
@@ -498,6 +488,8 @@ V1 原有自动化证据：39项测试使用模拟模型/飞书服务和虚拟�
 
 ## 已知问题与限制
 
+- 当前Web V1的基线合并见[PR #2](https://github.com/DongRuibo/Persistent-Personal-Agent/pull/2)；此前审查记录保留本地，本PR不发布该文件。以下为历史能力的分阶段限制，不把旧“无搜索/未验Mac”等描述泛化到最新Web基线；原模型语义失败与长期运行缺口仍保留。
+
 - S1-A仅Chat读取固定公开文本；S1-B已完成成功快照的Goal绑定与冻结，Goal不联网。常见标题/短句可直接读取，其他复合表达先确认；无搜索/HTML/账号/任意URL。Session/SQLite保留正文和记录，暂无自动清理；只读GET也可能被服务端记录，不保证外部恰好一次。真实模型选工具/遵循与收据质量、真实站点/飞书/手机、Windows ACL、原生Mac和长跑未验，不能因离线工程通过启用正式能力。统一验收v1账本缺失Web记录不得自动迁移续测，异常锁/未完成写入需人工核对，不能退额或重新获取。
 
 - V3.0电脑真实模型核心闭环已验证，V3.0.1仍有自然暂停及主模型收据解释失败；手机Goal、原生Mac/Windows ACL和长期运行未验。V3.1–V3.3仅本地模拟通过，策略审批当前仅Console命令；模型可能误判完成/反馈需要。目标原义不变，换目标需新建；超预算目标/计划/摘要阻塞，长成果显式节选，完整成果留在SQLite。view暂无历史分页，uncertain需人工核对。策略Goal已有定时/观察/有界推进和最小Outbox，仍无exactly-once或必达保证。
@@ -533,9 +525,10 @@ V1 原有自动化证据：39项测试使用模拟模型/飞书服务和虚拟�
 
 ## 下一步与需要提供的信息
 
-1. 审阅[Web V1 PR #2](https://github.com/DongRuibo/Persistent-Personal-Agent/pull/2)，按Web说明在独立数据中试用；本轮不合并或部署。使用[npm离线预览](web-app.md)无需提供Key；真实模型试用由操作者安全配置，勿发凭据到聊天。
-2. 本机Web目前仅PC回环访问。iPhone实机/LAN/HTTPS、Service Worker离线启动、Web Push、历史分页与长期稳定性均未实施或未验证，需后续明确任务。
-3. 历史真实语义失败及平台缺口不改判；若继续Goal/文件真实模型验收，需另行确定新隔离数据、用量边界及验收目标，不沿用旧额度或连接现用飞书。
+1. 按用户授权提交并推送`codex/workthread-foundation`，创建以main为目标的PR供审查；[阶段交付记录](evaluations/workthread-foundation.md)随代码发布。暂不合并main，main仍为75b724f。正式开关仍默认关闭，先按README在新临时预览中体验。
+2. 原路线图与PR审查报告属于前轮未提交文档，本轮未改且不随PR发布；工作区保留原文件。不要整份pop旧stash覆盖新版STATE，不迁移或清空个人历史。
+3. Router/Worker、统一事件与Chain of Recall需要下一阶段独立授权。当前关系为显式手动维护，主题100/关联100/候选100限制及Memory来源缺失不可关联是已知边界；没有分页、自动分类和跨渠道身份合并。
+4. 真实Web文件审批、iPhone/LAN/HTTPS、Service Worker/Web Push、历史分页及长期运行验收仍属后续独立范围；保留已有Goal/Memory语义失败，不沿用旧收费额度。
 
 ## V2.0.2 关键文件（主体及本轮修复）
 

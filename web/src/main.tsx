@@ -12,6 +12,7 @@ import {
   Clock3,
   FileCheck2,
   FileText,
+  FolderOpen,
   House,
   LayoutList,
   LoaderCircle,
@@ -35,10 +36,12 @@ import type {
 import "./style.css";
 import { chatTimeline } from "./chat-timeline.js";
 import { WebSources } from "./web-sources.js";
+import { WorkThreads } from "./work-threads.js";
 
 const pages = [
   { id: "home", label: "工作台", icon: House },
   { id: "chat", label: "对话", icon: MessageSquare },
+  { id: "threads", label: "工作主题", icon: FolderOpen },
   { id: "tasks", label: "任务", icon: LayoutList },
   { id: "goals", label: "目标", icon: Target },
   { id: "approvals", label: "审批", icon: FileCheck2 },
@@ -46,6 +49,7 @@ const pages = [
 ] as const;
 type Page = (typeof pages)[number]["id"];
 const labels: Record<string, string> = {
+  available: "可用",
   pending: "待执行",
   running: "执行中",
   succeeded: "已完成",
@@ -453,6 +457,7 @@ function App() {
           },
         }
       : null;
+  const visiblePages = pages.filter(p => p.id !== "threads" || data?.capabilities.workThreads);
   const title = pages.find((p) => p.id === page)!.label;
   if (auth === null)
     return (
@@ -539,7 +544,7 @@ function App() {
         </a>
         <div className="workspace-label">WORKSPACE</div>
         <nav aria-label="主导航">
-          {pages.map((p) => (
+          {visiblePages.map((p) => (
             <a
               href={"#" + p.id}
               key={p.id}
@@ -1079,6 +1084,9 @@ function App() {
                   </div>
                 </div>
               )}
+              {page === "threads" && (data.capabilities.workThreads
+                ? <WorkThreads api={api} labels={labels} />
+                : <Empty icon={FolderOpen} title="工作主题未启用">请在本机配置中启用工作主题后重启服务。</Empty>)}
               {page === "tasks" && (
                 <>
                   <div className="page-heading">

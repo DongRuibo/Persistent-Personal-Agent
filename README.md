@@ -32,6 +32,19 @@ npm run web:preview:offline
 
 网页普通聊天现已接入免费免 Key Tavily `web_search` / `web_fetch`，需要最新资料时由模型自动决定搜索并读取来源，无需申请或填写搜索 Key。`--web-ui` 下默认开启，可在启动环境设置 `WEB_SEARCH_ENABLED=false` 关闭；Console、飞书、后台Task/Goal不新增工具。Tavily免费模式有限流，模型调用仍按原服务商计费，不自动切换收费搜索。更新代码后重新构建、重启本机Web服务并刷新浏览器即可；运行限制见 [Web说明](docs/web-app.md#自动联网与来源)，本轮隔离真实验证见 [接入验证](docs/evaluations/tavily-web-integration.md)。
 
+## WorkThread：工作主题与关联（默认关闭）
+
+WorkThread 用来手动整理当前本机 Web 工作空间的 Goal、Task、Run 和 Memory。启用后在“工作主题”页创建、改名、归档/恢复主题，并添加或移除已有对象的关联。归档不暂停任务或目标，移除关联不删除原对象；主题不会自动执行、选择工具或保存记忆。
+
+`WORK_THREADS_ENABLED` 默认 `false`，只接受 `true`/`false`；在 Web 进程启动环境中显式设置后重启，功能关闭时隐藏导航并关闭新 API，已有关系保留。现有启动器不会从 `.env` 读取此开关。先用新临时数据离线检查（macOS）：
+
+```sh
+npm run web:build
+WORK_THREADS_ENABLED=true npm run web:preview:offline
+```
+
+此预览沿用本机模拟模型；可先在对话页创建一个提醒，再去主题页关联已有任务/执行记录。每个工作空间最多100个主题、每主题100条关联，各类候选最多100项；没有分页、自动归类或模型操作入口。Memory只展示来源Run可确认属于当前Web工作空间的条目名称；已删除、停用或失去访问权的对象显示不可用。模型/任务状态继续以原服务为准，主题页手动刷新取得最新状态。[数据模型、API与验证边界](docs/evaluations/workthread-foundation.md)。
+
 ## V3.0：可手动继续的长期目标（默认关闭，电脑核心验收通过）
 
 V3.0.1只做Batch5定点收尾：明确的正式计划步数会在草稿/审批时核对；“一项安排”拆成多个正式Step时保留完整草稿并要求确认口径，不静默裁剪。多重或二选一指代只澄清。详见[离线修复报告](docs/evaluations/v3.0.1-closeout.md)。用户随后批准[最小真实复验方案](docs/evaluations/v3.0.1-live-retest-plan.md)，专用Console入口落实16次/2元及32KiB限制后，实际14次/0.605440元预留即停服；数量和取消局部通过，自然暂停失败，暂不能完整收尾，见[真实复验报告](docs/evaluations/v3.0.1-live-retest.md)。本轮已结束，旧48/5入口不适用，不自动使用剩余额度。

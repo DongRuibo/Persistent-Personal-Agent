@@ -12,7 +12,7 @@ const f = await webUiFixture(payload => {
   }
   if (!sent && prompt.includes('提醒我')) { sent = true; return toolCall('create_task', { instruction: '休息一下', when: '10分钟后' }); }
   return reply('这是**离线模拟模型**通过原版 Pi SDK 返回的回复。\n\n- Chat、Run 和历史使用真实本地后端。\n- 此预览不连接收费模型。\n\n```ts\nconst status = "ready";\n```\n\n<script>window.untrustedHtmlRan = true</script>');
-});
+}, undefined, process.env.WORK_THREADS_ENABLED === 'true');
 console.log(`离线模拟预览：${f.origin}\n仅使用临时数据；登录使用测试密钥 fake-web-access-key-with-32-bytes-for-tests\nCtrl+C正常停止。`);
 await new Promise<void>(done => {
   process.once('SIGINT', done); process.once('SIGTERM', done);

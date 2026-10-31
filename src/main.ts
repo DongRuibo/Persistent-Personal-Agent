@@ -98,7 +98,7 @@ export async function main(webService?: WebReadService): Promise<void> {
     if (shutdown.signal.aborted) return;
     let webChannel: WebUiChannel | undefined;
     if (webConfig) {
-      webChannel = new WebUiChannel(store, tasks, executor, config, goals, lane, reportError);
+      webChannel = new WebUiChannel(store, tasks, executor, config, goals, lane, reportError, memory);
       webUi = new WebUiServer(webChannel, webConfig.key, fileURLToPath(new URL('../web-dist/', import.meta.url)));
       console.log(`Web App：${await webUi.start(webConfig.port)}；仅本机；通知仅存入应用收件箱，无手机推送`);
     }

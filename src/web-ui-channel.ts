@@ -7,6 +7,8 @@ import type { GoalService } from './goal-service.js';
 import type { BackgroundLane } from './background-lane.js';
 import type { Config } from './config.js';
 import type { WebFile, WebGoalDetail, WebRun, WebSnapshot } from './web-ui-types.js';
+import type { FileMemoryService } from './memory-service.js';
+import { WorkThreadService } from './work-thread-service.js';
 import type { WebSearchCall } from './web-search-types.js';
 
 export const webTarget: MessageTarget & { channel: 'web' } = { channel: 'web', userId: 'local-user' };
@@ -18,9 +20,15 @@ export class WebUiError extends Error { constructor(readonly status: number, mes
 export class WebUiChannel implements Channel {
   private readonly shutdown = new AbortController();
   private work?: Promise<void>;
+  readonly workThreads?: WorkThreadService;
   constructor(private readonly store: SqliteStore, private readonly tasks: TaskService, private readonly executor: AgentExecutor,
     private readonly config: Config, private readonly goals?: GoalService, private readonly lane?: BackgroundLane,
-    private readonly reportError: (error: unknown) => void = () => {}) {}
+    private readonly reportError: (error: unknown) => void = () => {}, memory?: Pick<FileMemoryService, 'listForHost'>) {
+    if (config.workThreadsEnabled) {
+      if (!memory) throw new Error('工作主题需要宿主 Memory 查询服务');
+      this.workThreads = new WorkThreadService(store, memory, { owner: webOwner, target: webTarget }, !!goals);
+    }
+  }
 
   run(id: string, includeDetails = true): WebRun {
     if (!this.store.webUi.ownsRun(webOwner, targetJson, id)) throw new WebUiError(404, '执行记录不存在');
@@ -127,7 +135,7 @@ export class WebUiChannel implements Channel {
     return { chats, tasks, goals, files,
       activity: this.store.webUi.runs(webOwner, targetJson).map(id => this.run(id, false)), inbox,
       capabilities: { goal: !!this.goals, skills: this.executor.skills?.list().map(s => s.id) ?? [], filesRead: !!this.config.localFiles?.enabled,
-        filesWrite: !!this.config.localOutput?.enabled, webRead: !!this.config.webReadEnabled, webSearch: !!this.config.webSearchEnabled, busy: !!this.work, push: false } };
+        filesWrite: !!this.config.localOutput?.enabled, webRead: !!this.config.webReadEnabled, webSearch: !!this.config.webSearchEnabled, workThreads: !!this.workThreads, busy: !!this.work, push: false } };
   }
   async sendMessage(message: OutboundMessage): Promise<void> {
     if (message.target?.channel !== 'web' || message.target.userId !== webTarget.userId || !message.runId

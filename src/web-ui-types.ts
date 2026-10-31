@@ -27,5 +27,5 @@ export interface WebFile extends WebFileSummary {
 export interface WebNotice { runId: string; text: string; at: string; viewedAt: string | null; taskId: string | null; goalId: string | null }
 export interface WebSnapshot {
   chats: WebChat[]; tasks: WebTask[]; goals: WebGoal[]; files: WebFileSummary[]; activity: WebRun[]; inbox: WebNotice[];
-  capabilities: { goal: boolean; skills: string[]; filesRead: boolean; filesWrite: boolean; webRead: boolean; webSearch?: boolean; busy: boolean; push: false };
+  capabilities: { goal: boolean; skills: string[]; filesRead: boolean; filesWrite: boolean; webRead: boolean; webSearch?: boolean; workThreads?: boolean; busy: boolean; push: false };
 }
