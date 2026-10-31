@@ -1,6 +1,6 @@
 # WorkThread 第一阶段交付记录
 
-日期：2026-11-01（Asia/Shanghai）。基线为已合并 PR #2 的 `75b724f17d17a70ad51caf7c4697251259d7ef3c`，本地开发分支为 `codex/workthread-foundation`。用户已授权将本阶段代码、测试与相关文档提交到当前分支、推送并创建PR供审查；本次发布进行中，暂不合并main，不操作正式运行环境。
+日期：2026-11-01（Asia/Shanghai）。基线为已合并 PR #2 的 `75b724f17d17a70ad51caf7c4697251259d7ef3c`，本地开发分支为 `codex/workthread-foundation`。已按用户授权发布到功能分支并创建[PR #3](https://github.com/DongRuibo/Persistent-Personal-Agent/pull/3)供审查；暂不合并main，不操作正式运行环境。
 
 ## 已实现的范围
 
@@ -68,14 +68,16 @@ Mac arm64，Node 24.19.0 / npm 11.17.0。未读取正式 `.env`、数据库、Se
 
 首次测试暴露的是夹具先结束Run再创建Goal/文件提议的非法顺序；修正夹具以遵循原服务要求，未放宽生产授权逻辑。首次前端类型检查暴露Node SQLite类型混入问题，已拆出纯DTO类型文件。最终检查结果以上表为准。
 
-本机原始日志、截图与diff：`/private/tmp/ppa-workthread-79fv9hwm`。截图为`workthread-desktop.jpg`和`workthread-mobile.jpg`，不提交测试数据或截图到仓库。重新验证和离线体验命令统一见[README](../../README.md#workthread工作主题与关联默认关闭)。
+原始日志、合成样本截图与diff仅保留本机，不提交测试数据或截图到仓库。重新验证和离线体验命令统一见[README](../../README.md#workthread工作主题与关联默认关闭)。
 
 发布前按已验证清单核对21个交付文件Hash，全部一致；此次仅更新发布交接文档和修正未发布本地文档的引用，不重复全量回归。提交内容另核对路径、敏感模式、UTF-8、冲突标记与文档链接。
+
+本机Git的HTTPS凭据不可用、SSH主机尚未信任，因此通过已连接的GitHub工具发布。远端功能提交`8134e34119e97224aeae3d8c6fb9be164b3767d4`与本地原提交`d54eeebfa8c417627b037704a3b5349cd24a9f35`共享Git树`1849cd78d0ae9297f81643d36a47b37483ff597c`，21个文件的blob SHA逐一相同；不同SHA仅来自提交元数据。本地原提交保留，未绕过SSH主机校验或修改main。
 
 ## 剩余边界与交接
 
 - 只支持当前本机Web工作空间；没有跨渠道身份合并、自动数据迁移或正式历史回填。Memory来源缺失时不可关联，关联删除不会删除知识。
 - 当前上限为100主题（含归档）、每主题100关联、每类100候选；无分页、主题删除、自动清理或历史关联审计。名称不是唯一键，相同名称可以对应不同主题ID。
 - 本轮证明的是离线机制与合成样本界面。未验证正式历史规模、真实手机、长期运行或收费模型语义；上一阶段真实Web文件审批等缺口不因此改判。
-- 原未提交的`docs/personal-agent-roadmap.md`及`docs/evaluations/web-app-v1-pr2-merge-review.md`未修改且不随本PR发布。STATE在原本地版本上继续更新；三文件原件已保全到本轮临时目录，原stash也保留。
-- 按用户授权发布到`codex/workthread-foundation`并创建PR供审查；暂不合并main。main继续停在75b724f；下一阶段Router/Worker/事件/Recall需独立任务授权。
+- 原未提交的`docs/personal-agent-roadmap.md`及`docs/evaluations/web-app-v1-pr2-merge-review.md`未修改且不随本PR发布。STATE仅更新当前阶段、验证和审查交接信息。
+- 已发布到`codex/workthread-foundation`并创建[PR #3](https://github.com/DongRuibo/Persistent-Personal-Agent/pull/3)供审查；暂不合并main。main继续停在75b724f；下一阶段Router/Worker/事件/Recall需独立任务授权。

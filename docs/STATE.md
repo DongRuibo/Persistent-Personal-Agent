@@ -7,8 +7,8 @@
 - PR #2已按此前确认严格快进合并，main与origin/main为`75b724f17d17a70ad51caf7c4697251259d7ef3c`；原4提交保留，GitHub已merged，合并状态见[PR #2](https://github.com/DongRuibo/Persistent-Personal-Agent/pull/2)。本轮从该基线创建本地`codex/workthread-foundation`，未再修改main。
 - 用户随后通过粘贴任务明确授权第一阶段WorkThread。已实现默认关闭的主题/关联底座：同SQLite增量建表、手动创建/改名/归档/恢复、四类对象关联/去重/移除、归属校验和Web页面；只保存关系元数据，不改变Pi/GoalRunner/Scheduler/Memory/OperationGuard。没有Router、Worker并行、事件订阅或Chain of Recall。
 - Mac/Node24.19.0完成typecheck、build、web:build及全量588/588测试，0失败/0跳过；含旧库迁移、真正Web进程重启、四类关联及跨渠道拒绝。隔离浏览器通过创建、关联、改名、归档/恢复、移除/恢复关联和刷新恢复；1280px/390px无横向溢出，控制台warn/error为空。详细文件、数据模型与限制见[WorkThread交付记录](evaluations/workthread-foundation.md)。
-- 原本未提交的STATE、路线图`docs/personal-agent-roadmap.md`和PR审查报告`docs/evaluations/web-app-v1-pr2-merge-review.md`在本轮开始前再次保全至`/private/tmp/ppa-workthread-79fv9hwm/original`；本轮仅发布WorkThread相关代码、测试、README/PROJECT/STATE与交付记录；另外两份文件字节不变，保留本地，不随本PR发布。旧stash `78da489cc33c66d153ec24552871c3f4e2beaed8`保留，禁止整份pop覆盖新版STATE。路线图中的旧main描述仍是历史快照。
-- 用户已明确授权将WorkThread代码、测试和相关文档提交到当前分支、推送并创建PR供审查；本次发布进行中，暂不合并main。未访问/修改正式.env、数据库、Session、Memory或备份；未启用正式WorkThread、运行飞书或发起收费模型/Tavily请求。验证只使用新临时数据与本机模拟端点，不能视为正式数据/真实模型/手机/长期运行验收。
+- 本PR仅包含WorkThread代码、测试及相关README/PROJECT/STATE与交付记录。前轮路线图`docs/personal-agent-roadmap.md`和PR审查报告`docs/evaluations/web-app-v1-pr2-merge-review.md`保留本地、内容未改，不随本PR发布。
+- 已按用户授权通过GitHub连接器发布到`codex/workthread-foundation`并创建[PR #3](https://github.com/DongRuibo/Persistent-Personal-Agent/pull/3)供审查，未合并main。远端功能提交`8134e34119e97224aeae3d8c6fb9be164b3767d4`与本地原提交`d54eeebfa8c417627b037704a3b5349cd24a9f35`的Git树完全一致；终端Git缺少可用认证，本地原提交保留。未访问/修改正式.env、数据库、Session、Memory或备份；未启用正式WorkThread、运行飞书或发起收费模型/Tavily请求。验证只使用新临时数据与本机模拟端点，不能视为正式数据/真实模型/手机/长期运行验收。
 
 ## 已完成功能
 
@@ -38,8 +38,8 @@
 
 | 日期 | 修改及位置 |
 | --- | --- |
-| 2026-11-01 | WorkThread第一阶段：新增关系类型/存储/服务与Web页面，复用现有鉴权/CSRF和对象归属；默认关闭。类型/两端构建、588/588离线回归和桌面/窄屏浏览器验证通过。按用户授权准备在当前分支提交/推送并创建PR供审查；暂不合并main，正式数据未触碰 |
-| 2026-11-01 | PR #2按确认严格快进至75b724f，GitHub已merged；本地main同步、原4提交保留，三份本地文档先保全到stash再整合。日常目录按lock离线补齐依赖，语法/类型/两端构建通过；同SHA前轮577/577回归有效，零新收费调用。合并证据见审查报告，文档未另提交 |
+| 2026-11-01 | WorkThread第一阶段：新增关系类型/存储/服务与Web页面，复用现有鉴权/CSRF和对象归属；默认关闭。类型/两端构建、588/588离线回归和桌面/窄屏浏览器验证通过。按用户授权发布功能分支并创建[PR #3](https://github.com/DongRuibo/Persistent-Personal-Agent/pull/3)供审查；暂不合并main，正式数据未触碰 |
+| 2026-11-01 | PR #2按确认严格快进至75b724f，GitHub已merged；本地main同步、原4提交保留。日常目录按lock离线补齐依赖，语法/类型/两端构建通过；同SHA前轮577/577回归有效，零新收费调用。合并状态可在GitHub PR #2核对 |
 | 2026-10-31 | 按用户授权整理现有27文件交付PR #2分支，涵盖免费联网、自动登录、连接/提醒及Mac入口；本轮类型/两端构建和完整577/577重验通过，密钥/聊天数据/恢复备份排除，不合并main |
 | 2026-10-30 | 旧Windows Web历史恢复：原盘保留、包含WAL的SQLite backup及原生Session接入主项目data/web-ui；6轮对话/2条提醒/8条Run恢复，完整性与Hash/浏览器刷新验证通过，模型调用及Run新增0。恢复副本和原Mac目录备份见下节；未改业务代码或提交推送 |
 | 2026-10-30 | Mac日常启动入口：web:local自动构建、复用LLM四字段、自动登录及固定Web数据；私有控制socket复用现有实例。临时/现有配置零模型请求启动、重启及终端Ctrl+C验证通过；README/Web说明更新，未提交推送 |
@@ -49,7 +49,7 @@
 ### WorkThread第一阶段（2026-11-01，离线通过）
 
 - 10项新增WorkThread测试及新增1项开关开启的真实进程用例，原577项回归保留：588/588、0失败/0跳过，约73.54秒。typecheck、build、web:build退出0；仅保留2条既有lucide构建警告。测试中的Goal/文件来源Run必须处于原有合法状态，已修正夹具顺序，没有为测试放宽原服务。
-- 本机浏览器用新临时SQLite和合成Goal/Task/Run/Memory验证，页面未调用模型，控制台warn/error为空。正式数据与收费端点未访问；测试日志/截图在`/private/tmp/ppa-workthread-79fv9hwm`，覆盖矩阵及剩余边界见[交付记录](evaluations/workthread-foundation.md)。
+- 本机浏览器用新临时SQLite和合成Goal/Task/Run/Memory验证，页面未调用模型，控制台warn/error为空。正式数据与收费端点未访问；测试日志和合成样本截图仅保留本机，覆盖矩阵及剩余边界见[交付记录](evaluations/workthread-foundation.md)。
 
 ### Web本地改动提交推送前复核（2026-10-31）
 
@@ -525,8 +525,8 @@ V1 原有自动化证据：39项测试使用模拟模型/飞书服务和虚拟�
 
 ## 下一步与需要提供的信息
 
-1. 按用户授权提交并推送`codex/workthread-foundation`，创建以main为目标的PR供审查；[阶段交付记录](evaluations/workthread-foundation.md)随代码发布。暂不合并main，main仍为75b724f。正式开关仍默认关闭，先按README在新临时预览中体验。
-2. 原路线图与PR审查报告属于前轮未提交文档，本轮未改且不随PR发布；工作区保留原文件。不要整份pop旧stash覆盖新版STATE，不迁移或清空个人历史。
+1. 审查[WorkThread PR #3](https://github.com/DongRuibo/Persistent-Personal-Agent/pull/3)；`codex/workthread-foundation`已发布，[阶段交付记录](evaluations/workthread-foundation.md)随代码交付。暂不合并main，main仍为75b724f。正式开关仍默认关闭，先按README在新临时预览中体验。
+2. 原路线图与PR审查报告属于前轮未提交文档，本轮未改且不随PR发布；工作区保留原文件；不迁移或清空个人历史。
 3. Router/Worker、统一事件与Chain of Recall需要下一阶段独立授权。当前关系为显式手动维护，主题100/关联100/候选100限制及Memory来源缺失不可关联是已知边界；没有分页、自动分类和跨渠道身份合并。
 4. 真实Web文件审批、iPhone/LAN/HTTPS、Service Worker/Web Push、历史分页及长期运行验收仍属后续独立范围；保留已有Goal/Memory语义失败，不沿用旧收费额度。
 
