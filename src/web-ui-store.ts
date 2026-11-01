@@ -44,6 +44,27 @@ export class WebUiStore {
       EXISTS(SELECT 1 FROM goal_executions e JOIN goals g ON g.id=e.goalId WHERE e.runId=r.id AND g.ownerId='local-user' AND g.targetJson=?))`)
       .get(id, owner, target, owner, target, target);
   }
+  // Recall仅取状态元数据；沿原归属证明，不读取成果、错误或模型记录。
+  runMetadata(owner: string, target: string, id: string) {
+    if (!this.ownsRun(owner, target, id)) return null;
+    return this.db.prepare('SELECT id,taskId,status,startedAt,finishedAt FROM runs WHERE id=?').get(id) as unknown as
+      { id: string; taskId: string | null; status: string; startedAt: string; finishedAt: string | null };
+  }
+  taskRunId(target: string, taskId: string): string | null {
+    const row = this.db.prepare('SELECT r.id FROM runs r JOIN tasks t ON t.id=r.taskId WHERE t.id=? AND t.target=?').get(taskId, target);
+    return row ? String(row.id) : null;
+  }
+  recallRun(owner: string, target: string, id: string) {
+    if (!this.ownsRun(owner, target, id)) return { kind: 'unavailable' as const };
+    const fileOperationId = this.fileForRun(owner, target, id);
+    if (fileOperationId) return { kind: 'file' as const, fileOperationId };
+    // 普通成果只读有限字符前缀与原字节数；文件路径不会进入此查询。
+    const row = this.db.prepare(`SELECT status,finishedAt,
+      CASE WHEN status='succeeded' THEN substr(output,1,4096) ELSE NULL END AS output,
+      CASE WHEN status='succeeded' THEN length(CAST(output AS BLOB)) ELSE 0 END AS originalBytes FROM runs WHERE id=?`).get(id)!;
+    return { kind: 'run' as const, status: String(row.status), finishedAt: row.finishedAt as string | null,
+      output: row.output as string | null, originalBytes: Number(row.originalBytes ?? 0) };
+  }
   runs(owner: string, target: string): string[] {
     return this.db.prepare(`SELECT r.id FROM runs r WHERE
       EXISTS(SELECT 1 FROM web_ui_chats c WHERE c.owner=? AND c.runId=r.id) OR

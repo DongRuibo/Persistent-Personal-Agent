@@ -37,5 +37,5 @@ export interface WebNotice { runId: string; text: string; at: string; viewedAt: 
 export interface WebSnapshot {
   suggestions?: WebWorkRoute[];
   chats: WebChat[]; tasks: WebTask[]; goals: WebGoal[]; files: WebFileSummary[]; activity: WebRun[]; inbox: WebNotice[];
-  capabilities: { goal: boolean; skills: string[]; filesRead: boolean; filesWrite: boolean; webRead: boolean; webSearch?: boolean; workThreads?: boolean; workJobs?: boolean; workRouting?: boolean; workRoutingBusy?: boolean; workEvents?: boolean; busy: boolean; push: false };
+  capabilities: { goal: boolean; skills: string[]; filesRead: boolean; filesWrite: boolean; webRead: boolean; webSearch?: boolean; workThreads?: boolean; workJobs?: boolean; workRouting?: boolean; workRoutingBusy?: boolean; workEvents?: boolean; workRecall?: boolean; busy: boolean; push: false };
 }

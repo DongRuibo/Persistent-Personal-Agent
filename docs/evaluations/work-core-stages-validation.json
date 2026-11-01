@@ -1,0 +1,360 @@
+{
+  "phase": "R4 independent formal round 1 PASS; no findings; documentation result closure",
+  "date": "2026-11-02",
+  "branch": "codex/work-core-stages",
+  "officialFeaturesEnabled": false,
+  "startFiles": 405,
+  "startR3ManifestSha256": "2fbab38bedcf12daafcc96d71586a498d55d88759a6efde0e7b531ce0ca63dd9",
+  "evidenceRoot": "/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/evidence/r4/worker",
+  "gates": [
+    {
+      "stage": "B1",
+      "status": "pass",
+      "report": "/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/b1/reviewer-r1/review.md"
+    },
+    {
+      "stage": "B2",
+      "status": "pass",
+      "report": "/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/b2/reviewer-r1/review.md"
+    },
+    {
+      "stage": "B3 R1",
+      "status": "blocked; R2 closed",
+      "report": "/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/b3/reviewer-r1/review.md"
+    },
+    {
+      "stage": "B3 R2",
+      "status": "pass",
+      "report": "/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/b3/reviewer-r2/review.md"
+    },
+    {
+      "stage": "B4",
+      "status": "pass",
+      "report": "/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/b4/reviewer-r1/review.md"
+    },
+    {
+      "stage": "E1 R1",
+      "status": "blocked; R2 closed",
+      "report": "/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/evidence/e1/reviewer-r1/review.md"
+    },
+    {
+      "stage": "E1 R2",
+      "status": "pass",
+      "report": "/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/evidence/e1/reviewer-r2/review.md"
+    },
+    {
+      "stage": "E2",
+      "status": "pass",
+      "report": "/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/evidence/e2/reviewer-r1/review.md"
+    },
+    {
+      "stage": "E3 R1",
+      "status": "blocked; R2 closed",
+      "report": "/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/evidence/e3/reviewer-r1/review.md"
+    },
+    {
+      "stage": "E3 R2",
+      "status": "pass",
+      "report": "/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/evidence/e3/reviewer-r2/review.md"
+    },
+    {
+      "stage": "E4",
+      "status": "pass",
+      "report": "/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/evidence/e4/reviewer-r1/review.md"
+    },
+    {
+      "stage": "Recall R1",
+      "status": "pass",
+      "report": "/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/evidence/r1/reviewer-r1/review.md"
+    },
+    {
+      "stage": "Recall R2",
+      "status": "pass",
+      "report": "/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/evidence/r2/reviewer-r1/review.md"
+    },
+    {
+      "stage": "Recall R3",
+      "status": "pass; P3 snapshot resolved in R4",
+      "report": "/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/evidence/r3/reviewer-r1/review.md"
+    },
+    {
+      "stage": "R4 final R1",
+      "status": "pass; no blocking or nonblocking findings; R3 P3 closed",
+      "report": "/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/evidence/r4/reviewer-r1/review.md"
+    }
+  ],
+  "checks": {
+    "typecheck": {
+      "command": "npm run typecheck",
+      "TMPDIR": "/private/tmp",
+      "exit": 0,
+      "log": "/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/evidence/r4/worker/typecheck.log",
+      "engineeringHashes": "/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/evidence/r4/worker/typecheck.json"
+    },
+    "build": {
+      "command": "npm run build",
+      "TMPDIR": "/private/tmp",
+      "exit": 0,
+      "log": "/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/evidence/r4/worker/build.log",
+      "engineeringHashes": "/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/evidence/r4/worker/build.json"
+    },
+    "web-build": {
+      "command": "npm run web:build",
+      "TMPDIR": "/private/tmp",
+      "exit": 0,
+      "log": "/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/evidence/r4/worker/web-build.log",
+      "engineeringHashes": "/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/evidence/r4/worker/web-build.json"
+    },
+    "full-test": {
+      "command": "npm test",
+      "TMPDIR": "/private/tmp",
+      "exit": 0,
+      "log": "/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/evidence/r4/worker/full-test.log",
+      "engineeringHashes": "/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/evidence/r4/worker/full-test.json"
+    }
+  },
+  "fullTest": {
+    "reporter": "Node spec (actual npm default)",
+    "total": 730,
+    "pass": 730,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "durationMs": 68803.871333
+  },
+  "memoryEval": {
+    "command": "TMPDIR=/private/tmp npm run eval:memory",
+    "exit": 0,
+    "mode": "offline-lexical",
+    "calls": 0,
+    "top1Correct": [
+      [
+        9,
+        12
+      ],
+      [
+        17,
+        19
+      ],
+      [
+        17,
+        18
+      ]
+    ],
+    "allQueriesHit": false,
+    "log": "/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/evidence/r4/worker/memory-eval-before-key-fix.log",
+    "version": "before two React key prefixes; all Memory/Recall backend/scripts unchanged"
+  },
+  "browser": {
+    "actual": "native CUA Chrome desktop 1280x900 and 390x844 viewport",
+    "modelHttp": {
+      "router": 0,
+      "chat": 2,
+      "work": 1,
+      "intent": 0,
+      "goal": 2
+    },
+    "sourceHttp": {
+      "commits": 5,
+      "compare": 2
+    },
+    "recallHttp": 18,
+    "defaultRecallMemoryReads": 0,
+    "explicitRecallMemoryReads": 2,
+    "memoryKnowledgeSaves": 0,
+    "policyGoalExecutions": 2,
+    "seedGoalExecutions": 2,
+    "goals": 2,
+    "explicitWorkJobs": 1,
+    "seedPendingTasks": 2,
+    "newTaskExecutions": 0,
+    "bChangeADoesNotAdvance": {
+      "goals": true,
+      "goal_executions": true,
+      "goal_grants": true
+    },
+    "readOnlyWindow": {
+      "before": "all-off-chat-after.json",
+      "after": "final-readonly-after.json",
+      "all17TablesEqual": true,
+      "knowledgeMarkdownHashesEqual": true,
+      "modelCountsEqual": true,
+      "sourceHttpEqual": true,
+      "ackDelta": 0
+    },
+    "normalDisplayAcks": {
+      "filePreview": 1,
+      "chatHistoryAndReplies": 8
+    },
+    "scrollWidths": [
+      {
+        "width": 1280,
+        "scrollWidth": 1280
+      },
+      {
+        "width": 390,
+        "scrollWidth": 390
+      }
+    ],
+    "consoleErrorsWarnings": 0,
+    "raw": "/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/evidence/r4/worker/browser-final",
+    "analysis": "/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/evidence/r4/worker/browser-analysis.json",
+    "screenshots": [
+      "browser-final/final-a-readonly-result.jpg",
+      "browser-final/final-b-explicit-goal.jpg"
+    ],
+    "runtimeReopenSamePid": true,
+    "browserOsProcessRestart": false,
+    "scrollWidthsBasis": "Original Worker CUA read-only DOM evaluate chat echoes only; browser-analysis is a summary, saved screenshot/DOM does not independently prove values.",
+    "independentLayout": {
+      "raw": "/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/evidence/r4/reviewer-r1/layout-preview/measurements.json",
+      "desktopImage": "/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/evidence/r4/reviewer-r1/layout-preview/desktop-source.jpg",
+      "narrowImage": "/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/evidence/r4/reviewer-r1/layout-preview/narrow-source.jpg",
+      "desktop": {
+        "width": 1280,
+        "height": 900,
+        "documentScrollWidth": 1280,
+        "bodyScrollWidth": 1280
+      },
+      "narrow": {
+        "width": 390,
+        "height": 844,
+        "documentScrollWidth": 390,
+        "bodyScrollWidth": 390
+      },
+      "archiveRestoreRecallEventsEach": 1,
+      "consoleErrorsWarnings": 0,
+      "recallHttp": 1,
+      "recallMemoryList": 0,
+      "normalThreadMetadataMemoryList": 2,
+      "modelHttp": 0,
+      "sourceHttp": 0,
+      "scope": "layout and archive/restore only; not repeat of original two-theme Policy/event chains; not actual mobile",
+      "cleanup": "/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/evidence/r4/reviewer-r1/layout-preview/cleanup.json"
+    }
+  },
+  "versionsAndFailures": [
+    "typecheck-initial-failure: preview evidence readdir string/Buffer inference; explicit utf8 fixed",
+    "full-test-initial-failure: 729/730; existing UI test fixed delays did not await void handler request completion",
+    "ui-context-delay-red: controlled 180ms reproduced disabled receipt; helper now waits observable original-request busy end; product disabled/approval unchanged",
+    "ui-focused: 6/6 including controlled delay and Recall handlers, before key fix",
+    "full-test-before-key-fix: 730/730,73095.630041ms; does not cover final key change",
+    "archive-duplicate-recall-before-fix.dom: actual duplicate same-key siblings after archive; unique prefixes fixed; final DOM archive/restore each count1",
+    "final full-test: 730/730,68803.871333ms; no later engineering change",
+    "first A before-read snapshot was still running; zero-write claim uses final stable window",
+    "cleanup first prefix assertion and automatic approval rejection preserved; source/PID/time/uid/inode/realpath proof approved exact cleanup"
+  ],
+  "cleanup": "/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/evidence/r4/worker/cleanup.json",
+  "filePurposes": {
+    ".env.example": "2B/事件/Recall显式默认关闭开关样例，不含真实凭据",
+    "README.md": "运行开关、许可流程与当前离线验收边界",
+    "docs/PROJECT.md": "已实现稳定架构及原事实源/权限边界",
+    "docs/STATE.md": "当前阶段、最近最多5项及精确历史验证边界",
+    "scripts/preview-web-ui.ts": "复用原Pi/Runner的单套隔离loopback预览；R4仅Recall合成资料、分类计数及受控故障/运行时重建",
+    "src/config.ts": "严格默认关闭的路由/事件/Recall配置及渠道依赖",
+    "src/contracts.ts": "公开执行适配接口接入有界路由建议，不暴露Pi内部",
+    "src/goal-policy-store.ts": "原Policy审批/暂停撤销收据与source-bound同Goal原子交接",
+    "src/goal-policy-types.ts": "Web结构化Policy冻结范围及原收据类型",
+    "src/goal-store.ts": "Recall按原actor读取Execution/committed原成果及Hash证据",
+    "src/main.ts": "按开关组装路由/来源/Recall并复用原生命周期",
+    "src/pi-executor.ts": "原公开SDK的一次隔离路由建议模型适配及有界输入输出",
+    "src/sqlite-store.ts": "来源账本初始化及许可审计受控结构化保存，保留既有脱敏",
+    "src/web-ui-channel.ts": "可信Web身份下路由/订阅/Policy/Recall和只读原Task详情接线",
+    "src/web-ui-server.ts": "沿原登录/Origin/CSRF的功能门与API传输",
+    "src/web-ui-store.ts": "原Web归属之后有界Run元数据与路由请求收据持久化",
+    "src/web-ui-types.ts": "新能力/路由/订阅/Policy/Recall的Web传输类型",
+    "src/work-job-store.ts": "建议确认后原WorkJob同UUID去重入队及Recall定位元数据",
+    "src/work-router.ts": "B1确定性归属定位及B2建议适配；不以建议代替执行授权",
+    "src/work-thread-service.ts": "复用原对象归属的有界元数据、事件/Recall关系定位",
+    "tests/config.test.ts": "严格布尔、默认关闭及依赖/渠道配置兼容",
+    "tests/helpers/web-ui-fixture.ts": "原Web服务合成临时实例；可选原GoalRunner/clock/Recall组装，原调用不变",
+    "web/src/chat-timeline.ts": "路由技术记录与原Chat历史显示/收据分离",
+    "web/src/main.tsx": "默认关闭入口、显式建议/Job/主题及原Goal/文件导航接线",
+    "web/src/style.css": "既有布局的建议/事件/Recall局部样式与窄屏长ID换行",
+    "web/src/work-threads.tsx": "主题页复用建议/事件/Recall；R4为Recall和事件区分同级key，修归档重复",
+    "docs/designs/work-core-stages-plan.md": "批准连续阶段任务及当前执行快照",
+    "docs/designs/work-events-recall-plan.md": "来源/订阅/原执行/Recall批准边界和历史研究",
+    "docs/designs/work-recall-r1-contract.md": "定位/成果投影/背景与完整UTF8预算契约",
+    "docs/designs/work-route-b1-contract.md": "确定性路由定位、归属与澄清契约",
+    "docs/designs/work-router-2b-plan.md": "2B批准方案、模型建议及Web确认范围",
+    "docs/evaluations/work-events-validation.json": "E4历史机器摘要，保留原冻结版本",
+    "docs/evaluations/work-events.md": "E4历史实际浏览器/离线验收、失败与未验边界",
+    "docs/evaluations/work-router-2b-validation.json": "B4历史机器摘要，保留原冻结版本",
+    "docs/evaluations/work-router-2b.md": "2B历史工程/实际浏览器及真实语义限制",
+    "docs/evaluations/work-core-stages.md": "本次整体交付、正式gate、最终工程/浏览器与限制",
+    "docs/evaluations/work-core-stages-validation.json": "整体逐文件目的和紧凑最终验证/证据索引",
+    "src/source-event-service.ts": "独立许可来源观察生命周期与事件到原Policy执行链的受控分派",
+    "src/source-event-store.ts": "独立来源/不可变事件/订阅事实账本和原件校验",
+    "src/source-event-types.ts": "固定GitHub来源、订阅与事件事实类型",
+    "src/work-recall.ts": "一次入口校验、确定性有界定位、原成果安全投影及显式背景",
+    "src/work-route-types.ts": "定位/建议/冻结请求与真实执行收据类型",
+    "tests/source-events-process.test.ts": "实际main子进程关闭/重开与来源事件持久化兼容",
+    "tests/source-events.test.ts": "独立来源许可/基线/不可变事实及分派安全边界",
+    "tests/work-event-policy-ui.test.ts": "真实组件处理器Plan同意/原请求恢复；R4受控慢响应与等待真实busy结束",
+    "tests/work-event-policy.test.ts": "实际HTTP Policy审批/原子交接/预算/恢复与原执行兼容",
+    "tests/work-events.test.ts": "Web来源/订阅/原件读取、归属与关闭兼容",
+    "tests/work-recall-results.test.ts": "原committed/坏Hash/文件入口/显式背景及真实序列化预算",
+    "tests/work-recall-ui.test.ts": "真实TSX处理器范围/候选/迟到/卸载及只读原入口",
+    "tests/work-recall-web.test.ts": "真实HTTP认证/off/归属/历史ID/0写0ACK0模型与原流程兼容",
+    "tests/work-recall.test.ts": "有界定位/明确历史ID/歧义/归档与默认0正文0Memory",
+    "tests/work-route-model.test.ts": "原SDK模型建议隔离、严格结果、字节/超时/取消",
+    "tests/work-route-suggestions.test.ts": "持久建议收据/同UUID确认/撤销与原Job入队",
+    "tests/work-route-web.test.ts": "原Web认证/建议/确认/关闭及技术Run与真实Job分离",
+    "web/src/work-events.tsx": "显式来源/订阅/独立Policy、原请求恢复和只读原件追溯",
+    "web/src/work-recall.tsx": "显式查找历史、候选/受控原文/出处/背景及独立只读原详情",
+    "web/src/work-routes.tsx": "建议、澄清、同UUID确认/撤销及真实后台收据UI"
+  },
+  "limits": [
+    "All model/source endpoints are loopback; no real semantics/paid API/GitHub/mobile/longrun acceptance",
+    "Deterministic literal/type/latest-GitHub recall is bounded and may ask for clarification; no semantic search promise",
+    "Explicit background can scan/repair existing Memory index; 0 knowledge saves does not mean 0 filesystem writes",
+    "Query/pending UI state is page-local and lost on reload/unmount; no automatic query replay",
+    "Browser restart is same PID runtime rebuild; actual child-process coverage is in final source-events-process and work-event-policy tests",
+    "Original Goal/Formation live failures and notification/gap/single-lane limits remain; no remote publication/formal enablement"
+  ],
+  "finalDeliveryEvidenceRoot": "/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/evidence/r4/final-delivery",
+  "finalIndependentReview": {
+    "formalRound": 1,
+    "verdict": "pass",
+    "findings": [],
+    "report": "/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/evidence/r4/reviewer-r1/review.md",
+    "json": "/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/evidence/r4/reviewer-r1/review.json",
+    "criticalRegression": {
+      "files": 9,
+      "tests": 84,
+      "pass": 84,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "exit": 0,
+      "durationMs": 4806.622125,
+      "reporter": "TAP",
+      "command": "/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/evidence/r4/reviewer-r1/critical-regressions-loopback.json",
+      "log": "/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/evidence/r4/reviewer-r1/critical-regressions-loopback.log",
+      "notAddedTo730": true,
+      "firstSandboxRun": {
+        "pass": 51,
+        "fail": 33,
+        "reason": "loopback listen EPERM",
+        "log": "/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/evidence/r4/reviewer-r1/critical-regressions.log"
+      }
+    },
+    "fullTestAndBuildRepeated": false,
+    "worker407And520OriginalsVerified": true
+  },
+  "acceptanceGitSnapshot": {
+    "head": "91b7a657ddf62cf625c53f7bcfbddaa22aa6740b",
+    "newCommit": null,
+    "published": false,
+    "meaning": "pre-commit acceptance identity only, preserved as historical evidence"
+  },
+  "releasePlan": {
+    "authorization": "three staged commits on codex/work-core-stages, push and one PR to main; no merge or formal enablement",
+    "stages": [
+      "2B routing suggestions",
+      "source observation/subscriptions and controlled Goal execution",
+      "explicit read-only Recall"
+    ],
+    "actualCommitAndPrSource": "Git history and local work-core-stages/release artifact; no success presumed here"
+  }
+}

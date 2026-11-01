@@ -51,8 +51,7 @@
 
 ## 当前检查点
 
-- 唯一执行树/HEAD与前述基线不变。B1/B2 R1、B3 R2及B4独立R1均已通过，2B完成实现与离线验收；未提交发布，旧644与最新UI/夹具版本边界保留。
-- 用户已批准默认关闭的来源观察许可和独立结构化Policy，每事件最多一个无工具text_only片段；以[批准方案](work-events-recall-plan.md)第六节为准，不重复请求许可，不正式启用。
-- E1独立R2、E2独立R1、E3独立R2已通过。E3原两项审批UI P2关闭，历史175/45/15及失败日志分别保留；只有main原唯一来源服务与原GoalRunner，无联网Worker或并行扩展。
-- E4工程680/680与实际Chrome1280×900主题A/390×844主题B各两次事件续原Goal、网络恢复/暂停/重启及清理已完成，当前冻结待独立R1。事件模型4次与两个seed初始化Execution分开，见[事件评估](../evaluations/work-events.md)。
-- E4无阻断后由Planner派发关联回忆R1；当前Recall未编码。正式数据、真实来源/收费、核心权限/架构变化及Git发布/合并仍需单独决定。
+- 前述HEAD与身份为提交前实现/验收基线；用户已授权在codex/work-core-stages按2B、事件、Recall三阶段提交、推送并创建一个base=main的PR，实际发布结果以Git及本机release artifact为准。2B/B4、E1/E2/E3/E4已分别独立通过；旧644/680和E3各版本边界保留。
+- Recall R1/R2/R3均独立第1轮PASS；R4最终三项工程/全量730与实际Chrome桌面/390px离线闭环已完成，正式独立第1轮PASS、无finding，见[独立报告](/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/evidence/r4/reviewer-r1/review.md)；旧版本和失败保留。
+- 原批准权限范围与[设计](work-events-recall-plan.md)第六节不变；默认关闭，普通Chat不新增分类/Recall请求，Recall不执行/授权/保存或写ACK。
+- 当前R4独立第1轮已通过，发布采用三阶段提交及一个PR；整体评估见docs/evaluations/work-core-stages.md。合并main、正式启用、正式数据/真实网络/收费仍需另行决定；不在报告预写提交或推送成功。

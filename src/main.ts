@@ -35,6 +35,7 @@ export async function main(webService?: WebReadService): Promise<void> {
   const webConfig = args.includes('--web-ui') ? readWebUiConfig() : undefined;
   const config = readConfig(webConfig ? { ...process.env, WEB_SEARCH_ENABLED: process.env.WEB_SEARCH_ENABLED ?? 'true', DATABASE_PATH: resolve(webConfig.dataDir, 'agent.db'),
     SESSION_DIR: resolve(webConfig.dataDir, 'sessions'), MEMORY_DIR: resolve(webConfig.dataDir, 'memory') } : process.env);
+  if (config.workRecallEnabled && !webConfig) throw new Error('WORK_RECALL_ENABLED 仅支持 --web-ui 本机模式');
   if (config.workEventsEnabled && !webConfig) throw new Error('WORK_EVENTS_ENABLED 仅支持 --web-ui 本机模式');
   if (config.workRoutingEnabled && !webConfig) throw new Error('WORK_ROUTING_ENABLED 仅支持 --web-ui 本机模式');
   if (config.workJobsEnabled && !webConfig) throw new Error('WORK_JOBS_ENABLED 仅支持 --web-ui 本机模式');

@@ -24,6 +24,7 @@ export interface Config {
   workJobsEnabled?: boolean;
   workRoutingEnabled?: boolean;
   workEventsEnabled?: boolean;
+  workRecallEnabled?: boolean;
   skillsDir?: string;
   localFiles?: { enabled: boolean; workspace: string; searchEnabled?: boolean };
   localOutput?: { enabled: boolean; workspace: string };
@@ -97,6 +98,8 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env): Config {
   if (env.WORK_ROUTING_ENABLED === 'true' && (env.WORK_THREADS_ENABLED !== 'true' || env.WORK_JOBS_ENABLED !== 'true')) throw new Error('路由建议需要 WORK_THREADS_ENABLED=true 和 WORK_JOBS_ENABLED=true');
   if (env.WORK_EVENTS_ENABLED !== undefined && !['true', 'false'].includes(env.WORK_EVENTS_ENABLED)) throw new Error('WORK_EVENTS_ENABLED 必须为 true 或 false');
   if (env.WORK_EVENTS_ENABLED === 'true' && env.WORK_THREADS_ENABLED !== 'true') throw new Error('来源观察需要 WORK_THREADS_ENABLED=true');
+  if (env.WORK_RECALL_ENABLED !== undefined && !['true', 'false'].includes(env.WORK_RECALL_ENABLED)) throw new Error('WORK_RECALL_ENABLED 必须为 true 或 false');
+  if (env.WORK_RECALL_ENABLED === 'true' && env.WORK_THREADS_ENABLED !== 'true') throw new Error('查找历史需要 WORK_THREADS_ENABLED=true');
   const skillsDir = resolve(env.SKILLS_DIR || `${databasePath}.skills`);
   if (env.SKILLS_ENABLED === 'true' && (skillsDir === dirname(skillsDir) || contains(skillsDir, process.cwd())
     || [databasePath, sessionDir, memoryDir].some(path => contains(skillsDir, path) || contains(path, skillsDir)))) throw new Error('SKILLS_DIR必须是独立受管目录');
@@ -154,6 +157,7 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env): Config {
     workJobsEnabled: env.WORK_JOBS_ENABLED === 'true',
     workRoutingEnabled: env.WORK_ROUTING_ENABLED === 'true',
     workEventsEnabled: env.WORK_EVENTS_ENABLED === 'true',
+    workRecallEnabled: env.WORK_RECALL_ENABLED === 'true',
     proactive: { enabled: proactiveEnabled, inputRate: proactiveNumber('PROACTIVE_INPUT_CNY_PER_MILLION', 0),
       outputRate: proactiveNumber('PROACTIVE_OUTPUT_CNY_PER_MILLION', 0), dailyCalls: proactiveNumber('PROACTIVE_DAILY_CALLS', 20, true),
       dailyExecutions: proactiveNumber('PROACTIVE_DAILY_EXECUTIONS', 20, true), dailyBudgetCny: proactiveNumber('PROACTIVE_DAILY_BUDGET_CNY', 1),

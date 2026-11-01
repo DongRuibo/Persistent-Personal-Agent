@@ -23,7 +23,7 @@ import { BackgroundLane } from '../../src/background-lane.js';
 import { reply } from './skills-fixture.js';
 import type { Payload } from './skills-fixture.js';
 
-export async function webUiFixture(handle: (p: Payload) => string | Promise<string> = () => reply('真实 Pi 路径的模拟回答'), search?: TavilyService, workThreads = false, workJobs = false, workRouting = false, workEvents = false, sourceObserver?: GitHubObserver, goalEnabled = true, runtime?: { clock: () => Date; proactive: ProactiveOptions }) {
+export async function webUiFixture(handle: (p: Payload) => string | Promise<string> = () => reply('真实 Pi 路径的模拟回答'), search?: TavilyService, workThreads = false, workJobs = false, workRouting = false, workEvents = false, sourceObserver?: GitHubObserver, goalEnabled = true, runtime?: { clock: () => Date; proactive: ProactiveOptions; recall?: boolean }) {
   const root = mkdtempSync(join(tmpdir(), 'ppa-web-ui-')), payloads: Payload[] = [], errors: unknown[] = [];
   const model = createServer(async (req, res) => {
     try {
@@ -36,7 +36,7 @@ export async function webUiFixture(handle: (p: Payload) => string | Promise<stri
   if (!a || typeof a === 'string') throw new Error('fixture port');
   const config = readConfig({ DATABASE_PATH: join(root, 'app.db'), GOAL_ENABLED: String(goalEnabled), LLM_API_KEY: 'fake-web-llm',
     WORK_EVENTS_ENABLED: String(workEvents), WORK_ROUTING_ENABLED: String(workRouting), WORK_JOBS_ENABLED: String(workJobs), WORK_THREADS_ENABLED: String(workThreads), WEB_SEARCH_ENABLED: String(!!search), LLM_MODEL: 'local-stub', LLM_BASE_URL: `http://127.0.0.1:${a.port}/v1` });
-  if (runtime) config.proactive = runtime.proactive;
+  if (runtime) { config.proactive = runtime.proactive; config.workRecallEnabled = !!runtime.recall; }
   const output = join(root, 'output'); initializeOutput(output); config.localOutput = { enabled: true, workspace: output };
   const key = 'fake-web-access-key-with-32-bytes-for-tests';
   let store = new SqliteStore(config.databasePath, redactor(config.apiKey, key)), tasks = new TaskService(store, config.timeZone), memory = new FileMemoryService(config.memoryDir);

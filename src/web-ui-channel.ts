@@ -1,3 +1,5 @@
+import { WorkRecallService } from './work-recall.js';
+import type { WebTask } from './web-ui-types.js';
 import type { WebPolicyRequest, WebPolicyReceipt } from './goal-policy-types.js';
 import type { WorkRouteRequest, WorkRoutePreparation, WorkRouteSuggestion } from './work-route-types.js';
 import type { WebWorkRoute } from './web-ui-types.js';
@@ -31,6 +33,8 @@ export class WebUiChannel implements Channel {
   sourceEvents?: SourceEventService;
   get eventsEnabled(): boolean { return !!this.config.workEventsEnabled && !!this.sourceEvents; }
   readonly workRouter?: WorkRouter;
+  private readonly history?: WorkRecallService;
+  get recallEnabled(): boolean { return !!this.config.workRecallEnabled && !!this.history; }
   constructor(private readonly store: SqliteStore, private readonly tasks: TaskService, private readonly executor: AgentExecutor,
     private readonly config: Config, private readonly goals?: GoalService, private readonly lane?: BackgroundLane,
     private readonly reportError: (error: unknown) => void = () => {}, memory?: Pick<FileMemoryService, 'listForHost'>, interruptWork: (id: string) => void = () => {}) {
@@ -38,10 +42,25 @@ export class WebUiChannel implements Channel {
       if (!memory) throw new Error('工作主题需要宿主 Memory 查询服务');
       this.workThreads = new WorkThreadService(store, memory, { owner: webOwner, target: webTarget }, !!goals);
     }
+    if (config.workRecallEnabled) {
+      if (!this.workThreads) throw new Error('查找历史需要 WORK_THREADS_ENABLED=true');
+      this.history = new WorkRecallService(this.workThreads);
+    }
     if (config.workJobsEnabled) {
       if (!this.workThreads) throw new Error('后台工作需要 WORK_THREADS_ENABLED=true');
       this.workRouter = new WorkRouter(store.workJobs, this.workThreads.binding, (id, text) => this.submit(id, text), interruptWork);
     }
+  }
+
+  readHistory(input: unknown) {
+    if (!this.recallEnabled) throw new WebUiError(404, '接口不存在');
+    return this.history!.read(input);
+  }
+  task(id: string): WebTask {
+    const task = this.store.getTask(id);
+    if (!task || task.target.channel !== 'web' || task.target.userId !== webTarget.userId) throw new WebUiError(404, '任务不存在或无权访问');
+    return { id: task.id, instruction: task.instruction, dueAt: task.dueAt, status: task.status, updatedAt: task.updatedAt,
+      result: this.store.webUi.taskResult(targetJson, id) };
   }
 
   policyContext(subscriptionId: string) {
@@ -276,7 +295,7 @@ export class WebUiChannel implements Channel {
       ...(this.routingEnabled ? { suggestions: this.store.webUi.chats(webOwner, 'suggest').reverse().map(row => this.workRoute(row.requestId)) } : {}),
       activity: this.store.webUi.runs(webOwner, targetJson).map(id => this.run(id, false)), inbox,
       capabilities: { goal: !!this.goals, skills: this.executor.skills?.list().map(s => s.id) ?? [], filesRead: !!this.config.localFiles?.enabled,
-        filesWrite: !!this.config.localOutput?.enabled, webRead: !!this.config.webReadEnabled, webSearch: !!this.config.webSearchEnabled, workThreads: !!this.workThreads, workJobs: !!this.workRouter, ...(this.eventsEnabled ? { workEvents: true } : {}), ...(this.routingEnabled ? { workRouting: true, workRoutingBusy: !!this.routing } : {}), busy: !!this.work, push: false } };
+        filesWrite: !!this.config.localOutput?.enabled, webRead: !!this.config.webReadEnabled, webSearch: !!this.config.webSearchEnabled, workThreads: !!this.workThreads, workJobs: !!this.workRouter, ...(this.eventsEnabled ? { workEvents: true } : {}), ...(this.recallEnabled ? { workRecall: true } : {}), ...(this.routingEnabled ? { workRouting: true, workRoutingBusy: !!this.routing } : {}), busy: !!this.work, push: false } };
   }
   async sendMessage(message: OutboundMessage): Promise<void> {
     if (message.target?.channel !== 'web' || message.target.userId !== webTarget.userId || !message.runId

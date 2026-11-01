@@ -2585,3 +2585,17 @@ button.primary,
 .work-events .work-event-consent { display: flex; align-items: flex-start; gap: .5rem; }
 .work-event-consent input { width: auto; }
 .work-events pre, .work-events summary { white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word; }
+
+/* 历史原文只读呈现，长ID/来源和JSON不撑开主题页。 */
+.work-recall { margin: 20px 0; min-width: 0; overflow-wrap: anywhere; }
+.work-recall summary { cursor: pointer; font-weight: 600; }
+.work-recall form { display: grid; gap: 12px; margin: 16px 0; }
+.work-recall label { display: grid; gap: 6px; }
+.work-recall textarea { min-height: 90px; resize: vertical; }
+.work-recall input, .work-recall select, .work-recall textarea { width: 100%; min-width: 0; max-width: 100%; }
+.work-recall .work-recall-background { display: flex; align-items: flex-start; }
+.work-recall-background input { width: auto; margin-top: 4px; }
+.work-recall article, .work-recall section[aria-label="原记录详情"] { margin-top: 14px; padding: 14px; border: 1px solid var(--line); border-radius: 12px; min-width: 0; }
+.work-recall pre { white-space: pre-wrap; overflow-wrap: anywhere; max-width: 100%; }
+.work-recall button { white-space: normal; overflow-wrap: anywhere; max-width: 100%; margin: 4px 4px 4px 0; }
+.work-recall-candidates { display: grid; gap: 6px; }

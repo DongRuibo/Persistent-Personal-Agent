@@ -239,6 +239,55 @@ export class SourceEventStore {
         return { ...row as unknown as SubscriptionEvent, runId: row.runId as string | null, executionStatus: row.executionStatus as ThreadSourceEvent['executionStatus'], event: { ...event }, source: this.get(actor, current.sourceId), available: view.available, unavailableReason: view.unavailableReason };
       });
   }
+  // 显式ID在SQL过滤后才限量；历史归档仍可读，订阅关系不额外授予来源权限。
+  recallMetadata(actor: WorkThreadActor, threads: ThreadAccess, threadId?: string, eventId?: string) {
+    if (threadId) threads.get(threadId);
+    const rows = this.db.prepare(`SELECT DISTINCT v.id,v.sourceId,v.previous,v.head,v.observedAt,v.snapshotHash,
+      e.repository,e.branch,s.threadId FROM subscription_events d
+      JOIN source_events v ON v.id=d.eventId JOIN thread_subscriptions s ON s.id=d.subscriptionId
+      JOIN event_sources e ON e.id=v.sourceId JOIN work_threads t ON t.id=s.threadId
+      WHERE e.owner=? AND e.channel=? AND t.owner=? AND t.channel=?
+      ${threadId ? 'AND s.threadId=?' : ''} ${eventId ? 'AND v.id=?' : ''}
+      ORDER BY v.observedAt DESC,v.id,s.threadId LIMIT 21`).all(actor.owner, actor.channel, actor.owner, actor.channel,
+        ...(threadId ? [threadId] : []), ...(eventId ? [eventId] : []));
+    return rows.map(row => ({ id: String(row.id), sourceId: String(row.sourceId), threadId: String(row.threadId),
+      previous: String(row.previous), head: String(row.head), observedAt: String(row.observedAt), snapshotHash: String(row.snapshotHash),
+      repository: String(row.repository), branch: String(row.branch) }));
+  }
+  // 只沿真实订阅事实读取原件及已记录执行关系；无授权凭据和联网补齐。
+  recallEvidence(actor: WorkThreadActor, threads: ThreadAccess, threadId: string, eventId: string) {
+    if (!this.recallMetadata(actor, threads, threadId, eventId).length) return { kind: 'unavailable' as const };
+    let saved: SourceEventDetail;
+    try { saved = this.event(actor, eventId); }
+    catch (error) {
+      if (error instanceof Error && error.message === '来源事件快照Hash不一致，不能读取') return { kind: 'invalid' as const };
+      throw error;
+    }
+    if (saved.snapshot.head !== saved.head) return { kind: 'invalid' as const };
+    const rows = this.db.prepare(`SELECT d.subscriptionId,d.goalId,d.status,d.reason,d.observationId,d.triggerId,d.policyId,d.policyVersion,
+      o.dataJson,o.triggerId AS observationTrigger,o.policyId AS observationPolicy,o.policyVersion AS observationVersion,o.head,o.previous,
+      t.policyId AS triggerPolicy,t.policyVersion AS triggerVersion,t.source,t.sourceKey,g.id AS grantId,g.executionRunId AS runId,
+      g.policyId AS grantPolicy,g.policyVersion AS grantVersion,p.goalId AS policyGoal,count(*) OVER() AS total
+      FROM subscription_events d JOIN thread_subscriptions s ON s.id=d.subscriptionId
+      LEFT JOIN goal_observations o ON o.id=d.observationId LEFT JOIN goal_triggers t ON t.id=d.triggerId
+      LEFT JOIN goal_grants g ON g.triggerId=d.triggerId AND g.segment=1 LEFT JOIN goal_policies p ON p.id=d.policyId
+      WHERE d.eventId=? AND s.threadId=? ORDER BY d.subscriptionId LIMIT 20`).all(eventId, threadId);
+    const links = rows.map(row => {
+      const invalid = row.status === 'dispatched' && (row.observationId === null || row.triggerId === null || row.grantId === null)
+        || row.observationId !== null && (row.dataJson === null
+        || createHash('sha256').update(String(row.dataJson)).digest('hex') !== saved.snapshotHash
+        || row.head !== saved.head || row.previous !== saved.previous || row.observationTrigger !== row.triggerId
+        || row.observationPolicy !== row.policyId || row.observationVersion !== row.policyVersion
+        || row.triggerPolicy !== row.policyId || row.triggerVersion !== row.policyVersion || row.policyGoal !== row.goalId
+        || row.source !== 'github' || row.sourceKey !== saved.head)
+        || row.runId !== null && (row.grantPolicy !== row.policyId || row.grantVersion !== row.policyVersion || row.observationId === null);
+      return { subscriptionId: String(row.subscriptionId), goalId: row.goalId as string | null,
+        status: String(row.status), reason: row.reason as string | null, observationId: row.observationId as string | null,
+        triggerId: row.triggerId as string | null, runId: invalid ? null : row.runId as string | null, invalid: !!invalid };
+    });
+    return { kind: 'event' as const, snapshotHash: saved.snapshotHash, links,
+      omitted: rows.length ? Number(rows[0]!.total) - rows.length : 0 };
+  }
   failed(actor: WorkThreadActor, source: EventSource, error: unknown, now: string): void {
     this.tx.transaction(() => {
       if (!this.current(actor, source)) return;

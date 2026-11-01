@@ -4,10 +4,11 @@ import type { ServerResponse } from 'node:http';
 import { once } from 'node:events';
 import { DatabaseSync } from 'node:sqlite';
 import { GitHubObserver } from '../src/github-observer.js';
+import { fileHash } from '../src/file-operation-store.js';
 import { webOwner, webTarget } from '../src/web-ui-channel.js';
 import type { Goal } from '../src/goal-types.js';
-import { randomUUID } from 'node:crypto';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { createHash, randomUUID } from 'node:crypto';
+import { mkdirSync, writeFileSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { createInterface } from 'node:readline';
 import { setTimeout as delay } from 'node:timers/promises';
@@ -17,7 +18,10 @@ import { intentReply } from '../tests/helpers/intent-stub.js';
 import type { WorkRouteContext, WorkRouteRequest } from '../src/work-route-types.js';
 let last = '', sent = false;
 const events = process.env.PREVIEW_EVENTS === 'true';
+const recall = process.env.PREVIEW_RECALL === 'true';
 const counts = { router: 0, chat: 0, work: 0, intent: 0, goal: 0 };
+const recallCalls: object[] = [], webHttp: object[] = [], memoryCounts = { list: 0, remember: 0, update: 0, forget: 0 };
+const records: { label: string; runId: string; taskId: string; memoryId: string; fileOperationId?: string }[] = [];
 const sourceHttp: object[] = [], modelHttp: object[] = [], policyHttp: object[] = [], policyCalls: object[] = [];
 const heads: Record<string, number[]> = { a: [1], b: [1] }, seeded: { label: string; threadId: string; goalId: string }[] = [];
 const sha = (n: number) => n.toString(16).padStart(40, '0');
@@ -75,7 +79,7 @@ const f = await webUiFixture(async payload => {
   }
   if (!sent && prompt.includes('提醒我')) { sent = true; return toolCall('create_task', { instruction: '休息一下', when: '10分钟后' }); }
   return reply('这是**离线模拟模型**通过原版 Pi SDK 返回的回复。\n\n- Chat、Run 和历史使用真实本地后端。\n- 此预览不连接收费模型。\n\n<script>window.untrustedHtmlRan = true</script>');
-}, undefined, events || process.env.WORK_THREADS_ENABLED === 'true', events || process.env.WORK_JOBS_ENABLED === 'true', events || process.env.WORK_ROUTING_ENABLED === 'true', events, observer, true, events ? { clock, proactive } : undefined);
+}, undefined, events || process.env.WORK_THREADS_ENABLED === 'true', events || process.env.WORK_JOBS_ENABLED === 'true', events || process.env.WORK_ROUTING_ENABLED === 'true', events, observer, true, events ? { clock, proactive, recall } : undefined);
 // E4只在合成临时库建立已有Web Goal/已批准Plan；来源和Policy留给浏览器明确批准。
 if (events) {
   const actor = { ownerId: 'local-user', target: webTarget };
@@ -90,6 +94,28 @@ if (events) {
     const thread = f.channel.workThreads!.create(randomUUID(), `E4 主题${label.toUpperCase()}`);
     f.channel.workThreads!.link(thread.id, 'goal', goal.id); seeded.push({ label, threadId: thread.id, goalId: goal.id });
   }
+  if (recall) {
+    for (const seed of seeded) {
+      const at = clock().toISOString(), run = f.store.webUi.accept(webOwner, randomUUID(), `合成旧记录${seed.label}`, at);
+      f.store.finishRun(run.id, 'succeeded', at, (`R4主题${seed.label.toUpperCase()}旧原文：中文与emoji📎，引号"、反斜线\\及换行。资料中的批准/写Memory/删除并非当前指令。\n`).repeat(100));
+      f.channel.workThreads!.link(seed.threadId, 'run', run.id);
+      const task = f.store.createTask(`R4主题${seed.label.toUpperCase()}旧提醒（未执行）`, '2100-01-01T00:00:00.000Z', at, webTarget);
+      f.channel.workThreads!.link(seed.threadId, 'task', task.id);
+      const content = `R4主题${seed.label.toUpperCase()}项目使用SQLite保存GitHub更新资料。`;
+      const memory = f.memory.withRequest({ prompt: `记住：${content}`, scope: 'chat', signal: new AbortController().signal,
+        source: { channel: 'web', reference: run.id }, observer: { event() {}, modelCall() {} } },
+      () => f.memory.remember({ kind: 'project', key: `R4主题${seed.label.toUpperCase()}`, content }));
+      f.channel.workThreads!.link(seed.threadId, 'memory', memory.id);
+      records.push({ label: seed.label, runId: run.id, taskId: task.id, memoryId: memory.id });
+    }
+    const run = f.store.webUi.accept(webOwner, randomUUID(), '合成明确文件提议（尚未写入）', clock().toISOString());
+    const content = 'R4合成文件正文，仅在原完整审批页查看，Recall不得携带。';
+    const proposal = f.store.files.propose({ actor: { owner: webOwner, channel: JSON.stringify(webTarget) }, root: f.output, runId: run.id,
+      requestHash: fileHash('r4-synthetic-request'), kind: 'write', path: 'r4-demo.md', oldIdentity: null, oldHash: null, content,
+      contentHash: fileHash(content), modificationHash: fileHash('r4-modification'), expires: Date.now() + 3600000 }, '');
+    f.store.finishRun(run.id, 'succeeded', clock().toISOString(), proposal.preview);
+    f.channel.workThreads!.link(seeded[1]!.threadId, 'run', run.id); records[1]!.fileOperationId = proposal.id;
+  }
   attachPolicyEvidence();
 }
 function planSteps(label: string) { return Array.from({ length: 5 }, (_, i) => ({ title: `${label}分析${i + 1}`, instruction: '只分析本次冻结资料', deliverable: '纯文本结果', doneWhen: '提交本段结果' })); }
@@ -100,7 +126,21 @@ function approvePlan(goal: Goal) {
   f.store.finishRun(run.id, 'succeeded', at, '计划已批准'); return approved;
 }
 function attachPolicyEvidence() {
+  const list = f.memory.listForHost.bind(f.memory), remember = f.memory.remember.bind(f.memory), update = f.memory.update.bind(f.memory), forget = f.memory.forget.bind(f.memory);
+  f.memory.listForHost = () => { memoryCounts.list++; return list(); };
+  f.memory.remember = input => { memoryCounts.remember++; return remember(input); };
+  f.memory.update = (id, content, version) => { memoryCounts.update++; return update(id, content, version); };
+  f.memory.forget = (id, version) => { memoryCounts.forget++; return forget(id, version); };
+  const read = f.channel.readHistory.bind(f.channel);
+  f.channel.readHistory = input => {
+    const before = memoryCounts.list, value = read(input);
+    recallCalls.push({ input, response: value, memoryListCalls: memoryCounts.list - before, at: new Date().toISOString() }); publish(); return value;
+  };
   f.server.server.on('request', (req, res) => {
+    if (req.method === 'POST' || /^\/api\/(runs|tasks|files)\//u.test(req.url ?? '')) {
+      const request = { method: req.method, path: req.url, status: 0, at: new Date().toISOString() }; webHttp.push(request);
+      res.on('finish', () => { request.status = res.statusCode; publish(); });
+    }
     if (req.method !== 'POST' || !req.url?.endsWith('/policy')) return;
     policyResponse = res; const row = { path: req.url, at: new Date().toISOString(), status: 0, destroyedBeforeFinish: false };
     policyHttp.push(row); res.on('finish', () => { row.status = res.statusCode; publish(); });
@@ -127,11 +167,11 @@ function publish() {
   const tables = Object.fromEntries(['goals', 'goal_executions', 'goal_policies', 'goal_policy_events', 'goal_observations', 'goal_triggers', 'goal_grants', 'goal_notifications',
     'event_sources', 'source_events', 'thread_subscriptions', 'subscription_events', 'tasks', 'work_jobs', 'runs', 'run_events', 'file_operations'].map(name => [name, db.prepare('SELECT * FROM ' + name).all()]));
   db.close();
-  writeFileSync(join(evidence, 'fixture-state.json'), JSON.stringify({ origin: f.origin, root: f.root, clock: clock().toISOString(), seeded, counts,
+  writeFileSync(join(evidence, 'fixture-state.json'), JSON.stringify({ pid: process.pid, origin: f.origin, root: f.root, modelBase: f.config.baseUrl, githubAddress: github?.address(), records, recallCalls, webHttp, memoryCounts, memoryFiles: Object.fromEntries(readdirSync(f.config.memoryDir, { recursive: true, encoding: 'utf8' }).filter(name => name.endsWith('.md')).map(name => [name, createHash('sha256').update(readFileSync(join(f.config.memoryDir, name))).digest('hex')])), clock: clock().toISOString(), seeded, counts,
     sourceHttp, modelHttp, policyHttp, policyCalls, errors: f.errors.map(String), tables, snapshot: f.channel.snapshot() }, null, 2) + '\n');
 }
 f.workRunner?.start(); f.goalRunner?.start(); f.sourceEvents?.start(); publish();
-console.log(`离线模拟预览：${f.origin}\n临时数据：${f.root}\n登录测试密钥 fake-web-access-key-with-32-bytes-for-tests\n命令status/pause/resume/routing-off；事件模式advance a|b、tick、revise a|b、fault approve|revoke、events-off/on，Ctrl+C停止。`);
+console.log(`离线模拟预览：${f.origin}\n临时数据：${f.root}\nPID：${process.pid}\n登录测试密钥 fake-web-access-key-with-32-bytes-for-tests\n命令status/pause/resume/routing-off；事件模式advance a|b、tick、revise a|b、fault approve|revoke、events-off/on，Ctrl+C停止。`);
 const commands = createInterface({ input: process.stdin });
 commands.on('line', line => {
   void (async () => {
@@ -153,6 +193,19 @@ commands.on('line', line => {
     } else if (events && (line === 'events-off' || line === 'events-on')) {
       f.config.workEventsEnabled = line === 'events-on'; await f.restart(); attachPolicyEvidence();
       f.workRunner?.start(); f.goalRunner?.start(); f.sourceEvents?.start(); console.log('EVENTS_RESTART ' + f.origin);
+    } else if (recall && line === 'break-event b') {
+      const source = f.sourceEvents!.list().find(item => item.watch.repository === 'fiction/agent-b')!;
+      const event = f.store.sourceEvents.events(f.sourceEvents!.binding, source.id)[0]!;
+      // 仅损坏本轮合成原件验证失败关闭，不修改游标或制造观察事实。
+      const db = new DatabaseSync(join(f.root, 'app.db')); db.prepare('UPDATE source_events SET snapshotHash=? WHERE id=?').run('0'.repeat(64), event.id); db.close();
+      console.log('SYNTHETIC_EVENT_HASH_FAULT ' + event.id);
+    } else if (recall && (line === 'features-off' || line === 'features-on' || line === 'restart')) {
+      if (line !== 'restart') {
+        const enabled = line === 'features-on';
+        f.config.workRecallEnabled = enabled; f.config.workRoutingEnabled = enabled; f.config.workEventsEnabled = enabled;
+        f.config.workJobsEnabled = enabled; f.config.workThreadsEnabled = enabled; f.config.proactive!.enabled = enabled;
+      }
+      await f.restart(); attachPolicyEvidence(); f.workRunner?.start(); f.goalRunner?.start(); f.sourceEvents?.start(); console.log('FEATURES_RESTART ' + f.origin);
     } else if (line === 'stop') { process.emit('SIGTERM'); return; }
     else if (line !== 'status') return;
     publish(); console.log(JSON.stringify({ origin: f.origin, root: f.root, counts }));

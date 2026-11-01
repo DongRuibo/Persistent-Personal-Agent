@@ -1,3 +1,4 @@
+import { WorkRecallError } from './work-recall.js';
 import type { WebPolicyRequest } from './goal-policy-types.js';
 import type { WorkRouteRequest } from './work-route-types.js';
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
@@ -96,8 +97,8 @@ export class WebUiServer {
   private origin = '';
   readonly server = createServer({ maxHeaderSize: 8192, requestTimeout: 15000, headersTimeout: 10000 }, (req, res) => {
     void this.handle(req, res).catch(error => {
-      if (!res.headersSent) this.json(res, error instanceof WebUiError || error instanceof WorkThreadError || error instanceof WorkJobError || error instanceof SourceEventError ? error.status : 500,
-        { error: error instanceof WebUiError || error instanceof WorkThreadError || error instanceof WorkJobError || error instanceof SourceEventError ? error.message : '本机服务暂时无法完成请求，请检查本地日志。' });
+      if (!res.headersSent) this.json(res, error instanceof WebUiError || error instanceof WorkThreadError || error instanceof WorkJobError || error instanceof SourceEventError || error instanceof WorkRecallError ? error.status : 500,
+        { error: error instanceof WebUiError || error instanceof WorkThreadError || error instanceof WorkJobError || error instanceof SourceEventError || error instanceof WorkRecallError ? error.message : '本机服务暂时无法完成请求，请检查本地日志。' });
       else res.end();
     });
   });
@@ -121,7 +122,9 @@ export class WebUiServer {
     res.setHeader('Set-Cookie', `ppa_web=${id}; HttpOnly; SameSite=Strict; Path=/; Max-Age=43200`);
     return csrf;
   }
-  private async body(req: IncomingMessage, keys: string[]): Promise<Record<string, unknown>> {
+  private body(req: IncomingMessage): Promise<unknown>;
+  private body(req: IncomingMessage, keys: string[]): Promise<Record<string, unknown>>;
+  private async body(req: IncomingMessage, keys?: string[]): Promise<unknown> {
     if (req.headers['content-type'] !== 'application/json') throw new WebUiError(415, '请使用 JSON 请求');
     if (Number(req.headers['content-length'] ?? 0) > 32768) throw new WebUiError(413, '请求过大');
     const chunks: Buffer[] = []; let bytes = 0;
@@ -130,7 +133,7 @@ export class WebUiServer {
     }
     let data: unknown;
     try { data = JSON.parse(Buffer.concat(chunks).toString('utf8')); } catch { throw new WebUiError(400, 'JSON 无效'); }
-    if (!data || typeof data !== 'object' || Array.isArray(data) || Object.keys(data).some(k => !keys.includes(k))) throw new WebUiError(400, '请求字段无效');
+    if (keys && (!data || typeof data !== 'object' || Array.isArray(data) || Object.keys(data).some(k => !keys.includes(k)))) throw new WebUiError(400, '请求字段无效');
     return data as Record<string, unknown>;
   }
   private async handle(req: IncomingMessage, res: ServerResponse): Promise<void> {
@@ -180,6 +183,16 @@ export class WebUiServer {
         await this.body(req, []); this.sessions.delete(token!);
         res.setHeader('Set-Cookie', 'ppa_web=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0');
         return this.json(res, 200, { authenticated: false });
+      }
+      if (path === '/api/work-recall') {
+        if (!this.channel.recallEnabled || req.method !== 'POST') throw new WebUiError(404, '接口不存在');
+        // JSON传输限制沿原HTTP入口；业务字段只由read入口校验一次。
+        return this.json(res, 200, this.channel.readHistory(await this.body(req)));
+      }
+      const task = /^\/api\/tasks\/([a-f0-9-]{36})$/u.exec(path);
+      if (task && uuid.test(task[1]!) && req.method === 'GET') {
+        if (!this.channel.recallEnabled) throw new WebUiError(404, '接口不存在');
+        return this.json(res, 200, this.channel.task(task[1]!));
       }
       if (path === '/api/work-routes' || path.startsWith('/api/work-routes/')) {
         if (!this.channel.routingEnabled) throw new WebUiError(404, '接口不存在');
