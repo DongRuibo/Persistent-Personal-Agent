@@ -45,6 +45,25 @@ WORK_THREADS_ENABLED=true npm run web:preview:offline
 
 此预览沿用本机模拟模型；可先在对话页创建一个提醒，再去主题页关联已有任务/执行记录。每个工作空间最多100个主题、每主题100条关联，各类候选最多100项；没有分页、自动归类或模型操作入口。Memory只展示来源Run可确认属于当前Web工作空间的条目名称；已删除、停用或失去访问权的对象显示不可用。模型/任务状态继续以原服务为准，主题页手动刷新取得最新状态。[数据模型、API与验证边界](docs/evaluations/workthread-foundation.md)。
 
+## 纯文本后台工作 2A（默认关闭）
+
+在本机 Web 的对话页选择“后台工作主题”，输入本次要处理的文字，再点击“后台处理”。成功入队后会返回工作 ID、主题和提交时间；你可以继续普通聊天。展开对话中的“后台工作与结果”，或进入相应主题，查看状态、取消和完整结果；执行结束后也会进入现有收件箱。
+
+`WORK_JOBS_ENABLED=false` 为默认值，只接受 `true` / `false`。启用还需 `WORK_THREADS_ENABLED=true` 和 `--web-ui` 本机模式，缺少依赖会报配置错误。零费用预览：
+
+```sh
+npm run web:build
+WORK_THREADS_ENABLED=true WORK_JOBS_ENABLED=true npm run web:preview:offline
+```
+
+预览只使用新临时数据与本机模拟模型。先在“工作主题”创建主题，再回对话页提交文字。日常启动器不会从 `.env` 读取这些开关；本轮没有启用正式环境。
+
+每个工作只处理本次显式输入，不继承 Chat 历史或主题关联，不读取 Memory 正文、不加载 Skill、不联网、无工具，不自动继续或保存记忆。输入最多 14 KiB（按 UTF-8 字节计），实际模型请求最多 32 KiB，单次模型请求、最多 4096 输出 token，沿用 `EXECUTION_TIMEOUT_MS` 超时。普通聊天继续走原 Chat/Guard，新增 Router 模型调用为 0；选择主题不会自动推进关联 Goal。
+
+后台工作与原 Task/Goal 共用一个执行门，领取时让前台、到期 Task 和已就绪 Goal 优先。已运行工作不抢占，慢工作仍可能延迟之后到期的提醒。排队取消不建 Run；运行中取消先结束提交资格，再中止临时 Session，迟到结果不能覆盖取消，执行门等 Session 结束才释放。重启保留 queued，running 与对应 Run 一起恢复 interrupted；失败、中断、取消及已完成工作均不自动重跑。关闭开关不领取 queued，再次开启后处理原已提交请求。
+
+结果、错误和用量沿用原 Run。通知失败只记 `deliveryError`，结果仍可从工作详情查看，不重跑模型；没有新增通用 Outbox 或必达保证。工作列表及每主题列表只显示最近 100 项，无分页。后续补充材料需明确新提交；本批没有自然语言模型路由建议、联网或并行 Worker、订阅及链式召回。实际离线证据见[2A交付记录](docs/evaluations/router-worker-mvp.md)。
+
 ## V3.0：可手动继续的长期目标（默认关闭，电脑核心验收通过）
 
 V3.0.1只做Batch5定点收尾：明确的正式计划步数会在草稿/审批时核对；“一项安排”拆成多个正式Step时保留完整草稿并要求确认口径，不静默裁剪。多重或二选一指代只澄清。详见[离线修复报告](docs/evaluations/v3.0.1-closeout.md)。用户随后批准[最小真实复验方案](docs/evaluations/v3.0.1-live-retest-plan.md)，专用Console入口落实16次/2元及32KiB限制后，实际14次/0.605440元预留即停服；数量和取消局部通过，自然暂停失败，暂不能完整收尾，见[真实复验报告](docs/evaluations/v3.0.1-live-retest.md)。本轮已结束，旧48/5入口不适用，不自动使用剩余额度。

@@ -2548,3 +2548,24 @@ button.primary,
   .work-thread-title > div, .work-thread-link > div, .work-thread-links article { flex-direction: column; align-items: stretch; }
   .work-thread-object { flex: auto; }
 }
+
+/* 后台工作沿用现有聊天和主题布局；长输入、结果及ID可在窄屏换行。 */
+.work-submit { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+.work-submit label { font-size: 12px; color: var(--muted); }
+.work-submit select { font: inherit; min-width: 0; max-width: 100%; flex: 1; border: 1px solid var(--line); border-radius: 8px; padding: 9px; background: white; }
+.work-submit small { width: 100%; }
+.work-job-receipt { color: var(--blue); font-size: 12px; overflow-wrap: anywhere; }
+.work-jobs { padding: 20px; border-top: 1px solid var(--line); max-height: 440px; overflow: auto; }
+.work-jobs h2 { font-size: 15px; margin: 0 0 12px; }
+.work-jobs h2 small { font-size: 11px; font-weight: 400; }
+.work-jobs article { border-top: 1px solid var(--line); padding: 14px 0; overflow-wrap: anywhere; }
+.work-job-heading, .work-job-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.work-job-heading strong { flex: 1; min-width: 0; font-size: 13px; }
+.work-job-actions button { padding: 7px 10px; font-size: 12px; }
+.work-job-result { padding: 12px; margin-top: 12px; background: #f7f9fc; border-radius: 8px; font-size: 13px; }
+.work-job-output { white-space: pre-wrap; overflow-wrap: anywhere; }
+.badge.queued { background: #eff3ff; color: var(--blue); }
+
+.chat-work-jobs { margin: 12px 0; border: 1px solid var(--line); border-radius: 8px; }
+.chat-work-jobs summary { cursor: pointer; padding: 12px; font-size: 13px; font-weight: 600; color: var(--blue); }
+.chat-work-jobs .work-jobs { max-height: 360px; padding: 12px; }

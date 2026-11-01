@@ -4,13 +4,15 @@
 
 ## 当前阶段
 
-- PR #2已按此前确认严格快进合并，main与origin/main为`75b724f17d17a70ad51caf7c4697251259d7ef3c`；原4提交保留，GitHub已merged，合并状态见[PR #2](https://github.com/DongRuibo/Persistent-Personal-Agent/pull/2)。本轮从该基线创建本地`codex/workthread-foundation`，未再修改main。
-- 用户随后通过粘贴任务明确授权第一阶段WorkThread。已实现默认关闭的主题/关联底座：同SQLite增量建表、手动创建/改名/归档/恢复、四类对象关联/去重/移除、归属校验和Web页面；只保存关系元数据，不改变Pi/GoalRunner/Scheduler/Memory/OperationGuard。没有Router、Worker并行、事件订阅或Chain of Recall。
-- Mac/Node24.19.0完成typecheck、build、web:build及全量588/588测试，0失败/0跳过；含旧库迁移、真正Web进程重启、四类关联及跨渠道拒绝。隔离浏览器通过创建、关联、改名、归档/恢复、移除/恢复关联和刷新恢复；1280px/390px无横向溢出，控制台warn/error为空。详细文件、数据模型与限制见[WorkThread交付记录](evaluations/workthread-foundation.md)。
-- 本PR仅包含WorkThread代码、测试及相关README/PROJECT/STATE与交付记录。前轮路线图`docs/personal-agent-roadmap.md`和PR审查报告`docs/evaluations/web-app-v1-pr2-merge-review.md`保留本地、内容未改，不随本PR发布。
-- 已按用户授权通过GitHub连接器发布到`codex/workthread-foundation`并创建[PR #3](https://github.com/DongRuibo/Persistent-Personal-Agent/pull/3)供审查，未合并main。远端功能提交`8134e34119e97224aeae3d8c6fb9be164b3767d4`与本地原提交`d54eeebfa8c417627b037704a3b5349cd24a9f35`的Git树完全一致；终端Git缺少可用认证，本地原提交保留。未访问/修改正式.env、数据库、Session、Memory或备份；未启用正式WorkThread、运行飞书或发起收费模型/Tavily请求。验证只使用新临时数据与本机模拟端点，不能视为正式数据/真实模型/手机/长期运行验收。
+- 当前在独立工作树、分支`codex/router-worker-mvp`完成第二阶段2A；基线是已审查的PR #3 head `e2c95c067d4f33aa5cd9fdb0c6b17e40bc82ba4b`。开始时远端PR #3仍open/未合并，main为`75b724f17d17a70ad51caf7c4697251259d7ef3c`，本轮均未改。
+- 2A已实现默认关闭的确定性分派、work_jobs、同BackgroundLane串行Worker、独立临时Pi work Session，以及Chat继续交互、主题/收件箱结果。queued/running取消、迟到结果、统一恢复、去重、归属和预算均在原边界内；不含模型辅助路由、联网/并行Worker、订阅或Chain of Recall。
+- 2A的P2分类修复已核验复用：work模型HTTP500、length和禁止工具提议准确failed，保留原因且无成功输出；运行取消仍Job cancelled/Run interrupted，停机/真实超时Job/Run interrupted，保护性abort与旧scope语义保留。本轮专项19/19、完整618/618通过（0失败/取消/跳过，测试68.85秒），typecheck/build/web:build均退出0。原615/615仅为初交付历史；第1轮独立只读复审已通过，无阻断及追加可执行缺陷；不进入2B。全部使用临时SQLite、合成文本、假Key和本机模拟端点；无正式数据访问、收费调用或正式服务启停。证据与逐文件目的见[2A交付记录](evaluations/router-worker-mvp.md)。
+- 新功能仍`WORK_JOBS_ENABLED=false`，启用还需WorkThread及本机Web。工作列表最近100项、无分页；串行不抢占和通知无通用Outbox的限制保留。原Goal自然暂停/收据理解等真实语义缺口不因本轮离线通过而消失。
+- 用户已明确授权本次2A代码、测试和相关文档提交、推送至`codex/router-worker-mvp`并创建PR；发布准备时尚未commit/push/建PR。新PR以`codex/workthread-foundation`为base，只展示2A增量并依赖[PR #3](https://github.com/DongRuibo/Persistent-Personal-Agent/pull/3)；不合并或修改PR #3/main，不开始2B。原审查工作区分支和未提交内容保留；只带入STATE、PR #3审查及本轮计划，原未跟踪路线图与PR #2报告未复制或覆盖。
 
 ## 已完成功能
+
+- 2A显式后台工作：同一Chat选择主题/后台提交，真正入队收据与独立busy；单请求纯文本执行、按主题和Run看成果、queued/running取消、保守恢复和现有收件箱投递，默认关闭。
 
 - WorkThread第一阶段：本机Web主题与Goal/Task/Run/Memory关系，默认关闭；只组织元数据，显式管理、去重/归属检查、增量迁移和重启保留，原对象状态与权限由原服务负责。
 - Web V1认证/API、真实Pi Chat与历史/Run恢复、Task/Goal只读工作台、T3创建/编辑Diff审批、活动/持久收件箱均已实现并通过离线测试。前端页面连接实际业务服务，不使用生产假数据；新建工作空间初始为空，使用既有数据目录时恢复历史。PWA只完成Manifest/图标/standalone基础，没有Service Worker或Push。
@@ -38,13 +40,34 @@
 
 | 日期 | 修改及位置 |
 | --- | --- |
+| 2026-11-01 | 2A发布准备：用户已授权提交、推送及创建依赖PR，base为`codex/workthread-foundation`并依赖PR #3；只整理STATE、[评估](evaluations/router-worker-mvp.md)及新增[验证摘要](evaluations/router-worker-mvp-validation.json)，源码/测试Hash不变，独立发布复审前不提交。原19/19专项、618/618全量及构建证据保留，不重复收费/浏览器/全量；不合并main、不开始2B |
+| 2026-11-01 | 第二阶段2A：Job/确定性Router/共用门Worker、无工具临时work Session与Web提交/队列/取消/结果；原Task/Goal/Guard实现保留。[交付记录](evaluations/router-worker-mvp.md)；类型/两端构建、最终全量及浏览器结果见下节，代码保持未提交 |
+| 2026-11-01 | PR #3发布后审查完成：未发现阻断问题，typecheck及12/12专项重验通过；更新[审查结论](evaluations/workthread-pr3-review.md)与[第二阶段首批执行计划](designs/work-router-worker-mvp.md)，由独立执行对话开发。本轮只改交接文档，不改代码、不提交推送或合并 |
 | 2026-11-01 | WorkThread第一阶段：新增关系类型/存储/服务与Web页面，复用现有鉴权/CSRF和对象归属；默认关闭。类型/两端构建、588/588离线回归和桌面/窄屏浏览器验证通过。按用户授权发布功能分支并创建[PR #3](https://github.com/DongRuibo/Persistent-Personal-Agent/pull/3)供审查；暂不合并main，正式数据未触碰 |
 | 2026-11-01 | PR #2按确认严格快进至75b724f，GitHub已merged；本地main同步、原4提交保留。日常目录按lock离线补齐依赖，语法/类型/两端构建通过；同SHA前轮577/577回归有效，零新收费调用。合并状态可在GitHub PR #2核对 |
-| 2026-10-31 | 按用户授权整理现有27文件交付PR #2分支，涵盖免费联网、自动登录、连接/提醒及Mac入口；本轮类型/两端构建和完整577/577重验通过，密钥/聊天数据/恢复备份排除，不合并main |
-| 2026-10-30 | 旧Windows Web历史恢复：原盘保留、包含WAL的SQLite backup及原生Session接入主项目data/web-ui；6轮对话/2条提醒/8条Run恢复，完整性与Hash/浏览器刷新验证通过，模型调用及Run新增0。恢复副本和原Mac目录备份见下节；未改业务代码或提交推送 |
-| 2026-10-30 | Mac日常启动入口：web:local自动构建、复用LLM四字段、自动登录及固定Web数据；私有控制socket复用现有实例。临时/现有配置零模型请求启动、重启及终端Ctrl+C验证通过；README/Web说明更新，未提交推送 |
 
 ## 验证记录与证据边界
+
+### 第二阶段2A P2收尾（2026-11-01，本轮重新验证）
+
+- 保留开始时19项已修改/12项未跟踪及既有3文件修复；本轮代码和测试Hash不变，仅修改STATE与2A评估。`workFailure`只为work保留首故障，独立超时标识使真实取消/停机/超时仍为中断；内部abort继续阻断第二次请求，旧Chat/Task/Goal分类未改。
+- 在临时副本按原交付diff+HEAD复原pi-executor，CRLF及SHA-256与初交付一致；3项精确回归按预期全红（interrupted不等于failed），未回退实际工作树。现树专项19/19通过；HTTP500/length/tool为Job/Run failed且原因明确、输出空、各1次HTTP、无Memory/Task/文件副作用；取消/迟到/门、停机、超时、Session释放与旧scope回归通过。完整套件另覆盖queued取消零Run、恢复与无重跑。
+- 本轮`npm run typecheck`、`npm run build`、`npm run web:build`退出0；前端仍2条既有lucide告警。`TMPDIR=/private/tmp npm test`退出0，618/618通过、0失败/取消/跳过，测试68.85秒。初次沙箱监听EPERM与构建写入EPERM原始失败日志完整保留；按工具审批最小重跑通过，不视为业务失败。
+- [本轮验证摘要](evaluations/router-worker-mvp-validation.json)含验收Hash、基线、原始命令/退出码、日志与差异Hash及独立复审来源；原始日志和本机快照不随代码发布。无UI修改，本轮未重复浏览器；初交付1280px/390px证据保留其原边界。没有正式数据、收费业务模型、真实联网/手机或长期运行验收；P2收尾未提交/推送/PR/合并；第1轮独立复审已通过，之后用户已授权本次依赖PR发布。
+
+- 第1轮[独立只读审查](evaluations/router-worker-mvp-validation.json)通过：无阻断、无追加可执行缺陷。Reviewer独立重跑专项19/19，618全量及两端构建仅核验Worker原始日志；浏览器仅核验初交付记录，未冒充重跑。Reviewer前后371文件Hash、refs/status一致。审查后只更新本文件与2A评估，归档持久产物；本次发布准备另提供仓库内验证摘要；没有新代码/测试或项目测试重跑。[验证摘要](evaluations/router-worker-mvp-validation.json)保留完整2A差异Hash及原31文件验收Hash；当前提交标识发布准备后的文档。
+
+### 第二阶段2A初交付（2026-11-01，历史离线记录）
+
+- typecheck、build、web:build退出0，原有两条lucide构建警告保留。615/615通过，0失败、0跳过，约70.14秒；新增27项覆盖同库Job/Run聚合事务回滚、归属/入口、去重/开关、临时Pi隔离/单请求、Task/Goal优先、迟到取消、通知失败及正常停机。
+- 真实main四次启动与强杀验证：运行中Job/Run统一interrupted、关闭保留queued、重开仅领取queued；已完成/取消及前台请求不重放。本机模拟HTTP4次，正式/收费请求0；没有改正式数据或删除测试锁来伪造恢复。
+- 浏览器模拟4请求（2成功Worker+1取消中的Worker+1Chat），另1排队取消零请求；提交、继续聊天、详情、取消、刷新、两个主题和收件箱均实际通过。1280px/390px无横向溢出，warn/error为空；窄屏列表挤占阅读区已定点修复并重载最终构建复验。不是收费模型/真实手机/长期运行证据。
+- 未重跑Memory/Formation eval，原实现未改。完整文件目的、矩阵、剩余风险与发布边界见[交付记录](evaluations/router-worker-mvp.md)。
+
+### PR #3发布后审查（2026-11-01）
+
+- 本轮typecheck退出0；WorkThread与Web真实进程专项12/12通过、0失败/跳过，约5.15秒。与前轮验收Hash比较，21个文件仅STATE/交付记录有发布说明变化，源代码与测试未变；前轮588/588全量、两端构建和浏览器证据保持原边界，本轮未重复全量和浏览器。
+- 已核对Git差异、权限/审批链、默认关闭兼容、路径和新增差异常见凭据模式；没有发现阻断问题。不读取正式数据，不跑真实模型。当前新审查/计划和STATE为本地未提交交接，尚未进入PR #3。
 
 ### WorkThread第一阶段（2026-11-01，离线通过）
 
@@ -525,10 +548,10 @@ V1 原有自动化证据：39项测试使用模拟模型/飞书服务和虚拟�
 
 ## 下一步与需要提供的信息
 
-1. 审查[WorkThread PR #3](https://github.com/DongRuibo/Persistent-Personal-Agent/pull/3)；`codex/workthread-foundation`已发布，[阶段交付记录](evaluations/workthread-foundation.md)随代码交付。暂不合并main，main仍为75b724f。正式开关仍默认关闭，先按README在新临时预览中体验。
-2. 原路线图与PR审查报告属于前轮未提交文档，本轮未改且不随PR发布；工作区保留原文件；不迁移或清空个人历史。
-3. Router/Worker、统一事件与Chain of Recall需要下一阶段独立授权。当前关系为显式手动维护，主题100/关联100/候选100限制及Memory来源缺失不可关联是已知边界；没有分页、自动分类和跨渠道身份合并。
-4. 真实Web文件审批、iPhone/LAN/HTTPS、Service Worker/Web Push、历史分页及长期运行验收仍属后续独立范围；保留已有Goal/Memory语义失败，不沿用旧收费额度。
+1. 2A P2已通过第1轮独立复审，用户已授权本次提交、推送及创建PR。按[交付记录](evaluations/router-worker-mvp.md)与[验证摘要](evaluations/router-worker-mvp-validation.json)精确发布；PR base为`codex/workthread-foundation`，注明依赖尚未合并的PR #3。独立发布复审通过后执行；不合并main、不启用正式开关、不开始2B。无需真实Key或收费验收。
+2. PR #3仍为本分支前置底座，未获合并许可前不操作main。审查工作区的旧路线图、PR #2报告及所有个人历史保留，不清理或迁移。
+3. 2B再单独规划模型路由建议与澄清；联网Worker需独立预算验收。事件订阅、Chain of Recall、分页/容量、大规模Memory性能及真实手机/长期运行不夹带进本批。
+4. 原Goal自然暂停/收据理解和Memory形成语义质量仍保留历史失败，不沿用旧收费额度，不因工程测试通过自动启用正式开关。
 
 ## V2.0.2 关键文件（主体及本轮修复）
 

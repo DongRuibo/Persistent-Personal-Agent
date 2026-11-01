@@ -19,6 +19,7 @@ import { FileMemoryService } from './memory-service.js';
 import { FormationService } from './formation-service.js';
 import { BackgroundLane } from './background-lane.js';
 import { GoalRunner } from './goal-runner.js';
+import { WorkRunner } from './work-runner.js';
 import { GoalService } from './goal-service.js';
 import { GitHubObserver } from './github-observer.js';
 import { WebUiChannel, webChatKey, webTarget } from './web-ui-channel.js';
@@ -33,6 +34,7 @@ export async function main(webService?: WebReadService): Promise<void> {
   const webConfig = args.includes('--web-ui') ? readWebUiConfig() : undefined;
   const config = readConfig(webConfig ? { ...process.env, WEB_SEARCH_ENABLED: process.env.WEB_SEARCH_ENABLED ?? 'true', DATABASE_PATH: resolve(webConfig.dataDir, 'agent.db'),
     SESSION_DIR: resolve(webConfig.dataDir, 'sessions'), MEMORY_DIR: resolve(webConfig.dataDir, 'memory') } : process.env);
+  if (config.workJobsEnabled && !webConfig) throw new Error('WORK_JOBS_ENABLED 仅支持 --web-ui 本机模式');
   if (!config.apiKey || config.apiKey === '<REDACTED>') throw new Error('请先在本机 .env 或环境变量中设置 LLM_API_KEY');
   const feishuConfig = args.includes('--feishu') ? readFeishuConfig() : undefined;
   const redact = redactor(config.apiKey, feishuConfig?.appSecret, process.env.FEISHU_APP_SECRET, webConfig?.key);
@@ -56,6 +58,7 @@ export async function main(webService?: WebReadService): Promise<void> {
   let executor: Awaited<ReturnType<typeof createPiExecutor>> | undefined;
   let scheduler: TaskScheduler | undefined;
   let goalRunner: GoalRunner | undefined;
+  let workRunner: WorkRunner | undefined;
   const lane = new BackgroundLane();
   let memory: FileMemoryService | undefined;
   let formation: FormationService | undefined;
@@ -98,7 +101,7 @@ export async function main(webService?: WebReadService): Promise<void> {
     if (shutdown.signal.aborted) return;
     let webChannel: WebUiChannel | undefined;
     if (webConfig) {
-      webChannel = new WebUiChannel(store, tasks, executor, config, goals, lane, reportError, memory);
+      webChannel = new WebUiChannel(store, tasks, executor, config, goals, lane, reportError, memory, id => workRunner?.interrupt(id));
       webUi = new WebUiServer(webChannel, webConfig.key, fileURLToPath(new URL('../web-dist/', import.meta.url)));
       console.log(`Web App：${await webUi.start(webConfig.port)}；仅本机；通知仅存入应用收件箱，无手机推送`);
     }
@@ -110,9 +113,17 @@ export async function main(webService?: WebReadService): Promise<void> {
         // Web入箱并不表示用户已看见当前计划；需在Chat重新查看并完成渲染ACK。
         if (goal.target.channel !== 'web') goals.displayed(goal, runId);
       } });
+    if (webChannel?.workRouter) workRunner = new WorkRunner(store, executor, channels, lane, {
+      actor: webChannel.workRouter.actor, target: webTarget, pollIntervalMs: config.pollIntervalMs,
+      goalReady: () => !!goals && store!.goals.readyForHost().some(goal => goal.ownerId === 'local-user'
+        && goal.target.channel === 'web' && goal.target.userId === webTarget.userId
+        && (goal.readyInput?.kind !== 'policy' || !!config.proactive?.enabled)),
+      reportError, fatal: () => { process.exitCode = 1; stop(); },
+    });
     store.policies.interrupt = id => goalRunner?.interrupt(id);
     scheduler.start();
     goalRunner?.start();
+    workRunner?.start();
     formation?.start();
     console.log(`Personal Agent 已启动；用户时区=${config.timeZone}；中断记录=${recovered}；模式=${webConfig ? 'web-ui' : feishu ? 'feishu' : args.includes('--daemon') ? 'daemon' : 'console'}；Goal=${config.goalEnabled ? 'enabled' : 'disabled'}`);
     if (args.includes('--daemon') || feishu || webUi) {
@@ -125,7 +136,7 @@ export async function main(webService?: WebReadService): Promise<void> {
     // 先中断并等待执行，再关闭存储；避免日志写入已关闭的数据库。
     try {
       await formation?.stop();
-      await Promise.all([scheduler?.stop(), goalRunner?.stop(), feishu?.stop(), webUi?.stop()]);
+      await Promise.all([scheduler?.stop(), goalRunner?.stop(), workRunner?.stop(), feishu?.stop(), webUi?.stop()]);
       await executor?.close();
     } finally {
       store?.close();

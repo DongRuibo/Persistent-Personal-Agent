@@ -5,6 +5,8 @@ import { readFile, mkdir, readdir, writeFile } from 'node:fs/promises';
 import { resolve, sep, join, isAbsolute } from 'node:path';
 import { once } from 'node:events';
 import { WebUiChannel, WebUiError } from './web-ui-channel.js';
+import { WorkJobError } from './work-job-store.js';
+import { workInputBytes } from './work-job-types.js';
 import { WorkThreadError } from './work-thread-store.js';
 import type { WorkObjectKind } from './work-thread-types.js';
 
@@ -50,8 +52,8 @@ export class WebUiServer {
   private origin = '';
   readonly server = createServer({ maxHeaderSize: 8192, requestTimeout: 15000, headersTimeout: 10000 }, (req, res) => {
     void this.handle(req, res).catch(error => {
-      if (!res.headersSent) this.json(res, error instanceof WebUiError || error instanceof WorkThreadError ? error.status : 500,
-        { error: error instanceof WebUiError || error instanceof WorkThreadError ? error.message : '本机服务暂时无法完成请求，请检查本地日志。' });
+      if (!res.headersSent) this.json(res, error instanceof WebUiError || error instanceof WorkThreadError || error instanceof WorkJobError ? error.status : 500,
+        { error: error instanceof WebUiError || error instanceof WorkThreadError || error instanceof WorkJobError ? error.message : '本机服务暂时无法完成请求，请检查本地日志。' });
       else res.end();
     });
   });
@@ -135,6 +137,29 @@ export class WebUiServer {
         res.setHeader('Set-Cookie', 'ppa_web=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0');
         return this.json(res, 200, { authenticated: false });
       }
+      if (path === '/api/work-jobs' || path.startsWith('/api/work-jobs/') || /^\/api\/work-threads\/[^/]+\/jobs$/u.test(path)) {
+        const router = this.channel.workRouter;
+        if (!router) throw new WebUiError(404, '接口不存在');
+        if (path === '/api/work-jobs') {
+          if (req.method === 'GET') return this.json(res, 200, router.list());
+          const data = await this.body(req, ['requestId', 'threadId', 'text']);
+          if (typeof data.requestId !== 'string' || !uuid.test(data.requestId) || typeof data.threadId !== 'string' || !uuid.test(data.threadId)
+            || typeof data.text !== 'string' || !data.text.trim()) throw new WebUiError(400, '请求 ID、工作主题或消息无效');
+          if (Buffer.byteLength(data.text.trim()) > workInputBytes) throw new WebUiError(413, '后台工作输入最多14336字节，请缩小本次文字范围');
+          return this.json(res, 202, router.route({ mode: 'work', requestId: data.requestId, threadId: data.threadId, text: data.text.trim() }));
+        }
+        const jobs = /^\/api\/work-threads\/([a-f0-9-]{36})\/jobs$/u.exec(path);
+        if (jobs && uuid.test(jobs[1]!) && req.method === 'GET') return this.json(res, 200, router.list(jobs[1]!));
+        const job = /^\/api\/work-jobs\/([a-f0-9-]{36})(\/cancel)?$/u.exec(path);
+        if (job && uuid.test(job[1]!)) {
+          if (!job[2] && req.method === 'GET') return this.json(res, 200, this.channel.job(job[1]!));
+          if (job[2] && req.method === 'POST') {
+            await this.body(req, []);
+            return this.json(res, 200, router.cancel(job[1]!));
+          }
+        }
+        throw new WebUiError(404, '接口不存在');
+      }
       if (path.startsWith('/api/work-')) {
         const threads = this.channel.workThreads;
         if (!threads) throw new WebUiError(404, '接口不存在');
@@ -174,7 +199,7 @@ export class WebUiServer {
       if (path === '/api/chat' && req.method === 'POST') {
         const data = await this.body(req, ['requestId', 'text']);
         if (typeof data.requestId !== 'string' || !uuid.test(data.requestId) || typeof data.text !== 'string' || !data.text.trim() || data.text.length > 10000) throw new WebUiError(400, '消息或请求 ID 无效');
-        return this.json(res, 202, this.channel.submit(data.requestId, data.text.trim()));
+        return this.json(res, 202, this.channel.workRouter ? this.channel.workRouter.route({ mode: 'chat', requestId: data.requestId, text: data.text.trim() }) : this.channel.submit(data.requestId, data.text.trim()));
       }
       const run = /^\/api\/runs\/([a-f0-9-]{36})(\/ack)?$/u.exec(path);
       if (run && uuid.test(run[1]!)) {

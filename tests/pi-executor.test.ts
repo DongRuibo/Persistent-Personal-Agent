@@ -98,3 +98,31 @@ test('交互复用一个 Session，每次后台任务使用新 Session 并 dispo
   } finally { await executor.close(); }
   assert.equal(created[0]!.session.disposed, true);
 });
+
+test('work保护性中止保留失败原因，真正取消/超时仍中断，异常Session始终释放', async () => {
+  for (const mode of ['failure', 'cancel', 'timeout'] as const) {
+    const controller = new AbortController();
+    const session = fakeSession(async emit => {
+      emit(message('error'));
+      if (mode === 'cancel') controller.abort();
+      if (mode === 'timeout') await delay(30);
+    });
+    const executor = new PiExecutor(async () => session, mode === 'timeout' ? 5 : 1000);
+    try {
+      await assert.rejects(executor.execute({ ...request(), scope: 'work', signal: controller.signal }), error => {
+        if (mode !== 'failure') return error instanceof ExecutionInterrupted;
+        return error instanceof Error && !(error instanceof ExecutionInterrupted) && error.message === 'API 故障';
+      });
+      assert.equal(session.aborts, 1); assert.equal(session.disposed, true);
+    } finally { await executor.close(); }
+  }
+});
+
+test('work分类修复保留Chat/Task/Goal既有模型错误语义', async () => {
+  for (const scope of ['chat', 'task', 'goal'] as const) {
+    const session = fakeSession(async emit => { emit(message('error')); emit({ type: 'agent_settled', aborted: false }); });
+    await assert.rejects(runPiSession(session, { ...request(), scope }, 1000), error => scope === 'goal'
+      ? error instanceof ExecutionInterrupted : error instanceof Error && !(error instanceof ExecutionInterrupted) && error.message === 'API 故障');
+    assert.equal(session.aborts, scope === 'goal' ? 1 : 0);
+  }
+});

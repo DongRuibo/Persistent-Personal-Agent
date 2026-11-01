@@ -9,6 +9,8 @@ import type { Config } from './config.js';
 import type { WebFile, WebGoalDetail, WebRun, WebSnapshot } from './web-ui-types.js';
 import type { FileMemoryService } from './memory-service.js';
 import { WorkThreadService } from './work-thread-service.js';
+import { WorkRouter } from './work-router.js';
+import type { WebWorkJob } from './web-ui-types.js';
 import type { WebSearchCall } from './web-search-types.js';
 
 export const webTarget: MessageTarget & { channel: 'web' } = { channel: 'web', userId: 'local-user' };
@@ -21,13 +23,24 @@ export class WebUiChannel implements Channel {
   private readonly shutdown = new AbortController();
   private work?: Promise<void>;
   readonly workThreads?: WorkThreadService;
+  readonly workRouter?: WorkRouter;
   constructor(private readonly store: SqliteStore, private readonly tasks: TaskService, private readonly executor: AgentExecutor,
     private readonly config: Config, private readonly goals?: GoalService, private readonly lane?: BackgroundLane,
-    private readonly reportError: (error: unknown) => void = () => {}, memory?: Pick<FileMemoryService, 'listForHost'>) {
+    private readonly reportError: (error: unknown) => void = () => {}, memory?: Pick<FileMemoryService, 'listForHost'>, interruptWork: (id: string) => void = () => {}) {
     if (config.workThreadsEnabled) {
       if (!memory) throw new Error('工作主题需要宿主 Memory 查询服务');
       this.workThreads = new WorkThreadService(store, memory, { owner: webOwner, target: webTarget }, !!goals);
     }
+    if (config.workJobsEnabled) {
+      if (!this.workThreads) throw new Error('后台工作需要 WORK_THREADS_ENABLED=true');
+      this.workRouter = new WorkRouter(store.workJobs, this.workThreads.binding, (id, text) => this.submit(id, text), interruptWork);
+    }
+  }
+
+  job(id: string): WebWorkJob {
+    if (!this.workRouter) throw new WebUiError(404, '接口不存在');
+    const job = this.workRouter.get(id);
+    return { ...job, run: job.runId ? this.run(job.runId) : null };
   }
 
   run(id: string, includeDetails = true): WebRun {
@@ -55,6 +68,7 @@ export class WebUiChannel implements Channel {
       output: fileOperationId ? null : r.output?.slice(0, 32768) ?? null, ...(fileOperationId ? { fileOperationId } : {}), truncated: (r.output?.length ?? 0) > 32768,
       error: r.error ? '执行失败或中断，请核对状态；详细诊断保留在本机。' : null,
       viewed: events.some(e => e.type === 'delivery_succeeded'),
+      ...(this.workRouter ? { deliveryError: r.deliveryError ? '通知投递失败；结果已保留。' : null } : {}),
       ...(summary ? { web: summary, ...(includeDetails ? { webCalls: web } : {}) } : {}),
       usage: { calls: calls.length, inputTokens: sum('inputTokens'), outputTokens: sum('outputTokens'), cacheReadTokens: sum('cacheReadTokens'),
         cacheWriteTokens: sum('cacheWriteTokens'), cost: calls.length && calls.every(c => c.cost !== null) ? calls.reduce((n, c) => n + c.cost!, 0) : null } };
@@ -135,7 +149,7 @@ export class WebUiChannel implements Channel {
     return { chats, tasks, goals, files,
       activity: this.store.webUi.runs(webOwner, targetJson).map(id => this.run(id, false)), inbox,
       capabilities: { goal: !!this.goals, skills: this.executor.skills?.list().map(s => s.id) ?? [], filesRead: !!this.config.localFiles?.enabled,
-        filesWrite: !!this.config.localOutput?.enabled, webRead: !!this.config.webReadEnabled, webSearch: !!this.config.webSearchEnabled, workThreads: !!this.workThreads, busy: !!this.work, push: false } };
+        filesWrite: !!this.config.localOutput?.enabled, webRead: !!this.config.webReadEnabled, webSearch: !!this.config.webSearchEnabled, workThreads: !!this.workThreads, workJobs: !!this.workRouter, busy: !!this.work, push: false } };
   }
   async sendMessage(message: OutboundMessage): Promise<void> {
     if (message.target?.channel !== 'web' || message.target.userId !== webTarget.userId || !message.runId

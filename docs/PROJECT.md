@@ -41,6 +41,7 @@ API Key 只从环境变量读取，仓库仅放脱敏样例。准确依赖版本
 | --- | --- |
 | Task / Run | SQLite 保存指令、下次执行时间、渠道接收目标、状态、执行结果与日志，跨进程重启保留 |
 | WorkThread | 当前本机Web工作主题；同应用库的独立关系元数据，按ID组织Goal/Task/Run/Memory，不代替其事实源、权限或执行 |
+| WorkJob（2A） | 显式归属一个主题的一次纯文本后台工作；独立queued/取消/恢复生命周期，结果与用量沿用Run，不改变Task提醒或Goal授权 |
 | Pi Session | 短期对话上下文；交互使用 Pi JSONL 文件跨重启恢复，每个后台任务使用独立内存 Session 并释放；不是长期记忆 |
 | Memory Service | 跨 Session 的四类长期知识；Markdown 为事实源，独立 SQLite 为索引，不负责任务状态或完整聊天历史 |
 | Goal（V3.0） | 同应用库四表持久目标/不可变计划/稳定步骤/执行；Checkpoint 嵌入已提交 Execution。独立Runner每次授权最多推进一段，随后等待；不以Memory或Session代替进度 |
@@ -285,4 +286,16 @@ WorkThread 是长期存在的工作主题，与 Pi Session、Goal 的生命周�
 
 `work-thread-store.ts`负责同连接事务、主题归属与唯一关系；`work-thread-service.ts`复用Task目标、Goal actor、Web Run归属和Memory来源进行对象存在性/访问检查，按主题ID读取关联并实时投影原对象元数据。Memory来源必须为web，且来源Run属于当前Web身份；关联不增加访问权，原对象删除或不可见时保留ID并显示不可用。只在可信Web宿主组装服务，不接受用户提供owner/target/channel。
 
-`WORK_THREADS_ENABLED=false`为默认值。开启只增加Web“工作主题”页及认证/CSRF保护的管理API，支持明确的创建、改名、归档/恢复、关联和移除；归档不影响原业务执行。工作空间限100主题、主题限100关联，列表与每类候选上限100；无分页。用户仍通过原Chat与OperationGuard控制业务对象；没有新增Pi工具、Router、Worker、事件订阅、自动归类、自动Memory写入或Chain of Recall。实现与验证见[阶段交付记录](evaluations/workthread-foundation.md)，启用方法统一见[README](../README.md#workthread工作主题与关联默认关闭)。
+`WORK_THREADS_ENABLED=false`为默认值。开启只增加Web“工作主题”页及认证/CSRF保护的管理API，支持明确的创建、改名、归档/恢复、关联和移除；归档不影响原业务执行。工作空间限100主题、主题限100关联，列表与每类候选上限100；无分页。用户仍通过原Chat与OperationGuard控制业务对象；第一阶段不新增Pi工具、Router/Worker或自动执行；后续显式后台工作见下节，事件订阅、自动归类、自动Memory写入和Chain of Recall仍未实现。实现与验证见[阶段交付记录](evaluations/workthread-foundation.md)，启用方法统一见[README](../README.md#workthread工作主题与关联默认关闭)。
+
+## 第二阶段 2A：确定性分派与纯文本 WorkJob
+
+新增默认关闭的 `WORK_JOBS_ENABLED`，只在工作主题已开启的本机 Web 模式组装。WorkRouter 按用户明确选择分派：普通输入进入原 WebUiChannel.submit，明确“后台处理”进入 WorkJob；不判断关键词、不请求路由模型，不借主题关联授权 Task/Goal/Memory 操作。
+
+同应用 SQLite 增量 `work_jobs` 只保存宿主绑定的owner/channel、threadId、requestId、原始输入、状态、Run引用与创建/更新时间。请求按身份/渠道去重，内容或主题冲突409；仅本人活跃主题可新建。Job直接归属主题，不向原work_links新增kind，也不自动消耗手动关联额度。原Run/事件/model_calls是结果和执行用量事实源；Web Run归属从Job的可信身份和Run绑定证明，不从WorkLink授权。
+
+`work-job-store.ts`负责原子创建/领取/结束/取消及恢复；`work-router.ts`负责显式分派和当前绑定访问；`work-runner.ts`复用BackgroundLane和AgentExecutor。领取前就绪检查，前台、到期Task、当前宿主已就绪Goal优先，不抢占正在运行的后台片段。独立 `work` scope 使用临时内存Pi Session，零工具/Skill/Memory正文/聊天历史，单次请求、32KiB实际请求体、4096输出token及既有超时；入口文本14KiB按UTF-8字节检查，不静默裁剪。原Task/Goal的Memory规则不变。
+
+queued取消无Run；running取消在同事务中结束技术Run为interrupted并将Job改为cancelled，再abort，迟到成功不能提交。门等待Session退出后才释放。重启将running Job/Run一并转interrupted，queued保留；失败/中断/取消/已完成不重跑，功能关闭不领取。聚合提交异常停止新领取并触发主进程停止，不用新模型请求补交。
+
+先提交Job与Run，再通过原ChannelRouter进入Web收件箱，通知含主题和工作标识；投递失败只记deliveryError。GET详情和主题查询不写渲染ACK或审批许可。对话保持原前台busy语义，队列/详情放在可展开区域及主题页，结果按需读取。列表最近100项、无分页；无通用Outbox、模型辅助路由、联网/并行Worker或自动后续执行。实际机制验证与真实语义/长期运行边界见[2A交付记录](evaluations/router-worker-mvp.md)。

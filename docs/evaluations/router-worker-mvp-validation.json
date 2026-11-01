@@ -1,0 +1,202 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-01",
+  "scope": "Router-Worker MVP 2A及P2分类修复的已核验离线证据摘要；不包含原始日志或私人数据",
+  "source": {
+    "branch": "codex/router-worker-mvp",
+    "baseline": "e2c95c067d4f33aa5cd9fdb0c6b17e40bc82ba4b",
+    "mainAtReview": "75b724f17d17a70ad51caf7c4697251259d7ef3c",
+    "dependencyPullRequest": 3,
+    "pullRequestBase": "codex/workthread-foundation",
+    "featureEnabledByDefault": false,
+    "originalDeliveryFileCount": 31,
+    "releasePreparation": "用户已授权提交、推送及创建依赖PR；发布准备阶段不合并main、不启用功能、不进入2B"
+  },
+  "validatedDeliverySha256": {
+    ".env.example": "c4e7e4fb43fda72458be5dc2fe38226a97dcfc3da98592bac241a26ca9e58b47",
+    "README.md": "1591f6cea04922cc1105e3ed0ec8a090c98f9554ce1639b7af43acae55e24f02",
+    "docs/PROJECT.md": "3416302b5d1a64cd38144e5d3308835a68bfb229bf2c09a9d3f84e3267b78305",
+    "docs/STATE.md": "d8d9683418ba0f129a06545ba07720170f889b089f2a875cbeffa7f48bafd15e",
+    "docs/designs/work-router-worker-mvp.md": "1e0a87004d69f52a67b3cd15a66811c6ab4f96a78c23580e8d320cb19cf80e39",
+    "docs/evaluations/router-worker-mvp.md": "a097450feacf04f97f89dd5fe100e8aa4d8b6f224284b3b54d076963650884ae",
+    "docs/evaluations/workthread-pr3-review.md": "75c31aa8cd8f09cb369f701a95a1b72c5a552a3c2b00180c93af7a7f73b53948",
+    "scripts/preview-web-ui.ts": "c4802feb4c1058ae6d41be430429c9dff3cd7a2acdb6ab63ac1c9440b6f83172",
+    "src/config.ts": "1467805c045d6909e9beb2a142fdba017c5a3c6b9f253d5bc98379ee0a452b03",
+    "src/contracts.ts": "63eedd4fa287e186bd394c8c0ec92acc410174b2b0b65590c2c2a5c8a308f2d3",
+    "src/main.ts": "1a12d8ff595f7c658eeeb87ae826ba974a78dc97b8f64b62729682378010d5e3",
+    "src/pi-executor.ts": "b245c9d2ba4240faad2fa45ea2488595b027e6c5962bd0af401d267db615e252",
+    "src/sqlite-store.ts": "34eabf13681177d22ec3985546b10ad027704429338910f41e412334066c4352",
+    "src/web-ui-channel.ts": "f9df8dffba3a61ae130e320fafd3cc3a5571a6b19e300765500494c8402f3ba3",
+    "src/web-ui-server.ts": "f1c6b198c8116bd647d35c63fb68e53617a46b7168a8972aa86480bc518b0ff2",
+    "src/web-ui-store.ts": "f135b61161152a0c41cc889ce28824f91c93fdf12ed8c45e506076bf9fab1af0",
+    "src/web-ui-types.ts": "28ac7b882278fb56241b0ce456179ac23d75b63bc1e5b8e808397b27e0c4f10c",
+    "src/work-job-store.ts": "2b30fb3838d103ebbdd65a0348969bda92ba957cd3d9e3358055c45d082b626b",
+    "src/work-job-types.ts": "f94f9e2c9758c29f9b1da6fd86dfa9de49d8d5f2f68c9debf8e8c6d7e7cedc59",
+    "src/work-router.ts": "22696cd5579dc059e354165171d5f4b3cd54c30f9fd52b417623e24a4c22d569",
+    "src/work-runner.ts": "9814ff2501d6f66a34cecf66060ca5792bae5dc75a078a2540232702305a24ce",
+    "tests/helpers/web-ui-fixture.ts": "8638e354aaffe38a6d1f93657ee3d5af94d3c2acc7632a02479c371bd8cc4021",
+    "tests/pi-executor.test.ts": "36001e3f866d7dbc9b091d11d7f7231e69e1c7868c05d96a7d3ac796e4d16f8d",
+    "tests/work-jobs-process.test.ts": "b38f1b97a514eaebbeaba7320d6b395e63f2eb342073d6903919195f3e952792",
+    "tests/work-jobs.test.ts": "b5dda50efbc8fe156ad931bda5362663aea80b8c4d74d6f5b8e586ed64ca0c25",
+    "tests/work-router.test.ts": "5023e11220ace3cca7d376816f2aaf96a44d75012a1b91b661922458441ef22e",
+    "tests/work-runner.test.ts": "416775d243411f8453c013b7b5b372c821ef424f3b76aefeb7c4273f741c709a",
+    "web/src/main.tsx": "ccf7d99e1cfe7461dbfccb320f6f127aaf94e507ecdce2ba09b42f7864540d78",
+    "web/src/style.css": "d2da06026d70b4df7eca87c2dde8e1257f8add2e35475f099b588d11b6371a0c",
+    "web/src/work-jobs.tsx": "7d5253daa7bdaa1a48b2c0015a50d28152ebd1b791551694dc1a44875528c510",
+    "web/src/work-threads.tsx": "46978e3a79b1330efc704d0306f9c474e54b684b445a642f27fff781885f87a5"
+  },
+  "hashScope": "以上是独立复审及文档收尾后的原31文件快照。发布准备仅修改STATE、评估记录并新增本摘要；代码和测试Hash不变。仓库提交本身标识最终发布文档。",
+  "workerChecks": [
+    {
+      "name": "specialized-sandbox",
+      "command": "TMPDIR=/private/tmp node --import tsx --test tests/pi-executor.test.ts tests/work-runner.test.ts",
+      "exitCode": 1,
+      "durationSeconds": 1.42,
+      "logArtifact": "specialized-sandbox.log",
+      "logSha256": "9734f8ad18eaaad734b344c8f8fcd47b7ca29cee13199024e8f57a8c609a3564",
+      "classification": "environment restriction: EPERM; retained original failure"
+    },
+    {
+      "name": "specialized",
+      "command": "TMPDIR=/private/tmp node --import tsx --test tests/pi-executor.test.ts tests/work-runner.test.ts",
+      "exitCode": 0,
+      "durationSeconds": 1.705,
+      "logArtifact": "specialized.log",
+      "logSha256": "ed969c8dceafc28bddab0bdc82d63ee0a9a016d63383ae2d3e00c7575b40be0f",
+      "tests": 19,
+      "passCount": 19,
+      "failCount": 0,
+      "skipped": 0
+    },
+    {
+      "name": "typecheck-sandbox",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "durationSeconds": 2.116,
+      "logArtifact": "typecheck-sandbox.log",
+      "logSha256": "74c2686ec5fb9e7a7767eeed52bec6570c232765b21ee68a7733d6b9a8267ff3"
+    },
+    {
+      "name": "build-sandbox",
+      "command": "npm run build",
+      "exitCode": 2,
+      "durationSeconds": 0.975,
+      "logArtifact": "build-sandbox.log",
+      "logSha256": "487269149e4f208fe6a2b541f97af5de17c42d12d904c2984a76aa5476b4f1b2",
+      "classification": "environment restriction: EPERM; retained original failure"
+    },
+    {
+      "name": "web-build-sandbox",
+      "command": "npm run web:build",
+      "exitCode": 1,
+      "durationSeconds": 0.568,
+      "logArtifact": "web-build-sandbox.log",
+      "logSha256": "30b8a9beb4c119328dd5670025b7ef38084548376b32c333e99d4bff2ae3da0c",
+      "classification": "environment restriction: EPERM; retained original failure"
+    },
+    {
+      "name": "build",
+      "command": "npm run build",
+      "exitCode": 0,
+      "durationSeconds": 1.118,
+      "logArtifact": "build.log",
+      "logSha256": "30760990998950e1eafcc0f67c5f05db68d7cdff6124e624ed2b53804c421cd6"
+    },
+    {
+      "name": "web-build",
+      "command": "npm run web:build",
+      "exitCode": 0,
+      "durationSeconds": 0.619,
+      "logArtifact": "web-build.log",
+      "logSha256": "9bf70a5fa6b59684f04b4b32ace176093a940c34f0fe8bccca44bc5f1d6d7cfb",
+      "warnings": "2条既有lucide use-client告警"
+    },
+    {
+      "name": "full-test",
+      "command": "TMPDIR=/private/tmp npm test",
+      "exitCode": 0,
+      "durationSeconds": 69.037,
+      "logArtifact": "full-test.log",
+      "logSha256": "c566a5a9332f5545fe67fdfe75ba8cced20bdf0322cf87ee6a3becb5823e39bb",
+      "tests": 618,
+      "passCount": 618,
+      "failCount": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "testReportSeconds": 68.85
+    },
+    {
+      "name": "red-original-2a",
+      "command": "TMPDIR=/private/tmp node --import tsx --test --test-name-pattern=work限制：(http500|tool|length) tests/work-runner.test.ts",
+      "exitCode": 1,
+      "durationSeconds": 1.077,
+      "logArtifact": "red-original-2a.log",
+      "logSha256": "1d520b5100768cc6020269fc45462133810ff1047406478df5bee55ffa526465",
+      "tests": 3,
+      "expectedFailureCount": 3,
+      "note": "只在临时副本复原初交付pi-executor，Hash一致；3项实际interrupted而期望failed；真实工作树未回退"
+    }
+  ],
+  "independentReview": {
+    "round": 1,
+    "blockingFindings": [],
+    "otherActionableFindings": [],
+    "summary": "无阻断、无追加可执行缺陷；Reviewer独立复跑19项专项，其余工程验证核验Worker原始日志及Hash，未冒充重跑",
+    "verifiedDeliveryFiles": 31,
+    "verifiedFrozenFiles": 371,
+    "verifiedOriginalLogs": 9,
+    "sourceAndTestChanges": false,
+    "reportSha256": "59a76d3e9665fb083e74bf06ec11999b81c83a16348f098734db741b9924f315",
+    "machineRecordSha256": "28d24a501bc10b1da8ce53467449fc98e18ff85cfc83b06b593be0e3495cfd77",
+    "checksRun": [
+      {
+        "command": "TMPDIR=/private/tmp node --import tsx --test tests/pi-executor.test.ts tests/work-runner.test.ts",
+        "sandbox": "default",
+        "exitCode": 1,
+        "classification": "environment listen EPERM 127.0.0.1",
+        "logSha256": "71a58e5f2de3f2286a2aacda3398949bb64fbc5e654f7271c04475ae757889d5",
+        "logArtifact": "reviewer-r1/specialized-sandbox.log"
+      },
+      {
+        "command": "TMPDIR=/private/tmp node --import tsx --test tests/pi-executor.test.ts tests/work-runner.test.ts",
+        "sandbox": "approved minimal local mock listener",
+        "exitCode": 0,
+        "tests": 19,
+        "pass": 19,
+        "fail": 0,
+        "skipped": 0,
+        "logSha256": "fe1ac62d5d8881fe8dc27fd18c799107c78d04bcb5801f7fc86dd9f25d3165a4",
+        "logArtifact": "reviewer-r1/specialized.log"
+      },
+      {
+        "command": "git diff --check",
+        "exitCode": 0
+      }
+    ]
+  },
+  "originalDiffSha256": {
+    "p2-total.diff": "4914d9711468df0ecfa434eb519a828490b81e41ac754d2bd1374af2bcaacd9e",
+    "p2-code-only.diff": "e36d27c1afb9568c3f524f4bd3cc65d2b25abe4bc8047e170b2b0c6e8eca3e31",
+    "closeout-only.diff": "8f30b5400e9a86cd111422a7adaaa0b5cc0e850e1d3a50a43700c918ca639686",
+    "full-2a.diff": "40dccf38f55e934a3815db2b22a7f51fe89ef5c848c8d19aba65d78c2eec96ba"
+  },
+  "originalArchiveRecordSha256": "da00532ebdf9450f6a199c25ca5d611bb61709aeaae49b958bfb0f6186b23713",
+  "originalSnapshotSha256": "910957fd972e9a1070340f43b6c63929e0fb5b083058425c7e53b93e8639ad40",
+  "initialDeliveryHistory": {
+    "fullTests": {
+      "pass": 615,
+      "fail": 0,
+      "skipped": 0
+    },
+    "browser": "初交付以本机模拟模型、合成文本、临时SQLite验证1280px/390px交互；P2与发布准备均未重跑浏览器"
+  },
+  "verificationLimits": [
+    "所有模型端点均为本机模拟，不能视为真实模型语义质量或费用验收",
+    "未做真实Tavily、飞书、手机或长期负载验证",
+    "未读取或提交正式.env、数据库、Session、Memory、备份、日志及构建产物",
+    "未重跑Memory/Formation eval；对应实现未改",
+    "非抢占后台可能延迟提醒；无通用Outbox，不保证通知必达",
+    "保留沙箱监听和构建写入EPERM原始失败证据；最小授权重跑通过，不将环境失败计作业务失败",
+    "2B模型辅助路由、联网与并行Worker、订阅及Chain of Recall未开始"
+  ]
+}

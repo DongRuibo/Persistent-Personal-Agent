@@ -37,6 +37,9 @@ import "./style.css";
 import { chatTimeline } from "./chat-timeline.js";
 import { WebSources } from "./web-sources.js";
 import { WorkThreads } from "./work-threads.js";
+import { WorkJobs } from "./work-jobs.js";
+import type { WorkThread } from "../../src/work-thread-types.js";
+import type { WorkJob } from "../../src/work-job-types.js";
 
 const pages = [
   { id: "home", label: "工作台", icon: House },
@@ -51,6 +54,7 @@ type Page = (typeof pages)[number]["id"];
 const labels: Record<string, string> = {
   available: "可用",
   pending: "待执行",
+  queued: "已排队",
   running: "执行中",
   succeeded: "已完成",
   failed: "失败",
@@ -210,8 +214,11 @@ function App() {
   const [retry, setRetry] = useState<{
       requestId: string;
       text: string;
+      threadId?: string;
     } | null>(null),
     [filter, setFilter] = useState("all");
+  const [threads, setThreads] = useState<WorkThread[]>([]), [threadId, setThreadId] = useState("");
+  const [receipt, setReceipt] = useState<WorkJob | null>(null), [jobsRevision, setJobsRevision] = useState(0);
   const [selectedFile, setSelectedFile] = useState<string | null>(null),
     [selectedGoal, setSelectedGoal] = useState<string | null>(null);
   const [fileDetail, setFileDetail] = useState<WebFile | null>(null),
@@ -282,6 +289,13 @@ function App() {
     if (page === "chat")
       chatEnd.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [page, timeline.at(-1)?.id, data?.capabilities.busy]);
+  useEffect(() => {
+    if (!auth || page !== "chat" || !data?.capabilities.workJobs) return;
+    let current = true;
+    void api<WorkThread[]>("/work-threads").then(list => { if (current) setThreads(list); })
+      .catch((e: Error) => { if (current) setError(e.message); });
+    return () => { current = false; };
+  }, [auth, page, data?.capabilities.workJobs]);
   const fileSummary = data?.files.find((f) => f.id === selectedFile);
   useEffect(() => {
     if (!auth || !selectedFile || page !== "approvals") {
@@ -391,27 +405,32 @@ function App() {
       setData(null);
       setDraft("");
       setRetry(null);
+      setReceipt(null); setThreadId(""); setThreads([]);
       setGoal(null);
     } catch (e) {
       setError((e as Error).message);
     }
   };
-  const send = async (existing?: { requestId: string; text: string }) => {
+  const send = async (existing?: { requestId: string; text: string; threadId?: string }, background = false) => {
     if (
       sending ||
       !online ||
-      (!existing && (!draft.trim() || data?.capabilities.busy))
+      (!existing && (!draft.trim() || (!background && data?.capabilities.busy) || (background && !threadId)))
     )
       return;
     const body = existing ?? {
       requestId: crypto.randomUUID(),
       text: draft.trim(),
+      ...(background ? { threadId } : {}),
     };
     setSending(true);
     setRetry(body);
     setError("");
     try {
-      await api("/chat", body);
+      if (body.threadId) {
+        setReceipt(await api<WorkJob>("/work-jobs", body));
+        setJobsRevision(v => v + 1);
+      } else await api("/chat", body);
       setDraft("");
       setRetry(null);
       await refresh();
@@ -1005,9 +1024,24 @@ function App() {
                         </div>
                       );
                     })}
+                    {data.capabilities.workJobs && <details className="chat-work-jobs">
+                      <summary>后台工作与结果</summary>
+                      <WorkJobs api={api} labels={labels} revision={jobsRevision} />
+                    </details>}
                     <div ref={chatEnd} />
                   </div>
                   <div className="composer-area">
+                    {data.capabilities.workJobs && <div className="work-submit">
+                      <label htmlFor="work-job-thread">后台工作主题</label>
+                      <select id="work-job-thread" value={threadId} disabled={sending || !!retry} onChange={e => setThreadId(e.target.value)}>
+                        <option value="">选择主题后可后台处理</option>
+                        {threads.filter(thread => thread.status === "active").map(thread => <option key={thread.id} value={thread.id}>{thread.title}</option>)}
+                      </select>
+                      <button type="button" disabled={!threadId || !draft.trim() || sending || !online || !!retry}
+                        onClick={() => void send(undefined, true)}>后台处理</button>
+                      <small className="muted">仅处理本次文字；完成后进入主题和收件箱，你可继续聊天。</small>
+                    </div>}
+                    {data.capabilities.workJobs && receipt && <p className="work-job-receipt" role="status">提交收据：{labels[receipt.status]}（{time(receipt.createdAt)}） · 工作 {receipt.id} · 主题 {receipt.threadId.slice(0, 8)}</p>}
                     {retry && !sending && (
                       <div className="retry-bar">
                         上次提交尚未确认。
@@ -1085,7 +1119,7 @@ function App() {
                 </div>
               )}
               {page === "threads" && (data.capabilities.workThreads
-                ? <WorkThreads api={api} labels={labels} />
+                ? <WorkThreads api={api} labels={labels} workJobs={!!data.capabilities.workJobs} />
                 : <Empty icon={FolderOpen} title="工作主题未启用">请在本机配置中启用工作主题后重启服务。</Empty>)}
               {page === "tasks" && (
                 <>
@@ -1587,7 +1621,7 @@ function App() {
                           <div>
                             <div>
                               <strong>
-                                {n.goalId ? "目标执行结果" : "任务执行结果"}
+                                {n.goalId ? "目标执行结果" : n.taskId ? "任务执行结果" : "后台工作结果"}
                               </strong>
                               <small>{time(n.at)}</small>
                             </div>

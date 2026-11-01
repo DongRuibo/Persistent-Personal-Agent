@@ -33,15 +33,17 @@ export class WebUiStore {
     return !!this.db.prepare(`SELECT 1 FROM runs r WHERE r.id=? AND (
       EXISTS(SELECT 1 FROM web_ui_chats c WHERE c.owner=? AND c.runId=r.id) OR
       EXISTS(SELECT 1 FROM tasks t WHERE t.id=r.taskId AND t.target=?) OR
+      EXISTS(SELECT 1 FROM work_jobs j WHERE j.owner=? AND j.channel=? AND j.runId=r.id) OR
       EXISTS(SELECT 1 FROM goal_executions e JOIN goals g ON g.id=e.goalId WHERE e.runId=r.id AND g.ownerId='local-user' AND g.targetJson=?))`)
-      .get(id, owner, target, target);
+      .get(id, owner, target, owner, target, target);
   }
   runs(owner: string, target: string): string[] {
     return this.db.prepare(`SELECT r.id FROM runs r WHERE
       EXISTS(SELECT 1 FROM web_ui_chats c WHERE c.owner=? AND c.runId=r.id) OR
       EXISTS(SELECT 1 FROM tasks t WHERE t.id=r.taskId AND t.target=?) OR
+      EXISTS(SELECT 1 FROM work_jobs j WHERE j.owner=? AND j.channel=? AND j.runId=r.id) OR
       EXISTS(SELECT 1 FROM goal_executions e JOIN goals g ON g.id=e.goalId WHERE e.runId=r.id AND g.ownerId='local-user' AND g.targetJson=?)
-      ORDER BY r.startedAt DESC,r.rowid DESC LIMIT 100`).all(owner, target, target).map(row => String(row.id));
+      ORDER BY r.startedAt DESC,r.rowid DESC LIMIT 100`).all(owner, target, owner, target, target).map(row => String(row.id));
   }
   fileIds(owner: string, target: string): string[] {
     return this.db.prepare('SELECT id FROM file_operations WHERE owner=? AND channel=? ORDER BY rowid DESC LIMIT 60')

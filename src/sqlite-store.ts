@@ -9,6 +9,7 @@ import { WebReadStore } from './web-read-store.js';
 import { FileOperationStore } from './file-operation-store.js';
 import { WebUiStore } from './web-ui-store.js';
 import { WorkThreadStore } from './work-thread-store.js';
+import { WorkJobStore } from './work-job-store.js';
 
 export class SqliteStore {
   private readonly db: DatabaseSync;
@@ -20,6 +21,7 @@ export class SqliteStore {
   readonly files: FileOperationStore;
   readonly webUi: WebUiStore;
   readonly workThreads: WorkThreadStore;
+  readonly workJobs: WorkJobStore;
 
   constructor(path: string, private readonly redact: (value: unknown) => string = String) {
     this.db = new DatabaseSync(path);
@@ -71,6 +73,10 @@ export class SqliteStore {
     this.files = new FileOperationStore(this.db, fn => this.transaction(fn));
     this.webUi = new WebUiStore(this.db, fn => this.transaction(fn), now => this.beginRunInTransaction(null, now));
     this.workThreads = new WorkThreadStore(this.db, fn => this.transaction(fn));
+    this.workJobs = new WorkJobStore(this.db, this.workThreads, {
+      transaction: fn => this.transaction(fn), begin: now => this.beginRunInTransaction(null, now),
+      finish: (id, status, now, output, error) => { this.finishRunInTransaction(id, status, now, output, error); },
+    });
     this.goals.web = this.web;
     this.goals.policy = {
       consume: (goal, auth, now) => this.policies.consume(goal, auth, now),
@@ -180,8 +186,9 @@ export class SqliteStore {
 
   finishRun(id: string, status: Exclude<RunStatus, 'running'>, now: string, output?: string, error?: string, enqueue?: () => void): void {
     this.transaction(() => {
-      // Goal 必须连同 Checkpoint 提交，不能走普通聊天/Task 的独立结束入口。
+      // Goal和后台工作必须聚合提交，不能走普通聊天/Task 的独立结束入口。
       if (this.db.prepare('SELECT 1 FROM goal_executions WHERE runId=?').get(id)) throw new Error('Goal Run 必须经 GoalStore 聚合提交');
+      if (this.db.prepare('SELECT 1 FROM work_jobs WHERE runId=?').get(id)) throw new Error('后台工作 Run 必须经 WorkJobStore 聚合提交');
       const run = this.finishRunInTransaction(id, status, now, output, error);
       if (enqueue && status === 'succeeded' && !run.taskId) {
         // 队列故障只回滚自身，不将已经完成的聊天改成失败；成功时与 Run 原子提交。
@@ -217,6 +224,7 @@ export class SqliteStore {
       this.db.prepare("UPDATE runs SET status = 'interrupted', finishedAt = ?, error = ? WHERE status = 'running'")
         .run(now, '服务在执行完成前退出；可能已产生副作用，请人工核实');
       this.db.prepare("UPDATE tasks SET status = 'interrupted', updatedAt = ? WHERE status = 'running'").run(now);
+      this.workJobs.recoverInTransaction(now);
       this.goals.recoverInTransaction(now);
       this.notifications.recoverInTransaction(now);
       this.web.recoverInTransaction(now);

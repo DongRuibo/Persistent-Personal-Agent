@@ -1,13 +1,16 @@
+import type { WorkJob } from './work-job-types.js';
 import type { WebSearchCall, WebSearchSummary } from './web-search-types.js';
 
 export interface WebRun {
   id: string; taskId: string | null; status: string; startedAt: string; finishedAt: string | null;
   output: string | null; error: string | null; viewed: boolean; truncated: boolean;
   fileOperationId?: string;
+  deliveryError?: string | null;
   web?: WebSearchSummary;
   webCalls?: WebSearchCall[];
   usage: { calls: number; inputTokens: number; outputTokens: number; cacheReadTokens: number; cacheWriteTokens: number; cost: number | null };
 }
+export interface WebWorkJob extends WorkJob { run: WebRun | null }
 export interface WebChat { requestId: string; text: string; run: WebRun }
 export interface WebTask { id: string; instruction: string; dueAt: string; status: string; updatedAt: string; result: string | null }
 export interface WebGoal { id: string; objective: string; status: string; updatedAt: string; blockedReason: string | null }
@@ -27,5 +30,5 @@ export interface WebFile extends WebFileSummary {
 export interface WebNotice { runId: string; text: string; at: string; viewedAt: string | null; taskId: string | null; goalId: string | null }
 export interface WebSnapshot {
   chats: WebChat[]; tasks: WebTask[]; goals: WebGoal[]; files: WebFileSummary[]; activity: WebRun[]; inbox: WebNotice[];
-  capabilities: { goal: boolean; skills: string[]; filesRead: boolean; filesWrite: boolean; webRead: boolean; webSearch?: boolean; workThreads?: boolean; busy: boolean; push: false };
+  capabilities: { goal: boolean; skills: string[]; filesRead: boolean; filesWrite: boolean; webRead: boolean; webSearch?: boolean; workThreads?: boolean; workJobs?: boolean; busy: boolean; push: false };
 }

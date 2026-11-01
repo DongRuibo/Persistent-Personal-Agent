@@ -56,7 +56,7 @@ export interface ExecutionObserver {
 
 export interface ExecutionRequest {
   prompt: string;
-  scope: 'chat' | 'task' | 'goal';
+  scope: 'chat' | 'task' | 'goal' | 'work';
   // Goal 的检索词由宿主独立构造，不把整个进度快照当检索问题。
   memoryQuery?: string;
   // 仅可信 GoalRunner 从已消费的宿主策略授权设置，不是模型工具参数。
