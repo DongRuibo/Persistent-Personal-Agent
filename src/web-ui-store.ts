@@ -1,7 +1,7 @@
 import type { DatabaseSync } from 'node:sqlite';
 import type { Run } from './contracts.js';
 
-type RequestRow = { requestId: string; runId: string; text: string; mode: 'chat' | 'suggest'; selectionJson: string };
+type RequestRow = { requestId: string; runId: string; text: string; mode: 'chat' | 'suggest' | 'policy'; selectionJson: string };
 
 // 仅为 Web 展示和收件箱投影；模型上下文仍由 Pi 原生 Session 管理。
 export class WebUiStore {

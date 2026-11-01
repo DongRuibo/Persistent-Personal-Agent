@@ -1,3 +1,4 @@
+import type { WebPolicyRequest } from './goal-policy-types.js';
 import type { WorkRouteRequest } from './work-route-types.js';
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import { createServer } from 'node:http';
@@ -8,6 +9,8 @@ import { once } from 'node:events';
 import { WebUiChannel, WebUiError } from './web-ui-channel.js';
 import { WorkJobError } from './work-job-store.js';
 import { workInputBytes } from './work-job-types.js';
+import { SourceEventError } from './source-event-store.js';
+import type { SourcePermission, SubscriptionRequest } from './source-event-types.js';
 import { WorkThreadError } from './work-thread-store.js';
 import type { WorkObjectKind } from './work-thread-types.js';
 
@@ -24,6 +27,31 @@ function workRouteInput(data: Record<string, unknown>, requestId: unknown = data
       || typeof object.kind !== 'string' || !['task', 'goal'].includes(object.kind) || typeof object.id !== 'string' || !uuid.test(object.id))) throw new WebUiError(400, '主题或对象ID无效');
   return { mode: 'suggest', requestId, text, selection: { ...(value.threadId ? { threadId: value.threadId as string } : {}),
     ...(object ? { object: { kind: object.kind as 'task' | 'goal', id: object.id as string } } : {}) } };
+}
+
+// 结构化权限入口只接受明确字段；规范化字段顺序用于同requestId的内容冲突检查。
+function policyInput(data: Record<string, unknown>): WebPolicyRequest {
+  if (typeof data.requestId !== 'string' || !uuid.test(data.requestId) || typeof data.subscriptionId !== 'string' || !uuid.test(data.subscriptionId)
+    || !Number.isSafeInteger(data.expectedSubscriptionRevision) || Number(data.expectedSubscriptionRevision) < 1) throw new WebUiError(400, '策略请求ID、订阅或版本无效');
+  const base = { requestId: data.requestId, subscriptionId: data.subscriptionId, expectedSubscriptionRevision: data.expectedSubscriptionRevision as number };
+  if (data.action === 'pause' || data.action === 'revoke') {
+    if (data.proposal !== undefined || typeof data.policyId !== 'string' || !uuid.test(data.policyId) || !Number.isSafeInteger(data.expectedVersion) || Number(data.expectedVersion) < 1) throw new WebUiError(400, '策略控制字段无效');
+    return { ...base, action: data.action, policyId: data.policyId, expectedVersion: data.expectedVersion as number };
+  }
+  const p = data.proposal as Record<string, unknown> | undefined;
+  if (data.action !== 'approve' || data.policyId !== undefined || data.expectedVersion !== undefined || !p || typeof p !== 'object' || Array.isArray(p)
+    || Object.keys(p).some(key => !['goalId', 'expectedGoalRevision', 'planRevision', 'expiresAt', 'capability', 'schedule', 'limits'].includes(key))
+    || typeof p.goalId !== 'string' || !uuid.test(p.goalId) || !Number.isSafeInteger(p.expectedGoalRevision) || !Number.isSafeInteger(p.planRevision)
+    || typeof p.expiresAt !== 'string' || p.capability !== 'text_only') throw new WebUiError(400, '需明确Goal/Plan版本、有效期和纯文本权限');
+  const w = p.schedule as Record<string, unknown> | undefined, l = p.limits as Record<string, unknown> | undefined;
+  if (!w || typeof w !== 'object' || Array.isArray(w) || Object.keys(w).some(key => !['kind', 'repository', 'branch', 'intervalSeconds'].includes(key))
+    || w.kind !== 'github' || typeof w.repository !== 'string' || typeof w.branch !== 'string' || typeof w.intervalSeconds !== 'number'
+    || !l || typeof l !== 'object' || Array.isArray(l) || Object.keys(l).some(key => !['segmentsPerTrigger', 'dailyExecutions', 'dailyModelCalls', 'totalExecutions', 'dailyBudgetCny', 'totalBudgetCny'].includes(key))
+    || l.segmentsPerTrigger !== 1 || !['dailyExecutions', 'dailyModelCalls', 'totalExecutions', 'dailyBudgetCny', 'totalBudgetCny'].every(key => typeof l[key] === 'number' && Number.isFinite(l[key]))) throw new WebUiError(400, '需固定GitHub三字段、每事件1片段和明确次数/人民币限额');
+  return { ...base, action: 'approve', proposal: { goalId: p.goalId, expectedGoalRevision: p.expectedGoalRevision as number, planRevision: p.planRevision as number,
+    expiresAt: p.expiresAt, capability: 'text_only', schedule: { kind: 'github', repository: w.repository, branch: w.branch, intervalSeconds: w.intervalSeconds },
+    limits: { segmentsPerTrigger: 1, dailyExecutions: l.dailyExecutions as number, dailyModelCalls: l.dailyModelCalls as number, totalExecutions: l.totalExecutions as number,
+      dailyBudgetCny: l.dailyBudgetCny as number, totalBudgetCny: l.totalBudgetCny as number } } };
 }
 
 export interface WebUiConfig { key: string; port: number; dataDir: string }
@@ -68,8 +96,8 @@ export class WebUiServer {
   private origin = '';
   readonly server = createServer({ maxHeaderSize: 8192, requestTimeout: 15000, headersTimeout: 10000 }, (req, res) => {
     void this.handle(req, res).catch(error => {
-      if (!res.headersSent) this.json(res, error instanceof WebUiError || error instanceof WorkThreadError || error instanceof WorkJobError ? error.status : 500,
-        { error: error instanceof WebUiError || error instanceof WorkThreadError || error instanceof WorkJobError ? error.message : '本机服务暂时无法完成请求，请检查本地日志。' });
+      if (!res.headersSent) this.json(res, error instanceof WebUiError || error instanceof WorkThreadError || error instanceof WorkJobError || error instanceof SourceEventError ? error.status : 500,
+        { error: error instanceof WebUiError || error instanceof WorkThreadError || error instanceof WorkJobError || error instanceof SourceEventError ? error.message : '本机服务暂时无法完成请求，请检查本地日志。' });
       else res.end();
     });
   });
@@ -187,6 +215,39 @@ export class WebUiServer {
             return this.json(res, 200, router.cancel(job[1]!));
           }
         }
+        throw new WebUiError(404, '接口不存在');
+      }
+      if (path === '/api/work-event-sources' || path.startsWith('/api/work-event-sources/')
+        || path === '/api/work-event-subscriptions' || path.startsWith('/api/work-event-subscriptions/')
+        || path.startsWith('/api/work-source-events/') || /^\/api\/work-threads\/[^/]+\/events$/u.test(path)) {
+        if (!this.channel.eventsEnabled) throw new WebUiError(404, '接口不存在');
+        const events = this.channel.sourceEvents!;
+        if (path === '/api/work-event-sources') {
+          if (req.method === 'GET') return this.json(res, 200, events.list());
+          return this.json(res, 200, events.permit(await this.body(req, ['requestId', 'watch']) as unknown as SourcePermission));
+        }
+        const source = /^\/api\/work-event-sources\/([a-f0-9-]{36})$/u.exec(path);
+        if (source && uuid.test(source[1]!) && req.method === 'POST') {
+          const data = await this.body(req, ['status', 'expectedRevision']);
+          return this.json(res, 200, events.setStatus(source[1]!, data.status as 'active' | 'paused', data.expectedRevision as number));
+        }
+        if (path === '/api/work-event-subscriptions' && req.method === 'POST') return this.json(res, 200,
+          events.subscribe(await this.body(req, ['id', 'sourceId', 'threadId', 'goalId']) as unknown as SubscriptionRequest));
+        const policy = /^\/api\/work-event-subscriptions\/([a-f0-9-]{36})\/policy$/u.exec(path);
+        if (policy && uuid.test(policy[1]!)) {
+          if (req.method === 'GET') return this.json(res, 200, this.channel.policyContext(policy[1]!));
+          const data = await this.body(req, ['requestId', 'expectedSubscriptionRevision', 'action', 'proposal', 'policyId', 'expectedVersion']);
+          return this.json(res, 200, this.channel.submitPolicy(policyInput({ ...data, subscriptionId: policy[1]! })));
+        }
+        const subscription = /^\/api\/work-event-subscriptions\/([a-f0-9-]{36})$/u.exec(path);
+        if (subscription && uuid.test(subscription[1]!) && req.method === 'POST') {
+          const data = await this.body(req, ['status', 'expectedRevision']);
+          return this.json(res, 200, events.subscriptionStatus(subscription[1]!, data.status as 'active' | 'paused', data.expectedRevision as number));
+        }
+        const feed = /^\/api\/work-threads\/([a-f0-9-]{36})\/events$/u.exec(path);
+        if (feed && uuid.test(feed[1]!) && req.method === 'GET') return this.json(res, 200, events.feed(feed[1]!));
+        const event = /^\/api\/work-source-events\/([a-f0-9-]{36})$/u.exec(path);
+        if (event && uuid.test(event[1]!) && req.method === 'GET') return this.json(res, 200, events.event(event[1]!));
         throw new WebUiError(404, '接口不存在');
       }
       if (path.startsWith('/api/work-')) {

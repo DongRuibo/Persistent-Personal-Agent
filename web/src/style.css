@@ -2576,3 +2576,12 @@ button.primary,
 .work-route-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 10px; }
 .work-route-controls select { min-width: 0; max-width: 100%; flex: 1 1 200px; }
 .work-route-controls small, .work-route-controls .error { flex-basis: 100%; }
+
+.work-events { margin-block: 1.25rem; border-top: 1px solid var(--line); padding-top: 1rem; min-width: 0; }
+.work-events form { display: grid; gap: .75rem; margin-block: .75rem; }
+.work-events label { display: grid; gap: .35rem; }
+.work-events input, .work-events select { max-width: 100%; min-width: 0; }
+.work-events article { border: 1px solid var(--line); border-radius: .75rem; padding: .8rem; margin-block: .65rem; overflow-wrap: anywhere; }
+.work-events .work-event-consent { display: flex; align-items: flex-start; gap: .5rem; }
+.work-event-consent input { width: auto; }
+.work-events pre, .work-events summary { white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word; }

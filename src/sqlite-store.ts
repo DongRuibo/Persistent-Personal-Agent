@@ -10,6 +10,7 @@ import { FileOperationStore } from './file-operation-store.js';
 import { WebUiStore } from './web-ui-store.js';
 import { WorkThreadStore } from './work-thread-store.js';
 import { WorkJobStore } from './work-job-store.js';
+import { SourceEventStore } from './source-event-store.js';
 
 export class SqliteStore {
   private readonly db: DatabaseSync;
@@ -22,6 +23,7 @@ export class SqliteStore {
   readonly webUi: WebUiStore;
   readonly workThreads: WorkThreadStore;
   readonly workJobs: WorkJobStore;
+  readonly sourceEvents: SourceEventStore;
 
   constructor(path: string, private readonly redact: (value: unknown) => string = String) {
     this.db = new DatabaseSync(path);
@@ -76,6 +78,11 @@ export class SqliteStore {
     this.workJobs = new WorkJobStore(this.db, this.workThreads, {
       transaction: fn => this.transaction(fn), begin: now => this.beginRunInTransaction(null, now),
       finish: (id, status, now, output, error) => { this.finishRunInTransaction(id, status, now, output, error); },
+    });
+    this.sourceEvents = new SourceEventStore(this.db, { transaction: fn => this.transaction(fn),
+      begin: now => this.beginRunInTransaction(null, now),
+      finish: (id, now) => { this.finishRunInTransaction(id, 'succeeded', now, '用户明确许可固定GitHub只读观察，非执行授权'); },
+      event: (id, type, details, now) => this.event(id, type, JSON.stringify(details), now), redact: value => this.redact(value),
     });
     this.goals.web = this.web;
     this.goals.policy = {
@@ -245,7 +252,7 @@ export class SqliteStore {
 
   event(runId: string, type: string, details?: string, now = new Date().toISOString()): void {
     // 新来源事件是结构化JSON；逐字段脱敏后再序列化，避免凭据样式吃掉闭合引号。
-    const stored = details === undefined ? null : type === 'tavily_call'
+    const stored = details === undefined ? null : type === 'tavily_call' || type === 'source_observation_permitted'
       ? JSON.stringify(JSON.parse(details), (_key, value: unknown) => typeof value === 'string' ? this.redact(value) : value)
       : this.redact(details);
     this.db.prepare('INSERT INTO run_events (runId, at, type, details) VALUES (?, ?, ?, ?)')

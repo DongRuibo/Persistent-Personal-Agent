@@ -1,3 +1,4 @@
+import type { WebPolicyRequest, WebPolicyReceipt } from './goal-policy-types.js';
 import type { WorkRouteRequest, WorkRoutePreparation, WorkRouteSuggestion } from './work-route-types.js';
 import type { WebWorkRoute } from './web-ui-types.js';
 import { createHash } from 'node:crypto';
@@ -10,6 +11,7 @@ import type { BackgroundLane } from './background-lane.js';
 import type { Config } from './config.js';
 import type { WebFile, WebGoalDetail, WebRun, WebSnapshot } from './web-ui-types.js';
 import type { FileMemoryService } from './memory-service.js';
+import type { SourceEventService } from './source-event-service.js';
 import { WorkThreadService } from './work-thread-service.js';
 import { WorkRouter, prepareWorkRoute, suggestWorkRoute } from './work-router.js';
 import type { WebWorkJob } from './web-ui-types.js';
@@ -26,6 +28,8 @@ export class WebUiChannel implements Channel {
   private work?: Promise<void>;
   private routing?: { requestId: string; controller: AbortController; work: Promise<void> };
   readonly workThreads?: WorkThreadService;
+  sourceEvents?: SourceEventService;
+  get eventsEnabled(): boolean { return !!this.config.workEventsEnabled && !!this.sourceEvents; }
   readonly workRouter?: WorkRouter;
   constructor(private readonly store: SqliteStore, private readonly tasks: TaskService, private readonly executor: AgentExecutor,
     private readonly config: Config, private readonly goals?: GoalService, private readonly lane?: BackgroundLane,
@@ -38,6 +42,41 @@ export class WebUiChannel implements Channel {
       if (!this.workThreads) throw new Error('后台工作需要 WORK_THREADS_ENABLED=true');
       this.workRouter = new WorkRouter(store.workJobs, this.workThreads.binding, (id, text) => this.submit(id, text), interruptWork);
     }
+  }
+
+  policyContext(subscriptionId: string) {
+    if (!this.eventsEnabled || !this.goals) throw new WebUiError(404, '执行审批入口未开启');
+    const context = this.sourceEvents!.policyContext(subscriptionId);
+    const goal = context.subscription.goalId ? this.store.goals.get({ ownerId: 'local-user', target: webTarget }, context.subscription.goalId) : null;
+    const policy = context.subscription.policyId ? this.store.policies.get({ ownerId: 'local-user', target: webTarget }, context.subscription.policyId) : null;
+    return { ...context, goal: goal ? { id: goal.id, objective: goal.objective, status: goal.status, revision: goal.revision, planRevision: goal.planRevision } : null, policy, proactiveEnabled: !!this.config.proactive?.enabled };
+  }
+  submitPolicy(input: WebPolicyRequest): WebPolicyReceipt {
+    if (!this.eventsEnabled || !this.goals) throw new WebUiError(404, '执行审批入口未开启');
+    const payload = JSON.stringify(input), old = this.store.webUi.find(webOwner, input.requestId);
+    const actor = { ownerId: 'local-user', target: webTarget };
+    if (old) {
+      if (old.mode !== 'policy' || old.selectionJson !== payload || old.text !== 'Web独立策略操作：' + input.action) throw new WebUiError(409, '此请求ID已用于其他模式或策略内容');
+      const policy = this.store.policies.sourceReceipt(actor, old.runId);
+      return { requestId: input.requestId, runId: old.runId, policy, status: policy ? 'applied' : 'not_applied',
+        message: policy ? '原策略操作已提交；本次只读取收据。' : '原请求未完成策略批准，未自动重放；请核对状态后发起新操作。' };
+    }
+    if (this.shutdown.signal.aborted) throw new WebUiError(503, '服务正在停止');
+    const now = new Date().toISOString(), text = 'Web独立策略操作：' + input.action;
+    const run = this.store.webUi.accept(webOwner, input.requestId, text, now, 'policy', payload);
+    const command = { actor, sourceRunId: run.id, text };
+    const binding = { owner: webOwner, channel: targetJson, subscriptionId: input.subscriptionId, expectedRevision: input.expectedSubscriptionRevision };
+    let policy;
+    try {
+      policy = input.action === 'approve' ? this.store.policies.approve(command, input.proposal, now, binding)
+        : this.store.policies.control(command, input.policyId, input.expectedVersion, input.action, now, binding);
+    } catch (error) {
+      this.store.finishRun(run.id, 'failed', now, undefined, error instanceof Error ? error.message : String(error));
+      throw new WebUiError(409, error instanceof Error ? error.message : '策略操作未提交');
+    }
+    // 独立批准事务已经提交。此后的技术Run故障只能读取原审批收据，不能重做批准。
+    this.store.finishRun(run.id, 'succeeded', now, '独立策略操作已提交');
+    return { requestId: input.requestId, runId: run.id, policy, status: 'applied', message: '独立策略操作已提交；仅之后观察到的新变化可使用此许可。' };
   }
 
   job(id: string): WebWorkJob {
@@ -237,7 +276,7 @@ export class WebUiChannel implements Channel {
       ...(this.routingEnabled ? { suggestions: this.store.webUi.chats(webOwner, 'suggest').reverse().map(row => this.workRoute(row.requestId)) } : {}),
       activity: this.store.webUi.runs(webOwner, targetJson).map(id => this.run(id, false)), inbox,
       capabilities: { goal: !!this.goals, skills: this.executor.skills?.list().map(s => s.id) ?? [], filesRead: !!this.config.localFiles?.enabled,
-        filesWrite: !!this.config.localOutput?.enabled, webRead: !!this.config.webReadEnabled, webSearch: !!this.config.webSearchEnabled, workThreads: !!this.workThreads, workJobs: !!this.workRouter, ...(this.routingEnabled ? { workRouting: true, workRoutingBusy: !!this.routing } : {}), busy: !!this.work, push: false } };
+        filesWrite: !!this.config.localOutput?.enabled, webRead: !!this.config.webReadEnabled, webSearch: !!this.config.webSearchEnabled, workThreads: !!this.workThreads, workJobs: !!this.workRouter, ...(this.eventsEnabled ? { workEvents: true } : {}), ...(this.routingEnabled ? { workRouting: true, workRoutingBusy: !!this.routing } : {}), busy: !!this.work, push: false } };
   }
   async sendMessage(message: OutboundMessage): Promise<void> {
     if (message.target?.channel !== 'web' || message.target.userId !== webTarget.userId || !message.runId

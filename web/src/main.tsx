@@ -1215,7 +1215,7 @@ function App() {
                 </div>
               )}
               {page === "threads" && (data.capabilities.workThreads
-                ? <WorkThreads api={api} labels={labels} workJobs={!!data.capabilities.workJobs} />
+                ? <WorkThreads api={api} labels={labels} workJobs={!!data.capabilities.workJobs} workEvents={!!data.capabilities.workEvents} openGoal={id => { setSelectedGoal(id); navigate("goals"); }} />
                 : <Empty icon={FolderOpen} title="工作主题未启用">请在本机配置中启用工作主题后重启服务。</Empty>)}
               {page === "tasks" && (
                 <>

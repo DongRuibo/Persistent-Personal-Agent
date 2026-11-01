@@ -22,7 +22,8 @@ import { GoalRunner } from './goal-runner.js';
 import { WorkRunner } from './work-runner.js';
 import { GoalService } from './goal-service.js';
 import { GitHubObserver } from './github-observer.js';
-import { WebUiChannel, webChatKey, webTarget } from './web-ui-channel.js';
+import { SourceEventService } from './source-event-service.js';
+import { WebUiChannel, webChatKey, webTarget, webOwner } from './web-ui-channel.js';
 import { WebUiServer, readWebUiConfig, prepareWebUiData } from './web-ui-server.js';
 
 export async function main(webService?: WebReadService): Promise<void> {
@@ -34,6 +35,7 @@ export async function main(webService?: WebReadService): Promise<void> {
   const webConfig = args.includes('--web-ui') ? readWebUiConfig() : undefined;
   const config = readConfig(webConfig ? { ...process.env, WEB_SEARCH_ENABLED: process.env.WEB_SEARCH_ENABLED ?? 'true', DATABASE_PATH: resolve(webConfig.dataDir, 'agent.db'),
     SESSION_DIR: resolve(webConfig.dataDir, 'sessions'), MEMORY_DIR: resolve(webConfig.dataDir, 'memory') } : process.env);
+  if (config.workEventsEnabled && !webConfig) throw new Error('WORK_EVENTS_ENABLED 仅支持 --web-ui 本机模式');
   if (config.workRoutingEnabled && !webConfig) throw new Error('WORK_ROUTING_ENABLED 仅支持 --web-ui 本机模式');
   if (config.workJobsEnabled && !webConfig) throw new Error('WORK_JOBS_ENABLED 仅支持 --web-ui 本机模式');
   if (!config.apiKey || config.apiKey === '<REDACTED>') throw new Error('请先在本机 .env 或环境变量中设置 LLM_API_KEY');
@@ -60,6 +62,7 @@ export async function main(webService?: WebReadService): Promise<void> {
   let scheduler: TaskScheduler | undefined;
   let goalRunner: GoalRunner | undefined;
   let workRunner: WorkRunner | undefined;
+  let sourceEvents: SourceEventService | undefined;
   const lane = new BackgroundLane();
   let memory: FileMemoryService | undefined;
   let formation: FormationService | undefined;
@@ -121,10 +124,17 @@ export async function main(webService?: WebReadService): Promise<void> {
         && (goal.readyInput?.kind !== 'policy' || !!config.proactive?.enabled)),
       reportError, fatal: () => { process.exitCode = 1; stop(); },
     });
+    if (config.workEventsEnabled && webConfig) sourceEvents = new SourceEventService(store.sourceEvents, { owner: webOwner, target: webTarget }, {
+      enabled: true, pollIntervalMs: config.pollIntervalMs, reportError, threads: webChannel?.workThreads,
+      dispatch: (eventId, subscriptionId, now) => store!.policies.dispatchSourceEvent({ ownerId: 'local-user', target: webTarget },
+        { owner: webOwner, channel: JSON.stringify(webTarget) }, eventId, subscriptionId, now),
+    });
+    if (webChannel) webChannel.sourceEvents = sourceEvents;
     store.policies.interrupt = id => goalRunner?.interrupt(id);
     scheduler.start();
     goalRunner?.start();
     workRunner?.start();
+    sourceEvents?.start();
     formation?.start();
     console.log(`Personal Agent 已启动；用户时区=${config.timeZone}；中断记录=${recovered}；模式=${webConfig ? 'web-ui' : feishu ? 'feishu' : args.includes('--daemon') ? 'daemon' : 'console'}；Goal=${config.goalEnabled ? 'enabled' : 'disabled'}`);
     if (args.includes('--daemon') || feishu || webUi) {
@@ -137,7 +147,7 @@ export async function main(webService?: WebReadService): Promise<void> {
     // 先中断并等待执行，再关闭存储；避免日志写入已关闭的数据库。
     try {
       await formation?.stop();
-      await Promise.all([scheduler?.stop(), goalRunner?.stop(), workRunner?.stop(), feishu?.stop(), webUi?.stop()]);
+      await Promise.all([scheduler?.stop(), goalRunner?.stop(), workRunner?.stop(), sourceEvents?.stop(), feishu?.stop(), webUi?.stop()]);
       await executor?.close();
     } finally {
       store?.close();

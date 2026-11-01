@@ -1,0 +1,209 @@
+{
+  "stage": "E4",
+  "date": "2026-11-02",
+  "status": "worker_frozen_pending_independent_r1",
+  "branch": "codex/work-core-stages",
+  "head": "91b7a657ddf62cf625c53f7bcfbddaa22aa6740b",
+  "checks": {
+    "typecheck": {
+      "command": [
+        "npm",
+        "run",
+        "typecheck"
+      ],
+      "env": {
+        "TMPDIR": "/private/tmp"
+      },
+      "exit": 0,
+      "elapsedSeconds": 2.0842537879943848
+    },
+    "build": {
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "env": {
+        "TMPDIR": "/private/tmp"
+      },
+      "exit": 0,
+      "elapsedSeconds": 1.0211811065673828
+    },
+    "web-build": {
+      "command": [
+        "npm",
+        "run",
+        "web:build"
+      ],
+      "env": {
+        "TMPDIR": "/private/tmp"
+      },
+      "exit": 0,
+      "elapsedSeconds": 1.0386388301849365
+    },
+    "full-test": {
+      "command": [
+        "npm",
+        "test",
+        "--",
+        "--test-reporter=tap"
+      ],
+      "env": {
+        "TMPDIR": "/private/tmp"
+      },
+      "exit": 0,
+      "elapsedSeconds": 66.64375615119934
+    }
+  },
+  "fullTest": {
+    "total": 680,
+    "pass": 680,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "durationMs": 66483.317833,
+    "actualReporter": "spec",
+    "note": "npm appended reporter option after test globs did not change Node reporter; raw output retained"
+  },
+  "browser": {
+    "modelHttp": {
+      "router": 0,
+      "chat": 3,
+      "work": 0,
+      "intent": 0,
+      "goal": 4
+    },
+    "sourceHttp": {
+      "commits": 18,
+      "compare": 9
+    },
+    "sourceHttpTotal": 27,
+    "policyRequests": [
+      {
+        "requestId": "219882fb-96b5-487b-bd85-b1b20881ce59",
+        "action": "approve",
+        "calls": 5,
+        "runId": "9df3ec9d-b647-4f8a-bb1f-002ea0622b25",
+        "allSameFrozenInput": true,
+        "allSameRun": true
+      },
+      {
+        "requestId": "80d3e69b-92ec-4f69-a747-c0505c5eea3d",
+        "action": "approve",
+        "calls": 1,
+        "runId": "e2cf5689-b30e-487d-a8a3-e7c4ce91b808",
+        "allSameFrozenInput": true,
+        "allSameRun": true
+      },
+      {
+        "requestId": "7af4aeed-bb9c-46f6-bdc6-33196b2a85a1",
+        "action": "pause",
+        "calls": 1,
+        "runId": "ab4584a9-6215-4541-896e-4231678cafbe",
+        "allSameFrozenInput": true,
+        "allSameRun": true
+      },
+      {
+        "requestId": "9483fca4-7170-4b67-b468-63da4611da2e",
+        "action": "revoke",
+        "calls": 5,
+        "runId": "99682422-c388-4970-9bab-a7f88ca1bb25",
+        "allSameFrozenInput": true,
+        "allSameRun": true
+      }
+    ],
+    "policyAuditActions": {
+      "approved": 2,
+      "grant_issued": 4,
+      "observation_committed": 4,
+      "grant_consumed": 4,
+      "stopped": 2,
+      "pause": 1,
+      "revoke": 1
+    },
+    "policyExecutionCounts": {
+      "a": 2,
+      "b": 2
+    },
+    "zeroAckReadsTablesUnchanged": {
+      "a": {
+        "run_events": true,
+        "goal_executions": true,
+        "goal_policies": true,
+        "goal_policy_events": true,
+        "goal_grants": true,
+        "file_operations": true
+      },
+      "b": {
+        "run_events": true,
+        "goal_executions": true,
+        "goal_policies": true,
+        "goal_policy_events": true,
+        "goal_grants": true,
+        "file_operations": true
+      }
+    },
+    "bChangesLeaveAGoalExecutionsUnchanged": true,
+    "sourceEventDecisions": {
+      "no_policy": 2,
+      "policy_dispatched": 4,
+      "user_pause": 1,
+      "user_revoke": 2
+    },
+    "technicalRunStatuses": {
+      "succeeded": 25
+    },
+    "goalExecutionStatuses": {
+      "committed": 6
+    },
+    "goals": 2,
+    "task": 0,
+    "workJob": 0,
+    "fileOperation": 0,
+    "runtimeErrors": []
+  },
+  "viewports": [
+    {
+      "width": 1280,
+      "height": 900,
+      "thread": "A"
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "thread": "B"
+    }
+  ],
+  "actualWaitMs": {
+    "planRevisionConsent": 20761,
+    "approveResponseLost": 14504,
+    "revokeResponseLost": 13852,
+    "beforeServerAccepted": 32326
+  },
+  "initialInstance": {
+    "goalHttp": 0,
+    "chatHttp": 0,
+    "githubHttp": 3,
+    "reason": "one dropped response was automatically retried by Chrome; no Goal segment executed"
+  },
+  "syntheticSeed": {
+    "goalCount": 2,
+    "bootstrapExecutionCount": 2,
+    "modelHttp": 0
+  },
+  "browserLifecycle": {
+    "tabClosed": true,
+    "viewportReset": true,
+    "previewFinalExit": 0,
+    "temporaryRootsRemoved": true
+  },
+  "notValidated": [
+    "real GitHub",
+    "paid model semantic quality",
+    "real mobile",
+    "long running",
+    "Recall"
+  ],
+  "evidenceRoot": "/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/evidence/e4/worker",
+  "gitCommit": null
+}

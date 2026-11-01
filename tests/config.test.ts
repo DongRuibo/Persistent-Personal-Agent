@@ -62,3 +62,13 @@ test('路由建议默认关闭、严格布尔且依赖主题与后台工作', ()
   assert.throws(() => readConfig({ WORK_ROUTING_ENABLED: 'true', WORK_THREADS_ENABLED: 'true' }), /WORK_JOBS_ENABLED/);
   assert.equal(readConfig({ WORK_ROUTING_ENABLED: 'true', WORK_THREADS_ENABLED: 'true', WORK_JOBS_ENABLED: 'true' }).workRoutingEnabled, true);
 });
+
+
+test('来源观察默认关闭、严格布尔且只依赖主题，不要求Goal/主动执行', () => {
+  assert.equal(readConfig({}).workEventsEnabled, false);
+  assert.equal(readConfig({ WORK_EVENTS_ENABLED: 'false' }).workEventsEnabled, false);
+  for (const value of ['', 'TRUE', '1', 'yes']) assert.throws(() => readConfig({ WORK_EVENTS_ENABLED: value }), /WORK_EVENTS_ENABLED/);
+  assert.throws(() => readConfig({ WORK_EVENTS_ENABLED: 'true' }), /WORK_THREADS_ENABLED/);
+  const config = readConfig({ WORK_EVENTS_ENABLED: 'true', WORK_THREADS_ENABLED: 'true' });
+  assert.equal(config.workEventsEnabled, true); assert.equal(config.goalEnabled, false); assert.equal(config.proactive?.enabled, false);
+});
