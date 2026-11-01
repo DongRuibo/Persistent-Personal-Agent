@@ -57,7 +57,23 @@ export class WorkThreadService {
     if (!this.object(kind, objectId)) throw new WorkThreadError(404, '关联对象不存在或无权访问');
     this.store.workThreads.link(this.binding, id, kind, objectId, new Date().toISOString());
   }
-  list() { return this.store.workThreads.list(this.binding); }
+  // 路由候选只读 Goal/Task 元数据，复用原归属判断，不触发 Memory 正文扫描。
+  routingObject(kind: 'goal' | 'task', id: string): WorkObject {
+    const object = this.object(kind, id);
+    if (!object) throw new WorkThreadError(404, '关联对象不存在或无权访问');
+    return object;
+  }
+  routingObjects(id: string): WorkObject[] {
+    return this.store.workThreads.links(this.binding, id)
+      .filter(link => link.kind === 'goal' || link.kind === 'task')
+      .map(link => this.object(link.kind, link.objectId)).filter((item): item is WorkObject => item !== null);
+  }
+  get(id: string) { return this.store.workThreads.get(this.binding, id); }
+  list(object?: { kind: 'goal' | 'task'; id: string }) {
+    const threads = this.store.workThreads.list(this.binding);
+    return object ? threads.filter(thread => this.store.workThreads.links(this.binding, thread.id)
+      .some(link => link.kind === object.kind && link.objectId === object.id)) : threads;
+  }
   create(id: string, title: string) { return this.store.workThreads.create(this.binding, id, title, new Date().toISOString()); }
   update(id: string, change: Parameters<SqliteStore['workThreads']['update']>[2]) {
     return this.store.workThreads.update(this.binding, id, change, new Date().toISOString());

@@ -52,3 +52,13 @@ test('飞书配置只在启用时校验，用户白名单必须显式设置；�
   assert.equal(readFeishuConfig({ ...env, FEISHU_ALLOWED_OPEN_ID: 'ou_owner' }).allowedOpenId, 'ou_owner');
   assert.equal(redactor('test-key', 'test-app-secret')('test-key test-app-secret'), '<REDACTED> <REDACTED>');
 });
+
+
+test('路由建议默认关闭、严格布尔且依赖主题与后台工作', () => {
+  assert.equal(readConfig({}).workRoutingEnabled, false);
+  assert.equal(readConfig({ WORK_ROUTING_ENABLED: 'false' }).workRoutingEnabled, false);
+  for (const value of ['', 'TRUE', '1', 'yes']) assert.throws(() => readConfig({ WORK_ROUTING_ENABLED: value }), /WORK_ROUTING_ENABLED/);
+  assert.throws(() => readConfig({ WORK_ROUTING_ENABLED: 'true' }), /WORK_THREADS_ENABLED/);
+  assert.throws(() => readConfig({ WORK_ROUTING_ENABLED: 'true', WORK_THREADS_ENABLED: 'true' }), /WORK_JOBS_ENABLED/);
+  assert.equal(readConfig({ WORK_ROUTING_ENABLED: 'true', WORK_THREADS_ENABLED: 'true', WORK_JOBS_ENABLED: 'true' }).workRoutingEnabled, true);
+});

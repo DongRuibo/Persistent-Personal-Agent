@@ -299,3 +299,12 @@ WorkThread 是长期存在的工作主题，与 Pi Session、Goal 的生命周�
 queued取消无Run；running取消在同事务中结束技术Run为interrupted并将Job改为cancelled，再abort，迟到成功不能提交。门等待Session退出后才释放。重启将running Job/Run一并转interrupted，queued保留；失败/中断/取消/已完成不重跑，功能关闭不领取。聚合提交异常停止新领取并触发主进程停止，不用新模型请求补交。
 
 先提交Job与Run，再通过原ChannelRouter进入Web收件箱，通知含主题和工作标识；投递失败只记deliveryError。GET详情和主题查询不写渲染ACK或审批许可。对话保持原前台busy语义，队列/详情放在可展开区域及主题页，结果按需读取。列表最近100项、无分页；无通用Outbox、模型辅助路由、联网/并行Worker或自动后续执行。实际机制验证与真实语义/长期运行边界见[2A交付记录](evaluations/router-worker-mvp.md)。
+
+
+## 第二阶段 2B：有界路由建议
+
+`WORK_ROUTING_ENABLED=false`为独立开关，依赖本机Web、WorkThread及WorkJob。建议只接本轮原文和有权主题/Goal/Task元数据，确定性定位先行；不读Memory正文或Session。公开Pi ModelRuntime单次completeSimple经受控fetch检查实际HTTP预算，结果Schema/候选ID与当前选择在适配入口校验，Pi类型不外泄。
+
+已有web_ui_chats增量mode/selectionJson保存chat与suggest请求身份；旧行仍是chat。Run/events/model_calls记录建议终态、结果ID和用量，purpose=work_route；建议不是Job成果或Guard授权。用户确认以建议原UUID创建原WorkJob，同输入重试回读，不重调模型。Task/Goal仍由原Chat/Guard处理，原后台串行与权限语义不变。
+
+前端当前建议一次恢复绑定，历史只读；修改触发撤销，失败不冒称已撤销，已有Job不受影响。开关关闭不暴露新入口，普通Chat和2A不额外分类。实际实现/离线证据与真实语义限制见[2B评估](evaluations/work-router-2b.md)；事件/关联回忆未在本批实现。

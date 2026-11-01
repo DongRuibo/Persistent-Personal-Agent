@@ -34,6 +34,7 @@ export async function main(webService?: WebReadService): Promise<void> {
   const webConfig = args.includes('--web-ui') ? readWebUiConfig() : undefined;
   const config = readConfig(webConfig ? { ...process.env, WEB_SEARCH_ENABLED: process.env.WEB_SEARCH_ENABLED ?? 'true', DATABASE_PATH: resolve(webConfig.dataDir, 'agent.db'),
     SESSION_DIR: resolve(webConfig.dataDir, 'sessions'), MEMORY_DIR: resolve(webConfig.dataDir, 'memory') } : process.env);
+  if (config.workRoutingEnabled && !webConfig) throw new Error('WORK_ROUTING_ENABLED 仅支持 --web-ui 本机模式');
   if (config.workJobsEnabled && !webConfig) throw new Error('WORK_JOBS_ENABLED 仅支持 --web-ui 本机模式');
   if (!config.apiKey || config.apiKey === '<REDACTED>') throw new Error('请先在本机 .env 或环境变量中设置 LLM_API_KEY');
   const feishuConfig = args.includes('--feishu') ? readFeishuConfig() : undefined;

@@ -1,6 +1,8 @@
 import type { DatabaseSync } from 'node:sqlite';
 import type { Run } from './contracts.js';
 
+type RequestRow = { requestId: string; runId: string; text: string; mode: 'chat' | 'suggest'; selectionJson: string };
+
 // 仅为 Web 展示和收件箱投影；模型上下文仍由 Pi 原生 Session 管理。
 export class WebUiStore {
   constructor(private readonly db: DatabaseSync, private readonly transaction: <T>(fn: () => T) => T,
@@ -13,21 +15,26 @@ export class WebUiStore {
       owner TEXT NOT NULL, runId TEXT NOT NULL REFERENCES runs(id), text TEXT NOT NULL, at TEXT NOT NULL,
       taskId TEXT, goalId TEXT, viewedAt TEXT, PRIMARY KEY(owner,runId)
     ) STRICT;`);
+    const columns = db.prepare('PRAGMA table_info(web_ui_chats)').all();
+    if (!columns.some(column => column.name === 'mode')) db.exec("ALTER TABLE web_ui_chats ADD COLUMN mode TEXT NOT NULL DEFAULT 'chat'");
+    if (!columns.some(column => column.name === 'selectionJson')) db.exec("ALTER TABLE web_ui_chats ADD COLUMN selectionJson TEXT NOT NULL DEFAULT '{}'");
   }
   find(owner: string, requestId: string) {
-    return this.db.prepare('SELECT requestId,runId,text FROM web_ui_chats WHERE owner=? AND requestId=?').get(owner, requestId) as
-      { requestId: string; runId: string; text: string } | undefined;
+    return this.db.prepare('SELECT requestId,runId,text,mode,selectionJson FROM web_ui_chats WHERE owner=? AND requestId=?').get(owner, requestId) as RequestRow | undefined;
   }
-  accept(owner: string, requestId: string, text: string, now: string): Run {
+  accept(owner: string, requestId: string, text: string, now: string, mode: RequestRow['mode'] = 'chat', selectionJson = '{}'): Run {
     return this.transaction(() => {
       const run = this.begin(now);
-      this.db.prepare('INSERT INTO web_ui_chats VALUES(?,?,?,?)').run(owner, requestId, run.id, text);
+      this.db.prepare('INSERT INTO web_ui_chats(owner,requestId,runId,text,mode,selectionJson) VALUES(?,?,?,?,?,?)').run(owner, requestId, run.id, text, mode, selectionJson);
       return run;
     });
   }
-  chats(owner: string) {
-    return this.db.prepare(`SELECT c.requestId,c.runId,c.text FROM web_ui_chats c JOIN runs r ON r.id=c.runId
-      WHERE c.owner=? ORDER BY r.startedAt DESC,c.rowid DESC LIMIT 100`).all(owner) as { requestId: string; runId: string; text: string }[];
+  chats(owner: string, mode: RequestRow['mode'] = 'chat') {
+    return this.db.prepare(`SELECT c.requestId,c.runId,c.text,c.mode,c.selectionJson FROM web_ui_chats c JOIN runs r ON r.id=c.runId
+      WHERE c.owner=? AND c.mode=? ORDER BY r.startedAt DESC,c.rowid DESC LIMIT 100`).all(owner, mode) as RequestRow[];
+  }
+  requestMode(owner: string, runId: string): RequestRow['mode'] | undefined {
+    return this.db.prepare('SELECT mode FROM web_ui_chats WHERE owner=? AND runId=?').get(owner, runId)?.mode as RequestRow['mode'] | undefined;
   }
   ownsRun(owner: string, target: string, id: string): boolean {
     return !!this.db.prepare(`SELECT 1 FROM runs r WHERE r.id=? AND (

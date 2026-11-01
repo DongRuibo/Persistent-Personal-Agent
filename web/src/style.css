@@ -2569,3 +2569,10 @@ button.primary,
 .chat-work-jobs { margin: 12px 0; border: 1px solid var(--line); border-radius: 8px; }
 .chat-work-jobs summary { cursor: pointer; padding: 12px; font-size: 13px; font-weight: 600; color: var(--blue); }
 .chat-work-jobs .work-jobs { max-height: 360px; padding: 12px; }
+
+.work-route-card { margin: 14px 0; padding: 18px; border: 1px solid var(--line); border-radius: 16px; background: white; min-width: 0; }
+.work-route-original { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 280px; overflow-y: auto; padding: 10px 0; }
+.work-route-card p, .work-route-card small { overflow-wrap: anywhere; }
+.work-route-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 10px; }
+.work-route-controls select { min-width: 0; max-width: 100%; flex: 1 1 200px; }
+.work-route-controls small, .work-route-controls .error { flex-basis: 100%; }

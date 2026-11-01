@@ -30,6 +30,11 @@ export class WorkJobStore {
     if (!row) throw new WorkJobError(404, '后台工作不存在或无权访问');
     return { ...row };
   }
+  findRequest(actor: WorkThreadActor, requestId: string): WorkJob | undefined {
+    const row = this.db.prepare(`SELECT ${columns} FROM work_jobs WHERE owner=? AND channel=? AND requestId=?`)
+      .get(actor.owner, actor.channel, requestId) as unknown as WorkJob | undefined;
+    return row ? { ...row } : undefined;
+  }
   list(actor: WorkThreadActor, threadId?: string): WorkJob[] {
     if (threadId) this.threads.get(actor, threadId);
     return this.db.prepare(`SELECT ${columns} FROM work_jobs WHERE owner=? AND channel=?${threadId ? ' AND threadId=?' : ''}

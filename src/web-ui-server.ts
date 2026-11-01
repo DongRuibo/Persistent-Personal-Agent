@@ -1,3 +1,4 @@
+import type { WorkRouteRequest } from './work-route-types.js';
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import { createServer } from 'node:http';
 import type { IncomingMessage, ServerResponse } from 'node:http';
@@ -9,6 +10,21 @@ import { WorkJobError } from './work-job-store.js';
 import { workInputBytes } from './work-job-types.js';
 import { WorkThreadError } from './work-thread-store.js';
 import type { WorkObjectKind } from './work-thread-types.js';
+
+// 三个建议写入口共用一次Schema规范化，不接受请求携带身份或授权。
+function workRouteInput(data: Record<string, unknown>, requestId: unknown = data.requestId): WorkRouteRequest {
+  if (typeof requestId !== 'string' || !uuid.test(requestId) || typeof data.text !== 'string' || !data.text.trim()) throw new WebUiError(400, '请求ID或文字无效');
+  const text = data.text.trim();
+  if (Buffer.byteLength(text, 'utf8') > workInputBytes) throw new WebUiError(413, '路由建议原文最多14336字节，请缩小范围');
+  const selection = data.selection === undefined ? {} : data.selection;
+  if (!selection || typeof selection !== 'object' || Array.isArray(selection) || Object.keys(selection).some(key => !['threadId', 'object'].includes(key))) throw new WebUiError(400, '建议选择无效');
+  const value = selection as Record<string, unknown>, object = value.object as Record<string, unknown> | undefined;
+  if (value.threadId !== undefined && (typeof value.threadId !== 'string' || !uuid.test(value.threadId))
+    || object !== undefined && (!object || typeof object !== 'object' || Array.isArray(object) || Object.keys(object).some(key => !['kind', 'id'].includes(key))
+      || typeof object.kind !== 'string' || !['task', 'goal'].includes(object.kind) || typeof object.id !== 'string' || !uuid.test(object.id))) throw new WebUiError(400, '主题或对象ID无效');
+  return { mode: 'suggest', requestId, text, selection: { ...(value.threadId ? { threadId: value.threadId as string } : {}),
+    ...(object ? { object: { kind: object.kind as 'task' | 'goal', id: object.id as string } } : {}) } };
+}
 
 export interface WebUiConfig { key: string; port: number; dataDir: string }
 export async function prepareWebUiData(dataDir: string): Promise<void> {
@@ -136,6 +152,19 @@ export class WebUiServer {
         await this.body(req, []); this.sessions.delete(token!);
         res.setHeader('Set-Cookie', 'ppa_web=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0');
         return this.json(res, 200, { authenticated: false });
+      }
+      if (path === '/api/work-routes' || path.startsWith('/api/work-routes/')) {
+        if (!this.channel.routingEnabled) throw new WebUiError(404, '接口不存在');
+        if (path === '/api/work-routes' && req.method === 'POST') return this.json(res, 202, this.channel.submitWorkRoute(workRouteInput(await this.body(req, ['requestId', 'text', 'selection']))));
+        const route = /^\/api\/work-routes\/([a-f0-9-]{36})(\/(revoke|confirm))?$/u.exec(path);
+        if (route && uuid.test(route[1]!)) {
+          if (!route[2] && req.method === 'GET') return this.json(res, 200, this.channel.workRoute(route[1]!));
+          if (route[2] && req.method === 'POST') {
+            const input = workRouteInput(await this.body(req, ['text', 'selection']), route[1]!);
+            return this.json(res, route[3] === 'confirm' ? 202 : 200, route[3] === 'confirm' ? this.channel.confirmWorkRoute(input) : await this.channel.revokeWorkRoute(input));
+          }
+        }
+        throw new WebUiError(404, '接口不存在');
       }
       if (path === '/api/work-jobs' || path.startsWith('/api/work-jobs/') || /^\/api\/work-threads\/[^/]+\/jobs$/u.test(path)) {
         const router = this.channel.workRouter;

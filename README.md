@@ -64,6 +64,25 @@ WORK_THREADS_ENABLED=true WORK_JOBS_ENABLED=true npm run web:preview:offline
 
 结果、错误和用量沿用原 Run。通知失败只记 `deliveryError`，结果仍可从工作详情查看，不重跑模型；没有新增通用 Outbox 或必达保证。工作列表及每主题列表只显示最近 100 项，无分页。后续补充材料需明确新提交；本批没有自然语言模型路由建议、联网或并行 Worker、订阅及链式召回。实际离线证据见[2A交付记录](docs/evaluations/router-worker-mvp.md)。
 
+## 路由建议 2B（默认关闭）
+
+同一对话输入区可选择“路由建议”，先显示本次完整原文、主题/对象建议或澄清。只有当前建议的明确确认才创建纯文本WorkJob；成功形成建议不代表已排队或完成。普通聊天和显式“后台处理”不增加Router调用。
+
+`WORK_ROUTING_ENABLED=false`，仅支持本机 `--web-ui`，依赖 `WORK_THREADS_ENABLED=true`、`WORK_JOBS_ENABLED=true`。三个开关只接受true/false，日常启动器不会从.env读取这些开关。可先用独立临时数据与固定模型检查：
+
+```sh
+npm run web:build
+PREVIEW_SEED=true WORK_THREADS_ENABLED=true WORK_JOBS_ENABLED=true WORK_ROUTING_ENABLED=true npm run web:preview:offline
+```
+
+该预览会创建两个合成主题和一个合成提醒，假Key/数据均属临时空间。模型输出是固定桩，不能据此判断真实路由准确率；不连接收费模型或Tavily/GitHub。
+
+每次建议最多一次模型HTTP、512输出token、10秒绝对超时，无自动重试或回退Chat。原文最多14 KiB UTF-8；候选最多20主题、所选主题20个Goal/Task、8 KiB元数据，实际HTTP body最多32 KiB；超限要求缩小范围，不截断。候选不读取Memory正文、Session或原成果。
+
+编辑原文/选择会让当前建议失效并请求持久撤销；未收到服务端确认时显示“撤销待确认”。刷新只恢复视图和当前绑定，不补模型或自动确认；其它历史只读，已有Job收据仍保留。Task/Goal/chat建议的“原文放回聊天输入框”只回填原文，需用户再发送，由原Guard判断；不生成展示ACK或Grant。普通Chat仍限10000字符，超出时保留全文并提示编辑。
+
+目前受控API为 `openai-completions`、`openai-responses`、`azure-openai-responses`、`anthropic-messages`；其余明确拒绝建议，不暗换模型。实际HTTP仅验过兼容端点的本机模拟，其余白名单仅核对SDK源码，真实模型语义/手机/长跑未验。建议默认继续关闭，工程与浏览器证据见[2B评估](docs/evaluations/work-router-2b.md)。
+
 ## V3.0：可手动继续的长期目标（默认关闭，电脑核心验收通过）
 
 V3.0.1只做Batch5定点收尾：明确的正式计划步数会在草稿/审批时核对；“一项安排”拆成多个正式Step时保留完整草稿并要求确认口径，不静默裁剪。多重或二选一指代只澄清。详见[离线修复报告](docs/evaluations/v3.0.1-closeout.md)。用户随后批准[最小真实复验方案](docs/evaluations/v3.0.1-live-retest-plan.md)，专用Console入口落实16次/2元及32KiB限制后，实际14次/0.605440元预留即停服；数量和取消局部通过，自然暂停失败，暂不能完整收尾，见[真实复验报告](docs/evaluations/v3.0.1-live-retest.md)。本轮已结束，旧48/5入口不适用，不自动使用剩余额度。

@@ -4,13 +4,21 @@
 
 ## 当前阶段
 
-- 当前在独立工作树、分支`codex/router-worker-mvp`完成第二阶段2A；基线是已审查的PR #3 head `e2c95c067d4f33aa5cd9fdb0c6b17e40bc82ba4b`。开始时远端PR #3仍open/未合并，main为`75b724f17d17a70ad51caf7c4697251259d7ef3c`，本轮均未改。
-- 2A已实现默认关闭的确定性分派、work_jobs、同BackgroundLane串行Worker、独立临时Pi work Session，以及Chat继续交互、主题/收件箱结果。queued/running取消、迟到结果、统一恢复、去重、归属和预算均在原边界内；不含模型辅助路由、联网/并行Worker、订阅或Chain of Recall。
-- 2A的P2分类修复已核验复用：work模型HTTP500、length和禁止工具提议准确failed，保留原因且无成功输出；运行取消仍Job cancelled/Run interrupted，停机/真实超时Job/Run interrupted，保护性abort与旧scope语义保留。本轮专项19/19、完整618/618通过（0失败/取消/跳过，测试68.85秒），typecheck/build/web:build均退出0。原615/615仅为初交付历史；第1轮独立只读复审已通过，无阻断及追加可执行缺陷；不进入2B。全部使用临时SQLite、合成文本、假Key和本机模拟端点；无正式数据访问、收费调用或正式服务启停。证据与逐文件目的见[2A交付记录](evaluations/router-worker-mvp.md)。
-- 新功能仍`WORK_JOBS_ENABLED=false`，启用还需WorkThread及本机Web。工作列表最近100项、无分页；串行不抢占和通知无通用Outbox的限制保留。原Goal自然暂停/收据理解等真实语义缺口不因本轮离线通过而消失。
-- 用户已明确授权本次2A代码、测试和相关文档提交、推送至`codex/router-worker-mvp`并创建PR；发布准备时尚未commit/push/建PR。新PR以`codex/workthread-foundation`为base，只展示2A增量并依赖[PR #3](https://github.com/DongRuibo/Persistent-Personal-Agent/pull/3)；不合并或修改PR #3/main，不开始2B。原审查工作区分支和未提交内容保留；只带入STATE、PR #3审查及本轮计划，原未跟踪路线图与PR #2报告未复制或覆盖。
+- 用户已授权连续完成 2B、事件订阅及关联回忆，具体范围见[总任务书](designs/work-core-stages-plan.md)。本次唯一执行树为 `/Users/onruio/.codex/worktrees/work-core-stages/Persistent Personal Agent`，分支 `codex/work-core-stages`，从精确main `91b7a657ddf62cf625c53f7bcfbddaa22aa6740b` 建立；原审查树和2A树只读保留，不改main。
+- 2B实现与离线验收已完成，等待B4独立终验；B1/B2 R1和B3 R2已通过。当前仍是隔离分支 `codex/work-core-stages`、HEAD `91b7a657ddf62cf625c53f7bcfbddaa22aa6740b`，未提交/推送/合并，默认WORK_ROUTING_ENABLED=false。
+- typecheck、后端build、web:build退出0；全量npm test实际644/644、0失败/取消/跳过，约66.92秒，仍2条既有lucide告警。之后仅测试HTTP暂停夹具和一条前端持续超限提示变化：夹具补类型/25项回归，最新UI补Web构建、6源级场景及真实DOM；src后端产品代码与644版一致，不虚称644覆盖最新UI。
+- 实际Chrome1280×900及390×844走通建议0Job→确认同UUIDJob→继续Chat→原主题/Run成果，含刷新/重复/历史只读、三种编辑失效、迟到、纯网络撤销失败/恢复、14336 ASCII与14100字节中文完整回填、关闭建议后原Chat/2A。API并存、单输入框编辑撤销与Job后聊天分别记录，不宣称实际手机或真实模型语义通过。
+- 两个临时实例分别记录：第一Router7/Chat2/Work2，第二Router3/Chat1/Work1，均intent0；不含644套件自身请求。首次pause误清会话和长文提示count0失败均保留，已局部修复并重验。所有临时服务退出0、本次标签页关闭、viewport重置；正式数据/付费/真实GitHub/Tavily未访问。
+- 交付见[2B评估](evaluations/work-router-2b.md)及[验证摘要](evaluations/work-router-2b-validation.json)。本批不实现事件/关联回忆；用户已批的后续Web观察/Policy入口由Planner另派已授权任务。原Goal暂停/收据理解及Formation真实失败、手机/长跑缺口不被本轮mock覆盖。
+- 既有2A/WorkThread已合并基线，默认开关与原运行边界保留。本轮不commit/push/PR/merge，不启用正式功能；已知Goal暂停/收据解释等真实失败和长期运行缺口继续保留。
 
 ## 已完成功能
+
+- B3 Web建议闭环：默认关闭入口、明确定位/建议/澄清、持久请求/撤销和同UUID确认WorkJob；技术完成与真实Job收据分开，B4离线浏览器已验收、等待独立终验。
+
+- B2隔离建议适配：默认关闭、一次实际HTTP与序列化预算、严格结果约束、取消/绝对超时/审计；与B3持久请求/API/UI接线，B4仅离线验收。
+
+- B1路由准备：明确主题/对象归属与关联定位、冲突澄清、有界元数据候选；后续B2/B3已接模型及默认关闭的产品入口。
 
 - 2A显式后台工作：同一Chat选择主题/后台提交，真正入队收据与独立busy；单请求纯文本执行、按主题和Run看成果、queued/running取消、保守恢复和现有收件箱投递，默认关闭。
 
@@ -40,13 +48,47 @@
 
 | 日期 | 修改及位置 |
 | --- | --- |
+| 2026-11-01 | B4：644/644与三项工程检查、真实1280/390离线浏览器闭环；只修一条持续10k提示及测试HTTP暂停辅助。最后UI/夹具单独重验，原失败保留；[评估](evaluations/work-router-2b.md)，终验前冻结不发布 |
+| 2026-11-01 | B3 R1发现刷新后活动建议未绑定的P2；仅修当前绑定/历史只读/旧回调阻断及Job后解绑。源级UI6场景、typecheck/Web构建和29/29相关回归通过，R2独立复审通过；初版72项及所有失败证据保留 |
+| 2026-11-01 | B2公开SDK单请求建议、真实fetch预算、结果Schema/候选校验、默认关闭依赖及取消收敛；共享类型保留旧重导出。typecheck与受影响50/50通过且R1通过；后续B3已接Web持久/API/UI |
+| 2026-11-01 | B1：增量路由建议契约、只读Goal/Task元数据查询和8项新增测试；32项受影响回归及typecheck通过。冻结[B2/B3最小持久方案](designs/work-route-b1-contract.md)，R1通过；该小任务不接模型/UI，无提交发布 |
 | 2026-11-01 | 2A发布准备：用户已授权提交、推送及创建依赖PR，base为`codex/workthread-foundation`并依赖PR #3；只整理STATE、[评估](evaluations/router-worker-mvp.md)及新增[验证摘要](evaluations/router-worker-mvp-validation.json)，源码/测试Hash不变，独立发布复审前不提交。原19/19专项、618/618全量及构建证据保留，不重复收费/浏览器/全量；不合并main、不开始2B |
-| 2026-11-01 | 第二阶段2A：Job/确定性Router/共用门Worker、无工具临时work Session与Web提交/队列/取消/结果；原Task/Goal/Guard实现保留。[交付记录](evaluations/router-worker-mvp.md)；类型/两端构建、最终全量及浏览器结果见下节，代码保持未提交 |
-| 2026-11-01 | PR #3发布后审查完成：未发现阻断问题，typecheck及12/12专项重验通过；更新[审查结论](evaluations/workthread-pr3-review.md)与[第二阶段首批执行计划](designs/work-router-worker-mvp.md)，由独立执行对话开发。本轮只改交接文档，不改代码、不提交推送或合并 |
-| 2026-11-01 | WorkThread第一阶段：新增关系类型/存储/服务与Web页面，复用现有鉴权/CSRF和对象归属；默认关闭。类型/两端构建、588/588离线回归和桌面/窄屏浏览器验证通过。按用户授权发布功能分支并创建[PR #3](https://github.com/DongRuibo/Persistent-Personal-Agent/pull/3)供审查；暂不合并main，正式数据未触碰 |
-| 2026-11-01 | PR #2按确认严格快进至75b724f，GitHub已merged；本地main同步、原4提交保留。日常目录按lock离线补齐依赖，语法/类型/两端构建通过；同SHA前轮577/577回归有效，零新收费调用。合并状态可在GitHub PR #2核对 |
 
 ## 验证记录与证据边界
+
+### B4 2B整体验收（2026-11-01，等待独立终验）
+
+- `npm run typecheck`、`npm run build`、`npm run web:build`退出0；`TMPDIR=/private/tmp npm test`为644/644，0失败/取消/跳过，66.92秒。最终前端一条超限提示与测试暂停夹具变化的适用重验均通过，版本Hash边界见[验证摘要](evaluations/work-router-2b-validation.json)，不混用644与最新UI证据。
+- 实际Chrome通过官方viewport能力验证1280×900、390×844，innerWidth/scrollWidth均匹配。临时DB只读核对两个主题的Job/Run、建议确认去重、刷新不补模型；网络故障和输入提示失败过程、修后重验及截图在[评估](evaluations/work-router-2b.md)链接，不复制日志。
+- 服务/本次tab已清理，正式数据未触碰，无收费/真实外部API、实际手机或长跑。本批仍未提交发布，等待独立终验；后续E/R未编码。
+
+### B3 R2定点修复 B3-R1-01（2026-11-01，R2已通过）
+
+- 先运行Reviewer原始 `ui-refresh-repro.cjs`，确认旧版刷新后currentRoute=null、文字/主题/对象修改0revoke且旧confirm真发出；退出0只表示缺陷复现。新增派生源级回归在修前按预期退出1“刷新必须恢复绑定”，原日志保留。
+- `web/src/main.tsx`仅首次成功snapshot恢复最新未撤销/无Job且running/succeeded建议的冻结ID/输入绑定；不回填draft/选择，不自动POST。轮询不重新绑定，修改立即invalid并撤销同ID；非当前/invalid确认回调被阻断。`work-routes.tsx`其它历史明确只读且禁确认，已有Job只读恢复，确认得到Job后解除当前绑定。
+- Reviewer派生VM宿主转译真实App处理器和真实卡片JSX，使用轻量Hook/fetch，6场景通过：三种修改、撤销待确认/确认、轮询不覆盖草稿/不夺回、其它历史确认旁路、Job历史不自动POST。修后宿主首轮仅因JSX void包装未等待异步confirm完成而断言过早，补事件循环等待后通过，未为此改业务代码；失败日志也保留。此为源级行为验收，不是浏览器/DOM。
+- `npm run typecheck`、`npm run web:build`退出0，仍两条既有lucide告警；`TMPDIR=/private/tmp node --import tsx --test tests/web-ui.test.ts tests/work-router.test.ts tests/work-route-web.test.ts`为29/29，0失败/取消/跳过，约2.04秒。29项与6个VM场景分开报告，不相加冒充同一测试套件。后端/测试源未变，本轮未重跑72项、后端build、全量或浏览器；B4再实际DOM验证。
+- R1原始384文件及B3 worker证据不覆盖；R2完整差异、相对R1修复、Hash表和逐项回应保存在本机 `work-core-stages/b3/worker-r2/`。仅4个仓库文件变更，无SDK/表/Guard/Job生命周期调整、正式数据或收费调用；未提交发布。
+
+### B3 Web建议与确认（2026-11-01，R1初版历史验证）
+
+- `npm run typecheck`退出0。`npm run web:build`退出0，2条既有lucide use-client告警。72项回归退出0，0失败/取消/跳过，约16.39秒；命令覆盖 `work-route-web/web-ui/work-router/work-threads/work-jobs/work-jobs-process/work-route-model/work-route-suggestions/config`。72项包含本轮10项，不能与专项10项重复相加。
+- 初始记录：测试Header联合类型导致typecheck退出1；首轮Web专项1项SQLite空原型比较错误+9项127.0.0.1监听EPERM。修正测试后最小权限专项10/10，补严格数组kind反例后完整受影响72/72；失败原日志不删除、不全归环境。最后仅卡片状态文案变化，Web类型/构建重新验证，后端和测试Hash保持72项版本。
+- 真实SDK/loopback证明API建议与Chat并存（Router2+Chat1）、相同请求不重调模型、撤销先到/迟到不写、确认重试/重启一份Job、归档/关系失效检查、mode先筛LIMIT100保留旧Chat及原Guard/Task/Goal/文件/Job回归。关系检查另用持久结果夹具，非真实语义验收。实际main旧Job恢复用了4次临时进程启动，未启动正式服务。
+- UI类型/构建通过但未运行浏览器；编辑触发持久撤销和确认Job后继续聊天的DOM闭环由B4验证。后端build/全量/桌面390px/真实模型/手机/长跑未运行。见[契约及证据边界](designs/work-route-b1-contract.md)，原始材料在本机 `work-core-stages/b3/worker/`。本轮无提交发布。
+
+### B2 有界模型建议（2026-11-01，R1已通过）
+
+- `npm run typecheck`退出0。`TMPDIR=/private/tmp node --import tsx --test tests/work-route-model.test.ts tests/work-route-suggestions.test.ts tests/work-router.test.ts tests/config.test.ts tests/pi-executor.test.ts tests/pi-integration.test.ts tests/natural-language.test.ts tests/natural-language-integration.test.ts`退出0，50/50、0失败/取消/跳过，约12.28秒，包含新增7模型+1配置及B1的8项。
+- 使用真实本地Pi SDK和loopback模拟HTTP，未依赖mock函数计数宣称请求上限：500/429各1HTTP；转义使实际body超限时0HTTP，无model_calls；合法中文body16704字节，模型输出上限512；取消、close及约10秒超时及时结算，无迟到审计。五类合法、畸形/额外字段/错ID、当前选择冲突、多候选合法建议和clarify、无工具/Memory/业务写入均覆盖；旧Pi/Guard/Router/config回归通过。真实语义仍未验，固定输出不能证明分类准确率。
+- 原始沙箱7项全部EPERM、最小权限初版7/7与修订后50项日志全部保留；未覆盖原生非兼容provider实际HTTP、真实模型/手机/长跑或B3产品闭环。未跑全量/构建/浏览器；B1证据不覆盖。详见[契约](designs/work-route-b1-contract.md)与本机 `work-core-stages/b2/worker/` 证据。
+
+### B1 契约与确定性定位（2026-11-01，R1已通过）
+
+- `npm run typecheck`退出0。`node --import tsx --test tests/work-route-suggestions.test.ts`为8/8；`TMPDIR=/private/tmp node --import tsx --test tests/work-route-suggestions.test.ts tests/work-router.test.ts tests/work-threads.test.ts tests/work-jobs.test.ts`为32/32（包含前8项），退出0。沙箱初次32项20通过/12项127.0.0.1监听EPERM，原失败日志保留后按最小权限重跑，不算业务失败或跳过。
+- 新增测试用内存SQLite和合成数据，Memory读取设置为会报错的桩以证明候选不读正文，另确认旧detail仍按原逻辑读取；原回归使用临时SQLite/模拟HTTP与假Key。没有真实模型、正式.env/DB/Session/Memory/备份或外部API访问。测试原始日志、命令/退出码和冻结Hash见[B1交接](designs/work-route-b1-contract.md)。
+- 本任务未运行build、web:build、全量npm test或浏览器；不是B4整体工程验收或真实语义验收。建议函数未接现有入口，功能关闭/普通Chat/显式后台沿用原回归；B2模型约束和B3持久化仍待实现。
+
 
 ### 第二阶段2A P2收尾（2026-11-01，本轮重新验证）
 
@@ -548,10 +590,10 @@ V1 原有自动化证据：39项测试使用模拟模型/飞书服务和虚拟�
 
 ## 下一步与需要提供的信息
 
-1. 2A P2已通过第1轮独立复审，用户已授权本次提交、推送及创建PR。按[交付记录](evaluations/router-worker-mvp.md)与[验证摘要](evaluations/router-worker-mvp-validation.json)精确发布；PR base为`codex/workthread-foundation`，注明依赖尚未合并的PR #3。独立发布复审通过后执行；不合并main、不启用正式开关、不开始2B。无需真实Key或收费验收。
-2. PR #3仍为本分支前置底座，未获合并许可前不操作main。审查工作区的旧路线图、PR #2报告及所有个人历史保留，不清理或迁移。
-3. 2B再单独规划模型路由建议与澄清；联网Worker需独立预算验收。事件订阅、Chain of Recall、分页/容量、大规模Memory性能及真实手机/长期运行不夹带进本批。
-4. 原Goal自然暂停/收据理解和Memory形成语义质量仍保留历史失败，不沿用旧收费额度，不因工程测试通过自动启用正式开关。
+1. B4冻结后独立终验，核对完整diff/Hash、644原日志、最后UI/夹具适用重验及实际浏览器证据；无阻断后Planner交接后续阶段。B1–B3证据不覆盖。
+2. 终验通过后按总任务书与用户已批Web观察/Policy入口推进事件阶段、关联回忆；仅后续明确任务内实现，不夹带本2B批次。
+3. 任何核心权限/架构改变、正式数据、收费验证、额外网络范围或Git发布/合并仍需单独决定；本轮无需用户提供Key。
+4. 原Goal自然暂停/收据理解和Memory形成语义缺口保留，离线成功不代表已达真实模型、手机或长期运行质量目标。
 
 ## V2.0.2 关键文件（主体及本轮修复）
 
