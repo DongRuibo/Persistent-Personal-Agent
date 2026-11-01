@@ -32,12 +32,15 @@ import type {
   WebFile,
   WebGoalDetail,
   WebRun,
+  WebWorkRoute,
 } from "../../src/web-ui-types.js";
 import "./style.css";
 import { chatTimeline } from "./chat-timeline.js";
 import { WebSources } from "./web-sources.js";
 import { WorkThreads } from "./work-threads.js";
 import { WorkJobs } from "./work-jobs.js";
+import { WorkRouteCard } from "./work-routes.js";
+import type { WorkRouteRequest } from "../../src/work-route-types.js";
 import type { WorkThread } from "../../src/work-thread-types.js";
 import type { WorkJob } from "../../src/work-job-types.js";
 
@@ -218,6 +221,12 @@ function App() {
     } | null>(null),
     [filter, setFilter] = useState("all");
   const [threads, setThreads] = useState<WorkThread[]>([]), [threadId, setThreadId] = useState("");
+  const [routeSending, setRouteSending] = useState(false), [routeError, setRouteError] = useState("");
+  const [routeRetry, setRouteRetry] = useState<WorkRouteRequest | null>(null), [revokeRetry, setRevokeRetry] = useState<WorkRouteRequest | null>(null);
+  const [routeChanging, setRouteChanging] = useState(false), [invalidRoutes, setInvalidRoutes] = useState<string[]>([]);
+  const [objectChoice, setObjectChoice] = useState("");
+  const currentRoute = useRef<{ input: WorkRouteRequest; invalid: boolean } | null>(null);
+  const routeRestored = useRef(false);
   const [receipt, setReceipt] = useState<WorkJob | null>(null), [jobsRevision, setJobsRevision] = useState(0);
   const [selectedFile, setSelectedFile] = useState<string | null>(null),
     [selectedGoal, setSelectedGoal] = useState<string | null>(null);
@@ -240,7 +249,17 @@ function App() {
     textarea = useRef<HTMLTextAreaElement>(null);
   const refresh = useCallback(async () => {
     try {
-      setData(await api<WebSnapshot>("/snapshot"));
+      const snapshot = await api<WebSnapshot>("/snapshot");
+      // 首次快照只恢复当前待确认建议的绑定；轮询不覆盖草稿，也不重新激活已失效建议。
+      if (!routeRestored.current) {
+        routeRestored.current = true;
+        if (!currentRoute.current) {
+          const view = snapshot.suggestions?.findLast(view => !view.revoked && !view.job
+            && (view.run.status === "running" || view.run.status === "succeeded"));
+          if (view) currentRoute.current = { input: { mode: "suggest", requestId: view.requestId, text: view.text, selection: view.selection }, invalid: false };
+        }
+      }
+      setData(snapshot);
       setOnline(true);
       setError("");
     } catch (e) {
@@ -406,10 +425,65 @@ function App() {
       setDraft("");
       setRetry(null);
       setReceipt(null); setThreadId(""); setThreads([]);
+      currentRoute.current = null; routeRestored.current = false; setRouteRetry(null); setRevokeRetry(null); setRouteError(""); setInvalidRoutes([]); setObjectChoice("");
       setGoal(null);
     } catch (e) {
       setError((e as Error).message);
     }
+  };
+  const revokeRoute = async (input: WorkRouteRequest) => {
+    setInvalidRoutes(ids => ids.includes(input.requestId) ? ids : [...ids, input.requestId]);
+    setRevokeRetry(input);
+    try {
+      await api(`/work-routes/${input.requestId}/revoke`, { text: input.text, selection: input.selection });
+      setRevokeRetry(old => old?.requestId === input.requestId ? null : old); setRouteError("");
+      await refresh();
+    } catch (e) { setRouteError((e as Error).message + "。撤销尚未确认，请重试。"); }
+  };
+  const invalidateRoute = () => {
+    const current = currentRoute.current;
+    if (!current || current.invalid) return;
+    current.invalid = true; setRouteRetry(null);
+    void revokeRoute(current.input);
+  };
+  const changeDraft = (text: string) => { invalidateRoute(); setDraft(text); };
+  const requestRoute = async (existing?: WorkRouteRequest) => {
+    if (!online || routeSending || (!existing && (!draft.trim() || data?.capabilities.workRoutingBusy))) return;
+    const [kind, id] = objectChoice.split(":");
+    const input: WorkRouteRequest = existing ?? { mode: "suggest", requestId: crypto.randomUUID(), text: draft.trim(),
+      selection: { ...(threadId ? { threadId } : {}), ...(id ? { object: { kind: kind as "task" | "goal", id } } : {}) } };
+    if (new TextEncoder().encode(input.text).length > 14336) { setRouteError("建议原文超过14 KiB，请缩小范围；全文已保留。"); return; }
+    if (!existing) invalidateRoute();
+    currentRoute.current = { input, invalid: false }; setRouteRetry(input); setRouteSending(true); setRouteError("");
+    try {
+      await api<WebWorkRoute>("/work-routes", { requestId: input.requestId, text: input.text, selection: input.selection });
+      if (currentRoute.current?.input.requestId === input.requestId && !currentRoute.current.invalid) setRouteRetry(null);
+      await refresh();
+    } catch (e) {
+      if (currentRoute.current?.input.requestId === input.requestId && !currentRoute.current.invalid) setRouteError((e as Error).message + "。可重试同一建议请求，或刷新核对记录。");
+    } finally { setRouteSending(false); }
+  };
+  const confirmRoute = async (view: WebWorkRoute) => {
+    const current = currentRoute.current;
+    if (!current || current.invalid || current.input.requestId !== view.requestId) {
+      setRouteError("该建议已失效或属于只读历史，请重新请求建议。"); return;
+    }
+    setRouteChanging(true); setRouteError("");
+    try {
+      const job = await api<WorkJob>(`/work-routes/${view.requestId}/confirm`, { text: view.text, selection: view.selection });
+      setReceipt(job);
+      if (currentRoute.current?.input.requestId === view.requestId) currentRoute.current = null;
+      setJobsRevision(value => value + 1); await refresh();
+    } catch (e) { setRouteError((e as Error).message + "。重试确认仍使用同一建议ID，请先核对收据。"); }
+    finally { setRouteChanging(false); }
+  };
+  const routeToChat = (view: WebWorkRoute) => {
+    if (currentRoute.current?.input.requestId === view.requestId) { currentRoute.current.invalid = true; setRouteRetry(null); }
+    else invalidateRoute();
+    void revokeRoute({ mode: "suggest", requestId: view.requestId, text: view.text, selection: view.selection });
+    setDraft(view.text); navigate("chat");
+    if (view.text.length > 10000) setError("完整原文已放回输入框，但超过原聊天10000字符上限；请编辑后发送，未截断或自动提交。");
+    setTimeout(() => textarea.current?.focus(), 50);
   };
   const send = async (existing?: { requestId: string; text: string; threadId?: string }, background = false) => {
     if (
@@ -423,6 +497,7 @@ function App() {
       text: draft.trim(),
       ...(background ? { threadId } : {}),
     };
+    if (!body.threadId && body.text.length > 10000) { setError("原聊天最多10000字符，请编辑后发送；全文已保留。"); return; }
     setSending(true);
     setRetry(body);
     setError("");
@@ -431,7 +506,7 @@ function App() {
         setReceipt(await api<WorkJob>("/work-jobs", body));
         setJobsRevision(v => v + 1);
       } else await api("/chat", body);
-      setDraft("");
+      changeDraft("");
       setRetry(null);
       await refresh();
     } catch (e) {
@@ -458,7 +533,7 @@ function App() {
     }
   };
   const ask = (text: string) => {
-    setDraft(text);
+    changeDraft(text);
     navigate("chat");
     setTimeout(() => textarea.current?.focus(), 50);
   };
@@ -792,11 +867,11 @@ function App() {
                             </div>
                             <div className="row-body">
                               <strong>
-                                {r.taskId ? "后台任务" : "Agent 执行"}
+                                {r.mode === "suggest" ? "路由建议" : r.taskId ? "后台任务" : "Agent 执行"}
                               </strong>
                               <small>{time(r.startedAt)}</small>
                             </div>
-                            <Badge status={r.status} />
+                            <Badge status={r.status} label={r.mode === "suggest" && r.status === "succeeded" ? "建议已形成" : undefined} />
                           </div>
                         ))
                       ) : (
@@ -969,6 +1044,13 @@ function App() {
                           </div>
                         </div>
                       );
+                      if (item.kind === "suggestion") return <WorkRouteCard key={item.id} view={item.suggestion} threads={threads}
+                        active={currentRoute.current?.input.requestId === item.suggestion.requestId}
+                        invalid={invalidRoutes.includes(item.suggestion.requestId)} changing={routeChanging || !online}
+                        onConfirm={() => void confirmRoute(item.suggestion)}
+                        onRevoke={() => { if (currentRoute.current?.input.requestId === item.suggestion.requestId) { currentRoute.current.invalid = true; setRouteRetry(null); }
+                          void revokeRoute({ mode: "suggest", requestId: item.suggestion.requestId, text: item.suggestion.text, selection: item.suggestion.selection }); }}
+                        onChat={() => routeToChat(item.suggestion)} />;
                       const c = item.chat;
                       return (
                         <div key={c.run.id} className="chat-turn">
@@ -1032,14 +1114,28 @@ function App() {
                   </div>
                   <div className="composer-area">
                     {data.capabilities.workJobs && <div className="work-submit">
-                      <label htmlFor="work-job-thread">后台工作主题</label>
-                      <select id="work-job-thread" value={threadId} disabled={sending || !!retry} onChange={e => setThreadId(e.target.value)}>
+                      <label htmlFor="work-job-thread">本次主题（后台处理必选）</label>
+                      <select id="work-job-thread" value={threadId} disabled={sending || !!retry} onChange={e => { invalidateRoute(); setThreadId(e.target.value); }}>
                         <option value="">选择主题后可后台处理</option>
                         {threads.filter(thread => thread.status === "active").map(thread => <option key={thread.id} value={thread.id}>{thread.title}</option>)}
                       </select>
                       <button type="button" disabled={!threadId || !draft.trim() || sending || !online || !!retry}
                         onClick={() => void send(undefined, true)}>后台处理</button>
                       <small className="muted">仅处理本次文字；完成后进入主题和收件箱，你可继续聊天。</small>
+                    </div>}
+                    {data.capabilities.workRouting && <div className="work-route-controls">
+                      <label htmlFor="work-route-object">明确对象（可选）</label>
+                      <select id="work-route-object" value={objectChoice} onChange={e => { invalidateRoute(); setObjectChoice(e.target.value); }}>
+                        <option value="">由本次原文请求建议</option>
+                        {data.tasks.map(task => <option key={task.id} value={"task:" + task.id}>任务：{task.instruction.slice(0, 100)}</option>)}
+                        {data.goals.map(goal => <option key={goal.id} value={"goal:" + goal.id}>目标：{goal.objective.slice(0, 100)}</option>)}
+                      </select>
+                      <button type="button" disabled={!draft.trim() || routeSending || !online || !!retry || !!routeRetry || !!revokeRetry || !!data.capabilities.workRoutingBusy}
+                        onClick={() => void requestRoute()}>路由建议</button>
+                      <small className="muted">{new TextEncoder().encode(draft.trim()).length} / 14336 字节；只形成建议，普通聊天仍可用。</small>
+                      {routeError && <p className="error" role="alert">{routeError}</p>}
+                      {routeRetry && !routeSending && <button type="button" disabled={!online} onClick={() => void requestRoute(routeRetry)}>重试同一建议请求</button>}
+                      {revokeRetry && <button type="button" disabled={!online} onClick={() => void revokeRoute(revokeRetry)}>重试撤销建议</button>}
                     </div>}
                     {data.capabilities.workJobs && receipt && <p className="work-job-receipt" role="status">提交收据：{labels[receipt.status]}（{time(receipt.createdAt)}） · 工作 {receipt.id} · 主题 {receipt.threadId.slice(0, 8)}</p>}
                     {retry && !sending && (
@@ -1073,9 +1169,8 @@ function App() {
                         aria-label="消息"
                         placeholder="告诉 Agent 你想做什么…"
                         value={draft}
-                        maxLength={10000}
                         rows={2}
-                        onChange={(e) => setDraft(e.target.value)}
+                        onChange={(e) => changeDraft(e.target.value)}
                         onKeyDown={(e) => {
                           if (
                             e.key === "Enter" &&
@@ -1111,6 +1206,7 @@ function App() {
                         </button>
                       </div>
                     </form>
+                    {draft.length > 10000 && <p className="error" role="alert">当前完整原文超过普通聊天10000字符上限，请编辑后发送；全文已保留，未自动提交或截断。</p>}
                     <p className="composer-hint">
                       Enter 发送，Shift + Enter 换行 ·
                       页面断开不会取消执行，请先核对结果。
@@ -1119,7 +1215,7 @@ function App() {
                 </div>
               )}
               {page === "threads" && (data.capabilities.workThreads
-                ? <WorkThreads api={api} labels={labels} workJobs={!!data.capabilities.workJobs} />
+                ? <WorkThreads api={api} labels={labels} workJobs={!!data.capabilities.workJobs} workEvents={!!data.capabilities.workEvents} workRecall={!!data.capabilities.workRecall} openFile={openFile} openGoal={id => { setSelectedGoal(id); navigate("goals"); }} />
                 : <Empty icon={FolderOpen} title="工作主题未启用">请在本机配置中启用工作主题后重启服务。</Empty>)}
               {page === "tasks" && (
                 <>
@@ -1669,7 +1765,7 @@ function App() {
                           </span>
                           <span>
                             <strong>
-                              {r.taskId ? "后台任务" : "Agent 执行"}{" "}
+                              {r.mode === "suggest" ? "路由建议" : r.taskId ? "后台任务" : "Agent 执行"}{" "}
                               <code>{r.id.slice(0, 8)}</code>
                             </strong>
                             <small>
@@ -1677,7 +1773,7 @@ function App() {
                               费用未确认
                             </small>
                           </span>
-                          <Badge status={r.status} />
+                          <Badge status={r.status} label={r.mode === "suggest" && r.status === "succeeded" ? "建议已形成" : undefined} />
                           <ChevronRight size={15} />
                         </summary>
                         <div className="run-detail">

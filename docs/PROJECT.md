@@ -286,7 +286,7 @@ WorkThread 是长期存在的工作主题，与 Pi Session、Goal 的生命周�
 
 `work-thread-store.ts`负责同连接事务、主题归属与唯一关系；`work-thread-service.ts`复用Task目标、Goal actor、Web Run归属和Memory来源进行对象存在性/访问检查，按主题ID读取关联并实时投影原对象元数据。Memory来源必须为web，且来源Run属于当前Web身份；关联不增加访问权，原对象删除或不可见时保留ID并显示不可用。只在可信Web宿主组装服务，不接受用户提供owner/target/channel。
 
-`WORK_THREADS_ENABLED=false`为默认值。开启只增加Web“工作主题”页及认证/CSRF保护的管理API，支持明确的创建、改名、归档/恢复、关联和移除；归档不影响原业务执行。工作空间限100主题、主题限100关联，列表与每类候选上限100；无分页。用户仍通过原Chat与OperationGuard控制业务对象；第一阶段不新增Pi工具、Router/Worker或自动执行；后续显式后台工作见下节，事件订阅、自动归类、自动Memory写入和Chain of Recall仍未实现。实现与验证见[阶段交付记录](evaluations/workthread-foundation.md)，启用方法统一见[README](../README.md#workthread工作主题与关联默认关闭)。
+`WORK_THREADS_ENABLED=false`为默认值。开启只增加Web“工作主题”页及认证/CSRF保护的管理API，支持明确的创建、改名、归档/恢复、关联和移除；归档不影响原业务执行。工作空间限100主题、主题限100关联，列表与每类候选上限100；无分页。用户仍通过原Chat与OperationGuard控制业务对象；第一阶段不新增Pi工具、Router/Worker或自动执行；后续显式后台工作见下节，该第一阶段未包含事件订阅、自动归类、自动Memory写入或Chain of Recall；后续已实现的事件/显式Recall见下节，自动Memory保存仍不开放。实现与验证见[阶段交付记录](evaluations/workthread-foundation.md)，启用方法统一见[README](../README.md#workthread工作主题与关联默认关闭)。
 
 ## 第二阶段 2A：确定性分派与纯文本 WorkJob
 
@@ -299,3 +299,30 @@ WorkThread 是长期存在的工作主题，与 Pi Session、Goal 的生命周�
 queued取消无Run；running取消在同事务中结束技术Run为interrupted并将Job改为cancelled，再abort，迟到成功不能提交。门等待Session退出后才释放。重启将running Job/Run一并转interrupted，queued保留；失败/中断/取消/已完成不重跑，功能关闭不领取。聚合提交异常停止新领取并触发主进程停止，不用新模型请求补交。
 
 先提交Job与Run，再通过原ChannelRouter进入Web收件箱，通知含主题和工作标识；投递失败只记deliveryError。GET详情和主题查询不写渲染ACK或审批许可。对话保持原前台busy语义，队列/详情放在可展开区域及主题页，结果按需读取。列表最近100项、无分页；无通用Outbox、模型辅助路由、联网/并行Worker或自动后续执行。实际机制验证与真实语义/长期运行边界见[2A交付记录](evaluations/router-worker-mvp.md)。
+
+
+## 第二阶段 2B：有界路由建议
+
+`WORK_ROUTING_ENABLED=false`为独立开关，依赖本机Web、WorkThread及WorkJob。建议只接本轮原文和有权主题/Goal/Task元数据，确定性定位先行；不读Memory正文或Session。公开Pi ModelRuntime单次completeSimple经受控fetch检查实际HTTP预算，结果Schema/候选ID与当前选择在适配入口校验，Pi类型不外泄。
+
+已有web_ui_chats增量mode/selectionJson保存chat与suggest请求身份；旧行仍是chat。Run/events/model_calls记录建议终态、结果ID和用量，purpose=work_route；建议不是Job成果或Guard授权。用户确认以建议原UUID创建原WorkJob，同输入重试回读，不重调模型。Task/Goal仍由原Chat/Guard处理，原后台串行与权限语义不变。
+
+前端当前建议一次恢复绑定，历史只读；修改触发撤销，失败不冒称已撤销，已有Job不受影响。开关关闭不暴露新入口，普通Chat和2A不额外分类。实际实现/离线证据与真实语义限制见[2B评估](evaluations/work-router-2b.md)；事件/关联回忆未在本批实现。
+
+
+## 事件执行 E3：受控Web审批与原Policy交接
+
+在E1/E2同应用库四表基础上，`goal_policies`仅增量加入可空`sourceSubscriptionId`；旧Policy为NULL。新Web Policy审批在原approve事务内核实当前Web身份、active来源/主题/订阅与已关联Goal、Goal/Plan版本、repository/branch/interval完全相等，固定每触发1个text_only片段，并永久记录绑定。即使订阅暂停或后来重批，旧observe也不轮询这些Policy；保留原nextAt持续触发语义，不重写consume、settled或Runner。
+
+事件事实事务冻结当时subscriptionRevision/goalId/policyId/version；已绑定行保留pending交原Policy独立短事务核对同Hash快照和当前许可，再原子创建原Observation/Trigger/private issue并终结分派。未授权或已判定事件不因后来批准重开；同有效Plan/Policy的ready/running只跳过新busy事件，不改变既有Grant/提交资格。原Observation/Execution仍用完整JSON，不引入Pointer协议。来源暂停只终结未交接pending，已交接执行仍走原Goal/Policy控制。
+
+Web请求复用web_ui_chats独立policy mode及规范化payload/requestId，原Policy审计保存不可变操作收据；请求已存未批准不重放，批准已提交但技术Run未finish可按sourceRunId只读恢复。只开放当前用户自己的source-bound GitHub Policy批准/暂停/撤销，原Console入口、费率/预算消费与无工具权限保留。审批同意绑定当前展示范围，版本或输入改变失效；原请求冻结跟踪独立于当前表单，未接纳时恢复提交原授权、已接纳时只读原收据。跟踪仅当前组件内存，完整重载/主题卸载后不保留本页卡。E3独立R2已通过；E4全量680项和实际Chrome桌面/390px离线闭环已通过独立R1。默认关闭，真实GitHub/收费模型/手机/长跑未验，见[事件评估](evaluations/work-events.md)。
+
+
+## 关联回忆 R1–R3：显式只读原成果
+
+R1有界定位与R2成果/出处已分别独立第1轮通过。R3在主题页显式“查找历史”面板接入原`WorkRecallService.read(unknown)`，`WORK_RECALL_ENABLED=false`默认关闭、依赖WorkThread且仅本机Web；不接普通Chat分类或Pi历史扫描，不增加模型请求。输入与输出边界见[契约](designs/work-recall-r1-contract.md)。
+
+沿原登录、Origin/CSRF和JSON传输限额，业务字段仅read入口校验；无新事实表、Run、Session或授权。Goal原committed/Hash、所有别名先GoalExecution、文件只ID/原入口、显式Memory过滤及JSON字节预算均复用R2，不改执行链或Memory实现。普通Run仅原技术记录，不冒充工作成功。
+
+UI范围变化清旧呈现、忽略迟到响应，状态仅当前组件内存。原Goal/文件导航复用现有入口；原Task详情在Recall开关内按原Web身份直查，原Run仅用户点击后调用既有只读接口，超过最近100项不假跳列表。Recall/原Task/Run呈现不套Viewed、不写ACK或控制；打开原文件详情后的原审批流程单列。R3已正式独立第1轮通过；R4最终工程/全量730项和实际Chrome桌面/390px离线闭环已完成，正式独立第1轮PASS、无finding，见[独立报告](/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/evidence/r4/reviewer-r1/review.md)；未正式启用。整体证据与真实语义/手机/长跑等限制见[交付评估](evaluations/work-core-stages.md)。

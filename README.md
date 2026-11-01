@@ -64,6 +64,61 @@ WORK_THREADS_ENABLED=true WORK_JOBS_ENABLED=true npm run web:preview:offline
 
 结果、错误和用量沿用原 Run。通知失败只记 `deliveryError`，结果仍可从工作详情查看，不重跑模型；没有新增通用 Outbox 或必达保证。工作列表及每主题列表只显示最近 100 项，无分页。后续补充材料需明确新提交；本批没有自然语言模型路由建议、联网或并行 Worker、订阅及链式召回。实际离线证据见[2A交付记录](docs/evaluations/router-worker-mvp.md)。
 
+## 路由建议 2B（默认关闭）
+
+同一对话输入区可选择“路由建议”，先显示本次完整原文、主题/对象建议或澄清。只有当前建议的明确确认才创建纯文本WorkJob；成功形成建议不代表已排队或完成。普通聊天和显式“后台处理”不增加Router调用。
+
+`WORK_ROUTING_ENABLED=false`，仅支持本机 `--web-ui`，依赖 `WORK_THREADS_ENABLED=true`、`WORK_JOBS_ENABLED=true`。三个开关只接受true/false，日常启动器不会从.env读取这些开关。可先用独立临时数据与固定模型检查：
+
+```sh
+npm run web:build
+PREVIEW_SEED=true WORK_THREADS_ENABLED=true WORK_JOBS_ENABLED=true WORK_ROUTING_ENABLED=true npm run web:preview:offline
+```
+
+该预览会创建两个合成主题和一个合成提醒，假Key/数据均属临时空间。模型输出是固定桩，不能据此判断真实路由准确率；不连接收费模型或Tavily/GitHub。
+
+每次建议最多一次模型HTTP、512输出token、10秒绝对超时，无自动重试或回退Chat。原文最多14 KiB UTF-8；候选最多20主题、所选主题20个Goal/Task、8 KiB元数据，实际HTTP body最多32 KiB；超限要求缩小范围，不截断。候选不读取Memory正文、Session或原成果。
+
+编辑原文/选择会让当前建议失效并请求持久撤销；未收到服务端确认时显示“撤销待确认”。刷新只恢复视图和当前绑定，不补模型或自动确认；其它历史只读，已有Job收据仍保留。Task/Goal/chat建议的“原文放回聊天输入框”只回填原文，需用户再发送，由原Guard判断；不生成展示ACK或Grant。普通Chat仍限10000字符，超出时保留全文并提示编辑。
+
+目前受控API为 `openai-completions`、`openai-responses`、`azure-openai-responses`、`anthropic-messages`；其余明确拒绝建议，不暗换模型。实际HTTP仅验过兼容端点的本机模拟，其余白名单仅核对SDK源码，真实模型语义/手机/长跑未验。建议默认继续关闭，工程与浏览器证据见[2B评估](docs/evaluations/work-router-2b.md)。
+
+## 来源观察/订阅与受控执行 E2–E4（默认关闭，E4独立通过）
+
+`WORK_EVENTS_ENABLED=false`，只接受 `true`/`false`；仅本机 `--web-ui`，依赖 `WORK_THREADS_ENABLED=true`。只观察/纯主题订阅不要求Goal或主动执行开关；Goal关闭时，旧Goal ID或原关联也不能绕过关闭门。日常启动器只从 `.env` 读取模型字段，此开关需由启动环境显式提供。开启功能不会自动创建来源或执行许可；本轮未开启正式环境。E2独立R1、E3独立R2已通过；E4工程/桌面与390px离线验收及独立R1已通过。
+
+在“工作主题”页选主题，展开“明确许可一个新观察来源”，填写GitHub公开仓库`owner/repo`、固定分支和60–86400秒间隔，勾选明确许可后提交。仅固定只读GitHub API，不接收Token、任意URL或私有仓库凭据。范围创建后不可修改；暂停/恢复保留head，改范围须新来源/新许可。许可通过可信Web宿主生成独立审计Run，同身份请求去重；许可Run不变成聊天/任意Run访问权。
+
+选择自己的已有来源，订阅到本主题或当前可见且已关联的Web Goal。订阅本身只记录“之后观察到的新变化”，不产生执行权限、Goal/Policy/Grant/WorkJob/模型或Memory写入。相同来源/主题/目标唯一（含无Goal）；订阅ID/范围固定，暂停/恢复用revision校验。归档主题、移除Goal关联或失去访问会停止该目标接收之后的新事件，历史记录和来源原件保留。暂停观察/订阅不表示停止已签发的Goal执行；停止原执行仍须原Goal pause/Policy revoke。
+
+首次观察只建基线；变化时把不超过10000 UTF-8字节的不可变快照/Hash、游标和当时有效订阅的revision/binding同事务保存，仅观察判定为“未授权执行”。订阅前/暂停/归档/解绑期间的事件不后来补投，恢复从恢复后的新观察提交开始，不按commit作者时间猜边界。pending恢复只读同一原件核Hash，不重新GET补旧事件；损坏Hash失败关闭。gap/force-push保留旧游标并显示需核对，不提供自动reset。
+
+页面分别展示当前可见来源和本主题**实际subscription_events**；源事实存在不等于已投递给主题。冻结原件只在明确展开时读取，读取不ACK/批准/执行。来源最多100个、每主题最多100订阅、列表最近100事件且无分页；来源tick每批10项，pending本地判定每批100项。来源服务仍只有main中的一个实例，普通Chat/2B不调用这些新接口。
+
+离线检查：`TMPDIR=/private/tmp node --import tsx --test tests/work-events.test.ts tests/source-events.test.ts tests/source-events-process.test.ts`。最终全量680项与真实Chrome桌面/390px离线闭环见[事件评估](docs/evaluations/work-events.md)，E4独立R1已通过。所有来源/模型均为loopback，真实GitHub/收费模型/手机/长跑未验；批准设计见[计划](docs/designs/work-events-recall-plan.md)。
+
+订阅已有Web Goal后，可展开“独立Policy执行许可”：先核对当前Goal/Plan版本、固定repository/branch/观察间隔，再明确填写有效期、每日执行/模型次数、总执行次数、每日/总人民币预算并勾选许可。每事件最多1个无工具text_only片段；只允许原已批准Plan，不替代反馈或修订审批。需要原GOAL_ENABLED/PROACTIVE_ENABLED和有效宿主费率/限额；表单不改开关、费率或预算配置，Console `/policy` 的渠道限制不变。
+
+审批、暂停和撤销使用独立用户请求及原Policy事务；同requestId回读原收据，内容或mode冲突409。请求只落盘未批准时重启不自动批准，批准已提交而技术Run中断时仍可读原批准收据。新事件只用产生时绑定的Policy/版本；后来批准不补跑旧“未授权”、停用、繁忙或旧绑定事件。来源暂停同事务终结尚未交接的pending，恢复只收未来变化。PROACTIVE关闭时新事件终结为未开启，不留待重开补跑。
+
+审批同意绑定当前Goal/Plan、来源/订阅版本及全部表单输入，变化后必须重新勾选。“恢复原请求并查询结果”沿用原冻结内容和requestId：服务器未接纳时首次提交原授权，已接纳时回读原收据，不采用当前新表单。核对或明确结束跟踪后才能新操作；结束跟踪不等于撤销服务器操作。跟踪仅当前主题组件内存，完整页面重载或离开主题不保留本页卡，服务器原请求/收据仍持久。
+
+事件交接只读同一冻结Hash原件，原Observation/Execution仍保留完整快照，不重新GET。busy的ready/running仅跳过本次新事件，不排队、不改既有Grant或提交资格；源/订阅/观察开关关闭不撤销已经交接的执行。停止原执行需Goal暂停或独立Policy暂停/撤销。事件可查看原Goal、原Trigger标识与原执行Run；界面单列GoalExecution提交状态，技术Run成功不代表成果已提交，读取不ACK。
+
+## 显式查找历史 Recall R1–R4（默认关闭，R4独立第1轮通过）
+
+`WORK_RECALL_ENABLED=false`，只接受`true`/`false`，仅本机`--web-ui`且依赖`WORK_THREADS_ENABLED=true`。不要求WorkJob、来源观察或主动执行同时开启，不改变它们的原开关。日常启动器的环境读取限制沿工作主题说明；开启也不会自动查历史或调用模型。
+
+在主题页展开“查找历史 · 原成果与来源”，选择本主题或全部可见主题，明确输入标题/自然引用；选主题留空可读本主题有界关系。有歧义先选候选，也可指定对象类型和原ID（不受最近100列表限制）。查询最多2048 UTF-8字节；换主题、查询、背景或明确对象即清旧呈现，迟到响应不覆盖新范围。完整刷新或离开主题会清除本页查询，不自动重查。
+
+结果是旧时点原文、状态、时间、ID及来源，不是新生成分析。Goal只显示R2已核验committed/Hash的成果，技术Run成功不代表Goal提交；普通Run标为原记录。截断和省略均标明；文件仅操作ID与原审批页入口，不在Recall显示预览。可明确打开原Goal、按ID读取原Task/Run；原Task只读详情接口随Recall关闭返回404，原列表不变。
+
+“补充长期背景”默认不勾选；明确选择后才按当前Web原Run归属及所选主题Memory关联筛选，再纯检索，不改写/保存。读取可能沿原Memory服务扫描/修复索引；失败只标背景不可用，不覆盖关系成果。详细限制与预算见[Recall契约](docs/designs/work-recall-r1-contract.md)。
+
+API为认证/Origin/CSRF保护的`POST /api/work-recall`，JSON传输限制沿原服务，业务字段仅原`WorkRecallService.read(unknown)`入口校验一次；不建Run/Session或授权。Recall和只读原Task/Run面板不登记ACK；用户打开原文件审批页后的完整展示/ACK仍走旧流程，必须与读取历史分开。普通Chat/建议/显式Job不增加Recall请求或分类模型。
+
+R1/R2/R3及R4均已正式独立通过，R4第1轮无finding，见[独立报告](/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/evidence/r4/reviewer-r1/review.md)。当前三项工程与全量730/730通过，真实Chrome桌面/390px已完成事件→原Goal成果→显式引用/候选/原来源；独立84项回归与布局/归档复验另列于整体评估，不与730相加。来源/模型全部loopback、真实模型语义/外网/手机/长跑仍未验；整体证据和已知限制见[交付评估](docs/evaluations/work-core-stages.md)，旧644/680不移作当前通过数。
+
 ## V3.0：可手动继续的长期目标（默认关闭，电脑核心验收通过）
 
 V3.0.1只做Batch5定点收尾：明确的正式计划步数会在草稿/审批时核对；“一项安排”拆成多个正式Step时保留完整草稿并要求确认口径，不静默裁剪。多重或二选一指代只澄清。详见[离线修复报告](docs/evaluations/v3.0.1-closeout.md)。用户随后批准[最小真实复验方案](docs/evaluations/v3.0.1-live-retest-plan.md)，专用Console入口落实16次/2元及32KiB限制后，实际14次/0.605440元预留即停服；数量和取消局部通过，自然暂停失败，暂不能完整收尾，见[真实复验报告](docs/evaluations/v3.0.1-live-retest.md)。本轮已结束，旧48/5入口不适用，不自动使用剩余额度。

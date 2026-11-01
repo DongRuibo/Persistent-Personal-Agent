@@ -1,16 +1,34 @@
 # Personal Agent 当前状态与交接
 
-更新日期：2026-11-01（Asia/Shanghai）。此文件是当前快照；稳定架构见 [PROJECT.md](PROJECT.md)，开发规则见 [AGENTS.md](../AGENTS.md)，运行方法见 [README.md](../README.md)。
+更新日期：2026-11-02（Asia/Shanghai）。此文件是当前快照；稳定架构见 [PROJECT.md](PROJECT.md)，开发规则见 [AGENTS.md](../AGENTS.md)，运行方法见 [README.md](../README.md)。
 
 ## 当前阶段
 
-- 当前在独立工作树、分支`codex/router-worker-mvp`完成第二阶段2A；基线是已审查的PR #3 head `e2c95c067d4f33aa5cd9fdb0c6b17e40bc82ba4b`。开始时远端PR #3仍open/未合并，main为`75b724f17d17a70ad51caf7c4697251259d7ef3c`，本轮均未改。
-- 2A已实现默认关闭的确定性分派、work_jobs、同BackgroundLane串行Worker、独立临时Pi work Session，以及Chat继续交互、主题/收件箱结果。queued/running取消、迟到结果、统一恢复、去重、归属和预算均在原边界内；不含模型辅助路由、联网/并行Worker、订阅或Chain of Recall。
-- 2A的P2分类修复已核验复用：work模型HTTP500、length和禁止工具提议准确failed，保留原因且无成功输出；运行取消仍Job cancelled/Run interrupted，停机/真实超时Job/Run interrupted，保护性abort与旧scope语义保留。本轮专项19/19、完整618/618通过（0失败/取消/跳过，测试68.85秒），typecheck/build/web:build均退出0。原615/615仅为初交付历史；第1轮独立只读复审已通过，无阻断及追加可执行缺陷；不进入2B。全部使用临时SQLite、合成文本、假Key和本机模拟端点；无正式数据访问、收费调用或正式服务启停。证据与逐文件目的见[2A交付记录](evaluations/router-worker-mvp.md)。
-- 新功能仍`WORK_JOBS_ENABLED=false`，启用还需WorkThread及本机Web。工作列表最近100项、无分页；串行不抢占和通知无通用Outbox的限制保留。原Goal自然暂停/收据理解等真实语义缺口不因本轮离线通过而消失。
-- 用户已明确授权本次2A代码、测试和相关文档提交、推送至`codex/router-worker-mvp`并创建PR；发布准备时尚未commit/push/建PR。新PR以`codex/workthread-foundation`为base，只展示2A增量并依赖[PR #3](https://github.com/DongRuibo/Persistent-Personal-Agent/pull/3)；不合并或修改PR #3/main，不开始2B。原审查工作区分支和未提交内容保留；只带入STATE、PR #3审查及本轮计划，原未跟踪路线图与PR #2报告未复制或覆盖。
+- 2B/B1/B2/B4独立R1、B3独立R2；事件E1独立R2、E2独立R1、E3独立R2、E4独立R1；Recall R1/R2/R3均正式独立R1通过。R4正式独立第1轮PASS、无finding，2B/事件/Recall在本批批准的隔离实现与离线范围交付完成；R3 P3已关闭，见[独立报告](/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/evidence/r4/reviewer-r1/review.md)。
+- 最终typecheck/build/web:build均exit0，全量Node实际spec 730/730、0失败/取消/跳过、68803.871333ms；仍2条既有lucide警告。Reviewer独立9文件84/84、exit0、4806.622125ms，首次沙箱51过33项listen EPERM失败原件保留；未重复730或构建，不累计两组计数。首轮729/730失败、180ms受控红复现及修key前730日志均保留，不与当前相加。测试等待真实busy结束、归档同级key前缀两处局部修复，不改审批权限。
+- 实际Chrome桌面1280×900 A及390×844 B完成独立来源/基线/订阅/Policy→新事件→原Goal committed→显式Recall/歧义选择→原来源/Goal/技术Run；Goal HTTP2、Chat2、显式Job1、Router/intent0，来源7、Recall18。Execution4另含2个零模型Plan种子，B变化0A推进；390不是手机。Worker原scrollWidth数字仅CUA回显汇总；Reviewer独立[测量原件](/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/evidence/r4/reviewer-r1/layout-preview/measurements.json)与桌面/窄屏图补验document/body为1280/390、归档/恢复各1面板、console0，仅布局/归档复验，不是原两主题全部链重跑。
+- Recall默认背景off，16次默认查询0Memory list；A/B显式背景各1次，0知识保存，Markdown不变。最终稳定只读窗口17表/模型/来源/ACK不变；原文件预览正常1ACK、主动Chat历史与回复8ACK单列，不声称全库ACK0。查询不自动进入Chat/Guard，刷新/卸载丢本页状态且不自动重查。
+- 同PID运行时重建/库重开可读原成果；全部新开关关闭Chat可用、恢复无补执行。浏览器这项不是OS进程重启，实际子进程恢复测试另列。自有服务exit0、9端口关闭、tab/viewport及明确归属临时根清理完，合成证据保留。
+- 纯本地eval:memory exit0/0模型，三集Top1 9/12、17/19、17/18，漏召回及原Goal/Formation真实失败保留；未验真实GitHub/收费模型/手机/外网/长期运行。确定性Recall、来源gap、单lane延迟、通知及页内pending边界见[整体评估](evaluations/work-core-stages.md)和[验证摘要](evaluations/work-core-stages-validation.json)。
+- 本批实现与验收基线为`91b7a657ddf62cf625c53f7bcfbddaa22aa6740b`，唯一执行树为`/Users/onruio/.codex/worktrees/work-core-stages/Persistent Personal Agent`，发布分支为`codex/work-core-stages`。用户已授权按2B、事件、Recall三阶段提交并推送、创建一个以main为base的PR；实际提交SHA/PR以Git记录及本机release发布artifact为准，不在本文预写成功。WORK_ROUTING_ENABLED/WORK_EVENTS_ENABLED/WORK_RECALL_ENABLED默认关闭，未授权合并main或正式启用；下文验收身份和未提交说明保留其历史时点。
 
 ## 已完成功能
+
+- Recall R1/R2/R3均独立第1轮通过；R4全量730及真实Chrome桌面/390离线查历史已完成，正式独立第1轮PASS、无finding，默认关闭。
+
+- 事件阶段E4工程/实际Chrome闭环（独立R1已通过）：来源显式许可、独立Policy、两原Goal各两段和结果追溯；实际恢复/暂停/重启及零ACK读取已核对。
+
+- E3受控Web Policy闭环（独立R2已通过）：独立请求审批/控制、原Policy原子交接、同Goal有界推进、事件/原Goal/技术Run追溯；只读不ACK。
+
+- E2显式来源/订阅与仅观察Web闭环（独立R1已通过）：来源许可、固定目标订阅、原子事实判定与只读原件；无自动执行。
+
+- E1来源事实基础（独立R2已通过）：独立许可/游标/事件原件与默认关闭tick；E1本卡为可信宿主基础，Web许可/订阅由E2补充，自动执行未实现。
+
+- B3 Web建议闭环：默认关闭入口、明确定位/建议/澄清、持久请求/撤销和同UUID确认WorkJob；技术完成与真实Job收据分开，B4离线浏览器及独立R1终验均已通过。
+
+- B2隔离建议适配：默认关闭、一次实际HTTP与序列化预算、严格结果约束、取消/绝对超时/审计；与B3持久请求/API/UI接线，B4仅离线验收。
+
+- B1路由准备：明确主题/对象归属与关联定位、冲突澄清、有界元数据候选；后续B2/B3已接模型及默认关闭的产品入口。
 
 - 2A显式后台工作：同一Chat选择主题/后台提交，真正入队收据与独立busy；单请求纯文本执行、按主题和Run看成果、queued/running取消、保守恢复和现有收件箱投递，默认关闭。
 
@@ -40,13 +58,123 @@
 
 | 日期 | 修改及位置 |
 | --- | --- |
-| 2026-11-01 | 2A发布准备：用户已授权提交、推送及创建依赖PR，base为`codex/workthread-foundation`并依赖PR #3；只整理STATE、[评估](evaluations/router-worker-mvp.md)及新增[验证摘要](evaluations/router-worker-mvp-validation.json)，源码/测试Hash不变，独立发布复审前不提交。原19/19专项、618/618全量及构建证据保留，不重复收费/浏览器/全量；不合并main、不开始2B |
-| 2026-11-01 | 第二阶段2A：Job/确定性Router/共用门Worker、无工具临时work Session与Web提交/队列/取消/结果；原Task/Goal/Guard实现保留。[交付记录](evaluations/router-worker-mvp.md)；类型/两端构建、最终全量及浏览器结果见下节，代码保持未提交 |
-| 2026-11-01 | PR #3发布后审查完成：未发现阻断问题，typecheck及12/12专项重验通过；更新[审查结论](evaluations/workthread-pr3-review.md)与[第二阶段首批执行计划](designs/work-router-worker-mvp.md)，由独立执行对话开发。本轮只改交接文档，不改代码、不提交推送或合并 |
-| 2026-11-01 | WorkThread第一阶段：新增关系类型/存储/服务与Web页面，复用现有鉴权/CSRF和对象归属；默认关闭。类型/两端构建、588/588离线回归和桌面/窄屏浏览器验证通过。按用户授权发布功能分支并创建[PR #3](https://github.com/DongRuibo/Persistent-Personal-Agent/pull/3)供审查；暂不合并main，正式数据未触碰 |
-| 2026-11-01 | PR #2按确认严格快进至75b724f，GitHub已merged；本地main同步、原4提交保留。日常目录按lock离线补齐依赖，语法/类型/两端构建通过；同SHA前轮577/577回归有效，零新收费调用。合并状态可在GitHub PR #2核对 |
+| 2026-11-02 | R4：最终730全量/实际Chrome Recall闭环；归档同级key局部修复、组件等待根因修复；整体评估/摘要与清理完成，正式独立R1 PASS无finding，84专项/布局复验另列 |
+| 2026-11-02 | R3：默认关闭主题显式Recall、只读API/原Task按ID详情、原Run独立呈现；正式独立第1轮通过，P3当前快照已收敛 |
+| 2026-11-02 | R2：原成果安全投影、文件入口、显式背景与真实UTF8预算；221适用回归、独立第1轮通过 |
+| 2026-11-02 | R1：有界元数据定位/原归属、历史ID、归档及歧义；94适用回归、独立第1轮通过 |
+| 2026-11-02 | E4：原Runner/clock/loopback接线、P3恢复文案、680全量及桌面A/390 B各2片段；独立R1通过，历史证据保留 |
 
 ## 验证记录与证据边界
+
+### Recall R3 显式Web查找历史（2026-11-02，独立第1轮通过；历史验证）
+
+- R2独立第1轮通过；402文件精确起点、branch/HEAD、index与refs留证。只改配置/宿主Web接线、主题显式面板和只读Task详情，R2投影/Goal执行/Policy/Guard/Memory/SDK/依赖不改。HTTP只做原JSON传输限制，字段交原read一次校验；off隐藏入口/接口，原Task列表不变。
+- 最终`npm run typecheck`、`npm run build`、`npm run web:build`exit0，仍2条既有lucide告警；固定`TMPDIR=/private/tmp node --import tsx --test --test-reporter=tap`适用15文件154/154、0失败/取消/跳过、13004.615209ms。包含HTTP8项与真实组件Hook/JSX处理器3项，新增最后卸载迟到断言后重验。随后只有用户提示语及1条断言改动，最终typecheck/Web构建exit0、组件3/3（207.086916ms），后端src与154版完全一致；154/3不相加。前154/13232.728041ms及首轮夹具类型/HTTP4过3失败均保留。
+- 真实本机HTTP验证原认证/Origin/CSRF/off/未知字段/跨渠道、历史>100对象直查、归档空查询与明确/歧义、committed与discarded/坏Hash/关闭、文件敏感正文和Hash不泄漏、序列化UTF8预算/坏事件来源、显式背景原Web/主题过滤。默认Memory抛错桩证明0读；重复读取全应用表/ACK不变、0新模型。显式背景沿R2原listForHost，可能修复索引，不宣称无文件系统读写或全库无匹配。
+- 组件测试覆盖范围变化清旧呈现、迟到/卸载不回填、候选请求原ID、文件仅显式原审批页、原Goal导航、Task/Run显式按ID只读；未运行DOM/Chrome。普通Chat/建议/Job兼容样本各1次loopback模型，查历史不增加请求或Run，不能说整套回归0模型。
+- 证据根`work-core-stages/evidence/r3/worker/`保留402起点/终Hash、完整含untracked/相对R2 diff、真实命令exit/TAP/工程Hash与短交接。无正式.env/DB/Memory/Session/备份、真实网络/收费或Git发布；R4全量/浏览器、实际手机/语义质量/长跑未验，当前新开关保持false。
+
+### R2 原成果/来源及显式背景（2026-11-02，独立第1轮已通过；历史验证）
+
+- R1独立第1轮通过（Reviewer独立52/52）；401文件起点逐项Hash匹配。R2仅扩同一Recall服务及原Goal/WorkThread/Run/事件局部只读方法，不新增表/框架/执行器/网络、权限或Web入口。R1非阻断P3提示已准确区分多来源选具体事件与唯一来源无可选事件，不新增sourceId协议。
+- 原Goal按runId先识别、原actor及goalsEnabled门，再仅committed读取/核对checkpointHash。无界view/宿主executionForHost/技术Run正文均不能绕过；discarded/failed/interrupted即使技术Run成功也不提供正文。Task/Job取原Run并如实状态，原instruction整体提供或明确省略；Run去重保留事件→成果来源。文件仅fileOperationId，不读payload/preview/content/diff/Hash，不ACK。
+- 事件读保存Hash原件、核Observation相同快照/previous/head及Trigger/Policy/Grant到同Goal；坏/缺源不回填，Grant未消费只观察。背景默认0调用；显式选择后原listForHost修复/扫描→web及ownsRun→主题显式Memory ID→纯retrieve原查询，0改写/save，失败单列背景不可用而保留成果。
+- 最多5结果项（与背景合计5），单text的原UTF8及JSON字符串≤4KiB、摘录总16KiB；含定位/状态的完整来源元数据≤8KiB、完整响应≤32KiB。码点截取，原/显示bytes与truncated、各类omitted准确；Goal原目标/进度/问题不改写，整体省略有标识。全部低信任旧资料，0Session注入/执行/控制/ACK。
+- 专项最终39/39（R1 13+R2 26）；最终typecheck/build均exit0，23文件相关回归221/221、0失败/取消/跳过、20768.487042ms。覆盖临时SQLite原合法Goal与事件授权链、故障注入坏/缺Hash/来源、伪造Task/Job/Run访问、原文件提议及全业务表不变、显式Memory过滤、长emoji/控制符/JSON和来源预算。中间21、32、38、39仅各版本，不重复相加；一次新增测试同域重复const导致转译失败，修测试后通过，原日志保留。
+- 证据在work-core-stages/evidence/r2/worker/，记录R1起点、相对增量/完整untracked diff、源码Hash及命令exit。不读取正式数据/收费/真实外网；没有Web变更，未重跑Web构建/浏览器/全量680，真实模型/手机/长跑缺口保留。当时待R2独立审查及R3/R4；随后R2已独立通过、R3见上，仍不提交/发布。
+
+### R1 关联回忆有界定位（2026-11-02，独立第1轮已通过；历史验证）
+
+- E4独立R1已通过，398文件起点Hash逐项匹配；只增Recall定位、WorkThread局部元数据路径、原ownsRun后的SQL投影及真实订阅事件元数据SQL，不改B1协议/归档拒绝规则、主执行、Guard、SDK或Memory。明确事件ID及主题条件在LIMIT前过滤，其他对象走原直接ID权限校验；无输出、snapshot、Session读取，无API/UI/成果接线。
+- 查询实际UTF-8≤2KiB；最多20主题/20对象，完整结果JSON≤8KiB。明确ID优先；归档历史可读。无当前明确对象/事件的“刚才/那个”始终澄清，即使只有一条历史；“上次GitHub”需明确主题及真实订阅唯一来源，以observedAt取最近，同时间并列澄清。第二订阅来源尚无事件也算多来源，反例先红后复用原subscriptions修复。支持范围和未支持表达见契约。
+- 13项Recall专项覆盖含正文getRun/snapshot/Memory抛错桩与全部业务表前后相等、历史Job/Run/事件超过100项明确ID、跨身份/渠道伪造关系、归档/删除、25主题事件明确选择、20/21及完整JSON8191/8192/8193字节、中文emoji/引号/反斜线/控制符。最终typecheck/build均exit0；固定TMPDIR=/private/tmp的12文件相关回归94/94、0失败/取消/跳过、16489.878125ms。
+- 首轮默认TMPDIR=/var/folders/.../T经过/var符号链接，Web夹具报link_not_allowed：93项53过/40失败，5个本轮测试子进程留监听；已定点终止，ps/lsof证明其父子进程均退出且无对应监听，仅rmdir该时间窗内40个空夹具目录。随后/private/tmp中间版本93/93过；最终加来源歧义后94/94，不相加也不覆盖原失败。原日志、命令exit及版本Hash保存在work-core-stages/evidence/r1/worker/；未改路径安全检查。
+- 本卡无Web变更，未重跑Web构建、浏览器或全量680；未访问正式数据/收费/真实外网，不提交/发布。R2原成果/Hash验证/Memory显式背景、R3 Web、R4总体闭环仍待后续独立卡，不把定位实现称为完整Recall。
+
+### E4 事件阶段离线验收（2026-11-02，独立R1已通过；历史验证）
+
+- E3 R2的396文件冻结起点逐项匹配，freeze/full SHA与独立Reviewer一致。仅预览/夹具补原GoalRunner、clock、interrupt、proactive重开配置、两已有Web Goal合法Plan种子、独立固定GitHub loopback；生产HTTP、Goal/Policy/Runner/SDK/依赖未改。产品仅恢复按钮/提示/注释区分首次接纳与已接纳回读，对应原UI测试标签同步。
+- 最终四项工程检查均exit0，全量680/680、0失败/取消/跳过、66483.317833ms；初版680/66239.801542ms只对应先前测试注入版本。最终JSON保存各命令对应工程Hash，原日志使用Node实际spec reporter，不伪造TAP格式；两轮不相加。
+- 实际Chrome桌面A和390px B共两已有Goal×两后续事件，策略模型4次、tools0，原Goal各2个committed；另2个bootstrap仅合法seed，不消耗模型。普通Chat三次单列（含事件关闭后）；B变化时A Goal/Execution不变。最终27个来源loopback HTTP=18 commits+9 compare，0真实GitHub；只观察2项、执行4项、Policy pause/revoke终结3项，0额外Task/Job/文件写入。原Run/冻结原件读取前后业务审计及file表逐项不变。
+- Plan换版与审批/撤销网络断连均实际超过5秒，恢复同原冻结请求/Run、审计各1；Chrome提交后断连可自动重发，持续注入后才实测页面未确认状态。B发送前断网时服务器0新Policy，明确恢复后首次接纳原授权；不能把这步说成纯读取。完整重载/主题卸载不保留pending是既有声明边界。
+- 初实例有日期自动fill无效/未提交、原生键盘补齐和一次断连被Chrome重发；定位工具一次select标签不匹配、一次登录Detached、一次证据查询列名错误均保留，没有业务失败被隐藏。最终运行错误0、控制台error/warn0、390实际无页面横向溢出；初实例未推进Goal。两个合成DB/JSON/截图DOM及清理记录在本机`work-core-stages/evidence/e4/worker/`，最终服务exit0、tab/viewport及临时root已清理。未访问正式数据/收费或外网，未commit/push/PR/merge，不启动Recall。
+
+### E3 R2 审批同意范围与原请求收据（2026-11-02，独立R2已通过；历史验证）
+
+- 独立R1为blocked：E3-R1-01/P2实际合法Goal/Plan换版后旧勾选可批准新版；E3-R1-02/P2响应丢失后active/revoked隐藏原收据入口，旧pending又被新表单按action复用。R1原报告、反例和27项通过均保留，不以本轮绿灯覆盖。
+- R2只改`web/src/work-events.tsx`局部状态：当前展示Goal/Plan、固定source及其revision、subscription版本/状态、当前Policy版本及期限/次数/预算输入构成同意范围，刷新/编辑使旧同意失效，提交处理器再核验；待刷新订阅不发送新操作。pending改为独立可见的冻结原请求，读取始终原路径/body/requestId，和当前业务表单分开；编辑/轮询不清理或替换。原收据显示同Run，用户明确核对后才结束；未确认或已拒绝可明确结束本页跟踪，文案说明不代表取消或撤销服务器操作，避免被永久400/409请求锁住。
+- 新`tests/work-event-policy-ui.test.ts`在轻量Hook/JSX宿主转译真实组件，运行父WorkEvents原5000ms定时回调并逻辑推进，连接真实WebUiServer/临时SQLite。原合法proposePlan/approvePlan换版、来源/订阅暂停恢复版本变化均清旧同意；直接调用提交处理器0POST。approve/revoke HTTP200后注入响应丢失、轮询active/revoked、换Plan/重新出现新表单，原请求仍可读且同payload/requestId/Run，approved/revoke审计各1；处理后新版重勾选才生成新requestId。真实期限409后编辑保留pending、显式结束跟踪后新批可用。3个UI场景模型HTTP=0，不是浏览器/DOM或5秒墙钟等待验收。
+- 修前业务3/3红灯及3/3绿灯保留；初次测试宿主误用TypeScript7不可用运行时转译API，改用已有esbuild；初绿2/3的一项父级刷新时序夹具失败，按真实effect/父定时刷新顺序校正，不改后端绕过。最终`npm run typecheck`、`npm run web:build`exit0（既有2条lucide警告）；`TMPDIR=/private/tmp node --import tsx --test --test-reporter=tap tests/work-event-policy-ui.test.ts tests/work-event-policy.test.ts`15/15、0失败/取消/跳过、4146.855792ms。日志JSON逐项保存该次工程Hash；不与旧175/45/27或单独3项相加。
+- 395文件原R1冻结起点逐项匹配；本卡仅组件、新测试、STATE和设计执行快照4文件，其它后端/SDK/依赖/既有测试/AGENTS与原件Hash相同。证据根`work-core-stages/evidence/e3/worker-r2/`保存起点、完整含untracked/相对R1 diff、终Hash/身份、逐项回应和真实命令exit。仅前端变更未重跑后端build；E4全量/Chrome及旧未验边界保留。
+- 生命周期边界：pending跟踪只保存在当前PolicyApproval组件内存；完整页面重载、离开主题导致卸载后不会保留该本页跟踪卡。服务器原请求/审批收据仍持久，不自动重批。本轮只验原5000ms轮询和版本变化期间恢复，没有新增页面重载持久化框架或接口。随后独立R2已通过，E4实际Chrome复验见上；历史组件验证不冒充浏览器。
+
+### E3 R1 初版原Policy接线（2026-11-02，历史冻结；两项UI阻断见上）
+
+- 原GoalPolicyStore.approve/control仍独占同步事务；Web新请求在web_ui_chats独立policy mode保存定型payload/requestId及新可信Run，source-bound审批拒绝借用普通Chat/事件Run。原审批审计同事务存完整原收据；同请求只读，mode/内容冲突409。实际子进程分别在审批前exit71、提交后未finish exit72，重启均不重批：前者not_applied，后者从sourceRunId原审计恢复applied，技术Run保持interrupted。
+- 新Policy永久单列sourceSubscriptionId，无第五表；旧Console行NULL且增量迁移保持原审计，原observe不变。Web固定source/subscription/Goal绑定及三字段在原审批事务核实；事件产生时捕获原revision/goal/policy/version，后续Policy事务核Hash、当前归属/关联、版本、期限/状态，再写原完整Observation、Trigger、private issue与分派终态。caller没有外层BEGIN或网络await；原consume/settled/GoalRunner/Pi不改。
+- 每事件最多1个text_only片段；两主题两事件各推进自己的原Goal两段，不新建Goal/Job。原Pi实际4次loopback HTTP，tools=0、低信任UNTRUSTED_GOAL_SNAPSHOT可见恶意资料但0额外Task/Job/Memory写入。busy ready和running均0新Trigger/Grant、原版本与issued/consumed不变，原在途仍committed；不积压重跑。原反馈、Plan变化、期限、pause/revoke、无费率和预算检查保留且原因可查。观察flagoff不回退旧observe，已签发原提交资格保留；PROACTIVE关只观察并终结当次事件，重开不补跑。
+- 事实已存后签发故障整个Policy事务回滚；重启从同snapshotHash恢复，GitHub GET保持3次而非重抓，第1个baseline和第2次变化的commit/compare共3次；单事件恢复只签1Grant/执行1次。Hash损坏终结snapshot_hash_invalid，修Hash或新批不重开。来源pause/resume在未交接pending窗口修前实际误交policy_dispatched，已保留红灯；仅原source暂停事务局部UPDATE终结pending，恢复不补跑，不碰dispatched/Grant/Goal。
+- `regression-r1`保存22文件175/175（168顶层）、0失败/取消/跳过、12463.7545ms，含新增12项和原Console/Goal/Task/Web；后来仅原Goal导航、原Grant执行Run/GoalExecution状态投影与不ACK查看，`trace-supplement-final`为45/45、0失败/取消/跳过、2971.334708ms，不能重复相加。最终typecheck/build/web:build退出0并逐项保存对应源码Hash；两条既有lucide告警保留。Mac首轮/tmp符号链接fixture初始化失败、一次测试夹具方法名typecheck失败及修前pause红灯均保留；按既有TMPDIR=/private/tmp重验，不放宽路径安全检查。
+- 证据根 `work-core-stages/evidence/e3/worker/`：394文件E2起点副本/Hash/身份、完整含untracked及相对E2增量diff、最终Hash、命令/退出码/计数/失败、安全新增路径扫描与逐文件目的。最终验证后仅维护文档/证据，未改AGENTS、SDK/依赖、正式.env/DB/Memory/Session/备份或运行环境；无stage/commit/push/PR/merge。E3待独立审查；E4全量/实际Chrome、Recall、真实GitHub/收费模型/手机/长期运行均未执行，旧真实失败保留。
+
+### E2 订阅/可见性与仅观察Web（2026-11-01，冻结版本已通过独立R1）
+
+- `SourceEventStore/Service`增量管理固定source/thread/可选goal订阅、NULL目标去重、revision暂停/恢复和提交边界；用可信WorkThreadService.get/routingObject复核主题/Goal/原关系，不读Memory正文。新来源事件、游标、当时有效订阅revision与绑定、no_policy判定同事务；归档/解绑目标不参与之后新事件，原件不删除。pending按原件Hash本地恢复，终态不重开，最多100项/批；无Policy/Grant/Goal/Job/模型写。
+- main只把原唯一来源Service接给WebUiChannel；新API沿原登录/Origin/CSRF、字段白名单与定型入口，feature off为404。来源/订阅/事件均owner/channel隔离，不按同repo跨身份合并；独立许可Run仍无任意Run读权。WorkThreads挂WorkEvents组件：公开GitHub范围明确许可、仅主题/已关联Goal选择、暂停/恢复、实际收到事件和按需Hash原件；不复制执行审批UI或写ACK。API通过不等于浏览器已验。
+- `npm run typecheck`、`npm run build`、`npm run web:build`均退出0；最终`TMPDIR=/private/tmp node --import tsx --test tests/work-events.test.ts tests/source-events.test.ts tests/source-events-process.test.ts tests/work-threads.test.ts tests/web-ui.test.ts tests/work-route-web.test.ts tests/work-router.test.ts tests/config.test.ts`为67/67、0失败/取消/跳过、5086.431ms。包含E2新增8项，不能与初版7/7或66/66重复相加。
+- 新专项使用web-ui-fixture真实Web身份/登录/HTTP、临时SQLite与loopback GitHub；覆盖两主题/不同Web身份/Console飞书Goal、NULL/Goal去重、未关联/归档/Goal关闭、订阅前/停用/后来Goal绑定不补投、原子分派故障回滚、pending恢复/Hash损坏/旧revision、迟到poll/源暂停、featureoff/鉴权/CSRF/字段/Chat兼容。来源操作0模型/Grant/新Goal/Memory；合成Goal仅用例种子，普通Chat兼容场景另有1个本机模型HTTP，不冒充来源模型为0的全套总量。
+- 初次后端typecheck和7项专项通过；Web首次构建因新UI状态setter名setInterval遮蔽原生函数而退出1，改名后通过。自核新CSS变量改用既有--line并补Web构建；测试夹具增加Goal关闭配置，真实HTTP旧Goal及旧关联仍拒绝，最终类型/67项通过。两条既有lucide告警保留；后端产品源码保持最终build版本，此后仅文档收尾。没有全量、浏览器/手机、真实GitHub/Tavily、收费模型、两个eval或正式启用。
+- 证据在本机`work-core-stages/evidence/e2/worker/`：E1 R2精确392起点、起终身份/Hash、逐文件目的、完整/相对E1R2增量diff与原始日志/安全扫描。保留B4/E1/R1失败证据，无stage/commit/push/PR/merge；E1 R2已通过，E2冻结待审，不启动E3。
+
+### E1 R2 定点修复 E1-R1-01（2026-11-01，独立R2已通过）
+
+- 独立R1唯一阻断P2：生产redactor对合法分支`token=main`整段脱敏，吃掉审计JSON闭合引号；来源表/许可Run/权限仍正确。先在本轮新证据运行Reviewer原复现，parseError成立；再补生产redactor反例，在未修SqliteStore上1项失败、退出1，确认为同一JSON.parse根因，不覆盖R1原报告或日志。
+- 产品只改`src/sqlite-store.ts`一处事件类型条件：`source_observation_permitted`复用既有`tavily_call`逐字段脱敏后序列化。保留全局redactor、其它事件与来源固定描述符；没有修历史持久审计或访问正式资料。`tests/source-events.test.ts`让现有临时夹具可注入redactor，新增`token=main`和虚构token分支反例，验证源描述符完整、审计JSON/身份可读、token值已脱敏且0业务执行。
+- 本轮`npm run typecheck`、`npm run build`退出0；`TMPDIR=/private/tmp node --import tsx --test tests/source-events.test.ts tests/source-events-process.test.ts tests/tavily-pi.test.ts`退出0，20/20、0失败/取消/跳过，4422.412ms，包含新增1项、原E1/真实main及原Tavily结构化审计回归。仅本机临时SQLite、loopback模型与Tavily测试桩；没有真实来源/收费模型。原38项不重复跑、不与本轮20相加，B4旧644不覆盖E1。
+- R2证据位于本机`work-core-stages/evidence/e1/worker-r2/`：392文件起点与R1冻结完全一致，保存修前红灯、修后命令/退出码/完整日志、起终身份/Hash、完整diff与本轮3文件增量；原worker/reviewer-r1证据只读保留。最终代码验证后只维护STATE；未改其它文档/实现、SDK/依赖、E2/API/订阅或权限，未新全量/浏览器/两个eval，无stage/commit/push/PR/merge。冻结后停写，等待R2。
+
+### E1 R1初版来源与事件事实（2026-11-01，历史验证；审计问题已由R2修复）
+
+- 新 `source-event-types/store/service.ts`：event_sources/source_events/thread_subscriptions/subscription_events同连接增量表；后两表仅DDL/DTO，不开放订阅创建/分派。来源身份来自可信Web宿主；许可requestId去重，范围冲突拒绝，独立许可Run与来源/audit同事务，无新模型或审批工具。审计Run的归属来自来源owner/channel和原run_events，不冒充Chat/成果；E2展示仍须先来源归属校验，E1未扩大WebUiStore/Run访问。
+- repository/branch/interval创建后固定；pause/resume只改状态/版本，保留head。独立tick复用原GitHubObserver，在网络外短事务复核revision/status/head/nextAt；基线不建事件，新变化原子保存快照/Hash与游标。快照10000字节SQL约束，列表不含正文，详情按原件Hash读取；gap/force-push/坏响应退避不前移，暂停/关闭/abort阻止迟到提交。未修改原Policy/Grant/GoalRunner/Memory/SDK/依赖。
+- 最终 `npm run typecheck`、`npm run build`退出0；`TMPDIR=/private/tmp node --import tsx --test tests/source-events.test.ts tests/source-events-process.test.ts tests/config.test.ts tests/github-observer.test.ts tests/work-threads.test.ts tests/goal-policy.test.ts` 为38/38、0失败/取消/跳过、约5.20秒。包含新来源10项、实际main进程1项和配置1项，不与先前10/10、1/1重复相加。
+- 实际main用新临时Web库和固定GitHub fetch→loopback映射，共4次启动：开启建基线、关闭到期来源0HTTP、重开形成1事件、非Web拒绝；仅3次模拟GitHub HTTP，0模型/Grant，退出释放锁。该轮源码Hash与当时38项版本相同；R2另验，不是正式GitHub或浏览器验收。其余旧回归中的本机模拟Pi HTTP另计，不冒充该进程3请求。
+- 初始typecheck1项审计details类型适配错误；新专项10项7过3失败，分别是Task夹具漏claim、审计断言漏原Run生命周期事件、重开夹具漏测试redactor。均已定点修正，原失败日志保留；初次专项自动审批超时未运行，工具允许的单次重试后才执行，没有真实业务失败或额外收费。文档收尾不改已测源码。
+- 本机证据根 `work-core-stages/evidence/e1/worker/` 保存起终Git身份、386文件起点、命令/退出码/原日志、完整/增量diff及Hash、安全扫描与逐文件目的。E1未重跑web:build/全量/浏览器/Memory或Formation eval，B4旧644只对应其原2B版本。无正式.env/DB/Memory/Session/备份或真实来源/收费模型访问，无stage/commit/push/PR/merge；等待独立Reviewer，E2/E3及Recall尚未编码。
+
+### B4 2B整体验收（2026-11-01，独立R1终验通过）
+
+- `npm run typecheck`、`npm run build`、`npm run web:build`退出0；`TMPDIR=/private/tmp npm test`为644/644，0失败/取消/跳过，66.92秒。最终前端一条超限提示与测试暂停夹具变化的适用重验均通过，版本Hash边界见[验证摘要](evaluations/work-router-2b-validation.json)，不混用644与最新UI证据。
+- 实际Chrome通过官方viewport能力验证1280×900、390×844，innerWidth/scrollWidth均匹配。临时DB只读核对两个主题的Job/Run、建议确认去重、刷新不补模型；网络故障和输入提示失败过程、修后重验及截图在[评估](evaluations/work-router-2b.md)链接，不复制日志。
+- 服务/本次tab已清理，正式数据未触碰，无收费/真实外部API、实际手机或长跑。本批仍未提交发布，独立R1已通过；其后E1另行开发待审，E2/E3及Recall未编码。
+
+### B3 R2定点修复 B3-R1-01（2026-11-01，R2已通过）
+
+- 先运行Reviewer原始 `ui-refresh-repro.cjs`，确认旧版刷新后currentRoute=null、文字/主题/对象修改0revoke且旧confirm真发出；退出0只表示缺陷复现。新增派生源级回归在修前按预期退出1“刷新必须恢复绑定”，原日志保留。
+- `web/src/main.tsx`仅首次成功snapshot恢复最新未撤销/无Job且running/succeeded建议的冻结ID/输入绑定；不回填draft/选择，不自动POST。轮询不重新绑定，修改立即invalid并撤销同ID；非当前/invalid确认回调被阻断。`work-routes.tsx`其它历史明确只读且禁确认，已有Job只读恢复，确认得到Job后解除当前绑定。
+- Reviewer派生VM宿主转译真实App处理器和真实卡片JSX，使用轻量Hook/fetch，6场景通过：三种修改、撤销待确认/确认、轮询不覆盖草稿/不夺回、其它历史确认旁路、Job历史不自动POST。修后宿主首轮仅因JSX void包装未等待异步confirm完成而断言过早，补事件循环等待后通过，未为此改业务代码；失败日志也保留。此为源级行为验收，不是浏览器/DOM。
+- `npm run typecheck`、`npm run web:build`退出0，仍两条既有lucide告警；`TMPDIR=/private/tmp node --import tsx --test tests/web-ui.test.ts tests/work-router.test.ts tests/work-route-web.test.ts`为29/29，0失败/取消/跳过，约2.04秒。29项与6个VM场景分开报告，不相加冒充同一测试套件。后端/测试源未变，本轮未重跑72项、后端build、全量或浏览器；B4再实际DOM验证。
+- R1原始384文件及B3 worker证据不覆盖；R2完整差异、相对R1修复、Hash表和逐项回应保存在本机 `work-core-stages/b3/worker-r2/`。仅4个仓库文件变更，无SDK/表/Guard/Job生命周期调整、正式数据或收费调用；未提交发布。
+
+### B3 Web建议与确认（2026-11-01，R1初版历史验证）
+
+- `npm run typecheck`退出0。`npm run web:build`退出0，2条既有lucide use-client告警。72项回归退出0，0失败/取消/跳过，约16.39秒；命令覆盖 `work-route-web/web-ui/work-router/work-threads/work-jobs/work-jobs-process/work-route-model/work-route-suggestions/config`。72项包含本轮10项，不能与专项10项重复相加。
+- 初始记录：测试Header联合类型导致typecheck退出1；首轮Web专项1项SQLite空原型比较错误+9项127.0.0.1监听EPERM。修正测试后最小权限专项10/10，补严格数组kind反例后完整受影响72/72；失败原日志不删除、不全归环境。最后仅卡片状态文案变化，Web类型/构建重新验证，后端和测试Hash保持72项版本。
+- 真实SDK/loopback证明API建议与Chat并存（Router2+Chat1）、相同请求不重调模型、撤销先到/迟到不写、确认重试/重启一份Job、归档/关系失效检查、mode先筛LIMIT100保留旧Chat及原Guard/Task/Goal/文件/Job回归。关系检查另用持久结果夹具，非真实语义验收。实际main旧Job恢复用了4次临时进程启动，未启动正式服务。
+- UI类型/构建通过但未运行浏览器；编辑触发持久撤销和确认Job后继续聊天的DOM闭环由B4验证。后端build/全量/桌面390px/真实模型/手机/长跑未运行。见[契约及证据边界](designs/work-route-b1-contract.md)，原始材料在本机 `work-core-stages/b3/worker/`。本轮无提交发布。
+
+### B2 有界模型建议（2026-11-01，R1已通过）
+
+- `npm run typecheck`退出0。`TMPDIR=/private/tmp node --import tsx --test tests/work-route-model.test.ts tests/work-route-suggestions.test.ts tests/work-router.test.ts tests/config.test.ts tests/pi-executor.test.ts tests/pi-integration.test.ts tests/natural-language.test.ts tests/natural-language-integration.test.ts`退出0，50/50、0失败/取消/跳过，约12.28秒，包含新增7模型+1配置及B1的8项。
+- 使用真实本地Pi SDK和loopback模拟HTTP，未依赖mock函数计数宣称请求上限：500/429各1HTTP；转义使实际body超限时0HTTP，无model_calls；合法中文body16704字节，模型输出上限512；取消、close及约10秒超时及时结算，无迟到审计。五类合法、畸形/额外字段/错ID、当前选择冲突、多候选合法建议和clarify、无工具/Memory/业务写入均覆盖；旧Pi/Guard/Router/config回归通过。真实语义仍未验，固定输出不能证明分类准确率。
+- 原始沙箱7项全部EPERM、最小权限初版7/7与修订后50项日志全部保留；未覆盖原生非兼容provider实际HTTP、真实模型/手机/长跑或B3产品闭环。未跑全量/构建/浏览器；B1证据不覆盖。详见[契约](designs/work-route-b1-contract.md)与本机 `work-core-stages/b2/worker/` 证据。
+
+### B1 契约与确定性定位（2026-11-01，R1已通过）
+
+- `npm run typecheck`退出0。`node --import tsx --test tests/work-route-suggestions.test.ts`为8/8；`TMPDIR=/private/tmp node --import tsx --test tests/work-route-suggestions.test.ts tests/work-router.test.ts tests/work-threads.test.ts tests/work-jobs.test.ts`为32/32（包含前8项），退出0。沙箱初次32项20通过/12项127.0.0.1监听EPERM，原失败日志保留后按最小权限重跑，不算业务失败或跳过。
+- 新增测试用内存SQLite和合成数据，Memory读取设置为会报错的桩以证明候选不读正文，另确认旧detail仍按原逻辑读取；原回归使用临时SQLite/模拟HTTP与假Key。没有真实模型、正式.env/DB/Session/Memory/备份或外部API访问。测试原始日志、命令/退出码和冻结Hash见[B1交接](designs/work-route-b1-contract.md)。
+- 本任务未运行build、web:build、全量npm test或浏览器；不是B4整体工程验收或真实语义验收。建议函数未接现有入口，功能关闭/普通Chat/显式后台沿用原回归；B2模型约束和B3持久化仍待实现。
+
 
 ### 第二阶段2A P2收尾（2026-11-01，本轮重新验证）
 
@@ -548,10 +676,9 @@ V1 原有自动化证据：39项测试使用模拟模型/飞书服务和虚拟�
 
 ## 下一步与需要提供的信息
 
-1. 2A P2已通过第1轮独立复审，用户已授权本次提交、推送及创建PR。按[交付记录](evaluations/router-worker-mvp.md)与[验证摘要](evaluations/router-worker-mvp-validation.json)精确发布；PR base为`codex/workthread-foundation`，注明依赖尚未合并的PR #3。独立发布复审通过后执行；不合并main、不启用正式开关、不开始2B。无需真实Key或收费验收。
-2. PR #3仍为本分支前置底座，未获合并许可前不操作main。审查工作区的旧路线图、PR #2报告及所有个人历史保留，不清理或迁移。
-3. 2B再单独规划模型路由建议与澄清；联网Worker需独立预算验收。事件订阅、Chain of Recall、分页/容量、大规模Memory性能及真实手机/长期运行不夹带进本批。
-4. 原Goal自然暂停/收据理解和Memory形成语义质量仍保留历史失败，不沿用旧收费额度，不因工程测试通过自动启用正式开关。
+1. 本批R4独立第1轮通过，发布按2B、事件、Recall三阶段连续提交及一个PR组织；当前发布事实以Git与本机release artifact为准，不为自引用SHA或PR号增加提交。PR合并、正式启用、收费或额外真实验证仍需单独明确决定。
+2. 合并main、正式启用、真实数据/外网/收费模型及实际手机/长跑仍需单独明确决定；已授权的三阶段提交、推送和PR不再重复确认，本批无需提供Key。
+3. 原Goal/Formation真实失败和确定性Recall/来源窗口/通知/串行执行限制继续保留，不以本次离线成功覆盖。
 
 ## V2.0.2 关键文件（主体及本轮修复）
 

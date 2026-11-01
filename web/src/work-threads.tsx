@@ -2,13 +2,15 @@ import { useEffect, useRef, useState } from "react";
 import { FolderOpen, Plus, RefreshCw } from "lucide-react";
 import type { WorkObject, WorkObjectKind, WorkThread, WorkThreadDetail } from "../../src/work-thread-types.js";
 
+import { WorkRecall } from "./work-recall.js";
+import { WorkEvents } from "./work-events.js";
 import { WorkJobs } from "./work-jobs.js";
 
 const kinds: Record<WorkObjectKind, string> = { task: "任务", goal: "目标", run: "执行记录", memory: "记忆" };
 
-export function WorkThreads({ api, labels, workJobs = false }: {
+export function WorkThreads({ api, labels, workJobs = false, workEvents = false, workRecall = false, openGoal, openFile }: {
   api: <T>(path: string, body?: unknown) => Promise<T>;
-  labels: Record<string, string>; workJobs?: boolean;
+  labels: Record<string, string>; workJobs?: boolean; workEvents?: boolean; workRecall?: boolean; openGoal: (id: string) => void; openFile?: (id: string) => void;
 }) {
   const [threads, setThreads] = useState<WorkThread[]>([]);
   const [selected, setSelected] = useState("");
@@ -98,6 +100,8 @@ export function WorkThreads({ api, labels, workJobs = false }: {
               <button disabled={busy || !objectId}>添加关联</button></div>
             <p className="muted">每类展示至多 100 项。记忆仅包含来源可确认属于本工作空间的条目。</p>
           </form>}
+          {workRecall && openFile && <WorkRecall key={`recall:${view.id}`} api={api} thread={view} openGoal={openGoal} openFile={openFile} />}
+          {workEvents && <WorkEvents key={`events:${view.id}`} api={api} thread={view} openGoal={openGoal} />}
           {workJobs && <WorkJobs api={api} labels={labels} threadId={view.id} />}
           <div className="work-thread-links"><h2>关联对象 <span className="muted">{view.links.length}</span></h2>
             {!view.links.length && <p className="muted">尚无关联。选择一个已有对象开始整理。</p>}

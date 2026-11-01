@@ -2569,3 +2569,33 @@ button.primary,
 .chat-work-jobs { margin: 12px 0; border: 1px solid var(--line); border-radius: 8px; }
 .chat-work-jobs summary { cursor: pointer; padding: 12px; font-size: 13px; font-weight: 600; color: var(--blue); }
 .chat-work-jobs .work-jobs { max-height: 360px; padding: 12px; }
+
+.work-route-card { margin: 14px 0; padding: 18px; border: 1px solid var(--line); border-radius: 16px; background: white; min-width: 0; }
+.work-route-original { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 280px; overflow-y: auto; padding: 10px 0; }
+.work-route-card p, .work-route-card small { overflow-wrap: anywhere; }
+.work-route-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 10px; }
+.work-route-controls select { min-width: 0; max-width: 100%; flex: 1 1 200px; }
+.work-route-controls small, .work-route-controls .error { flex-basis: 100%; }
+
+.work-events { margin-block: 1.25rem; border-top: 1px solid var(--line); padding-top: 1rem; min-width: 0; }
+.work-events form { display: grid; gap: .75rem; margin-block: .75rem; }
+.work-events label { display: grid; gap: .35rem; }
+.work-events input, .work-events select { max-width: 100%; min-width: 0; }
+.work-events article { border: 1px solid var(--line); border-radius: .75rem; padding: .8rem; margin-block: .65rem; overflow-wrap: anywhere; }
+.work-events .work-event-consent { display: flex; align-items: flex-start; gap: .5rem; }
+.work-event-consent input { width: auto; }
+.work-events pre, .work-events summary { white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word; }
+
+/* 历史原文只读呈现，长ID/来源和JSON不撑开主题页。 */
+.work-recall { margin: 20px 0; min-width: 0; overflow-wrap: anywhere; }
+.work-recall summary { cursor: pointer; font-weight: 600; }
+.work-recall form { display: grid; gap: 12px; margin: 16px 0; }
+.work-recall label { display: grid; gap: 6px; }
+.work-recall textarea { min-height: 90px; resize: vertical; }
+.work-recall input, .work-recall select, .work-recall textarea { width: 100%; min-width: 0; max-width: 100%; }
+.work-recall .work-recall-background { display: flex; align-items: flex-start; }
+.work-recall-background input { width: auto; margin-top: 4px; }
+.work-recall article, .work-recall section[aria-label="原记录详情"] { margin-top: 14px; padding: 14px; border: 1px solid var(--line); border-radius: 12px; min-width: 0; }
+.work-recall pre { white-space: pre-wrap; overflow-wrap: anywhere; max-width: 100%; }
+.work-recall button { white-space: normal; overflow-wrap: anywhere; max-width: 100%; margin: 4px 4px 4px 0; }
+.work-recall-candidates { display: grid; gap: 6px; }

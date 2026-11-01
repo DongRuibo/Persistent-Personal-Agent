@@ -1,3 +1,8 @@
+import { WorkRecallService } from './work-recall.js';
+import type { WebTask } from './web-ui-types.js';
+import type { WebPolicyRequest, WebPolicyReceipt } from './goal-policy-types.js';
+import type { WorkRouteRequest, WorkRoutePreparation, WorkRouteSuggestion } from './work-route-types.js';
+import type { WebWorkRoute } from './web-ui-types.js';
 import { createHash } from 'node:crypto';
 import { ExecutionInterrupted } from './contracts.js';
 import type { AgentExecutor, Channel, MessageTarget, OutboundMessage } from './contracts.js';
@@ -8,8 +13,9 @@ import type { BackgroundLane } from './background-lane.js';
 import type { Config } from './config.js';
 import type { WebFile, WebGoalDetail, WebRun, WebSnapshot } from './web-ui-types.js';
 import type { FileMemoryService } from './memory-service.js';
+import type { SourceEventService } from './source-event-service.js';
 import { WorkThreadService } from './work-thread-service.js';
-import { WorkRouter } from './work-router.js';
+import { WorkRouter, prepareWorkRoute, suggestWorkRoute } from './work-router.js';
 import type { WebWorkJob } from './web-ui-types.js';
 import type { WebSearchCall } from './web-search-types.js';
 
@@ -22,8 +28,13 @@ export class WebUiError extends Error { constructor(readonly status: number, mes
 export class WebUiChannel implements Channel {
   private readonly shutdown = new AbortController();
   private work?: Promise<void>;
+  private routing?: { requestId: string; controller: AbortController; work: Promise<void> };
   readonly workThreads?: WorkThreadService;
+  sourceEvents?: SourceEventService;
+  get eventsEnabled(): boolean { return !!this.config.workEventsEnabled && !!this.sourceEvents; }
   readonly workRouter?: WorkRouter;
+  private readonly history?: WorkRecallService;
+  get recallEnabled(): boolean { return !!this.config.workRecallEnabled && !!this.history; }
   constructor(private readonly store: SqliteStore, private readonly tasks: TaskService, private readonly executor: AgentExecutor,
     private readonly config: Config, private readonly goals?: GoalService, private readonly lane?: BackgroundLane,
     private readonly reportError: (error: unknown) => void = () => {}, memory?: Pick<FileMemoryService, 'listForHost'>, interruptWork: (id: string) => void = () => {}) {
@@ -31,10 +42,60 @@ export class WebUiChannel implements Channel {
       if (!memory) throw new Error('工作主题需要宿主 Memory 查询服务');
       this.workThreads = new WorkThreadService(store, memory, { owner: webOwner, target: webTarget }, !!goals);
     }
+    if (config.workRecallEnabled) {
+      if (!this.workThreads) throw new Error('查找历史需要 WORK_THREADS_ENABLED=true');
+      this.history = new WorkRecallService(this.workThreads);
+    }
     if (config.workJobsEnabled) {
       if (!this.workThreads) throw new Error('后台工作需要 WORK_THREADS_ENABLED=true');
       this.workRouter = new WorkRouter(store.workJobs, this.workThreads.binding, (id, text) => this.submit(id, text), interruptWork);
     }
+  }
+
+  readHistory(input: unknown) {
+    if (!this.recallEnabled) throw new WebUiError(404, '接口不存在');
+    return this.history!.read(input);
+  }
+  task(id: string): WebTask {
+    const task = this.store.getTask(id);
+    if (!task || task.target.channel !== 'web' || task.target.userId !== webTarget.userId) throw new WebUiError(404, '任务不存在或无权访问');
+    return { id: task.id, instruction: task.instruction, dueAt: task.dueAt, status: task.status, updatedAt: task.updatedAt,
+      result: this.store.webUi.taskResult(targetJson, id) };
+  }
+
+  policyContext(subscriptionId: string) {
+    if (!this.eventsEnabled || !this.goals) throw new WebUiError(404, '执行审批入口未开启');
+    const context = this.sourceEvents!.policyContext(subscriptionId);
+    const goal = context.subscription.goalId ? this.store.goals.get({ ownerId: 'local-user', target: webTarget }, context.subscription.goalId) : null;
+    const policy = context.subscription.policyId ? this.store.policies.get({ ownerId: 'local-user', target: webTarget }, context.subscription.policyId) : null;
+    return { ...context, goal: goal ? { id: goal.id, objective: goal.objective, status: goal.status, revision: goal.revision, planRevision: goal.planRevision } : null, policy, proactiveEnabled: !!this.config.proactive?.enabled };
+  }
+  submitPolicy(input: WebPolicyRequest): WebPolicyReceipt {
+    if (!this.eventsEnabled || !this.goals) throw new WebUiError(404, '执行审批入口未开启');
+    const payload = JSON.stringify(input), old = this.store.webUi.find(webOwner, input.requestId);
+    const actor = { ownerId: 'local-user', target: webTarget };
+    if (old) {
+      if (old.mode !== 'policy' || old.selectionJson !== payload || old.text !== 'Web独立策略操作：' + input.action) throw new WebUiError(409, '此请求ID已用于其他模式或策略内容');
+      const policy = this.store.policies.sourceReceipt(actor, old.runId);
+      return { requestId: input.requestId, runId: old.runId, policy, status: policy ? 'applied' : 'not_applied',
+        message: policy ? '原策略操作已提交；本次只读取收据。' : '原请求未完成策略批准，未自动重放；请核对状态后发起新操作。' };
+    }
+    if (this.shutdown.signal.aborted) throw new WebUiError(503, '服务正在停止');
+    const now = new Date().toISOString(), text = 'Web独立策略操作：' + input.action;
+    const run = this.store.webUi.accept(webOwner, input.requestId, text, now, 'policy', payload);
+    const command = { actor, sourceRunId: run.id, text };
+    const binding = { owner: webOwner, channel: targetJson, subscriptionId: input.subscriptionId, expectedRevision: input.expectedSubscriptionRevision };
+    let policy;
+    try {
+      policy = input.action === 'approve' ? this.store.policies.approve(command, input.proposal, now, binding)
+        : this.store.policies.control(command, input.policyId, input.expectedVersion, input.action, now, binding);
+    } catch (error) {
+      this.store.finishRun(run.id, 'failed', now, undefined, error instanceof Error ? error.message : String(error));
+      throw new WebUiError(409, error instanceof Error ? error.message : '策略操作未提交');
+    }
+    // 独立批准事务已经提交。此后的技术Run故障只能读取原审批收据，不能重做批准。
+    this.store.finishRun(run.id, 'succeeded', now, '独立策略操作已提交');
+    return { requestId: input.requestId, runId: run.id, policy, status: 'applied', message: '独立策略操作已提交；仅之后观察到的新变化可使用此许可。' };
   }
 
   job(id: string): WebWorkJob {
@@ -63,7 +124,7 @@ export class WebUiChannel implements Channel {
       reads: web.filter(c => c.kind === 'fetch' && c.status === 'succeeded').length, sources: new Set(web.flatMap(c => c.sources.map(s => s.url))).size,
       status: last.status, kind: last.kind, ...(last.message ? { message: last.message } : {}) } : undefined;
     const sum = (key: 'inputTokens' | 'outputTokens' | 'cacheReadTokens' | 'cacheWriteTokens') => calls.reduce((n, c) => n + c[key], 0);
-    return { id: r.id, taskId: r.taskId, status: r.status, startedAt: r.startedAt, finishedAt: r.finishedAt,
+    return { ...(this.store.webUi.requestMode(webOwner, id) === 'suggest' ? { mode: 'suggest' as const } : {}), id: r.id, taskId: r.taskId, status: r.status, startedAt: r.startedAt, finishedAt: r.finishedAt,
       // 轮询中的文件Run只带详情引用，避免通过聊天/活动再次携带完整审批预览。
       output: fileOperationId ? null : r.output?.slice(0, 32768) ?? null, ...(fileOperationId ? { fileOperationId } : {}), truncated: (r.output?.length ?? 0) > 32768,
       error: r.error ? '执行失败或中断，请核对状态；详细诊断保留在本机。' : null,
@@ -76,7 +137,7 @@ export class WebUiChannel implements Channel {
   submit(requestId: string, text: string, before?: () => void): WebRun {
     const old = this.store.webUi.find(webOwner, requestId);
     if (old) {
-      if (old.text !== text) throw new WebUiError(409, '此请求 ID 已用于其他内容');
+      if (old.mode !== 'chat' || old.selectionJson !== '{}' || old.text !== text) throw new WebUiError(409, '此请求 ID 已用于其他内容');
       return this.run(old.runId);
     }
     if (this.shutdown.signal.aborted) throw new WebUiError(503, '服务正在停止');
@@ -99,6 +160,89 @@ export class WebUiChannel implements Channel {
     }
     // 浏览器读到响应不等于用户已看到；只有显式渲染 ACK 才写 delivery_succeeded。
   }
+  get routingEnabled(): boolean { return !!this.config.workRoutingEnabled && !!this.workThreads && !!this.executor.suggestWorkRoute; }
+  workRoute(requestId: string): WebWorkRoute {
+    if (!this.routingEnabled) throw new WebUiError(404, '接口不存在');
+    const row = this.store.webUi.find(webOwner, requestId);
+    if (!row || row.mode !== 'suggest') throw new WebUiError(404, '路由建议不存在');
+    const run = this.run(row.runId), events = this.store.events(row.runId);
+    const event = events.findLast(event => event.type === 'work_route_suggested');
+    let suggestion: WorkRouteSuggestion | null = null;
+    if (run.status === 'succeeded' && event?.details) {
+      const { source: _source, ...ids } = JSON.parse(event.details);
+      suggestion = { ...ids, [ids.kind === 'clarify' ? 'question' : 'reason']: run.output ?? '' } as WorkRouteSuggestion;
+    }
+    const job = this.store.workJobs.findRequest(this.workThreads!.binding, requestId);
+    const privateError = this.store.getRun(row.runId)!.error;
+    return { requestId, text: row.text, selection: JSON.parse(row.selectionJson), run, suggestion,
+      revoked: events.some(event => event.type === 'work_route_revoked'),
+      job: job && suggestion?.kind === 'work' && job.threadId === suggestion.threadId && job.instruction === row.text ? job : null,
+      error: run.status === 'interrupted' ? '路由建议已中断，未自动重试。'
+        : run.status === 'failed' ? privateError?.includes('32768') ? '建议请求超过32 KiB，请缩小文字或候选范围。'
+          : '未形成有效路由建议；可以修改输入后重新请求，或选择原聊天。' : null };
+  }
+  submitWorkRoute(input: WorkRouteRequest): WebWorkRoute {
+    if (!this.routingEnabled) throw new WebUiError(404, '接口不存在');
+    const old = this.store.webUi.find(webOwner, input.requestId), selectionJson = JSON.stringify(input.selection);
+    if (old) {
+      if (old.mode !== input.mode || old.text !== input.text || old.selectionJson !== selectionJson) throw new WebUiError(409, '此请求 ID 已用于其他模式、文字或选择');
+      return this.workRoute(input.requestId);
+    }
+    if (this.shutdown.signal.aborted) throw new WebUiError(503, '服务正在停止');
+    if (this.routing) throw new WebUiError(409, '上一条路由建议正在处理，请等待或撤销');
+    // 同一次准备用于入口归属检查和异步建议，避免重复扫描候选；Chat槽保持独立可用。
+    const prepared = prepareWorkRoute(input, this.workThreads!);
+    const run = this.store.webUi.accept(webOwner, input.requestId, input.text, new Date().toISOString(), 'suggest', selectionJson);
+    const controller = new AbortController(), release = this.lane?.foreground();
+    const work = this.processWorkRoute(input, run.id, prepared, AbortSignal.any([controller.signal, this.shutdown.signal]))
+      .catch(this.reportError).finally(() => { this.routing = undefined; release?.(); });
+    this.routing = { requestId: input.requestId, controller, work };
+    return this.workRoute(input.requestId);
+  }
+  private async processWorkRoute(input: WorkRouteRequest, id: string, prepared: WorkRoutePreparation, signal: AbortSignal): Promise<void> {
+    try {
+      const result = await suggestWorkRoute(input, this.workThreads!, this.executor.suggestWorkRoute!, signal, this.store.observer(id), prepared);
+      if (signal.aborted) throw new ExecutionInterrupted('路由建议已撤销或服务停止');
+      this.store.finishRun(id, 'succeeded', new Date().toISOString(), result.kind === 'clarify' ? result.question : result.reason);
+    } catch (error) {
+      this.store.finishRun(id, error instanceof ExecutionInterrupted || signal.aborted ? 'interrupted' : 'failed', new Date().toISOString(),
+        undefined, error instanceof Error ? error.message : String(error));
+    }
+  }
+  async revokeWorkRoute(input: WorkRouteRequest): Promise<WebWorkRoute> {
+    if (!this.routingEnabled) throw new WebUiError(404, '接口不存在');
+    let row = this.store.webUi.find(webOwner, input.requestId);
+    const selectionJson = JSON.stringify(input.selection);
+    if (row && (row.mode !== 'suggest' || row.text !== input.text || row.selectionJson !== selectionJson)) throw new WebUiError(409, '此请求 ID 已用于其他模式、文字或选择');
+    if (!row) {
+      // 撤销可能先于原POST接纳到达；仍用原请求表留取消收据，后到请求不得再调模型。
+      const run = this.store.webUi.accept(webOwner, input.requestId, input.text, new Date().toISOString(), 'suggest', selectionJson);
+      this.store.finishRun(run.id, 'interrupted', new Date().toISOString(), undefined, '接纳前已撤销路由建议');
+      row = this.store.webUi.find(webOwner, input.requestId)!;
+    }
+    if (!this.store.events(row.runId).some(event => event.type === 'work_route_revoked')) this.store.event(row.runId, 'work_route_revoked');
+    if (this.routing?.requestId === input.requestId) { this.routing.controller.abort(); await this.routing.work; }
+    return this.workRoute(input.requestId);
+  }
+  confirmWorkRoute(input: WorkRouteRequest): WebWorkJob {
+    const view = this.workRoute(input.requestId);
+    if (view.text !== input.text || JSON.stringify(view.selection) !== JSON.stringify(input.selection)) throw new WebUiError(409, '文字或选择已变化，请重新请求建议');
+    if (view.suggestion?.kind !== 'work') throw new WebUiError(409, '当前建议不是可确认的后台工作');
+    const existing = this.store.workJobs.findRequest(this.workThreads!.binding, input.requestId);
+    if (existing) {
+      if (existing.threadId !== view.suggestion.threadId || existing.instruction !== view.text) throw new WebUiError(409, '已有工作与此建议的原文或主题冲突');
+      return this.job(existing.id);
+    }
+    if (view.revoked || view.run.status !== 'succeeded') throw new WebUiError(409, '建议已失效，请重新请求');
+    const thread = this.workThreads!.get(view.suggestion.threadId);
+    if (thread.status !== 'active') throw new WebUiError(409, '主题已归档，请重新选择');
+    if (view.selection.threadId && view.selection.threadId !== thread.id) throw new WebUiError(409, '原选择与建议主题冲突');
+    if (view.selection.object) {
+      this.workThreads!.routingObject(view.selection.object.kind, view.selection.object.id);
+      if (!this.workThreads!.list(view.selection.object).some(item => item.id === thread.id)) throw new WebUiError(409, '对象关联已变化，请重新选择');
+    }
+    return this.job(this.store.workJobs.create(this.workThreads!.binding, thread.id, input.requestId, view.text, new Date().toISOString()).id);
+  }
   file(id: string): WebFile {
     if (!this.store.webUi.fileIds(webOwner, targetJson).includes(id)) throw new WebUiError(404, '文件操作不存在或不在最近 60 项中');
     const { proposal: p, status } = this.store.files.get(id);
@@ -109,6 +253,7 @@ export class WebUiChannel implements Channel {
   }
   acknowledge(id: string, hash?: string): void {
     const run = this.run(id);
+    if (run.mode === 'suggest') throw new WebUiError(409, '路由建议不建立业务展示授权');
     if (run.status !== 'succeeded' || run.truncated) throw new WebUiError(409, '结果尚未完整完成，不能确认展示');
     const file = this.store.webUi.fileIds(webOwner, targetJson).map(key => this.file(key)).find(f => f.runId === id);
     if (file && file.hash !== hash) throw new WebUiError(409, '完整文件预览 Hash 不匹配');
@@ -147,9 +292,10 @@ export class WebUiChannel implements Channel {
         createdAt: f.createdAt, expires: f.expires, status: f.status, acknowledged: f.acknowledged };
     });
     return { chats, tasks, goals, files,
+      ...(this.routingEnabled ? { suggestions: this.store.webUi.chats(webOwner, 'suggest').reverse().map(row => this.workRoute(row.requestId)) } : {}),
       activity: this.store.webUi.runs(webOwner, targetJson).map(id => this.run(id, false)), inbox,
       capabilities: { goal: !!this.goals, skills: this.executor.skills?.list().map(s => s.id) ?? [], filesRead: !!this.config.localFiles?.enabled,
-        filesWrite: !!this.config.localOutput?.enabled, webRead: !!this.config.webReadEnabled, webSearch: !!this.config.webSearchEnabled, workThreads: !!this.workThreads, workJobs: !!this.workRouter, busy: !!this.work, push: false } };
+        filesWrite: !!this.config.localOutput?.enabled, webRead: !!this.config.webReadEnabled, webSearch: !!this.config.webSearchEnabled, workThreads: !!this.workThreads, workJobs: !!this.workRouter, ...(this.eventsEnabled ? { workEvents: true } : {}), ...(this.recallEnabled ? { workRecall: true } : {}), ...(this.routingEnabled ? { workRouting: true, workRoutingBusy: !!this.routing } : {}), busy: !!this.work, push: false } };
   }
   async sendMessage(message: OutboundMessage): Promise<void> {
     if (message.target?.channel !== 'web' || message.target.userId !== webTarget.userId || !message.runId
@@ -160,6 +306,6 @@ export class WebUiChannel implements Channel {
     if (!this.store.webUi.inbox(webOwner).some(n => n.runId === id)) throw new WebUiError(404, '通知不存在');
     this.store.webUi.viewNotice(webOwner, id);
   }
-  async drain(): Promise<void> { await this.work; }
-  async stop(): Promise<void> { this.shutdown.abort(); await this.work; }
+  async drain(): Promise<void> { await Promise.all([this.work, this.routing?.work]); }
+  async stop(): Promise<void> { this.shutdown.abort(); await Promise.all([this.work, this.routing?.work]); }
 }

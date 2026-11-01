@@ -1,0 +1,179 @@
+{
+  "phase": "2B B4 frozen pending independent review",
+  "date": "2026-11-01",
+  "branch": "codex/work-core-stages",
+  "head": "91b7a657ddf62cf625c53f7bcfbddaa22aa6740b",
+  "committed": false,
+  "published": false,
+  "enabledByDefault": false,
+  "evidenceRoot": "/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/b4/worker",
+  "manifests": {
+    "start": "start-hashes.json",
+    "freeze": "freeze-hashes.json",
+    "incremental": "incremental-from-b3-r2.diff",
+    "full": "full.diff",
+    "versions": "version-boundaries.json"
+  },
+  "checks": {
+    "typecheck": {
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "seconds": 2.4257829189300537
+    },
+    "build": {
+      "command": "npm run build",
+      "exitCode": 0,
+      "seconds": 0.9692831039428711
+    },
+    "web-build": {
+      "command": "npm run web:build",
+      "exitCode": 0,
+      "seconds": 1.033992052078247
+    },
+    "full-test": {
+      "command": "TMPDIR=/private/tmp npm test",
+      "exitCode": 0,
+      "seconds": 67.08066606521606
+    },
+    "typecheck-fixture-fix": {
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "seconds": 2.0635948181152344
+    },
+    "web-fixture-regression": {
+      "command": "TMPDIR=/private/tmp node --import tsx --test tests/web-ui.test.ts tests/work-route-web.test.ts",
+      "exitCode": 0,
+      "seconds": 2.0296082496643066
+    },
+    "web-build-length-fix": {
+      "command": "npm run web:build",
+      "exitCode": 0,
+      "seconds": 1.1227099895477295,
+      "scope": "one derived composer warning; backend src/tests untouched"
+    },
+    "ui-r2-regression-final": {
+      "command": [
+        "node",
+        "/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/b3/worker-r2/ui-refresh-regression.cjs"
+      ],
+      "exitCode": 0,
+      "seconds": 0.15198183059692383,
+      "method": "existing actual-source VM regression, not browser"
+    }
+  },
+  "counts": {
+    "full": 644,
+    "fixtureRegression": 25,
+    "sourceVmScenarios": 6,
+    "countsAreNotSummed": true
+  },
+  "versionBoundary": {
+    "full644ProductBackendUnchanged": true,
+    "changedSinceFull644": [
+      "tests/helpers/web-ui-fixture.ts",
+      "web/src/main.tsx"
+    ],
+    "fixtureChange": "transport-only pause; typecheck and25 Web tests plus actual retry UI passed",
+    "uiChange": "one derived composer 10000-char notice; Web type/build and actual14336 ASCII/4700 Chinese DOM passed",
+    "full644NotClaimedToExerciseNewUiNotice": true,
+    "browserInstances": [
+      {
+        "root": "/private/tmp/ppa-web-ui-pdolei",
+        "origin": "http://127.0.0.1:53033",
+        "counts": {
+          "router": 7,
+          "chat": 2,
+          "work": 2,
+          "intent": 0
+        },
+        "status": "stopped exit0; first network recovery invalidated session due old fixture, retained failure"
+      },
+      {
+        "root": "/private/tmp/ppa-web-ui-chzuwv",
+        "origins": [
+          "http://127.0.0.1:56064",
+          "http://127.0.0.1:56948"
+        ],
+        "counts": {
+          "router": 3,
+          "chat": 1,
+          "work": 1,
+          "intent": 0
+        },
+        "status": "stopped exit0; pure network/length/off completed"
+      }
+    ],
+    "browserTabClosed": true,
+    "viewportReset": true
+  },
+  "browser": {
+    "engine": "Chrome",
+    "viewports": [
+      [
+        1280,
+        900
+      ],
+      [
+        390,
+        844
+      ]
+    ],
+    "actualPhone": false,
+    "model": "fixed JSON loopback via public SDK",
+    "paths": [
+      "suggestion zero Job then explicit sameUUID unique Job",
+      "continue Chat and Work result in original thread/Run",
+      "refresh/repeat without repeated Router",
+      "edit text/theme/object revokes current; history read-only",
+      "late suggestion cannot replace edited draft",
+      "HTTP pause revoke pending then retry same-session recovery",
+      "14336 ASCII and4700 Chinese exact full text; Chat limit without HTTP",
+      "routing off preserves Chat/2A and Router count"
+    ],
+    "httpCounts": {
+      "instance1": {
+        "router": 7,
+        "chat": 2,
+        "work": 2,
+        "intent": 0
+      },
+      "instance2": {
+        "router": 3,
+        "chat": 1,
+        "work": 1,
+        "intent": 0
+      },
+      "includesTwoApiHistorySeeds": true,
+      "excludesTestSuite": true
+    },
+    "consoleWarnErrorCaptured": 0,
+    "cleanup": "two services exit0; own tab closed; viewport reset"
+  },
+  "retainedFailures": [
+    "first pause cleared test session: corrected transport-only helper; new instance recovery",
+    "long-text hint count0: derived persistent composer warning fixed and DOM rechecked",
+    "B1/B2 sandbox listening EPERM",
+    "B3 Header typing/null-prototype assertion and9 EPERM",
+    "B3 R1 refresh-binding P2 closed by R2",
+    "R2 source-host asynchronous timing assertion corrected"
+  ],
+  "unverified": [
+    "real-model routing semantics",
+    "native non-compatible provider actual HTTP",
+    "physical mobile",
+    "long-running production behavior"
+  ],
+  "unchangedBoundaries": [
+    "Guard references/grants and existing Goal/Task/Memory semantics",
+    "public SDK and package lock",
+    "no formal data or paid/external requests",
+    "no E/R implementation or Git publication"
+  ],
+  "priorEvidence": {
+    "b1": "b1/worker",
+    "b2": "b2/worker",
+    "b3": "b3/worker",
+    "b3r2": "b3/worker-r2",
+    "immutable": true
+  }
+}
