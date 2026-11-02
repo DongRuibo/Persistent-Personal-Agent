@@ -141,6 +141,36 @@ export class GoalStore {
     return execution;
   }
 
+  // 任意Run别名先识别Execution；不可见、关闭或损坏均不得回退技术Run正文。
+  recallExecution(actor: GoalActor, runId: string, enabled: boolean) {
+    const row = this.db.prepare(`SELECT e.runId,e.goalId,e.status,e.checkpointHash,r.finishedAt
+      FROM goal_executions e JOIN runs r ON r.id=e.runId WHERE e.runId=?`).get(runId);
+    if (!row) return { kind: 'none' as const };
+    if (!enabled) return { kind: 'unavailable' as const };
+    let goal: Goal;
+    try { goal = this.get(actor, String(row.goalId)); }
+    catch (error) {
+      if (error instanceof Error && error.message === 'Goal 不存在或无权访问') return { kind: 'unavailable' as const };
+      throw error;
+    }
+    const metadata = { kind: 'goal' as const, runId, goalId: goal.id, status: String(row.status),
+      objective: goal.objective, finishedAt: row.finishedAt as string | null };
+    if (row.status !== 'committed') return { ...metadata, checkpoint: null, checkpointHash: null };
+    const saved = this.db.prepare('SELECT checkpointJson FROM goal_executions WHERE runId=?').get(runId)!;
+    let checkpoint: GoalCheckpoint | null;
+    try { checkpoint = saved.checkpointJson === null ? null : json<GoalCheckpoint>(saved.checkpointJson); }
+    catch { return { kind: 'invalid' as const }; }
+    if (!checkpoint || !row.checkpointHash || hash(checkpoint) !== row.checkpointHash
+      || checkpoint.goalId !== goal.id || checkpoint.executionRunId !== runId) return { kind: 'invalid' as const };
+    return { ...metadata, checkpointHash: String(row.checkpointHash), checkpoint: {
+      artifactText: checkpoint.artifactText, progressSummary: checkpoint.progressSummary, question: checkpoint.question } };
+  }
+  recallHistory(actor: GoalActor, goalId: string) {
+    this.get(actor, goalId);
+    const rows = this.db.prepare('SELECT runId FROM goal_executions WHERE goalId=? ORDER BY sequence DESC LIMIT 6').all(goalId);
+    const total = Number(this.db.prepare('SELECT count(*) AS n FROM goal_executions WHERE goalId=?').get(goalId)!.n);
+    return { runIds: rows.map(row => String(row.runId)), omitted: total - rows.length };
+  }
   private plan(goal: Goal): GoalPlan {
     const row = this.db.prepare('SELECT * FROM goal_plans WHERE goalId=? AND revision=?').get(goal.id, goal.planRevision);
     if (!row) throw new Error('Goal Plan 不一致');

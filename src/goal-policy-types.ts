@@ -27,3 +27,10 @@ export interface PolicyAuthorization {
   policyId: string; policyVersion: number; triggerId: string;
   observation?: { id: string; repository: string; branch: string; previous: string; data: unknown };
 }
+
+// 仅供宿主绑定当前 Web 订阅，不由外部快照提供。
+export interface PolicySourceBinding { owner: string; channel: string; subscriptionId: string; expectedRevision: number }
+export type WebPolicyRequest = { requestId: string; subscriptionId: string; expectedSubscriptionRevision: number } & (
+  { action: 'approve'; proposal: PolicyProposal } | { action: 'pause' | 'revoke'; policyId: string; expectedVersion: number }
+);
+export interface WebPolicyReceipt { requestId: string; runId: string; policy: GoalPolicy | null; status: 'applied' | 'not_applied'; message: string }

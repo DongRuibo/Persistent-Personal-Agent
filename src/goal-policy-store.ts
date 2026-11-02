@@ -1,8 +1,8 @@
-import { randomUUID } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import type { DatabaseSync } from 'node:sqlite';
 import type { Run } from './contracts.js';
 import type { Goal, GoalActor, GoalCheckpoint, GoalExecution, GoalReadyInput } from './goal-types.js';
-import type { GoalPolicy, PolicyAuthorization, PolicyCommand, PolicyProposal, ProactiveOptions } from './goal-policy-types.js';
+import type { GoalPolicy, PolicyAuthorization, PolicyCommand, PolicyProposal, ProactiveOptions, PolicySourceBinding } from './goal-policy-types.js';
 import { nextWake, utc } from './goal-schedule.js';
 import { GitHubObserver, validateWatch } from './github-observer.js';
 
@@ -50,6 +50,9 @@ export class GoalPolicyStore {
         triggerId TEXT UNIQUE REFERENCES goal_triggers(id), UNIQUE(policyId,head)
       ) STRICT;
     `);
+    if (!db.prepare('PRAGMA table_info(goal_policies)').all().some(column => column.name === 'sourceSubscriptionId')) {
+      db.exec('ALTER TABLE goal_policies ADD COLUMN sourceSubscriptionId TEXT REFERENCES thread_subscriptions(id)');
+    }
   }
 
   configure(options: ProactiveOptions): void {
@@ -75,21 +78,22 @@ export class GoalPolicyStore {
     return this.db.prepare('SELECT * FROM goal_policies WHERE ownerId=? ORDER BY createdAt,id LIMIT 101').all(actor.ownerId)
       .filter(row => { try { this.getGoal(actor, String(row.goalId)); return true; } catch { return false; } }).map(row => this.read(row));
   }
-  private source(command: PolicyCommand): void {
+  private source(command: PolicyCommand, binding?: PolicySourceBinding): void {
     const run = this.db.prepare('SELECT * FROM runs WHERE id=?').get(command.sourceRunId);
     if (!command.text.trim() || Buffer.byteLength(command.text) > 16000 || !run || run.status !== 'running' || run.taskId !== null
       || this.db.prepare('SELECT 1 FROM goal_grants WHERE sourceRunId=? OR executionRunId=?').get(String(run.id), String(run.id))
       || this.db.prepare('SELECT 1 FROM goal_executions WHERE runId=? OR triggerRunId=?').get(String(run.id), String(run.id))
       || this.db.prepare('SELECT 1 FROM goal_policy_events WHERE sourceRunId=?').get(String(run.id))
-      || this.db.prepare("SELECT 1 FROM run_events WHERE runId=? AND type='goal_control'").get(String(run.id))) throw new Error('策略必须来自新的一次可信用户操作');
+      || this.db.prepare("SELECT 1 FROM run_events WHERE runId=? AND type='goal_control'").get(String(run.id))
+      || binding && !this.db.prepare("SELECT 1 FROM web_ui_chats WHERE owner=? AND runId=? AND mode='policy'").get(binding.owner, command.sourceRunId)) throw new Error('策略必须来自新的一次可信用户操作');
   }
   private event(policy: GoalPolicy, action: string, now: string, details: unknown, source?: string): void {
     this.db.prepare('INSERT INTO goal_policy_events (policyId,version,sourceRunId,at,action,details) VALUES (?,?,?,?,?,?)')
       .run(policy.id, policy.version, source ?? null, now, action, JSON.stringify(details));
   }
-  approve(command: PolicyCommand, proposal: PolicyProposal, now: string): GoalPolicy {
+  approve(command: PolicyCommand, proposal: PolicyProposal, now: string, sourceBinding?: PolicySourceBinding): GoalPolicy {
     return this.tx.transaction(() => {
-      utc(now); this.source(command);
+      utc(now); this.source(command, sourceBinding);
       if (!this.options.enabled) throw new Error('主动执行总开关未开启');
       const goal = this.getGoal(command.actor, proposal.goalId);
       if (proposal.capability !== 'text_only' || proposal.expectedGoalRevision !== goal.revision || proposal.planRevision !== goal.planRevision
@@ -106,25 +110,107 @@ export class GoalPolicyStore {
       }
       for (const key of ['dailyBudgetCny', 'totalBudgetCny'] as const) if (!Number.isFinite(limits[key]) || limits[key] <= 0 || limits[key] > 100) throw new Error('必须明确有限的人民币预算');
       if (proposal.schedule.kind === 'github') validateWatch(proposal.schedule);
+      if (sourceBinding) {
+        const binding = this.sourceBinding(command.actor, sourceBinding);
+        if (proposal.goalId !== binding.goalId || proposal.schedule.kind !== 'github' || limits.segmentsPerTrigger !== 1
+          || proposal.schedule.repository !== binding.repository || proposal.schedule.branch !== binding.branch
+          || proposal.schedule.intervalSeconds !== binding.intervalSeconds) throw new Error('来源与批准策略的仓库、分支、间隔或Goal不一致；Web每事件仅1片段');
+        if (binding.policyId && this.get(command.actor, String(binding.policyId)).status === 'active') throw new Error('请先暂停或撤销原策略');
+      }
       const nextAt = proposal.schedule.kind === 'github' ? now : nextWake(proposal.schedule, now);
       if (!nextAt || nextAt >= proposal.expiresAt) throw new Error('有效期内没有未来触发时间');
       const id = randomUUID();
-      this.db.prepare("INSERT INTO goal_policies VALUES (?,?,?,?,1,'active',?,?,?,?,NULL,?,?)")
+      this.db.prepare("INSERT INTO goal_policies (id,goalId,ownerId,accessKey,version,status,goalRevision,planRevision,specJson,nextAt,reason,createdAt,updatedAt) VALUES (?,?,?,?,1,'active',?,?,?,?,NULL,?,?)")
         .run(id, goal.id, goal.ownerId, goal.accessKey, goal.revision, goal.planRevision, JSON.stringify(proposal), nextAt, now, now);
       const policy = this.get(command.actor, id);
       if (proposal.schedule.kind === 'github') this.db.prepare('INSERT INTO goal_observer_cursors (policyId) VALUES (?)').run(id);
-      this.event(policy, 'approved', now, proposal, command.sourceRunId);
+      if (sourceBinding) {
+        this.db.prepare('UPDATE goal_policies SET sourceSubscriptionId=? WHERE id=?').run(sourceBinding.subscriptionId, id);
+        this.db.prepare('UPDATE thread_subscriptions SET policyId=?,policyVersion=1,revision=revision+1,updatedAt=? WHERE id=?')
+          .run(id, now, sourceBinding.subscriptionId);
+      }
+      this.event(policy, 'approved', now, sourceBinding ? { proposal, receipt: policy } : proposal, command.sourceRunId);
       return policy;
     });
   }
 
-  control(command: PolicyCommand, id: string, expectedVersion: number, action: 'pause' | 'revoke', now: string): GoalPolicy {
+  // 审批和分派均在自己的短事务内读取当前关系；持久绑定不随订阅暂停或替换删除。
+  private sourceBinding(actor: GoalActor, binding: PolicySourceBinding, active = true): Record<string, unknown> {
+    const row = this.db.prepare(`SELECT s.*,e.owner,e.channel,e.repository,e.branch,e.intervalSeconds,e.status AS sourceStatus,t.status AS threadStatus
+      FROM thread_subscriptions s JOIN event_sources e ON e.id=s.sourceId JOIN work_threads t ON t.id=s.threadId
+      WHERE s.id=? AND e.owner=? AND e.channel=? AND t.owner=? AND t.channel=?`).get(binding.subscriptionId, binding.owner, binding.channel, binding.owner, binding.channel);
+    if (!row || actor.target.channel !== 'web' || JSON.stringify(actor.target) !== binding.channel || row.revision !== binding.expectedRevision
+      || !row.goalId || active && !this.db.prepare("SELECT 1 FROM work_links WHERE threadId=? AND kind='goal' AND objectId=?").get(String(row.threadId), String(row.goalId))
+      || active && (row.status !== 'active' || row.sourceStatus !== 'active' || row.threadStatus !== 'active')) throw new Error('当前Web来源、订阅版本或已关联Goal不可用');
+    this.getGoal(actor, String(row.goalId));
+    return row;
+  }
+  sourcePolicy(actor: GoalActor, binding: PolicySourceBinding, policyId: string): GoalPolicy {
+    const row = this.sourceBinding(actor, binding, false);
+    const saved = this.db.prepare('SELECT sourceSubscriptionId FROM goal_policies WHERE id=?').get(policyId);
+    if (!saved || row.policyId !== policyId || saved.sourceSubscriptionId !== binding.subscriptionId) throw new Error('策略不是当前Web订阅的执行许可');
+    return this.get(actor, policyId);
+  }
+  sourceReceipt(actor: GoalActor, sourceRunId: string): GoalPolicy | null {
+    const row = this.db.prepare("SELECT policyId,details FROM goal_policy_events WHERE sourceRunId=? AND action IN ('approved','pause','revoke')").get(sourceRunId);
+    if (!row) return null;
+    const policy = this.get(actor, String(row.policyId));
+    return decode<{ receipt?: GoalPolicy }>(row.details).receipt ?? policy;
+  }
+
+  // 事实事务已提交；这里只读冻结原件并原子交接原账本，没有网络或外层事务。
+  dispatchSourceEvent(actor: GoalActor, binding: { owner: string; channel: string }, eventId: string, subscriptionId: string, now: string): void {
+    this.tx.transaction(() => {
+      utc(now);
+      const row = this.db.prepare(`SELECT d.*,v.sourceId,v.head,v.previous,v.snapshotJson,v.snapshotHash,e.owner,e.channel,
+        e.repository,e.branch,e.intervalSeconds,e.status AS sourceStatus,s.revision AS currentRevision,s.status AS subscriptionStatus,
+        s.goalId AS currentGoalId,s.policyId AS currentPolicyId,s.policyVersion AS currentPolicyVersion,s.threadId,t.status AS threadStatus
+        FROM subscription_events d JOIN source_events v ON v.id=d.eventId JOIN event_sources e ON e.id=v.sourceId
+        JOIN thread_subscriptions s ON s.id=d.subscriptionId JOIN work_threads t ON t.id=s.threadId
+        WHERE d.eventId=? AND d.subscriptionId=? AND d.status='pending' AND e.owner=? AND e.channel=? AND t.owner=? AND t.channel=?`)
+        .get(eventId, subscriptionId, binding.owner, binding.channel, binding.owner, binding.channel);
+      if (!row) return;
+      const finish = (reason: string, observationId: string | null = null, triggerId: string | null = null) => {
+        this.db.prepare('UPDATE subscription_events SET status=?,reason=?,observationId=?,triggerId=?,decidedAt=? WHERE eventId=? AND subscriptionId=?')
+          .run(triggerId ? 'dispatched' : 'skipped', reason, observationId, triggerId, now, eventId, subscriptionId);
+      };
+      if (createHash('sha256').update(String(row.snapshotJson)).digest('hex') !== row.snapshotHash) { finish('snapshot_hash_invalid'); return; }
+      if (!this.options.enabled) { finish('policy_not_enabled'); return; }
+      if (row.subscriptionRevision !== row.currentRevision || row.policyId !== row.currentPolicyId || row.policyVersion !== row.currentPolicyVersion || row.goalId !== row.currentGoalId) { finish('subscription_changed'); return; }
+      if (row.subscriptionStatus !== 'active' || row.sourceStatus !== 'active' || row.threadStatus !== 'active') { finish('source_or_subscription_paused'); return; }
+      if (!row.goalId || !row.policyId || !this.db.prepare("SELECT 1 FROM work_links WHERE threadId=? AND kind='goal' AND objectId=?").get(String(row.threadId), String(row.goalId))) { finish('goal_unlinked'); return; }
+      const saved = this.db.prepare('SELECT sourceSubscriptionId FROM goal_policies WHERE id=?').get(String(row.policyId));
+      if (!saved || saved.sourceSubscriptionId !== subscriptionId
+        || actor.target.channel !== 'web' || JSON.stringify(actor.target) !== binding.channel) { finish('source_binding_invalid'); return; }
+      const policy = this.get(actor, String(row.policyId)), goal = this.getGoal(actor, String(row.goalId));
+      const watch = policy.schedule;
+      if (policy.goalId !== goal.id || policy.ownerId !== goal.ownerId || policy.accessKey !== goal.accessKey || watch.kind !== 'github'
+        || watch.repository !== row.repository || watch.branch !== row.branch || watch.intervalSeconds !== row.intervalSeconds || policy.limits.segmentsPerTrigger !== 1) { finish('source_scope_mismatch'); return; }
+      if (policy.status !== 'active' || policy.version !== row.policyVersion) { finish(policy.reason ?? 'policy_inactive'); return; }
+      if (policy.expiresAt <= now) { this.stop(policy, 'expired', 'expired', now); finish('expired'); return; }
+      if (goal.revision !== policy.expectedGoalRevision || goal.planRevision !== policy.planRevision) { this.stop(policy, 'paused', 'goal_changed', now); finish('goal_changed'); return; }
+      if (goal.pendingAction || goal.controlRequested || goal.blockedReason || !goal.currentStepId) { this.stop(policy, 'paused', 'goal_not_eligible', now); finish('goal_not_eligible'); return; }
+      const running = goal.status === 'running' && this.db.prepare(`SELECT 1 FROM goal_grants g JOIN goal_executions e ON e.runId=g.executionRunId
+        WHERE g.policyId=? AND g.policyVersion=? AND g.status='consumed' AND e.goalId=? AND e.planRevision=? AND e.status='running'`).get(policy.id, policy.version, goal.id, goal.planRevision);
+      if (this.awaitingClaim(policy, goal) || running) { finish('busy'); return; }
+      if (goal.status !== 'waiting_user') { this.stop(policy, 'paused', 'goal_not_eligible', now); finish('goal_not_eligible'); return; }
+      if (this.db.prepare('SELECT 1 FROM goal_observations WHERE policyId=? AND head=?').get(policy.id, String(row.head))) { finish('duplicate'); return; }
+      const id = randomUUID(), triggerId = randomUUID(), data = decode<unknown>(row.snapshotJson);
+      this.db.prepare("INSERT INTO goal_triggers VALUES (?,?,?,'github',?,?,'pending')").run(triggerId, policy.id, policy.version, String(row.head), now);
+      this.db.prepare('INSERT INTO goal_observations VALUES (?,?,?,?,?,?,?,?)').run(id, policy.id, policy.version, String(row.head), String(row.previous), now, String(row.snapshotJson), triggerId);
+      this.issue(policy, goal, triggerId, now, { id, repository: watch.repository, branch: watch.branch, previous: String(row.previous), data });
+      this.event(policy, 'observation_committed', now, { id, triggerId, eventId, subscriptionId, snapshotHash: row.snapshotHash });
+      finish('policy_dispatched', id, triggerId);
+    });
+  }
+
+  control(command: PolicyCommand, id: string, expectedVersion: number, action: 'pause' | 'revoke', now: string, sourceBinding?: PolicySourceBinding): GoalPolicy {
     const updated = this.tx.transaction(() => {
-      utc(now); this.source(command);
-      const policy = this.get(command.actor, id);
+      utc(now); this.source(command, sourceBinding);
+      const policy = sourceBinding ? this.sourcePolicy(command.actor, sourceBinding, id) : this.get(command.actor, id);
       if (policy.version !== expectedVersion || !['pause', 'revoke'].includes(action) || policy.status === 'revoked') throw new Error('策略版本或状态已变化');
       this.stop(policy, action === 'pause' ? 'paused' : 'revoked', 'user_' + action, now);
-      this.event({ ...policy, version: policy.version + 1 }, action, now, { text: command.text }, command.sourceRunId);
+      this.event({ ...policy, version: policy.version + 1 }, action, now, { text: command.text, ...(sourceBinding ? { receipt: this.get(command.actor, id) } : {}) }, command.sourceRunId);
       return this.get(command.actor, id);
     });
     this.interrupt?.(updated.goalId);
@@ -193,7 +279,7 @@ export class GoalPolicyStore {
 
   async observe(now: string, accepts: (goal: Goal) => boolean, signal: AbortSignal): Promise<void> {
     utc(now); if (!this.options.enabled || !this.observer) return;
-    const rows = this.db.prepare("SELECT p.*,c.head,c.failures FROM goal_policies p JOIN goal_observer_cursors c ON c.policyId=p.id WHERE p.status='active' AND p.nextAt<=? ORDER BY p.nextAt,p.id LIMIT 10").all(now);
+    const rows = this.db.prepare("SELECT p.*,c.head,c.failures FROM goal_policies p JOIN goal_observer_cursors c ON c.policyId=p.id WHERE p.status='active' AND p.sourceSubscriptionId IS NULL AND p.nextAt<=? ORDER BY p.nextAt,p.id LIMIT 10").all(now);
     for (const row of rows) {
       if (signal.aborted) return;
       const policy = this.read(row);

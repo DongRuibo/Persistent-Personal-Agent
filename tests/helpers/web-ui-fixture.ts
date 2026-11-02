@@ -13,12 +13,17 @@ import { WebUiChannel, webChatKey } from '../../src/web-ui-channel.js';
 import { WebUiServer } from '../../src/web-ui-server.js';
 import { initializeOutput } from '../../src/file-output-service.js';
 import type { TavilyService } from '../../src/tavily-service.js';
+import { GoalRunner } from '../../src/goal-runner.js';
+import type { ProactiveOptions } from '../../src/goal-policy-types.js';
 import { WorkRunner } from '../../src/work-runner.js';
+import { SourceEventService } from '../../src/source-event-service.js';
+import type { GitHubObserver } from '../../src/github-observer.js';
+import { webOwner, webTarget } from '../../src/web-ui-channel.js';
 import { BackgroundLane } from '../../src/background-lane.js';
 import { reply } from './skills-fixture.js';
 import type { Payload } from './skills-fixture.js';
 
-export async function webUiFixture(handle: (p: Payload) => string | Promise<string> = () => reply('真实 Pi 路径的模拟回答'), search?: TavilyService, workThreads = false, workJobs = false) {
+export async function webUiFixture(handle: (p: Payload) => string | Promise<string> = () => reply('真实 Pi 路径的模拟回答'), search?: TavilyService, workThreads = false, workJobs = false, workRouting = false, workEvents = false, sourceObserver?: GitHubObserver, goalEnabled = true, runtime?: { clock: () => Date; proactive: ProactiveOptions; recall?: boolean }) {
   const root = mkdtempSync(join(tmpdir(), 'ppa-web-ui-')), payloads: Payload[] = [], errors: unknown[] = [];
   const model = createServer(async (req, res) => {
     try {
@@ -29,15 +34,24 @@ export async function webUiFixture(handle: (p: Payload) => string | Promise<stri
   });
   model.listen(0, '127.0.0.1'); await once(model, 'listening'); const a = model.address();
   if (!a || typeof a === 'string') throw new Error('fixture port');
-  const config = readConfig({ DATABASE_PATH: join(root, 'app.db'), GOAL_ENABLED: 'true', LLM_API_KEY: 'fake-web-llm',
-    WORK_JOBS_ENABLED: String(workJobs), WORK_THREADS_ENABLED: String(workThreads), WEB_SEARCH_ENABLED: String(!!search), LLM_MODEL: 'local-stub', LLM_BASE_URL: `http://127.0.0.1:${a.port}/v1` });
+  const config = readConfig({ DATABASE_PATH: join(root, 'app.db'), GOAL_ENABLED: String(goalEnabled), LLM_API_KEY: 'fake-web-llm',
+    WORK_EVENTS_ENABLED: String(workEvents), WORK_ROUTING_ENABLED: String(workRouting), WORK_JOBS_ENABLED: String(workJobs), WORK_THREADS_ENABLED: String(workThreads), WEB_SEARCH_ENABLED: String(!!search), LLM_MODEL: 'local-stub', LLM_BASE_URL: `http://127.0.0.1:${a.port}/v1` });
+  if (runtime) { config.proactive = runtime.proactive; config.workRecallEnabled = !!runtime.recall; }
   const output = join(root, 'output'); initializeOutput(output); config.localOutput = { enabled: true, workspace: output };
   const key = 'fake-web-access-key-with-32-bytes-for-tests';
   let store = new SqliteStore(config.databasePath, redactor(config.apiKey, key)), tasks = new TaskService(store, config.timeZone), memory = new FileMemoryService(config.memoryDir);
-  let goals = new GoalService(store, tasks, () => {}), lane = new BackgroundLane();
-  let executor = await createPiExecutor(config, tasks, webChatKey, memory, undefined, lane, goals, undefined, store.files, search);
+  let goalRunner: GoalRunner | undefined;
+  if (config.proactive) store.policies.configure(config.proactive);
+  let goals = new GoalService(store, tasks, id => goalRunner?.interrupt(id)), lane = new BackgroundLane();
+  let executor = await createPiExecutor(config, tasks, webChatKey, memory, undefined, lane, config.goalEnabled ? goals : undefined, undefined, store.files, search);
   let workRunner: WorkRunner | undefined;
-  let channel = new WebUiChannel(store, tasks, executor, config, goals, lane, error => errors.push(error), memory, id => workRunner?.interrupt(id));
+  let channel = new WebUiChannel(store, tasks, executor, config, config.goalEnabled ? goals : undefined, lane, error => errors.push(error), memory, id => workRunner?.interrupt(id));
+  const makeSources = () => config.workEventsEnabled ? new SourceEventService(store.sourceEvents, { owner: webOwner, target: webTarget }, {
+    enabled: true, pollIntervalMs: 25, reportError: error => errors.push(error), threads: channel.workThreads,
+    dispatch: (eventId, subscriptionId, now) => store.policies.dispatchSourceEvent({ ownerId: 'local-user', target: webTarget },
+      { owner: webOwner, channel: JSON.stringify(webTarget) }, eventId, subscriptionId, now),
+  }, sourceObserver, runtime?.clock) : undefined;
+  let sourceEvents = makeSources(); channel.sourceEvents = sourceEvents;
   let server = new WebUiServer(channel, key, join(process.cwd(), 'web-dist')), origin = await server.start(0), cookie = '', csrf = '';
   const makeRunner = () => channel.workRouter ? new WorkRunner(store, executor, channel, lane, {
     actor: channel.workRouter.actor, target: { channel: 'web', userId: 'local-user' }, pollIntervalMs: 25,
@@ -45,7 +59,12 @@ export async function webUiFixture(handle: (p: Payload) => string | Promise<stri
       && g.target.channel === 'web' && g.target.userId === 'local-user' && (g.readyInput?.kind !== 'policy' || !!config.proactive?.enabled)),
     reportError: error => errors.push(error), fatal: () => errors.push(new Error('WorkRunner停止领取')),
   }) : undefined;
-  workRunner = makeRunner();
+  const makeGoalRunner = () => runtime ? new GoalRunner(store, executor, channel, lane, {
+    ownerId: 'local-user', accepts: target => target.channel === 'web' && target.userId === webTarget.userId,
+    pollIntervalMs: 25, proactiveEnabled: !!config.proactive?.enabled, reportError: error => errors.push(error),
+    fatal: () => errors.push(new Error('GoalRunner停止领取')),
+  }, runtime.clock) : undefined;
+  workRunner = makeRunner(); goalRunner = makeGoalRunner(); store.policies.interrupt = id => goalRunner?.interrupt(id);
   const request = (path: string, body?: unknown, headers: Record<string, string> = {}) => fetch(origin + path, {
     method: body === undefined ? 'GET' : 'POST', headers: { Cookie: cookie, ...(body === undefined ? {} : {
       Origin: origin, 'Content-Type': 'application/json', 'X-CSRF-Token': csrf }), ...headers }, body: body === undefined ? undefined : JSON.stringify(body) });
@@ -55,17 +74,26 @@ export async function webUiFixture(handle: (p: Payload) => string | Promise<stri
   };
   return { root, output, config, payloads, errors, key, request, login, get origin() { return origin; },
     get store() { return store; }, get tasks() { return tasks; }, get goals() { return goals; }, get channel() { return channel; },
-    get executor() { return executor; }, get workRunner() { return workRunner; }, get lane() { return lane; }, get memory() { return memory; },
+    get executor() { return executor; }, get workRunner() { return workRunner; }, get goalRunner() { return goalRunner; }, get server() { return server; }, get sourceEvents() { return sourceEvents; }, get lane() { return lane; }, get memory() { return memory; },
+    async pauseHttp() {
+      // 只暂停测试HTTP传输，生产stop会清理会话和Channel，不适合模拟单纯断网。
+      await new Promise<void>((done, reject) => {
+        server.server.close(error => error ? reject(error) : done());
+        server.server.closeAllConnections();
+      });
+    },
+    async resumeHttp() { origin = await server.start(Number(new URL(origin).port)); return origin; },
     async restart() {
-      await workRunner?.stop(); await server.stop(); await executor.close(); store.close(); memory.close();
+      await sourceEvents?.stop(); await channel.stop(); await workRunner?.stop(); await goalRunner?.stop(); await server.stop(); await executor.close(); store.close(); memory.close();
       store = new SqliteStore(config.databasePath, redactor(config.apiKey, key)); store.recoverInterrupted(new Date().toISOString());
       tasks = new TaskService(store, config.timeZone); memory = new FileMemoryService(config.memoryDir);
-      goals = new GoalService(store, tasks, () => {}); lane = new BackgroundLane();
-      executor = await createPiExecutor(config, tasks, webChatKey, memory, undefined, lane, goals, undefined, store.files, search);
-      channel = new WebUiChannel(store, tasks, executor, config, goals, lane, error => errors.push(error), memory, id => workRunner?.interrupt(id));
-      workRunner = makeRunner();
+      if (config.proactive) store.policies.configure(config.proactive);
+      goals = new GoalService(store, tasks, id => goalRunner?.interrupt(id)); lane = new BackgroundLane();
+      executor = await createPiExecutor(config, tasks, webChatKey, memory, undefined, lane, config.goalEnabled ? goals : undefined, undefined, store.files, search);
+      channel = new WebUiChannel(store, tasks, executor, config, config.goalEnabled ? goals : undefined, lane, error => errors.push(error), memory, id => workRunner?.interrupt(id));
+      workRunner = makeRunner(); goalRunner = makeGoalRunner(); store.policies.interrupt = id => goalRunner?.interrupt(id); sourceEvents = makeSources(); channel.sourceEvents = sourceEvents;
       server = new WebUiServer(channel, key, join(process.cwd(), 'web-dist')); origin = await server.start(0); cookie = ''; csrf = '';
     },
-    async close() { await workRunner?.stop(); await server.stop(); await executor.close(); store.close(); memory.close(); model.closeAllConnections(); await new Promise<void>(done => model.close(() => done())); },
+    async close() { await sourceEvents?.stop(); await channel.stop(); await workRunner?.stop(); await goalRunner?.stop(); await server.stop(); await executor.close(); store.close(); memory.close(); model.closeAllConnections(); await new Promise<void>(done => model.close(() => done())); },
   };
 }

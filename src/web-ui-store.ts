@@ -1,6 +1,8 @@
 import type { DatabaseSync } from 'node:sqlite';
 import type { Run } from './contracts.js';
 
+type RequestRow = { requestId: string; runId: string; text: string; mode: 'chat' | 'suggest' | 'policy'; selectionJson: string };
+
 // 仅为 Web 展示和收件箱投影；模型上下文仍由 Pi 原生 Session 管理。
 export class WebUiStore {
   constructor(private readonly db: DatabaseSync, private readonly transaction: <T>(fn: () => T) => T,
@@ -13,21 +15,26 @@ export class WebUiStore {
       owner TEXT NOT NULL, runId TEXT NOT NULL REFERENCES runs(id), text TEXT NOT NULL, at TEXT NOT NULL,
       taskId TEXT, goalId TEXT, viewedAt TEXT, PRIMARY KEY(owner,runId)
     ) STRICT;`);
+    const columns = db.prepare('PRAGMA table_info(web_ui_chats)').all();
+    if (!columns.some(column => column.name === 'mode')) db.exec("ALTER TABLE web_ui_chats ADD COLUMN mode TEXT NOT NULL DEFAULT 'chat'");
+    if (!columns.some(column => column.name === 'selectionJson')) db.exec("ALTER TABLE web_ui_chats ADD COLUMN selectionJson TEXT NOT NULL DEFAULT '{}'");
   }
   find(owner: string, requestId: string) {
-    return this.db.prepare('SELECT requestId,runId,text FROM web_ui_chats WHERE owner=? AND requestId=?').get(owner, requestId) as
-      { requestId: string; runId: string; text: string } | undefined;
+    return this.db.prepare('SELECT requestId,runId,text,mode,selectionJson FROM web_ui_chats WHERE owner=? AND requestId=?').get(owner, requestId) as RequestRow | undefined;
   }
-  accept(owner: string, requestId: string, text: string, now: string): Run {
+  accept(owner: string, requestId: string, text: string, now: string, mode: RequestRow['mode'] = 'chat', selectionJson = '{}'): Run {
     return this.transaction(() => {
       const run = this.begin(now);
-      this.db.prepare('INSERT INTO web_ui_chats VALUES(?,?,?,?)').run(owner, requestId, run.id, text);
+      this.db.prepare('INSERT INTO web_ui_chats(owner,requestId,runId,text,mode,selectionJson) VALUES(?,?,?,?,?,?)').run(owner, requestId, run.id, text, mode, selectionJson);
       return run;
     });
   }
-  chats(owner: string) {
-    return this.db.prepare(`SELECT c.requestId,c.runId,c.text FROM web_ui_chats c JOIN runs r ON r.id=c.runId
-      WHERE c.owner=? ORDER BY r.startedAt DESC,c.rowid DESC LIMIT 100`).all(owner) as { requestId: string; runId: string; text: string }[];
+  chats(owner: string, mode: RequestRow['mode'] = 'chat') {
+    return this.db.prepare(`SELECT c.requestId,c.runId,c.text,c.mode,c.selectionJson FROM web_ui_chats c JOIN runs r ON r.id=c.runId
+      WHERE c.owner=? AND c.mode=? ORDER BY r.startedAt DESC,c.rowid DESC LIMIT 100`).all(owner, mode) as RequestRow[];
+  }
+  requestMode(owner: string, runId: string): RequestRow['mode'] | undefined {
+    return this.db.prepare('SELECT mode FROM web_ui_chats WHERE owner=? AND runId=?').get(owner, runId)?.mode as RequestRow['mode'] | undefined;
   }
   ownsRun(owner: string, target: string, id: string): boolean {
     return !!this.db.prepare(`SELECT 1 FROM runs r WHERE r.id=? AND (
@@ -36,6 +43,27 @@ export class WebUiStore {
       EXISTS(SELECT 1 FROM work_jobs j WHERE j.owner=? AND j.channel=? AND j.runId=r.id) OR
       EXISTS(SELECT 1 FROM goal_executions e JOIN goals g ON g.id=e.goalId WHERE e.runId=r.id AND g.ownerId='local-user' AND g.targetJson=?))`)
       .get(id, owner, target, owner, target, target);
+  }
+  // Recall仅取状态元数据；沿原归属证明，不读取成果、错误或模型记录。
+  runMetadata(owner: string, target: string, id: string) {
+    if (!this.ownsRun(owner, target, id)) return null;
+    return this.db.prepare('SELECT id,taskId,status,startedAt,finishedAt FROM runs WHERE id=?').get(id) as unknown as
+      { id: string; taskId: string | null; status: string; startedAt: string; finishedAt: string | null };
+  }
+  taskRunId(target: string, taskId: string): string | null {
+    const row = this.db.prepare('SELECT r.id FROM runs r JOIN tasks t ON t.id=r.taskId WHERE t.id=? AND t.target=?').get(taskId, target);
+    return row ? String(row.id) : null;
+  }
+  recallRun(owner: string, target: string, id: string) {
+    if (!this.ownsRun(owner, target, id)) return { kind: 'unavailable' as const };
+    const fileOperationId = this.fileForRun(owner, target, id);
+    if (fileOperationId) return { kind: 'file' as const, fileOperationId };
+    // 普通成果只读有限字符前缀与原字节数；文件路径不会进入此查询。
+    const row = this.db.prepare(`SELECT status,finishedAt,
+      CASE WHEN status='succeeded' THEN substr(output,1,4096) ELSE NULL END AS output,
+      CASE WHEN status='succeeded' THEN length(CAST(output AS BLOB)) ELSE 0 END AS originalBytes FROM runs WHERE id=?`).get(id)!;
+    return { kind: 'run' as const, status: String(row.status), finishedAt: row.finishedAt as string | null,
+      output: row.output as string | null, originalBytes: Number(row.originalBytes ?? 0) };
   }
   runs(owner: string, target: string): string[] {
     return this.db.prepare(`SELECT r.id FROM runs r WHERE
