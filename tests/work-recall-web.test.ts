@@ -126,6 +126,29 @@ test('R3原任务/Run详情按ID直查超过100历史，不写ACK；off隐藏新
   } finally { db.close(); await f.close(); }
 });
 
+test('PR5明确历史Goal详情不受近期列表限制，真实HTTP仍拒绝其他actor/渠道/错误ID', async () => {
+  const f = await fixture(), db = new DatabaseSync(join(f.root, 'app.db'));
+  try {
+    const old = seedGoal(f, '最早Goal原成果');
+    for (let i = 0; i < 101; i++) seedGoal(f, '后来Goal'+i);
+    assert.ok(!f.channel.snapshot().goals.some(g => g.id === old.goal.id));
+    assert.equal((await read(f, select('goal', old.goal.id))).results[0]?.excerpt?.text, '最早Goal原成果');
+    const before = state(db), detail = await f.request(`/api/goals/${old.goal.id}`);
+    assert.equal(detail.status, 200, await detail.clone().text()); assert.match(await detail.text(), /最早Goal原成果/);
+    assert.equal(state(db), before);
+    for (const owner of [
+      { ownerId: 'other-owner', target: webTarget }, { ownerId: 'local-user', target: { channel: 'web', userId: 'other' } },
+      { ownerId: 'local-user', target: { channel: 'console' } },
+      { ownerId: 'local-user', target: { channel: 'feishu', appId: 'a', chatId: 'c', userOpenId: 'u' } },
+    ] as const) {
+      const foreign = f.store.goals.create(owner, f.store.beginRun(null, now()).id, 'FOREIGN_GOAL', now());
+      assert.equal((await f.request(`/api/goals/${foreign.id}`)).status, 404);
+    }
+    assert.equal((await f.request(`/api/goals/${randomUUID()}`)).status, 404);
+    assert.equal((await f.request('/api/goals/wrong-id')).status, 404); assert.equal(f.payloads.length, 0);
+  } finally { db.close(); await f.close(); }
+});
+
 test('R3文件HTTP只ID/入口无preview正文Hash，成功/失败TaskJob和普通Run状态不误称成果', async () => {
   const f = await fixture(), db = new DatabaseSync(join(f.root, 'app.db'));
   try {

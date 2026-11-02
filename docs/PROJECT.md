@@ -325,4 +325,4 @@ R1有界定位与R2成果/出处已分别独立第1轮通过。R3在主题页显
 
 沿原登录、Origin/CSRF和JSON传输限额，业务字段仅read入口校验；无新事实表、Run、Session或授权。Goal原committed/Hash、所有别名先GoalExecution、文件只ID/原入口、显式Memory过滤及JSON字节预算均复用R2，不改执行链或Memory实现。普通Run仅原技术记录，不冒充工作成功。
 
-UI范围变化清旧呈现、忽略迟到响应，状态仅当前组件内存。原Goal/文件导航复用现有入口；原Task详情在Recall开关内按原Web身份直查，原Run仅用户点击后调用既有只读接口，超过最近100项不假跳列表。Recall/原Task/Run呈现不套Viewed、不写ACK或控制；打开原文件详情后的原审批流程单列。R3已正式独立第1轮通过；R4最终工程/全量730项和实际Chrome桌面/390px离线闭环已完成，正式独立第1轮PASS、无finding，见[独立报告](/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/evidence/r4/reviewer-r1/review.md)；未正式启用。整体证据与真实语义/手机/长跑等限制见[交付评估](evaluations/work-core-stages.md)。
+UI范围变化清旧呈现、忽略迟到响应，状态仅当前组件内存。原Goal/文件导航复用现有入口；原Task详情在Recall开关内按原Web身份直查，仅当Recall服务明确证明非Goal且有权、非文件时，原Run才在用户点击后调用既有只读接口；Goal/损坏/归属不可用的Run只保留出处ID及可用的原Goal入口。明确Goal详情沿原actor按ID读取，超过最近100项不假跳列表。Recall/原Task/Run呈现不套Viewed、不写ACK或控制；打开原文件详情后的原审批流程单列。R3已正式独立第1轮通过；R4最终工程/全量730项和实际Chrome桌面/390px离线闭环已完成，正式独立第1轮PASS、无finding，见[独立报告](/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/evidence/r4/reviewer-r1/review.md)；未正式启用。整体证据与真实语义/手机/长跑等限制见[交付评估](evaluations/work-core-stages.md)。

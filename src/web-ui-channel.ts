@@ -269,8 +269,12 @@ export class WebUiChannel implements Channel {
   goal(id: string): WebGoalDetail {
     if (!this.goals) throw new WebUiError(409, 'Goal 未启用');
     const view = this.tasks.withTarget(webTarget, () => {
-      if (!this.goals!.list().some(g => g.id === id)) throw new WebUiError(404, 'Goal 不存在或不在当前列表中');
-      return this.goals!.plan(id);
+      // 明确ID沿原actor读取；近期列表上限不限制历史详情或替代归属检查。
+      try { return this.goals!.plan(id); }
+      catch (error) {
+        if (error instanceof Error && error.message === 'Goal 不存在或无权访问') throw new WebUiError(404, error.message);
+        throw error;
+      }
     });
     const g = view.goal;
     return { id: g.id, objective: g.objective, status: g.status, updatedAt: g.updatedAt, blockedReason: g.blockedReason,

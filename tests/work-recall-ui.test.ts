@@ -31,7 +31,7 @@ const form = (tree: Node) => nodes(tree).find(n => n.type === 'form')!;
 const checkbox = (tree: Node) => nodes(tree).find(n => n.type === 'input' && n.props.type === 'checkbox')!;
 const query = (tree: Node) => nodes(tree).find(n => n.type === 'textarea')!;
 const response = (value = '已验证旧原文'): WorkRecallResult => ({ location: { status: 'located', threads: [], objects: [] }, untrusted: true,
-  results: [{ status: 'succeeded', runId: 'old-run', sources: [{ kind: 'run', id: 'old-run', status: 'succeeded' }], excerpt: { text: value, originalBytes: Buffer.byteLength(value), displayBytes: Buffer.byteLength(value), truncated: false } }],
+  results: [{ status: 'succeeded', runId: 'old-run', originalRunAvailable: true, sources: [{ kind: 'run', id: 'old-run', status: 'succeeded' }], excerpt: { text: value, originalBytes: Buffer.byteLength(value), displayBytes: Buffer.byteLength(value), truncated: false } }],
   background: { status: 'not_requested', records: [] }, omitted: { results: 0, historyEntries: 0, sources: 0, background: 0 } });
 async function submit(ui: ReturnType<typeof host>) { form(ui.render()).props.onSubmit({ preventDefault() {} }); await delay(5); }
 
@@ -83,4 +83,19 @@ test('R3文件结果只显式原审批页入口；Goal/Task原详情分别跳转
     button(ui.render(), '打开原任务').props.onClick(); await delay(5); assert.equal(calls.at(-1).path, '/tasks/old-task'); assert.ok(text(ui.render()).includes('原任务详情'));
     assert.ok(calls.every(c => c.path === '/work-recall' || c.path === '/tasks/old-task')); assert.ok(text(ui.render()).includes('不执行操作或保存长期记忆'));
   } finally { ui.close(); }
+});
+
+test('PR5 Goal及无法证明归属的Run保留出处，禁止原技术正文导航', async () => {
+  for (const status of ['committed', 'discarded', 'failed', 'interrupted', 'invalid', 'unavailable']) {
+    const calls: string[] = [], data = response();
+    data.results[0] = { status, runId: 'goal-run', sources: [{ kind: 'run', id: 'goal-run', status }],
+      ...(['invalid', 'unavailable'].includes(status) ? {} : { goalId: 'original-goal' }) };
+    const ui = host(async path => { calls.push(path); return data; });
+    try {
+      await submit(ui); assert.ok(text(ui.render()).includes('goal-run'));
+      assert.ok(!button(ui.render(), '打开原Run记录'), status+'不得回退技术Run');
+      if (data.results[0].goalId) { button(ui.render(), '打开原Goal').props.onClick(); assert.equal(ui.opened[0], 'goal:original-goal'); }
+      assert.deepEqual(calls, ['/work-recall']);
+    } finally { ui.close(); }
+  }
 });

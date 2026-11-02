@@ -94,7 +94,7 @@ export function WorkRecall({ api, thread, openGoal, openFile }: {
         {item.goalId && <button onClick={() => openGoal(item.goalId!)}>打开原Goal</button>}
         {!item.fileOperationId && item.sources.filter(source => source.kind === 'task').map(source => <button key={source.id} disabled={busy} onClick={() => void openOriginal('task', source.id)}>打开原任务 {source.id}</button>)}
         {item.fileOperationId ? <><p>文件操作ID：{item.fileOperationId}。本页不读取文件正文或确认预览。</p><button onClick={() => openFile(item.fileOperationId!)}>打开原文件审批页</button></>
-          : item.runId && <button disabled={busy} onClick={() => void openOriginal('run', item.runId!)}>打开原Run记录</button>}
+          : item.originalRunAvailable && item.runId && <button disabled={busy} onClick={() => void openOriginal('run', item.runId!)}>打开原Run记录</button>}
       </article>)}
       <p>省略计数：已枚举结果 {result.omitted.results}；未加载Goal历史 {result.omitted.historyEntries}；出处别名 {result.omitted.sources}；背景候选 {result.omitted.background}。</p>
       <h3>长期背景 · {result.background.status === 'not_requested' ? '本轮未请求' : result.background.status === 'unavailable' ? '本轮不可用' : '仅本轮有权记录'}</h3>

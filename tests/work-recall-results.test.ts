@@ -58,6 +58,7 @@ for (const discarded of [false, true]) test(`Goal ${discarded ? 'discarded技术
     f.store.getRun = () => { throw new Error('不应裸读Run'); };
     for (const response of [f.select('goal', x.goal.id), f.select('run', x.runId), f.recall.read({ query: '', selection: { threadId: f.thread.id } })]) {
       assert.equal(response.results.length, 1); assert.equal(response.results[0]?.status, discarded ? 'discarded' : 'committed');
+      assert.equal(response.results[0]?.originalRunAvailable, undefined);
       assert.equal(JSON.stringify(response).includes(marker), !discarded); assert.equal(f.reads(), 0); budget(response);
       if (!discarded) { assert.match(response.results[0]!.checkpointHash!, /^[a-f0-9]{64}$/u); assert.equal(response.results[0]?.question, '原问题？'); }
     }
@@ -92,9 +93,34 @@ test('跨渠道Goal通过伪造Job/Task/Run别名也必须先经Goal归属验证
       assert.equal(f.store.webUi.ownsRun(binding.owner, binding.channel, x.runId), true);
       for (const [kind, id] of [['run', x.runId], ['task', task.id], ['job', job.id]] as const) {
         const response = f.select(kind, id); assert.equal(response.results[0]?.status, 'unavailable'); assert.ok(!JSON.stringify(response).includes('FOREIGN_GOAL_SECRET'));
+        assert.equal(response.results[0]?.originalRunAvailable, undefined);
       }
     } finally { f.close(); }
   }
+});
+
+test('PR5只有服务确认非Goal且有权的普通Run可打开技术详情', () => {
+  const f = fixture();
+  try {
+    for (const status of ['succeeded', 'failed', 'interrupted'] as const) {
+      const run = f.store.webUi.accept(binding.owner, randomUUID(), '普通Run', now);
+      f.store.finishRun(run.id, status, now, '普通技术记录');
+      assert.equal(f.select('run', run.id).results[0]?.originalRunAvailable, true);
+    }
+    for (const status of ['failed', 'interrupted'] as const) {
+      const goal = f.store.goals.create(actor, f.store.beginRun(null, now).id, '失败Goal', now);
+      const claim = f.store.goals.claim(actor, goal.id, goal.revision, now)!;
+      f.store.goals.finishFailure(claim.run.id, status, '合成失败', now);
+      for (const [kind, id] of [['goal', goal.id], ['run', claim.run.id]] as const) {
+        const item = f.select(kind, id).results[0]; assert.equal(item?.status, status); assert.equal(item?.originalRunAvailable, undefined);
+      }
+    }
+    const bad = f.goal('坏Hash原文'); f.db.exec('DROP TRIGGER goal_execution_immutable');
+    f.db.prepare('UPDATE goal_executions SET checkpointHash=? WHERE runId=?').run('0'.repeat(64), bad.runId);
+    const invalid = f.select('run', bad.runId).results[0]; assert.equal(invalid?.status, 'invalid');
+    assert.equal(invalid?.goalId, undefined); assert.equal(invalid?.originalRunAvailable, undefined);
+    assert.equal(f.reads(), 0);
+  } finally { f.close(); }
 });
 
 test('Task与Job成功/失败/中断/取消/无Run准确，普通成果不重执行', () => {

@@ -223,6 +223,7 @@ function App() {
   const [threads, setThreads] = useState<WorkThread[]>([]), [threadId, setThreadId] = useState("");
   const [routeSending, setRouteSending] = useState(false), [routeError, setRouteError] = useState("");
   const [routeRetry, setRouteRetry] = useState<WorkRouteRequest | null>(null), [revokeRetry, setRevokeRetry] = useState<WorkRouteRequest | null>(null);
+  const [historyRevokeRetry, setHistoryRevokeRetry] = useState<WorkRouteRequest | null>(null);
   const [routeChanging, setRouteChanging] = useState(false), [invalidRoutes, setInvalidRoutes] = useState<string[]>([]);
   const [objectChoice, setObjectChoice] = useState("");
   const currentRoute = useRef<{ input: WorkRouteRequest; invalid: boolean } | null>(null);
@@ -425,18 +426,19 @@ function App() {
       setDraft("");
       setRetry(null);
       setReceipt(null); setThreadId(""); setThreads([]);
-      currentRoute.current = null; routeRestored.current = false; setRouteRetry(null); setRevokeRetry(null); setRouteError(""); setInvalidRoutes([]); setObjectChoice("");
+      currentRoute.current = null; routeRestored.current = false; setRouteRetry(null); setRevokeRetry(null); setHistoryRevokeRetry(null); setRouteError(""); setInvalidRoutes([]); setObjectChoice("");
       setGoal(null);
     } catch (e) {
       setError((e as Error).message);
     }
   };
-  const revokeRoute = async (input: WorkRouteRequest) => {
+  const revokeRoute = async (input: WorkRouteRequest, history = false) => {
+    const setPending = history ? setHistoryRevokeRetry : setRevokeRetry;
     setInvalidRoutes(ids => ids.includes(input.requestId) ? ids : [...ids, input.requestId]);
-    setRevokeRetry(input);
+    setPending(input);
     try {
       await api(`/work-routes/${input.requestId}/revoke`, { text: input.text, selection: input.selection });
-      setRevokeRetry(old => old?.requestId === input.requestId ? null : old); setRouteError("");
+      setPending(old => old?.requestId === input.requestId ? null : old); setRouteError("");
       await refresh();
     } catch (e) { setRouteError((e as Error).message + "。撤销尚未确认，请重试。"); }
   };
@@ -478,9 +480,12 @@ function App() {
     finally { setRouteChanging(false); }
   };
   const routeToChat = (view: WebWorkRoute) => {
-    if (currentRoute.current?.input.requestId === view.requestId) { currentRoute.current.invalid = true; setRouteRetry(null); }
-    else invalidateRoute();
-    void revokeRoute({ mode: "suggest", requestId: view.requestId, text: view.text, selection: view.selection });
+    // 当前B与本次回填的历史A分别跟踪撤销；任一失败都保留原ID供重试。
+    const currentId = currentRoute.current?.input.requestId;
+    invalidateRoute();
+    if (view.requestId !== currentId && !view.revoked && !view.job) {
+      void revokeRoute({ mode: "suggest", requestId: view.requestId, text: view.text, selection: view.selection }, true);
+    }
     setDraft(view.text); navigate("chat");
     if (view.text.length > 10000) setError("完整原文已放回输入框，但超过原聊天10000字符上限；请编辑后发送，未截断或自动提交。");
     setTimeout(() => textarea.current?.focus(), 50);
@@ -1046,10 +1051,10 @@ function App() {
                       );
                       if (item.kind === "suggestion") return <WorkRouteCard key={item.id} view={item.suggestion} threads={threads}
                         active={currentRoute.current?.input.requestId === item.suggestion.requestId}
-                        invalid={invalidRoutes.includes(item.suggestion.requestId)} changing={routeChanging || !online}
+                        invalid={invalidRoutes.includes(item.suggestion.requestId)} changing={routeChanging || !online || !!revokeRetry || !!historyRevokeRetry}
                         onConfirm={() => void confirmRoute(item.suggestion)}
                         onRevoke={() => { if (currentRoute.current?.input.requestId === item.suggestion.requestId) { currentRoute.current.invalid = true; setRouteRetry(null); }
-                          void revokeRoute({ mode: "suggest", requestId: item.suggestion.requestId, text: item.suggestion.text, selection: item.suggestion.selection }); }}
+                          void revokeRoute({ mode: "suggest", requestId: item.suggestion.requestId, text: item.suggestion.text, selection: item.suggestion.selection }, currentRoute.current?.input.requestId !== item.suggestion.requestId); }}
                         onChat={() => routeToChat(item.suggestion)} />;
                       const c = item.chat;
                       return (
@@ -1130,12 +1135,13 @@ function App() {
                         {data.tasks.map(task => <option key={task.id} value={"task:" + task.id}>任务：{task.instruction.slice(0, 100)}</option>)}
                         {data.goals.map(goal => <option key={goal.id} value={"goal:" + goal.id}>目标：{goal.objective.slice(0, 100)}</option>)}
                       </select>
-                      <button type="button" disabled={!draft.trim() || routeSending || !online || !!retry || !!routeRetry || !!revokeRetry || !!data.capabilities.workRoutingBusy}
+                      <button type="button" disabled={!draft.trim() || routeSending || !online || !!retry || !!routeRetry || !!revokeRetry || !!historyRevokeRetry || !!data.capabilities.workRoutingBusy}
                         onClick={() => void requestRoute()}>路由建议</button>
                       <small className="muted">{new TextEncoder().encode(draft.trim()).length} / 14336 字节；只形成建议，普通聊天仍可用。</small>
                       {routeError && <p className="error" role="alert">{routeError}</p>}
                       {routeRetry && !routeSending && <button type="button" disabled={!online} onClick={() => void requestRoute(routeRetry)}>重试同一建议请求</button>}
-                      {revokeRetry && <button type="button" disabled={!online} onClick={() => void revokeRoute(revokeRetry)}>重试撤销建议</button>}
+                      {revokeRetry && <><p className="error">当前建议撤销尚未确认。</p><button type="button" disabled={!online} onClick={() => void revokeRoute(revokeRetry)}>重试撤销建议</button></>}
+                      {historyRevokeRetry && <><p className="error">历史建议撤销尚未确认。</p><button type="button" disabled={!online} onClick={() => void revokeRoute(historyRevokeRetry, true)}>重试撤销历史建议</button></>}
                     </div>}
                     {data.capabilities.workJobs && receipt && <p className="work-job-receipt" role="status">提交收据：{labels[receipt.status]}（{time(receipt.createdAt)}） · 工作 {receipt.id} · 主题 {receipt.threadId.slice(0, 8)}</p>}
                     {retry && !sending && (

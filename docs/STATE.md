@@ -4,6 +4,18 @@
 
 ## 当前阶段
 
+- 用户批准的唯一额外独立复审已完成：**PASS，PR5-R3-ROUTE-03关闭，无新finding；ROUTE-01/02保持关闭**。结合Recall两项R2关闭及事件R1通过，本轮11文件修复已通过本次PR审查范围。用户已授权从f8e51d8追加修复提交并更新PR #5，保留原三阶段提交；实际发布SHA与远端状态以Git记录、PR和本机publish-fixes核验为准，不预写发布成功。合并main仍单独确认。原各轮失败和通过证据保留，不扩展正式验收结论。
+- 本次独立Reviewer实际路由专项40/40（0失败/取消/跳过，12540.23375ms），手动撤销10场景及原回填/Job兼容10场景分别exit0。先前沙箱24过/16项listen EPERM原件保留，最小localhost权限重跑通过；见[额外独立报告](/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/pr5-review/approved-extra/reviewer/review.md)。Reviewer前后408文件、HEAD/index/refs/status相同；Planner核对原日志及源Hash后仅更新本STATE，其他407文件仍与已测已审版相同，不重复工程测试。
+- PR5-R3-ROUTE-03原反例为历史A手动撤销失败后，正常输入触发当前B撤销覆盖A的重试，恢复后A未撤销且刷新可确认（仍需另点确认，非自动执行），见[原R3报告](/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/pr5-review/r3/router/review.md)。本次只在`web/src/main.tsx:1057`既有onRevoke调用按卡片ID是否等于当前绑定传入history参数，复用两个原重试槽；当前卡片失效处理不变，无通用队列/跨页框架或新增权限。相对closeout只改main、路由UI测试、STATE，Recall/事件已过版不动。
+- 本次新增实际可用手动撤销按钮→启用textarea编辑→对应retry按钮→刷新双方不可确认的后置断言；无失败/A失败/B失败/双方失败×AB/BA两种重试顺序、当前手动撤销、当前空历史撤销均覆盖，并在双方待重试时实际调用composer普通Chat发送且保留两个retry。旧版路由UI15项10过5红，最小修复后15/15绿；最终增强Chat断言后14文件定向143/143、全量`TMPDIR=/private/tmp npm test`748/748（0失败/取消/跳过，70783.575542ms），typecheck/build/web:build均exit0，仍2条既有lucide警告。源级Hook/fake fetch不是DOM或真实HTTP多标签验收，原回填/Job兼容及既有HTTP回归另由最终适用组验证，不与旧版本相加。
+- 本次证据在本机`work-core-stages/pr5-review/approved-extra/worker/`，保存旧版红/修复绿、实际命令退出码/原日志及源Hash、含untracked的完整diff和旧证据保全校验。起点408文件与closeout相同；开始前仅宿主自动turn-diffs捕获引用换代，业务HEAD/main/origin不变，完整refs按本轮start.json前后对照；不回滚宿主元数据。本次不读正式数据/密钥、不收费，不stage/commit/push/合并或启正式功能。
+- 此前R3独立localhost专项31/31通过（11401.206125ms）及10个原回填场景绿，均不能覆盖手动历史撤销→编辑→重试→刷新这一新红反例；两份新反例按正确后置断言退出1。首轮15过/16项listen EPERM原件保留；计数不与此前Worker的134/739或彼此相加。
+- 此前fix-r2相对fix-r1仅改`web/src/main.tsx`、`tests/work-route-ui.test.ts`和本STATE：当前B和本次历史A分别保留撤销/重试状态，任一待确认时禁用会覆盖路由状态的新建议与卡片操作，普通Chat保留；两槽分别提示未确认，一个成功不清另一个待重试入口。已撤销A不重复请求、当前A只撤销一次、当前空的历史A仍持久失效、已确认Job保留；不加通用队列或跨页面基础设施。Recall已通过的生产/测试Hash不变。
+- 此前fix-r2最终typecheck/build/web:build均exit0，14文件定向134/134、全量`TMPDIR=/private/tmp npm test`739/739（0失败/取消/跳过，68280.949625ms）。新增后置断言旧版6项2过4红；修复后6/6，期间首绿仅Job模拟收据缺threadId导致slice错误，补全夹具字段后通过，原日志保留。仍2条既有lucide警告；localhost及Vite缓存沿前轮已证明的沙箱限制最小放行。fix-r1全量736/736及其环境/夹具失败原件保留，分版本不相加。
+- fix-r2证据在本机`work-core-stages/pr5-review/fix-r2/worker/`，含原日志/命令退出码/对应全文件源Hash、相对fix-r1三文件校验与相对`f8e51d84473cde7966806e2cc37b42a3e112470a`完整diff；原fix-r1/r1/r2证据Hash保持不变。双空页面顺序及失败矩阵是实际App/Card转译Hook/JSX/fake fetch，不能称作DOM/真实HTTP多标签验收；Job证据已改为实际confirm处理器及无回填按钮，不再以无按钮的prop调用称用户流程。本轮未验新Chrome/真实模型/外网/手机/长跑，不stage/commit/push/评论/合并或启正式功能。
+
+- 此前closeout仅STATE文档交接；该次证据在本机`work-core-stages/pr5-review/closeout/worker/`，记录前后Hash、含untracked的完整diff及文档检查，不重跑工程测试。远端与HEAD仍为`f8e51d84473cde7966806e2cc37b42a3e112470a`，11个本地文件未提交；不push/merge/启用或收费，原fix-r1/fix-r2/r1/r2/r3冻结证据不覆盖。
+
 - 2B/B1/B2/B4独立R1、B3独立R2；事件E1独立R2、E2独立R1、E3独立R2、E4独立R1；Recall R1/R2/R3均正式独立R1通过。R4正式独立第1轮PASS、无finding，2B/事件/Recall在本批批准的隔离实现与离线范围交付完成；R3 P3已关闭，见[独立报告](/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/evidence/r4/reviewer-r1/review.md)。
 - 最终typecheck/build/web:build均exit0，全量Node实际spec 730/730、0失败/取消/跳过、68803.871333ms；仍2条既有lucide警告。Reviewer独立9文件84/84、exit0、4806.622125ms，首次沙箱51过33项listen EPERM失败原件保留；未重复730或构建，不累计两组计数。首轮729/730失败、180ms受控红复现及修key前730日志均保留，不与当前相加。测试等待真实busy结束、归档同级key前缀两处局部修复，不改审批权限。
 - 实际Chrome桌面1280×900 A及390×844 B完成独立来源/基线/订阅/Policy→新事件→原Goal committed→显式Recall/歧义选择→原来源/Goal/技术Run；Goal HTTP2、Chat2、显式Job1、Router/intent0，来源7、Recall18。Execution4另含2个零模型Plan种子，B变化0A推进；390不是手机。Worker原scrollWidth数字仅CUA回显汇总；Reviewer独立[测量原件](/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/evidence/r4/reviewer-r1/layout-preview/measurements.json)与桌面/窄屏图补验document/body为1280/390、归档/恢复各1面板、console0，仅布局/归档复验，不是原两主题全部链重跑。
@@ -58,11 +70,11 @@
 
 | 日期 | 修改及位置 |
 | --- | --- |
+| 2026-11-02 | PR #5修复复审PASS，定向143/全量748、独立40及两组10场景通过；用户授权追加修复发布和隔离Web用户测试，保留三阶段历史，main合并单独确认 |
 | 2026-11-02 | R4：最终730全量/实际Chrome Recall闭环；归档同级key局部修复、组件等待根因修复；整体评估/摘要与清理完成，正式独立R1 PASS无finding，84专项/布局复验另列 |
 | 2026-11-02 | R3：默认关闭主题显式Recall、只读API/原Task按ID详情、原Run独立呈现；正式独立第1轮通过，P3当前快照已收敛 |
 | 2026-11-02 | R2：原成果安全投影、文件入口、显式背景与真实UTF8预算；221适用回归、独立第1轮通过 |
 | 2026-11-02 | R1：有界元数据定位/原归属、历史ID、归档及歧义；94适用回归、独立第1轮通过 |
-| 2026-11-02 | E4：原Runner/clock/loopback接线、P3恢复文案、680全量及桌面A/390 B各2片段；独立R1通过，历史证据保留 |
 
 ## 验证记录与证据边界
 
@@ -676,7 +688,7 @@ V1 原有自动化证据：39项测试使用模拟模型/飞书服务和虚拟�
 
 ## 下一步与需要提供的信息
 
-1. 本批R4独立第1轮通过，发布按2B、事件、Recall三阶段连续提交及一个PR组织；当前发布事实以Git与本机release artifact为准，不为自引用SHA或PR号增加提交。PR合并、正式启用、收费或额外真实验证仍需单独明确决定。
+1. 完成本轮修复的PR #5发布核对后，进入用户亲自操作的隔离真实Web测试。用户已明确允许现有启动器仅复用本机四项LLM配置，独立新数据目录、自动执行策略关闭；不读取或改写正式数据库/Memory/Session，不自动发送测试消息，模型费用仅由用户界面操作触发。真实启动结果/入口/数据目录见本机publish-fixes交接，尚无真实验收通过结论；main合并和正式启用需另行确认。
 2. 合并main、正式启用、真实数据/外网/收费模型及实际手机/长跑仍需单独明确决定；已授权的三阶段提交、推送和PR不再重复确认，本批无需提供Key。
 3. 原Goal/Formation真实失败和确定性Recall/来源窗口/通知/串行执行限制继续保留，不以本次离线成功覆盖。
 

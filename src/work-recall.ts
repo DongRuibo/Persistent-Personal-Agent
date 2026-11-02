@@ -24,7 +24,7 @@ export interface RecallSource {
 export interface RecallExcerpt { text: string; originalBytes: number; displayBytes: number; truncated: boolean }
 export interface RecallResultItem {
   status: string; sources: RecallSource[]; runId?: string; goalId?: string; finishedAt?: string | null;
-  fileOperationId?: string; objective?: string; progressSummary?: string; question?: string; checkpointHash?: string;
+  originalRunAvailable?: true; fileOperationId?: string; objective?: string; progressSummary?: string; question?: string; checkpointHash?: string;
   excerpt?: RecallExcerpt; message?: string; omittedFields?: string[];
 }
 export interface WorkRecallResult {
@@ -145,6 +145,8 @@ export class WorkRecallService {
             item.message = '文件操作只提供原入口；请在原详情完整查看并确认。';
           } else if (run.kind === 'unavailable') { item.status = 'unavailable'; item.message = '执行不存在或无权访问。'; }
           else {
+            // 只有原服务已证明非Goal、有权且非文件的Run才开放技术详情导航。
+            item.originalRunAvailable = true;
             item.status = run.status; item.finishedAt = run.finishedAt;
             if (!entry.blocked && run.status === 'succeeded' && run.output !== null) item.excerpt = excerpt(run.output, run.originalBytes);
             else item.message = '当前执行或原对象无成功成果，仅提供状态与出处。';
