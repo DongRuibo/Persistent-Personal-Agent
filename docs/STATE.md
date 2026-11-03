@@ -1,8 +1,29 @@
 # Personal Agent 当前状态与交接
 
-更新日期：2026-11-02（Asia/Shanghai）。此文件是当前快照；稳定架构见 [PROJECT.md](PROJECT.md)，开发规则见 [AGENTS.md](../AGENTS.md)，运行方法见 [README.md](../README.md)。
+更新日期：2026-11-03（Asia/Shanghai）。此文件是当前快照；稳定架构见 [PROJECT.md](PROJECT.md)，开发规则见 [AGENTS.md](../AGENTS.md)，运行方法见 [README.md](../README.md)。
 
 ## 当前阶段
+
+- **本轮已获用户授权提交并推送最近任务与规划至 `codex/chat-coordinator-mvp`，本轮发布范围与授权如下。** 范围为已有Goal无意图回退、总管T1—T6、日常小请求纠偏及相关代码/测试/文档，加持续主题与独立Session规划，共46文件；拟分44文件实现提交、STATE与新规划2文件提交。分支基于 `d0cfcbc608ace1a79b9938a8c7a782fa80b5958c`，依赖仍open且未合并的[PR #5](https://github.com/DongRuibo/Persistent-Personal-Agent/pull/5)（`codex/work-core-stages` → `main`，main基线 `91b7a657ddf62cf625c53f7bcfbddaa22aa6740b`）；本轮只推独立分支，不新建PR、不合并main。N0—N5仍待明确批准，未实施；不迁移正式库、启用功能或切换/重启试用实例。发布准备只核对原日志与Hash、完整diff及敏感文件；44文件与939/939及独立153/153对应冻结版一致，规划与R3原件一致，因此复用同版工程证据，不在活跃树重建。发布证据保存在本机 `chat-coordinator-mvp/release-20261103/`，实际提交SHA和远端状态以完成后Git核验为准，不预写成功。
+- **持续主题与独立Session实现规划已完成，独立方案R3 PASS，待用户批准实施。** 见[实现规划](designs/topic-session-routing-plan.md)；按N0公开SDK可行性验证、N1存储、N2主题Session、N3自动路由、N4原工作链与单入口、N5回归依次推进。主题持续性不自动创建Job/Goal，日常小事直接回答。N0需实证原64KiB门前压缩、同轮计量/取消/超时、低信任与审批引用边界；不可行时先报告替代方案。该规划阶段仅新增规划并更新本STATE，未运行工程测试、改业务代码、创建分支、操作试用实例或发布。939/153仍是上一轮已记录证据，不是本方案测试结果。独立报告保存在本机 `chat-coordinator-mvp/topic-session-plan-20261103/review-r3.md`。
+- **本轮日常请求纠偏及隔离启动方案独立R1 PASS（153/153），全新隔离真实Web试用已启动。** 普通短文/单次写作/解释/翻译/临时改写默认直接Chat回答；仅明确交付后台、明确持续/分阶段文字工作及已有工作管理调用work_manage，不因交付物或字数建Job/主题。现有action=none在提交前返回，Guard继续普通回答；只修提示和工具说明，不改Schema、权限、调度或SDK。新增五类实际Pi/mock HTTP回归仅验证误调工具后的none回退与零Jobs/Threads，不证明真实意图分类质量。本轮定向105/105（15931.741417ms）、全量939/939（78358.591334ms），均0失败/取消/跳过；typecheck/build/web:build均exit0，仍两条既有lucide警告。工程验证仅模拟HTTP；启动检查未发送模型消息，用户真实语义结果待手动试用，历史T6 934结果保留为旧版记录。
+- **当前不具备按语义主题持久Session自动路由。** 同名主题只按title===name复用，解析catalog的threads为空；每个Worker临时Session，主Chat普通历史只有两轮总4KiB。健身与减脂餐作为同一持续主题、求职面试和代码项目各为独立主题是用户产品目标，本轮仅完成待批准的实现规划，未实施该架构增量。已有具名工作查询/修改/取消和单工作成果续接不能代替长期主题Context。
+- **已批准的单对话总管 MVP T1—T6 已完成隔离实现与离线验收，T6整体独立R1 PASS，无阻断或新增需行动finding。** 依据[执行任务书](designs/chat-coordinator-execution-plan.md)，执行分支为 `codex/chat-coordinator-mvp`，T6验收基线HEAD为 `d0cfcbc608ace1a79b9938a8c7a782fa80b5958c`，T6交付时全批45文件改动未提交。阶段结果见[总管评估](evaluations/chat-coordinator-mvp.md)及[最终独立审查](/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/chat-coordinator-mvp/t6/reviewer-r1/review.md)。这不是正式启用或真实模型语义验收。
+- 新模式以一个输入框承接文字工作，自动组织主题、按稳定工作身份隔离上下文；支持继续聊天、具名查询/修改、运行中补充、取消及同一时间线交付真实进度和成果。保持原Pi公开SDK/Loop、单进程SQLite、串行Worker、旧Task/Goal/Memory/文件/联网授权，不新增后台联网或自动Memory。`WORK_COORDINATOR_ENABLED`默认关闭。
+- 最终同版 `npm run typecheck`、`npm run build`、`npm run web:build`全部exit0；`TMPDIR=/private/tmp npm test` **934/934**，0失败/取消/跳过，69664.73325ms；两条既有lucide构建警告保留。T6独立实跑A3/A6 2/2、跨模块188/188、新模式Task/Memory正向1/1、原Policy兼容2/2，各组分别记录不相加。Planner已核对原日志、退出码及审前426文件Hash。
+- A3已补同主题A/B各两轮真实Worker HTTP，独立C成果晚通知不抢focus、不串材料；A6已补Job/item提交但父Chat未finish时真实main SIGKILL，恢复后旧Chat/解析不重放、原Job只执行一次，同UUID/再次重启不重复。关闭回读阶段同时关闭Coordinator与WorkJobs；仅关闭Coordinator不停止已提交普通Job，这是原语义。
+- 真实Chrome headless桌面1280×900/窄屏390×844已分组通过交错工作、草稿/满队列/同UUID重试、取消/失败、文件完整预览ACK及明确批准、Goal通知只读。T5 R1发现来源入口P2，生产仅补回原WebSources一行，R2独立通过成功/截断/失败来源DOM与无重搜；全流程版和补回来源版证据分别保留，不冒称后补版又跑了全部浏览器流程。窄屏不是实际手机。
+- T1 R1、T2/T3各经用户明确追加授权后的R4、T4 R1、T5 R2、T6 R1均通过。T2/T3原R1—R3 FAIL与暂停、T5 R1 FAIL、T6错误off测试假设/类型窄化首红及后续红绿均保留。长答漏work_manage的模拟失败样例仍在；真实工具选择/拆分/指代和成稿质量、供应商费用/延迟、手机、长跑未验。
+- T6交付时未暂存/提交/推送/创建PR/合并，未访问正式数据库/Memory/Session或密钥、未操作4318、未发真实模型/外网请求。原树411受保护文件、HEAD/main/index核对不变；早期依赖复制曾保留顶层链接，原Vite空缓存目录元数据可能变化且无前置快照，后来已改独立clone，不宣称所有原缓存元数据可证完全未变。
+- 最终审查后仅由Planner更新STATE、本评估及validation三份交接文档中的实际结论；业务源码和测试Hash仍与已审已测版相同，未因此重复工程测试。可审查完整diff、45文件用途及文档变更Hash见本机`t6/delivery/`交付包；旧Worker/Reviewer冻结证据未改写。
+
+### 既有试用与上一阶段记录（历史证据）
+
+- 既有真实试用失败：隔离真实Web试用Run `286bf72f-c266-4ad7-80aa-9422750e9458`为普通Chat、非WorkJob，约5.1秒后failed；3次模型响应为主模型toolUse→隔离解析stop→主模型stop，无模型HTTP错误。唯一工具`goal_manage {}`返回`isError=true / 没有当前Goal操作意图`，后续183字文本存在，但宿主按工具错误结束Run而未交付；该Run未创建Goal或WorkJob。真实失败与[窄诊断](/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/live-chat-failure/run-diagnostic.json)保留，不能把选择普通Chat当成全部根因。
+- 在`d0cfcbc608ace1a79b9938a8c7a782fa80b5958c`基线上完成受限离线修复，**独立R1已PASS，隔离实例已载入修复；用户反馈同原文普通Chat复测正常回复**。本次成功依据用户手动复测反馈，未另查新Run/Session；保留原失败及诊断，不外推所有模型语义已验收。实际隔离解析JSON没有持久化，错误文本来自复合判断，尚不能证明该真实事件一定为`action=none`；本次只覆盖经Schema校验且action明确为none的预期不适用分支，其他action、格式/证据/权限错误仍保持原失败语义。
+- 生产仅`src/operation-guard.ts`新增5行：返回`not_applicable / executed:false`、复位goalUsed，不设置answer/contextResult，保留used与plan消费限制。主Pi Loop/全局toolError、Goal执行授权、Web API及SDK不改；普通回答不被Goal宿主收据覆盖，同轮后续Task/Memory/Goal写提议仍被挡，后续模型500或工具故障仍failed。新增`tests/goal-no-intent.test.ts`使用真实Web/Guard/Pi及临时SQLite、localhost固定假模型验证；并非重新请求真实模型或真实事件重放。
+- 正式红灯10项5过5失败→最小修复10/10绿；首次测试将公开脱敏error误作原始诊断的10失败日志保留，修正为只读取测试自有临时库后再取得正式红灯。最终14文件定向136/136（7101.907625ms）、全量`TMPDIR=/private/tmp npm test`758/758（77920.993834ms），0失败/取消/跳过；typecheck/build/web:build均exit0，仍2条既有lucide警告。合法Goal控制/收据、批准执行、真实错误及Task/Memory/Web/路由/Recall适用回归均包含在最终专项，各版本不相加。
+- 新证据在本机`work-core-stages/live-chat-failure/worker/`，含真实红绿原日志/命令退出码/对应源Hash、相对d0cfcbc含untracked的完整diff及起终身份。本次只改Guard、新回归和STATE。独立R1为PASS、无finding，实际定向77/77及状态边界6/6，审前后409文件及Git身份不变；Planner核对源Hash和原日志后仅更新STATE。按既有隔离测试授权正常重启127.0.0.1:4318，原Run和主题元数据不变、两个HTTP入口200，使用同一独立数据目录及已构建Guard；见[独立报告](/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/live-chat-failure/reviewer-r1/review.md)及[重启核验](/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/live-chat-failure/coordinator/restart-verification.json)。不读更多实际Session/Memory、不重试用户请求；未新收费、Git提交/推送或合并，原失败证据保留。
 
 - 用户批准的唯一额外独立复审已完成：**PASS，PR5-R3-ROUTE-03关闭，无新finding；ROUTE-01/02保持关闭**。结合Recall两项R2关闭及事件R1通过，本轮11文件修复已通过本次PR审查范围。用户已授权从f8e51d8追加修复提交并更新PR #5，保留原三阶段提交；实际发布SHA与远端状态以Git记录、PR和本机publish-fixes核验为准，不预写发布成功。合并main仍单独确认。原各轮失败和通过证据保留，不扩展正式验收结论。
 - 本次独立Reviewer实际路由专项40/40（0失败/取消/跳过，12540.23375ms），手动撤销10场景及原回填/Job兼容10场景分别exit0。先前沙箱24过/16项listen EPERM原件保留，最小localhost权限重跑通过；见[额外独立报告](/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/pr5-review/approved-extra/reviewer/review.md)。Reviewer前后408文件、HEAD/index/refs/status相同；Planner核对原日志及源Hash后仅更新本STATE，其他407文件仍与已测已审版相同，不重复工程测试。
@@ -25,6 +46,8 @@
 - 本批实现与验收基线为`91b7a657ddf62cf625c53f7bcfbddaa22aa6740b`，唯一执行树为`/Users/onruio/.codex/worktrees/work-core-stages/Persistent Personal Agent`，发布分支为`codex/work-core-stages`。用户已授权按2B、事件、Recall三阶段提交并推送、创建一个以main为base的PR；实际提交SHA/PR以Git记录及本机release发布artifact为准，不在本文预写成功。WORK_ROUTING_ENABLED/WORK_EVENTS_ENABLED/WORK_RECALL_ENABLED默认关闭，未授权合并main或正式启用；下文验收身份和未提交说明保留其历史时点。
 
 ## 已完成功能
+
+- 单对话总管MVP：T1—T6整体独立通过，仅隔离离线；新模式自动纯文本承接/隔离续接、统一进度成果和原权限兼容，默认关闭。
 
 - Recall R1/R2/R3均独立第1轮通过；R4全量730及真实Chrome桌面/390离线查历史已完成，正式独立第1轮PASS、无finding，默认关闭。
 
@@ -70,11 +93,11 @@
 
 | 日期 | 修改及位置 |
 | --- | --- |
-| 2026-11-02 | PR #5修复复审PASS，定向143/全量748、独立40及两组10场景通过；用户授权追加修复发布和隔离Web用户测试，保留三阶段历史，main合并单独确认 |
-| 2026-11-02 | R4：最终730全量/实际Chrome Recall闭环；归档同级key局部修复、组件等待根因修复；整体评估/摘要与清理完成，正式独立R1 PASS无finding，84专项/布局复验另列 |
-| 2026-11-02 | R3：默认关闭主题显式Recall、只读API/原Task按ID详情、原Run独立呈现；正式独立第1轮通过，P3当前快照已收敛 |
-| 2026-11-02 | R2：原成果安全投影、文件入口、显式背景与真实UTF8预算；221适用回归、独立第1轮通过 |
-| 2026-11-02 | R1：有界元数据定位/原归属、历史ID、归档及歧义；94适用回归、独立第1轮通过 |
+| 2026-11-03 | 已获准提交推送总管实现、纠偏与主题Session规划至独立分支；核对46文件完整diff、敏感项及939/153原日志与源码Hash，PR #5依赖未合并，N0—N5未实施、实例不切换 |
+| 2026-11-03 | 持续主题/独立Session规划完成并经独立R3通过：N0—N5任务、候选文件与A1—A12验收明确；只改设计文档/STATE，待批准后先验证公开SDK接缝 |
+| 2026-11-03 | 日常请求最小纠偏：主Chat/隔离解析/work_manage提示默认普通写作直接回答；新增none回退零工作/主题回归，明确未实现语义主题Session；先独立审查后启动全新隔离手动试用 |
+| 2026-11-03 | T6整体独立R1 PASS：补同主题两轮实际HTTP及Job已建/Chat未finish强杀；最终934全过、三工程通过；独立2/188/1/2分组通过，README/PROJECT/eval/STATE与45文件diff交付，仍默认关闭、未发布 |
+| 2026-11-03 | T5独立R2 PASS：单对话入口、真实进度/成果、草稿与重试、原文件/Goal审批保留；来源组件P2一行修复，66项和独立DOM复验通过。开始T6最终验收，尚无发布 |
 
 ## 验证记录与证据边界
 
@@ -688,9 +711,9 @@ V1 原有自动化证据：39项测试使用模拟模型/飞书服务和虚拟�
 
 ## 下一步与需要提供的信息
 
-1. 完成本轮修复的PR #5发布核对后，进入用户亲自操作的隔离真实Web测试。用户已明确允许现有启动器仅复用本机四项LLM配置，独立新数据目录、自动执行策略关闭；不读取或改写正式数据库/Memory/Session，不自动发送测试消息，模型费用仅由用户界面操作触发。真实启动结果/入口/数据目录见本机publish-fixes交接，尚无真实验收通过结论；main合并和正式启用需另行确认。
-2. 合并main、正式启用、真实数据/外网/收费模型及实际手机/长跑仍需单独明确决定；已授权的三阶段提交、推送和PR不再重复确认，本批无需提供Key。
-3. 原Goal/Formation真实失败和确定性Recall/来源窗口/通知/串行执行限制继续保留，不以本次离线成功覆盖。
+1. 先审阅[持续主题与独立Session实现规划](designs/topic-session-routing-plan.md)。用户明确批准后，重新核对发布后的分支与工作区，建立独立 `codex/topic-session-routing` 开发树并先执行N0；公开SDK接缝通过后才能推进N1—N5，不以方案审查代替实现证据。日常请求纠偏的独立审查与隔离启动已完成，原T1—T6、失败记录、934旧版及939新版证据保持原样。
+2. 用户已授权复用本机四项模型连接配置启动全新隔离真实Web试用，不设费用上限；所有真实模型消息由用户手动发送，Agent不主动发测试消息。独立R1通过及Planner放行后，已启动 `http://127.0.0.1:62414`，Node PID 6239（控制工具session 20208）；全新0700目录 `/private/tmp/ppa-small-work-trial-nWHXjY/data` 与独立 `chrome-profile`，Chrome spawn成功并保留专用进程，不继承旧cookie，不读取正式DB/Session/Memory。模型为 `openai` / `deepseek-ai/DeepSeek-V4.1-Flash`，Key只在内存。仅开启Coordinator/Threads/Jobs/Recall，其他新能力关闭；静态/session均200，自身launch成功，浏览器打开前新库runs/jobs/threads均0。Agent未发送模型消息、未读取用户输入；人民币不设上限不改变既有HTTP/token/timeout界限。就绪不等于真实语义验收，用户实模结果待测；进程、数据及profile保留供手动试用。
+3. 按本轮明确授权完成46文件精确暂存、两次提交并推送 `origin/codex/chat-coordinator-mvp`，发布后独立核对远端SHA及剩余工作树；只推分支，不新建PR、不合并main。持续主题N0—N5实施、正式库迁移/启用/实例切换仍未获授权；既有62414及4317/4318实例和试用数据保持原样。真实模型/手机/长跑和旧Goal/Formation失败仍按各自版本记录，不用离线绿灯覆盖。
 
 ## V2.0.2 关键文件（主体及本轮修复）
 
