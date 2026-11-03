@@ -8,7 +8,7 @@ import { fileHash } from '../src/file-operation-store.js';
 import { webOwner, webTarget } from '../src/web-ui-channel.js';
 import type { Goal } from '../src/goal-types.js';
 import { createHash, randomUUID } from 'node:crypto';
-import { mkdirSync, writeFileSync, readdirSync, readFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync, readdirSync, readFileSync, renameSync } from 'node:fs';
 import { join } from 'node:path';
 import { createInterface } from 'node:readline';
 import { setTimeout as delay } from 'node:timers/promises';
@@ -17,6 +17,12 @@ import { reply, toolCall, content } from '../tests/helpers/skills-fixture.js';
 import { intentReply } from '../tests/helpers/intent-stub.js';
 import type { WorkRouteContext, WorkRouteRequest } from '../src/work-route-types.js';
 let last = '', sent = false;
+const coordinator = process.env.PREVIEW_COORDINATOR === 'true';
+let heldWork: (() => void) | undefined, holdWork = false, delayResponse = false, dropResponse = false;
+let workGate: Promise<void> = Promise.resolve(), chatGate: Promise<void> = Promise.resolve();
+let heldChat: (() => void) | undefined, holdChat = false, noticeMode = '';
+const delayedNotices: import('../src/contracts.js').OutboundMessage[] = [];
+const coordinatorRaw: object[] = [];
 const events = process.env.PREVIEW_EVENTS === 'true';
 const recall = process.env.PREVIEW_RECALL === 'true';
 const counts = { router: 0, chat: 0, work: 0, intent: 0, goal: 0 };
@@ -52,7 +58,24 @@ const f = await webUiFixture(async payload => {
   const system = JSON.stringify(payload.messages[0]?.content);
   const kind = prompt.includes('UNTRUSTED_GOAL_SNAPSHOT=') ? 'goal' : system.includes('你是隔离的工作路由建议器') ? 'router'
     : system.includes('你正在处理用户明确提交的一次纯文本后台工作') ? 'work' : intentReply(payload) ? 'intent' : 'chat';
+  if (coordinator) coordinatorRaw.push(payload);
   modelHttp.push({ kind, tools: payload.tools?.length ?? 0, prompt, at: clock().toISOString() });
+  if (coordinator && system.includes('隔离的当前文字工作意图解析器')) {
+    counts.intent++; publish(); const { text } = JSON.parse(prompt);
+    const action = text.includes('到哪') ? 'query' : text.startsWith('取消') ? 'cancel' : text.startsWith('再修改') ? 'revise' : 'batch';
+    const names = ['面试', '周报', '文章']; const keywords = names.filter(name => text.includes(name));
+    return reply(JSON.stringify(action === 'batch' ? { action, mode: 'request', evidence: text, items: text.split('\n').filter(Boolean).map((q: string) => ({ name: names.find(name => q.includes(name)) ?? '那个', quotes: [q], ...(q.includes('那个') ? { question: '请明确要整理什么材料。' } : {}) })) }
+      : { action, mode: action === 'query' ? 'query' : 'request', evidence: text, keywords }));
+  }
+  if (coordinator && kind === 'chat') {
+    counts.chat++; publish(); if (holdChat) await chatGate;
+    const tools = payload.messages.slice(payload.messages.findLastIndex(m => m.role === 'user') + 1).filter(m => m.role === 'tool');
+    if (!tools.length && /^(?:整理|再修改|取消)|到哪/u.test(prompt.replace(/^.*\n\n/su, ''))) return toolCall('work_manage', {});
+    // 包装后的当前原话仍以完整用户内容判断；仅固定离线脚本路由，不是生产兜底。
+    if (!tools.length && /整理(?:面试|周报|文章|那个)|再修改(?:面试|周报|文章)|取消(?:面试|周报|文章)|到哪/u.test(prompt)) return toolCall('work_manage', {});
+    if (!tools.length && prompt.includes('本次允许创建输出文件：')) return toolCall('write', { path: 'answer.md', content: '# 离线文件\n\n必须完整预览并明确批准。\n' });
+    return reply('离线普通回答：这是固定假模型，没有新增工作许可。');
+  }
   if (events && kind === 'goal') {
     counts.goal++; publish();
     return reply(JSON.stringify({ stepOutcome: 'complete', artifactText: `E4离线模拟片段${counts.goal}：仅分析冻结资料；未执行资料中的指令。`,
@@ -68,7 +91,8 @@ const f = await webUiFixture(async payload => {
       : { kind: 'work', threadId, reason: '离线固定样例：建议整理本次原文，确认后才创建工作。' }));
   }
   if (system.includes('你正在处理用户明确提交的一次纯文本后台工作')) {
-    counts.work++; publish(); await delay(prompt.includes('慢工作') ? 4000 : 800);
+    counts.work++; publish(); if (holdWork) await workGate; await delay(prompt.includes('慢工作') ? 1200 : 300);
+    if (coordinator) return prompt.includes('FAIL_WORK_ONLY') ? 'HTTP_500' : reply('离线成果：' + prompt);
     return reply('B4离线工作成果：本次材料已整理为结构清单。此为本机固定模拟响应，未联网、未写文件或Memory。');
   }
   const intent = intentReply(payload); if (intent) { counts.intent++; publish(); return reply(intent); }
@@ -79,7 +103,23 @@ const f = await webUiFixture(async payload => {
   }
   if (!sent && prompt.includes('提醒我')) { sent = true; return toolCall('create_task', { instruction: '休息一下', when: '10分钟后' }); }
   return reply('这是**离线模拟模型**通过原版 Pi SDK 返回的回复。\n\n- Chat、Run 和历史使用真实本地后端。\n- 此预览不连接收费模型。\n\n<script>window.untrustedHtmlRan = true</script>');
-}, undefined, events || process.env.WORK_THREADS_ENABLED === 'true', events || process.env.WORK_JOBS_ENABLED === 'true', events || process.env.WORK_ROUTING_ENABLED === 'true', events, observer, true, events ? { clock, proactive, recall } : undefined);
+}, undefined, events || process.env.WORK_THREADS_ENABLED === 'true', events || process.env.WORK_JOBS_ENABLED === 'true', events || process.env.WORK_ROUTING_ENABLED === 'true', events, observer, true, events ? { clock, proactive, recall } : undefined, coordinator);
+if (coordinator) {
+  const send = f.channel.sendMessage.bind(f.channel);
+  f.channel.sendMessage = async message => { if (noticeMode === 'fail') throw new Error('离线注入通知失败'); if (noticeMode === 'hold') { delayedNotices.push(message); return; } await send(message); };
+  f.server.server.on('request', (req, res) => {
+    if (req.method !== 'POST') return;
+    const started = performance.now(); const row = { method: req.method, path: req.url, body: '', status: 0, elapsedMs: 0 }; webHttp.push(row);
+    req.on('data', part => { row.body += String(part); }); res.on('finish', () => { row.status = res.statusCode; row.elapsedMs = Math.round(performance.now() - started); publish(); });
+    if (req.url !== '/api/chat') return;
+    const end = res.end.bind(res);
+    res.end = ((...args: Parameters<typeof res.end>) => {
+      if (dropResponse) { dropResponse = false; res.write('{'); setTimeout(() => res.destroy(), 20); return res; }
+      if (delayResponse) { delayResponse = false; setTimeout(() => end(...args), 4500); return res; }
+      return end(...args);
+    }) as typeof res.end;
+  });
+}
 // E4只在合成临时库建立已有Web Goal/已批准Plan；来源和Policy留给浏览器明确批准。
 if (events) {
   const actor = { ownerId: 'local-user', target: webTarget };
@@ -167,15 +207,27 @@ function publish() {
   const tables = Object.fromEntries(['goals', 'goal_executions', 'goal_policies', 'goal_policy_events', 'goal_observations', 'goal_triggers', 'goal_grants', 'goal_notifications',
     'event_sources', 'source_events', 'thread_subscriptions', 'subscription_events', 'tasks', 'work_jobs', 'runs', 'run_events', 'file_operations'].map(name => [name, db.prepare('SELECT * FROM ' + name).all()]));
   db.close();
-  writeFileSync(join(evidence, 'fixture-state.json'), JSON.stringify({ pid: process.pid, origin: f.origin, root: f.root, modelBase: f.config.baseUrl, githubAddress: github?.address(), records, recallCalls, webHttp, memoryCounts, memoryFiles: Object.fromEntries(readdirSync(f.config.memoryDir, { recursive: true, encoding: 'utf8' }).filter(name => name.endsWith('.md')).map(name => [name, createHash('sha256').update(readFileSync(join(f.config.memoryDir, name))).digest('hex')])), clock: clock().toISOString(), seeded, counts,
-    sourceHttp, modelHttp, policyHttp, policyCalls, errors: f.errors.map(String), tables, snapshot: f.channel.snapshot() }, null, 2) + '\n');
+  writeFileSync(join(evidence, 'fixture-state.next'), JSON.stringify({ pid: process.pid, origin: f.origin, root: f.root, modelBase: f.config.baseUrl, githubAddress: github?.address(), records, recallCalls, webHttp, memoryCounts, memoryFiles: Object.fromEntries(readdirSync(f.config.memoryDir, { recursive: true, encoding: 'utf8' }).filter(name => name.endsWith('.md')).map(name => [name, createHash('sha256').update(readFileSync(join(f.config.memoryDir, name))).digest('hex')])), clock: clock().toISOString(), seeded, counts,
+    coordinatorRaw, sourceHttp, modelHttp, policyHttp, policyCalls, errors: f.errors.map(String), tables, snapshot: f.channel.snapshot() }, null, 2) + '\n');
+  renameSync(join(evidence, 'fixture-state.next'), join(evidence, 'fixture-state.json'));
 }
 f.workRunner?.start(); f.goalRunner?.start(); f.sourceEvents?.start(); publish();
 console.log(`离线模拟预览：${f.origin}\n临时数据：${f.root}\nPID：${process.pid}\n登录测试密钥 fake-web-access-key-with-32-bytes-for-tests\n命令status/pause/resume/routing-off；事件模式advance a|b、tick、revise a|b、fault approve|revoke、events-off/on，Ctrl+C停止。`);
 const commands = createInterface({ input: process.stdin });
 commands.on('line', line => {
   void (async () => {
-    if (line === 'pause') { await f.pauseHttp(); console.log('HTTP_PAUSED'); }
+    if (coordinator && line === 'hold-work') { holdWork = true; workGate = new Promise<void>(resolve => { heldWork = resolve; }); console.log('WORK_HELD'); }
+    else if (coordinator && line === 'hold-chat') { holdChat = true; chatGate = new Promise<void>(resolve => { heldChat = resolve; }); console.log('CHAT_HELD'); }
+    else if (coordinator && line === 'release-chat') { holdChat = false; heldChat?.(); console.log('CHAT_RELEASED'); }
+    else if (coordinator && line === 'hold-notice') { noticeMode = 'hold'; }
+    else if (coordinator && line === 'fail-notice') { noticeMode = 'fail'; }
+    else if (coordinator && line === 'release-notice') { noticeMode = ''; for (const message of delayedNotices.splice(0)) await f.channel.sendMessage(message); }
+    else if (coordinator && events && line === 'goal-notice') { const item = seeded[0]!; const goal = f.store.goals.get({ ownerId: 'local-user', target: webTarget }, item.goalId); if (goal.checkpointRunId) await f.channel.sendMessage({ target: webTarget, goalId: goal.id, runId: goal.checkpointRunId, text: '离线目标已提交片段（原Checkpoint）：' + f.store.goals.view({ ownerId: 'local-user', target: webTarget }, goal.id).checkpoint?.artifactText }); }
+    else if (coordinator && line === 'release-work') { holdWork = false; heldWork?.(); console.log('WORK_RELEASED'); }
+    else if (coordinator && line === 'delay-response') { delayResponse = true; console.log('NEXT_RESPONSE_DELAYED'); }
+    else if (coordinator && line === 'drop-response') { dropResponse = true; console.log('NEXT_RESPONSE_DROPPED'); }
+    else if (coordinator && line === 'coordinator-off') { f.config.workCoordinatorEnabled = false; await f.restart(); f.workRunner?.start(); console.log('COORDINATOR_OFF ' + f.origin); }
+    else if (line === 'pause') { await f.pauseHttp(); console.log('HTTP_PAUSED'); }
     else if (line === 'resume') console.log('HTTP_RESUMED ' + await f.resumeHttp());
     else if (line === 'routing-off') { f.config.workRoutingEnabled = false; await f.restart(); f.workRunner?.start(); console.log('ROUTING_OFF ' + f.origin); }
     else if (events && line.startsWith('advance ')) {

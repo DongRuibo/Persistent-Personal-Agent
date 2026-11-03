@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { chatTimeline } from '../web/src/chat-timeline.js';
-import type { WebChat, WebNotice, WebTask } from '../src/web-ui-types.js';
+import type { WebChat, WebNotice, WebTask, WebRequestReceipt, WebWorkJob } from '../src/web-ui-types.js';
 
 const chat = (id: string, at: string): WebChat => ({ requestId: id, text: '用户消息', run: {
   id, taskId: null, status: 'succeeded', startedAt: at, finishedAt: at, output: '回复', error: null,
@@ -43,4 +43,22 @@ test('文件提议仍走原聊天展示入口；Goal收件箱不借Task投影建
   if (entry.kind !== 'chat') assert.fail('文件提议不应转为普通后台消息');
   assert.equal(entry.chat, fileChat); assert.equal(entry.chat.run.viewed, false);
   assert.equal(goalNotice.viewedAt, null);
+});
+
+
+test('queued无Run，claimed按requestId合并；父Chat中断仍展示持久子项和原Job成果，通知不重复', () => {
+  const c = chat('run', '2026-11-03T00:00:01Z'); c.requestId = 'request'; c.run.status = 'interrupted';
+  const request = { requestId: 'request', text: '用户工作', runId: c.run.id, run: c.run, status: 'claimed', mode: 'chat', createdAt: '2026-11-03T00:00:00Z', items: [{ itemId: 'item', decision: 'work', consumedByJobId: 'job' }] } as WebRequestReceipt;
+  const queued = { ...request, requestId: 'queued', runId: null, run: null, status: 'queued', items: [] } as WebRequestReceipt;
+  const job = { id: 'job', runId: 'job-run', status: 'succeeded', createdAt: '2026-11-03T00:00:02Z', run: { ...c.run, id: 'job-run', status: 'succeeded', output: '原Job已提交成果', deliveryError: '通知失败', finishedAt: '2026-11-03T00:00:04Z' } } as WebWorkJob;
+  const data = { chats: [c], requests: [request, queued], workResults: [job, job], inbox: [{ ...notice('job-run', '2026-11-03T00:00:05Z'), taskId: null }], tasks: [] };
+  const result = chatTimeline(data); assert.equal(result.filter(e => e.kind === 'chat').length, 0); assert.equal(result.filter(e => e.kind === 'request').length, 2); assert.equal(result.filter(e => e.kind === 'work').length, 1);
+  assert.equal(result.find(e => e.kind === 'work')?.job.run?.output, '原Job已提交成果'); assert.deepEqual(chatTimeline(data), result);
+});
+
+test('新模式Goal通知投影原事实但不变更viewed或计划审批；旧模式仍沿原入口', () => {
+  const n = { ...notice('goal-event', '2026-11-03T00:00:05Z'), taskId: null, goalId: 'goal' };
+  const data = { chats: [], tasks: [], inbox: [n], requests: [], workResults: [] };
+  const result = chatTimeline(data); assert.equal(result[0]?.kind, 'goal'); assert.equal(n.viewedAt, null);
+  assert.deepEqual(chatTimeline({ chats: [], tasks: [], inbox: [n] }), []);
 });

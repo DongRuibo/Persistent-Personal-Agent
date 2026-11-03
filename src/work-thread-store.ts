@@ -31,16 +31,17 @@ export class WorkThreadStore {
       .all(actor.owner, actor.channel).map(row => ({ ...row } as unknown as WorkThread));
   }
   create(actor: WorkThreadActor, id: string, title: string, now: string): WorkThread {
-    return this.transaction(() => {
-      if (this.db.prepare('SELECT 1 FROM work_threads WHERE id=?').get(id)) {
-        const old = this.get(actor, id);
-        if (old.title !== title) throw new WorkThreadError(409, '此主题 ID 已用于其他名称');
-        return old;
-      }
-      if (this.list(actor).length >= 100) throw new WorkThreadError(409, '当前工作空间最多保留100个主题');
-      this.db.prepare("INSERT INTO work_threads VALUES(?,?,?,?,'active',?,?)").run(id, actor.owner, actor.channel, title, now, now);
-      return this.get(actor, id);
-    });
+    return this.transaction(() => this.createInTransaction(actor, id, title, now));
+  }
+  createInTransaction(actor: WorkThreadActor, id: string, title: string, now: string): WorkThread {
+    if (this.db.prepare('SELECT 1 FROM work_threads WHERE id=?').get(id)) {
+      const old = this.get(actor, id);
+      if (old.title !== title) throw new WorkThreadError(409, '此主题 ID 已用于其他名称');
+      return old;
+    }
+    if (this.list(actor).length >= 100) throw new WorkThreadError(409, '当前工作空间最多保留100个主题');
+    this.db.prepare("INSERT INTO work_threads VALUES(?,?,?,?,'active',?,?)").run(id, actor.owner, actor.channel, title, now, now);
+    return this.get(actor, id);
   }
   update(actor: WorkThreadActor, id: string, change: { title?: string; status?: WorkThread['status'] }, now: string): WorkThread {
     const old = this.get(actor, id);

@@ -32,6 +32,31 @@ npm run web:preview:offline
 
 网页普通聊天现已接入免费免 Key Tavily `web_search` / `web_fetch`，需要最新资料时由模型自动决定搜索并读取来源，无需申请或填写搜索 Key。`--web-ui` 下默认开启，可在启动环境设置 `WEB_SEARCH_ENABLED=false` 关闭；Console、飞书、后台Task/Goal不新增工具。Tavily免费模式有限流，模型调用仍按原服务商计费，不自动切换收费搜索。更新代码后重新构建、重启本机Web服务并刷新浏览器即可；运行限制见 [Web说明](docs/web-app.md#自动联网与来源)，本轮隔离真实验证见 [接入验证](docs/evaluations/tavily-web-integration.md)。
 
+## 单对话总管与独立文字工作（默认关闭）
+
+`WORK_COORDINATOR_ENABLED=false`。仅支持本机 `--web-ui`，启用时还需 `WORK_THREADS_ENABLED=true`、`WORK_JOBS_ENABLED=true`、`WORK_RECALL_ENABLED=true`；不要求开启路由建议、Goal或事件。此批仅在独立工作树离线实现，正式库迁移、正式启用和实例切换尚未执行。
+
+新模式打开默认进入对话，日常只输入和发送：普通短文、单次写作、解释、翻译和临时改写默认直接在Chat回答；仅明确交付后台处理或明确持续/分阶段推进的文字工作，以及已有工作的查询/修改/补充/取消，才由模型按需调用受控 `work_manage`，宿主只按当前完整原话接收。一次最多三项独立纯文本工作，按项显示已接收、排队、处理、成果、澄清或失败；不因有交付物、独立成稿或字数而建工作/主题；主题自动组织仅为元数据，不授予操作权限。模型漏工具仍可能只长答而未建工作，必须核对实际工作收据，不能把文字承诺当已承接。联网、文件、Task、Goal、Memory继续走原入口和授权，不由文字Worker取得这些能力。
+
+先用临时数据和固定假模型检查，不需要真实Key：
+
+```sh
+npm run web:build
+TMPDIR=/private/tmp PREVIEW_COORDINATOR=true npm run web:preview:offline
+```
+
+该预览只监听随机localhost端口，不读`.env`；`PREVIEW_COORDINATOR`是预览脚本开关，不是正式配置项。实际效果/模型质量不能由固定桩推断；正式进程的四个功能开关须另行明确设置，日常启动器只从模型配置读取既有LLM字段。
+
+接收队列最多等待八条；同requestId重试先回读、容量满时保留草稿。已接收与开始执行分开，未领取可撤回；运行中的另一工作不占接收门。消息失败或中断不会自动重放，已提交Job仍可回读并按原Job执行，刷新/通知失败不重跑模型。单关Coordinator不再领取协调队列和后继许可，**不会停止WORK_JOBS_ENABLED仍开启时已提交的普通queued Job**；同时关闭后台工作才停止其领取。
+
+修改只选择本工作一个成功前序的完整成果，加当前补充和有效原约束；来源/Hash缺失、变化或超过14KiB输入/32KiB实际HTTP上限时澄清，不拿节选冒充全文。在途补充先保存，领取前共享最早一次明确修改许可合并一轮；领取后补充归下一次许可，纯资料不自动执行。失败、中断、取消或缺少成功前序时待用户，不自动重试。稳定工作引用为根Job，同主题不能代替身份。
+
+总管和辅助解析每轮共用八次模型HTTP上限；每个Worker使用独立临时Session、零工具、一次HTTP、最多4096输出token。当前Chat原话和工具配对完整保留；后续模型只收到有限工作目录/当时收据，普通历史最多两轮总4KiB，原Session正文不删除。界面直接读取原Job/Run成果，详情和技术ID收起；网页来源沿原只读入口，文件完整预览/hash ACK与明确批准、Goal/Policy权限不变。
+
+当前没有按健身/饮食、求职面试、代码项目等语义主题自动路由到各自持久Session的能力：自动主题仅在名称完全相同时复用，Worker始终是临时Session，主Chat普通历史仅两轮总4KiB。这些主题元数据和工作续接不能当作长期主题Context。
+
+原2A显式主题/后台处理和2B建议控件在Coordinator关闭时保留。离线结果、浏览器版本区别、已保留失败和未验项见[总管评估](docs/evaluations/chat-coordinator-mvp.md)。真实模型语义、手机和长跑未验，真实请求/费用、Git发布及正式切换须另行确认。
+
 ## WorkThread：工作主题与关联（默认关闭）
 
 WorkThread 用来手动整理当前本机 Web 工作空间的 Goal、Task、Run 和 Memory。启用后在“工作主题”页创建、改名、归档/恢复主题，并添加或移除已有对象的关联。归档不暂停任务或目标，移除关联不删除原对象；主题不会自动执行、选择工具或保存记忆。
@@ -47,7 +72,7 @@ WORK_THREADS_ENABLED=true npm run web:preview:offline
 
 ## 纯文本后台工作 2A（默认关闭）
 
-在本机 Web 的对话页选择“后台工作主题”，输入本次要处理的文字，再点击“后台处理”。成功入队后会返回工作 ID、主题和提交时间；你可以继续普通聊天。展开对话中的“后台工作与结果”，或进入相应主题，查看状态、取消和完整结果；执行结束后也会进入现有收件箱。
+本节为Coordinator关闭时的显式2A路径。在本机 Web 的对话页选择“后台工作主题”，输入本次要处理的文字，再点击“后台处理”。成功入队后会返回工作 ID、主题和提交时间；你可以继续普通聊天。展开对话中的“后台工作与结果”，或进入相应主题，查看状态、取消和完整结果；执行结束后也会进入现有收件箱。
 
 `WORK_JOBS_ENABLED=false` 为默认值，只接受 `true` / `false`。启用还需 `WORK_THREADS_ENABLED=true` 和 `--web-ui` 本机模式，缺少依赖会报配置错误。零费用预览：
 
@@ -66,7 +91,7 @@ WORK_THREADS_ENABLED=true WORK_JOBS_ENABLED=true npm run web:preview:offline
 
 ## 路由建议 2B（默认关闭）
 
-同一对话输入区可选择“路由建议”，先显示本次完整原文、主题/对象建议或澄清。只有当前建议的明确确认才创建纯文本WorkJob；成功形成建议不代表已排队或完成。普通聊天和显式“后台处理”不增加Router调用。
+本节为Coordinator关闭时的2B路径。同一对话输入区可选择“路由建议”，先显示本次完整原文、主题/对象建议或澄清。只有当前建议的明确确认才创建纯文本WorkJob；成功形成建议不代表已排队或完成。普通聊天和显式“后台处理”不增加Router调用。
 
 `WORK_ROUTING_ENABLED=false`，仅支持本机 `--web-ui`，依赖 `WORK_THREADS_ENABLED=true`、`WORK_JOBS_ENABLED=true`。三个开关只接受true/false，日常启动器不会从.env读取这些开关。可先用独立临时数据与固定模型检查：
 

@@ -326,3 +326,20 @@ R1有界定位与R2成果/出处已分别独立第1轮通过。R3在主题页显
 沿原登录、Origin/CSRF和JSON传输限额，业务字段仅read入口校验；无新事实表、Run、Session或授权。Goal原committed/Hash、所有别名先GoalExecution、文件只ID/原入口、显式Memory过滤及JSON字节预算均复用R2，不改执行链或Memory实现。普通Run仅原技术记录，不冒充工作成功。
 
 UI范围变化清旧呈现、忽略迟到响应，状态仅当前组件内存。原Goal/文件导航复用现有入口；原Task详情在Recall开关内按原Web身份直查，仅当Recall服务明确证明非Goal且有权、非文件时，原Run才在用户点击后调用既有只读接口；Goal/损坏/归属不可用的Run只保留出处ID及可用的原Goal入口。明确Goal详情沿原actor按ID读取，超过最近100项不假跳列表。Recall/原Task/Run呈现不套Viewed、不写ACK或控制；打开原文件详情后的原审批流程单列。R3已正式独立第1轮通过；R4最终工程/全量730项和实际Chrome桌面/390px离线闭环已完成，正式独立第1轮PASS、无finding，见[独立报告](/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/work-core-stages/evidence/r4/reviewer-r1/review.md)；未正式启用。整体证据与真实语义/手机/长跑等限制见[交付评估](evaluations/work-core-stages.md)。
+
+
+## 单对话总管 MVP（隔离离线实现，默认关闭）
+
+`WORK_COORDINATOR_ENABLED`仅本机Web，依赖WorkThread/WorkJob/Recall；不要求旧Routing、Goal或Events。实现及验证边界见[总管评估](evaluations/chat-coordinator-mvp.md)。
+
+新模式复用原Chat/Pi公开工具，模型按需调用无参数work_manage，宿主对当前完整原话做隔离解析/一次入口校验；模型目录、历史、Memory、网页和成果都是低信任资料，不能产生新授权。不支持的/无法证明的结构保留原话澄清，不用关键词自动执行兜底；主模型漏工具的失败样例如实保留。纯文本批次最多三项，一次Frame消费；合法局部歧义可保留其他明确项，协议/来源/权限错误整批不提交。共享约束仅可证明独立且位于首项前，局部尾随约束留本项，无法证明的后置共同限制澄清。
+
+原web_ui_chats增量nullable runId/接收状态和时间，新消息先queued，领取与建Run原子提交；最多八条等待、幂等优先容量、只撤回queued。唯一新web_request_items保存稳定子项、原文范围、决策/反馈与有限许可/consumedByJobId，不另建执行框架。原work_jobs增加rootJobId/previousJobId/sourceItemId/冻结引用和Hash，结果/错误/用量仍在原Run。自动主题只做组织，不是工作身份。
+
+可信focus复用公开持久化DialogueReferences，由当前用户查询/工作操作建立；普通交流/歧义可使其失效，通知和轮询不改写。host按当前明确名称/focus缩小20对象/8KiB候选；旧工作名可越过普通list最近100上限，新独立工作不因历史多永久阻塞。续接只取一个有效完整前序、本工作原约束与本次必要补充，原三项父消息Hash不广播其他项正文；Goal来源只取原committedCheckpoint，控制仍经GoalService/Guard/Policy，不注入GoalRunner。
+
+运行中修改先登记，纯资料无执行许可；领取前补充共享最早有限许可合并一轮，领取后新增补充待下一次许可。在原WorkRunner取得lane/checkReady并让到期Task/就绪Goal优先后，同一SQLite事务重读成功前序/Hash、聚合、创建并claim后继Job/Run、消费许可；不创建可暗改的后继queued，不新调度器。失败/取消/中断不自动后继，取消撤销未消费许可。Coordinator关闭不领新协调消息或后继；已建普通queued Job是否领取仍由WorkJobs开关决定，不能把关闭Coordinator当暂停既有Job。
+
+总管+辅助解析共八次HTTP；纯文本Worker独立临时Session/零工具/一次HTTP/4096输出token，14KiB冻结输入、32KiB实际请求体和原超时。原唯一context事件链叠加投影：prompt前通过公开sendCustomMessage以details.runId记录宿主开始边界、triggerTurn:false不触发模型；公开appendCustomEntry记录同一runId的宿主结束分类，不进入模型context。边界不猜原文字串，不改SDK数组或Session格式。当前完整原话/工具配对及Guard原ExecutionRequest保留，历史工作只有限目录/focus/当时收据/来源，普通完整纯文字历史最多两轮4KiB；旧无标记/缺结束混合历史只引用，原JSONL不删改。Memory/Web低信任预算继续原链，不被投影跳过。
+
+新UI以requestId合并queued/claimed旧聊天、itemId稳定反馈、jobId/runId去重成果。只读最多100关联Job/Run，根请求自身范围生成短标题，续接JSON不当标题；通知失败/父Chat中断仍能从原成果读取，不额外唤醒模型。已获准Goal事实仅投影原通知，原文件完整预览/hash ACK与明确decision、Goal/Policy/Task/Memory权限保持；网页来源复用原WebSources成功/失败/截断入口，展开只读原Run而不重搜。旧显式工作台仅辅助，Coordinator关闭时旧路径保留。

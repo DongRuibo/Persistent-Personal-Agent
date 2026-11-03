@@ -226,6 +226,7 @@ function App() {
   const [historyRevokeRetry, setHistoryRevokeRetry] = useState<WorkRouteRequest | null>(null);
   const [routeChanging, setRouteChanging] = useState(false), [invalidRoutes, setInvalidRoutes] = useState<string[]>([]);
   const [objectChoice, setObjectChoice] = useState("");
+  const draftVersion = useRef(0);
   const currentRoute = useRef<{ input: WorkRouteRequest; invalid: boolean } | null>(null);
   const routeRestored = useRef(false);
   const [receipt, setReceipt] = useState<WorkJob | null>(null), [jobsRevision, setJobsRevision] = useState(0);
@@ -261,6 +262,7 @@ function App() {
         }
       }
       setData(snapshot);
+      if (snapshot.capabilities.workCoordinator && !location.hash) setPage("chat");
       setOnline(true);
       setError("");
     } catch (e) {
@@ -448,7 +450,7 @@ function App() {
     current.invalid = true; setRouteRetry(null);
     void revokeRoute(current.input);
   };
-  const changeDraft = (text: string) => { invalidateRoute(); setDraft(text); };
+  const changeDraft = (text: string) => { draftVersion.current++; invalidateRoute(); setDraft(text); };
   const requestRoute = async (existing?: WorkRouteRequest) => {
     if (!online || routeSending || (!existing && (!draft.trim() || data?.capabilities.workRoutingBusy))) return;
     const [kind, id] = objectChoice.split(":");
@@ -486,7 +488,7 @@ function App() {
     if (view.requestId !== currentId && !view.revoked && !view.job) {
       void revokeRoute({ mode: "suggest", requestId: view.requestId, text: view.text, selection: view.selection }, true);
     }
-    setDraft(view.text); navigate("chat");
+    draftVersion.current++; setDraft(view.text); navigate("chat");
     if (view.text.length > 10000) setError("完整原文已放回输入框，但超过原聊天10000字符上限；请编辑后发送，未截断或自动提交。");
     setTimeout(() => textarea.current?.focus(), 50);
   };
@@ -494,7 +496,7 @@ function App() {
     if (
       sending ||
       !online ||
-      (!existing && (!draft.trim() || (!background && data?.capabilities.busy) || (background && !threadId)))
+      (!existing && (!draft.trim() || (!background && data?.capabilities.busy && !data.capabilities.workCoordinator) || (background && !threadId)))
     )
       return;
     const body = existing ?? {
@@ -503,6 +505,7 @@ function App() {
       ...(background ? { threadId } : {}),
     };
     if (!body.threadId && body.text.length > 10000) { setError("原聊天最多10000字符，请编辑后发送；全文已保留。"); return; }
+    const version = draftVersion.current;
     setSending(true);
     setRetry(body);
     setError("");
@@ -511,7 +514,7 @@ function App() {
         setReceipt(await api<WorkJob>("/work-jobs", body));
         setJobsRevision(v => v + 1);
       } else await api("/chat", body);
-      changeDraft("");
+      if (draftVersion.current === version && draft.trim() === body.text) changeDraft("");
       setRetry(null);
       await refresh();
     } catch (e) {
@@ -970,7 +973,7 @@ function App() {
                       <p>
                         <span className="status-dot" />
                         {data.capabilities.busy
-                          ? "正在执行 · 可在动态中查看结果"
+                          ? data.capabilities.workCoordinator ? "正在处理消息 · 仍可继续发送" : "正在执行 · 可在动态中查看结果"
                           : "随时就绪 · 重要操作由你确认"}
                       </p>
                     </div>
@@ -990,7 +993,7 @@ function App() {
                         <div className="suggestion-grid">
                           <button
                             onClick={() =>
-                              setDraft("帮我梳理一下今天要做的事情。")
+                              changeDraft("帮我梳理一下今天要做的事情。")
                             }
                           >
                             <MessageSquare size={19} />
@@ -999,7 +1002,7 @@ function App() {
                             <ArrowUpRight size={14} />
                           </button>
                           <button
-                            onClick={() => setDraft("10分钟后提醒我休息一下")}
+                            onClick={() => changeDraft("10分钟后提醒我休息一下")}
                           >
                             <Clock3 size={19} />
                             <strong>安排一个提醒</strong>
@@ -1010,6 +1013,50 @@ function App() {
                       </div>
                     )}
                     {timeline.map((item) => {
+                      if (item.kind === "request") {
+                        const request = item.request, run = request.run;
+                        return <div key={item.id} className="chat-turn coordinator-request" data-request-id={request.requestId}>
+                          <div className="message user"><div className="message-content"><p>{request.text}</p><small>你 · {time(request.createdAt)}</small></div><div className="avatar small">我</div></div>
+                          <div className="message assistant"><div className="agent-avatar small"><Sparkles size={17} /></div><div className="message-content">
+                            <div className="assistant-label">Personal Agent · {request.status === "queued" ? "已收到 · 等待处理" : request.status === "cancelled" ? "已撤回 · 未处理" : run?.status === "running" ? "正在处理消息" : run?.status === "succeeded" ? "消息已处理" : run?.status === "interrupted" ? "消息回应中断" : run?.status === "failed" ? "消息回应失败" : "已接收"}</div>
+                            {request.status === "queued" && <button onClick={() => void api(`/chat-requests/${request.requestId}/cancel`, {}).then(refresh).catch(e => setError(e.message))}>撤回未处理消息</button>}
+                            {request.items.map(part => {
+                              const target = data.workResults?.find(job => job.id === part.targetId || job.id === part.consumedByJobId);
+                              const name = target?.title ? `“${target.title}”` : "这项工作";
+                              const feedback = part.decision === "work" ? `${name}已接收，进度和成果见下方。`
+                                : part.decision === "query" ? `${name}：${labels[target?.status ?? ""] ?? "请查看原对象详情"}。`
+                                : part.decision === "cancel" ? `${name}的取消请求已处理，当前状态以工作卡为准。`
+                                : part.decision === "feedback" ? part.consumedByJobId ? `${name}的补充已采纳到下一轮工作。`
+                                  : part.permission === "needs_user" ? "补充已收到，需要你处理；尚未采纳。"
+                                  : part.permission === "revoked" ? "修改许可已撤销，补充未采纳。"
+                                  : part.permission === "none" ? "资料已收到，尚无新的执行许可。" : "修改已收到，等待成功前序和执行机会；尚未采纳。"
+                                : part.receipt;
+                              return <div className="request-item" key={part.itemId} data-item-id={part.itemId}>
+                                <Prose text={feedback} />
+                              </div>;
+                            })}
+                            {run?.fileOperationId ? <button onClick={() => openFile(run.fileOperationId!)}>查看完整文件预览<FileText size={15} /></button>
+                              : run?.output && !request.items.length ? <Viewed run={run} onAck={() => void refresh()}><Prose text={run.output} /></Viewed>
+                              : run?.error ? <p className="error">{run.error}</p> : null}
+                            {run?.truncated && <p className="muted">当前显示节选，原文在详情中保留。</p>}
+                            {run && <WebSources run={run} load={() => api<WebRun>(`/runs/${run.id}`)} />}
+                            <details><summary>消息详情</summary><p>请求 {request.requestId}</p>{request.items.map(part => <div key={part.itemId}><Prose text={part.receipt} /><p>子项 {part.itemId} · {part.permission}</p>{part.consumedByJobId && <p>采纳工作 {part.consumedByJobId}</p>}</div>)}{run && <p>Run {run.id} · {run.usage.calls} 次模型响应</p>}</details>
+                          </div></div>
+                        </div>;
+                      }
+                      if (item.kind === "work") {
+                        const job = item.job;
+                        return <div key={item.id} className="chat-turn coordinator-result" data-job-id={job.id}><div className="message assistant"><div className="agent-avatar small"><Check size={17} /></div><div className="message-content">
+                          <div className="assistant-label"><strong>{job.title ?? "文字工作"}</strong> <Badge status={job.status} label={job.status === "succeeded" ? "成果已提交" : undefined} /></div>
+                          <details><summary>工作来源与详情</summary><p>{job.instruction}</p><p>工作 {job.id} · 主题 {job.threadId}</p>{job.run && <p>Run {job.run.id} · {job.run.usage.calls} 次模型响应</p>}</details>
+                          {job.run?.output ? <Prose text={job.run.output} /> : <p>{job.run?.error ?? (job.status === "queued" ? "工作已排队，尚未开始。" : job.status === "running" ? "正在处理这项工作…" : labels[job.status])}</p>}
+                          {job.run?.truncated && <p className="muted">成果过长，当前显示节选。</p>}
+                          {job.run?.deliveryError && <p className="error">{job.run.deliveryError} · 已提交成果仍可查看，无需重新执行。</p>}
+                          {(job.status === "queued" || job.status === "running") && <button onClick={() => void api(`/work-jobs/${job.id}/cancel`, {}).then(refresh).catch(e => setError(e.message))}>取消这项工作</button>}
+                        </div></div></div>;
+                      }
+                      if (item.kind === "goal") return <div key={item.id} className="chat-turn"><div className="message assistant"><div className="message-content"><div className="assistant-label">目标事件 · 当时通知</div><Prose text={item.notice.text} /><button onClick={() => { setSelectedGoal(item.notice.goalId!); navigate("goals"); }}>查看原目标详情</button><details><summary>来源详情</summary><p>Goal {item.notice.goalId} · Run {item.notice.runId} · {time(item.at)}</p></details></div></div></div>;
+
                       if (item.kind === "task") return (
                         <div
                           key={item.id}
@@ -1028,9 +1075,9 @@ function App() {
                                 <p><strong>提醒你：{item.task.instruction}</strong></p>
                               )}
                               <Prose text={item.notice.text} />
-                              <small className="run-meta">
+                              {data.capabilities.workCoordinator ? <details><summary>来源详情</summary><p>{time(item.at)} · Run {item.notice.runId}</p></details> : <small className="run-meta">
                                 {time(item.at)} · Run {item.notice.runId.slice(0, 8)}
-                              </small>
+                              </small>}
                               {!item.notice.viewedAt ? (
                                 <button
                                   className="text-button"
@@ -1102,23 +1149,23 @@ function App() {
                                 </p>
                               )}
                               <WebSources run={c.run} load={() => api<WebRun>(`/runs/${c.run.id}`)} />
-                              <small className="run-meta">
+                              {data.capabilities.workCoordinator ? <details><summary>消息详情</summary><p>Run {c.run.id} · {c.run.usage.calls} 次模型响应</p></details> : <small className="run-meta">
                                 Run {c.run.id.slice(0, 8)} · {c.run.usage.calls}{" "}
                                 次模型响应
-                              </small>
+                              </small>}
                             </div>
                           </div>
                         </div>
                       );
                     })}
-                    {data.capabilities.workJobs && <details className="chat-work-jobs">
+                    {data.capabilities.workJobs && !data.capabilities.workCoordinator && <details className="chat-work-jobs">
                       <summary>后台工作与结果</summary>
                       <WorkJobs api={api} labels={labels} revision={jobsRevision} />
                     </details>}
                     <div ref={chatEnd} />
                   </div>
                   <div className="composer-area">
-                    {data.capabilities.workJobs && <div className="work-submit">
+                    {data.capabilities.workJobs && !data.capabilities.workCoordinator && <div className="work-submit">
                       <label htmlFor="work-job-thread">本次主题（后台处理必选）</label>
                       <select id="work-job-thread" value={threadId} disabled={sending || !!retry} onChange={e => { invalidateRoute(); setThreadId(e.target.value); }}>
                         <option value="">选择主题后可后台处理</option>
@@ -1128,7 +1175,7 @@ function App() {
                         onClick={() => void send(undefined, true)}>后台处理</button>
                       <small className="muted">仅处理本次文字；完成后进入主题和收件箱，你可继续聊天。</small>
                     </div>}
-                    {data.capabilities.workRouting && <div className="work-route-controls">
+                    {data.capabilities.workRouting && !data.capabilities.workCoordinator && <div className="work-route-controls">
                       <label htmlFor="work-route-object">明确对象（可选）</label>
                       <select id="work-route-object" value={objectChoice} onChange={e => { invalidateRoute(); setObjectChoice(e.target.value); }}>
                         <option value="">由本次原文请求建议</option>
@@ -1199,7 +1246,7 @@ function App() {
                           disabled={
                             !draft.trim() ||
                             sending ||
-                            data.capabilities.busy ||
+                            (data.capabilities.busy && !data.capabilities.workCoordinator) ||
                             !online ||
                             !!retry
                           }

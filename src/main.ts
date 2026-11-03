@@ -23,6 +23,7 @@ import { WorkRunner } from './work-runner.js';
 import { GoalService } from './goal-service.js';
 import { GitHubObserver } from './github-observer.js';
 import { SourceEventService } from './source-event-service.js';
+import { WorkCoordinatorService } from './work-coordinator.js';
 import { WebUiChannel, webChatKey, webTarget, webOwner } from './web-ui-channel.js';
 import { WebUiServer, readWebUiConfig, prepareWebUiData } from './web-ui-server.js';
 
@@ -35,6 +36,7 @@ export async function main(webService?: WebReadService): Promise<void> {
   const webConfig = args.includes('--web-ui') ? readWebUiConfig() : undefined;
   const config = readConfig(webConfig ? { ...process.env, WEB_SEARCH_ENABLED: process.env.WEB_SEARCH_ENABLED ?? 'true', DATABASE_PATH: resolve(webConfig.dataDir, 'agent.db'),
     SESSION_DIR: resolve(webConfig.dataDir, 'sessions'), MEMORY_DIR: resolve(webConfig.dataDir, 'memory') } : process.env);
+  if (config.workCoordinatorEnabled && !webConfig) throw new Error('WORK_COORDINATOR_ENABLED 仅支持 --web-ui 本机模式');
   if (config.workRecallEnabled && !webConfig) throw new Error('WORK_RECALL_ENABLED 仅支持 --web-ui 本机模式');
   if (config.workEventsEnabled && !webConfig) throw new Error('WORK_EVENTS_ENABLED 仅支持 --web-ui 本机模式');
   if (config.workRoutingEnabled && !webConfig) throw new Error('WORK_ROUTING_ENABLED 仅支持 --web-ui 本机模式');
@@ -89,8 +91,9 @@ export async function main(webService?: WebReadService): Promise<void> {
     const chatKey = webConfig ? webChatKey : feishuConfig ? JSON.stringify(['feishu', feishuConfig.appId, feishuConfig.allowedOpenId]) : 'console';
     if (config.formation?.enabled) formation = new FormationService({ ...config.formation, owner: createHash('sha256').update(chatKey).digest('hex') }, store, { listForHost: () => memory!.listForHost() }, [config.apiKey, process.env.FEISHU_APP_SECRET ?? '']);
     const goals = config.goalEnabled ? new GoalService(store, tasks, id => goalRunner?.interrupt(id)) : undefined;
+    const coordinator = config.workCoordinatorEnabled && webConfig ? new WorkCoordinatorService(store, { owner: webOwner, channel: JSON.stringify(webTarget) }, id => workRunner?.interrupt(id), config.goalEnabled) : undefined;
     executor = await createPiExecutor(config, tasks, chatKey, memory, formation, lane, goals,
-      config.webReadEnabled ? { service: webService ?? new WebReadService(), store: store.web } : undefined,store.files, webConfig && config.webSearchEnabled ? new TavilyService() : undefined);
+      config.webReadEnabled ? { service: webService ?? new WebReadService(), store: store.web } : undefined,store.files, webConfig && config.webSearchEnabled ? new TavilyService() : undefined, coordinator);
     if (shutdown.signal.aborted) return;
     const recovered = store.recoverInterrupted(new Date().toISOString());
     const otherGoals = config.goalEnabled ? store.goals.readyForHost().filter(goal => goal.ownerId !== 'local-user' || (feishuConfig
@@ -119,7 +122,7 @@ export async function main(webService?: WebReadService): Promise<void> {
         if (goal.target.channel !== 'web') goals.displayed(goal, runId);
       } });
     if (webChannel?.workRouter) workRunner = new WorkRunner(store, executor, channels, lane, {
-      actor: webChannel.workRouter.actor, target: webTarget, pollIntervalMs: config.pollIntervalMs,
+      actor: webChannel.workRouter.actor, target: webTarget, pollIntervalMs: config.pollIntervalMs, coordinatorEnabled: config.workCoordinatorEnabled, goalsEnabled: config.goalEnabled,
       goalReady: () => !!goals && store!.goals.readyForHost().some(goal => goal.ownerId === 'local-user'
         && goal.target.channel === 'web' && goal.target.userId === webTarget.userId
         && (goal.readyInput?.kind !== 'policy' || !!config.proactive?.enabled)),

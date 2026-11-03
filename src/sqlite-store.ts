@@ -9,6 +9,8 @@ import { WebReadStore } from './web-read-store.js';
 import { FileOperationStore } from './file-operation-store.js';
 import { WebUiStore } from './web-ui-store.js';
 import { WorkThreadStore } from './work-thread-store.js';
+import { fullWorkResult } from './work-recall.js';
+import { WorkCoordinatorStore } from './work-coordinator-store.js';
 import { WorkJobStore } from './work-job-store.js';
 import { SourceEventStore } from './source-event-store.js';
 
@@ -23,6 +25,7 @@ export class SqliteStore {
   readonly webUi: WebUiStore;
   readonly workThreads: WorkThreadStore;
   readonly workJobs: WorkJobStore;
+  readonly workCoordinator: WorkCoordinatorStore;
   readonly sourceEvents: SourceEventStore;
 
   constructor(path: string, private readonly redact: (value: unknown) => string = String) {
@@ -79,6 +82,8 @@ export class SqliteStore {
       transaction: fn => this.transaction(fn), begin: now => this.beginRunInTransaction(null, now),
       finish: (id, status, now, output, error) => { this.finishRunInTransaction(id, status, now, output, error); },
     });
+    this.workCoordinator = new WorkCoordinatorStore(this.db, { transaction: fn => this.transaction(fn), jobs: this.workJobs, threads: this.workThreads, goals: this.goals, result: (actor, source, enabled) => fullWorkResult(this, actor, source, enabled),
+      event: (runId, details, now) => this.event(runId, 'work_request_committed', details, now) });
     this.sourceEvents = new SourceEventStore(this.db, { transaction: fn => this.transaction(fn),
       begin: now => this.beginRunInTransaction(null, now),
       finish: (id, now) => { this.finishRunInTransaction(id, 'succeeded', now, '用户明确许可固定GitHub只读观察，非执行授权'); },

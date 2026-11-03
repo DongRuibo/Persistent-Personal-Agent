@@ -1,3 +1,7 @@
+import { createHash } from 'node:crypto';
+import type { SqliteStore } from './sqlite-store.js';
+import type { WorkThreadActor } from './work-thread-types.js';
+import type { WorkInputReference } from './work-job-types.js';
 import type { MemoryRecord } from './contracts.js';
 import { WorkJobError } from './work-job-store.js';
 import { WorkThreadError } from './work-thread-store.js';
@@ -275,4 +279,41 @@ export class WorkRecallService {
     }
     return result('clarify', threads, objects, objects.length ? '请明确选择需要查找的对象。' : '当前范围未定位到对象，请补充可见标题或明确ID；未查询全部历史。');
   }
+}
+
+
+export type WorkResultReference = Exclude<WorkInputReference, { kind: 'request' }>;
+export interface FullWorkResult { reference: WorkResultReference; text: string; objective: string; originalInput?: string }
+// 续接专用全文路径；Recall卡片的4096字符节选不能用于完整改写，也不能回退Goal技术Run。
+export function fullWorkResult(store: SqliteStore, actor: WorkThreadActor,
+  source: { kind: 'job' | 'goal'; id: string; runId?: string }, goalsEnabled: boolean): FullWorkResult | undefined {
+  const hash = (text: string) => createHash('sha256').update(text).digest('hex');
+  const goalActor = { ownerId: 'local-user', target: JSON.parse(actor.channel) };
+  if (source.kind === 'goal') {
+    if (!goalsEnabled) return undefined;
+    let goal;
+    try { goal = store.goals.get(goalActor, source.id); }
+    catch (error) { if (error instanceof Error && error.message === 'Goal 不存在或无权访问') return undefined; throw error; }
+    const runId = source.runId ?? goal.checkpointRunId;
+    if (!runId || ['running', 'ready', 'cancelled'].includes(goal.status)
+      || store.policies.hasActiveForGoal(goalActor, goal.id)) return undefined;
+    const execution = store.goals.recallExecution(goalActor, runId, true);
+    if (execution.kind !== 'goal' || execution.goalId !== goal.id || execution.status !== 'committed' || !execution.checkpoint) return undefined;
+    let approved;
+    try { approved = store.goals.executionForHost(runId); }
+    catch (error) { if (error instanceof Error && error.message === 'Goal Execution Hash 不一致') return undefined; throw error; }
+    return { reference: { kind: 'goal_result', goalId: goal.id, runId, checkpointHash: execution.checkpointHash!, objectiveHash: hash(goal.objective), inputHash: approved.inputHash, hash: hash(execution.checkpoint.artifactText) },
+      text: execution.checkpoint.artifactText, objective: goal.objective, originalInput: goal.objective + '\n成果对应的已批准步骤：\n' + JSON.stringify(approved.input.step) };
+  }
+  let job;
+  try { job = store.workJobs.get(actor, source.id); }
+  catch (error) { if (error instanceof WorkJobError && error.status === 404) return undefined; throw error; }
+  if (job.status !== 'succeeded' || !job.runId || source.runId && source.runId !== job.runId
+    || job.inputHash && hash(job.instruction) !== job.inputHash) return undefined;
+  const execution = store.goals.recallExecution(goalActor, job.runId, goalsEnabled);
+  if (execution.kind !== 'none' || store.webUi.fileForRun(actor.owner, actor.channel, job.runId)) return undefined;
+  const run = store.getRun(job.runId);
+  if (!run || run.status !== 'succeeded' || run.output === null) return undefined;
+  return { reference: { kind: 'job_result', jobId: job.id, runId: run.id, hash: hash(run.output), inputHash: hash(job.instruction), rootInputHash: hash(store.workJobs.get(actor, job.rootJobId).instruction) }, text: run.output,
+    objective: store.workJobs.get(actor, job.rootJobId).instruction };
 }

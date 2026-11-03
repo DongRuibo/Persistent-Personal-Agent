@@ -48,7 +48,7 @@ test('旧Web请求表增量mode/context默认值、显式INSERT及重开保留�
     const task = store.createTask('旧任务', now, now, webTarget); store.finishRun(old.id, 'succeeded', now, '旧回答'); store.close();
     const db = new DatabaseSync(path); db.exec('ALTER TABLE web_ui_chats DROP COLUMN selectionJson; ALTER TABLE web_ui_chats DROP COLUMN mode;'); db.close();
     store = new SqliteStore(path);
-    assert.deepEqual({ ...store.webUi.find(webOwner, requestId) }, { requestId, runId: old.id, text: '旧聊天原文', mode: 'chat', selectionJson: '{}' });
+    assert.deepEqual({ ...store.webUi.find(webOwner, requestId) }, { requestId, runId: old.id, text: '旧聊天原文', mode: 'chat', selectionJson: '{}', status: 'claimed', createdAt: now, coordinator: 0 });
     assert.deepEqual(store.getTask(task.id), task); assert.equal(store.getRun(old.id)?.output, '旧回答');
     const newId = randomUUID(), selectionJson = JSON.stringify({ threadId: randomUUID() });
     const added = store.webUi.accept(webOwner, newId, '新建议', now, 'suggest', selectionJson); store.close(); store = new SqliteStore(path);
@@ -161,7 +161,7 @@ test('建议在途普通Chat仍可用；撤销中断建议，迟到响应/旧撤
     assert.equal(f.channel.snapshot().chats[0]?.run.status, 'succeeded');
     const revoked = await f.request(`/api/work-routes/${old.requestId}/revoke`, expected(old)); assert.equal(revoked.status, 200);
     const events = f.store.events((await revoked.json() as WebWorkRoute).run.id); unblock(); await delay(50);
-    assert.deepEqual(f.store.events(f.store.webUi.find(webOwner, old.requestId)!.runId), events);
+    assert.deepEqual(f.store.events(f.store.webUi.find(webOwner, old.requestId)!.runId!), events);
     const next = f.input('用户编辑后的新原文'); await submit(f, next); const view = await settled(f, next.requestId); assert.equal(view.text, next.text);
     assert.equal((await f.request(`/api/work-routes/${old.requestId}/revoke`, expected(old))).status, 200);
     assert.equal((await settled(f, next.requestId)).revoked, false); assert.equal(f.store.workJobs.list(f.channel.workThreads!.binding).length, 0);

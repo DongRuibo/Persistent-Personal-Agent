@@ -16,6 +16,7 @@ import type { FileMemoryService } from './memory-service.js';
 import type { SourceEventService } from './source-event-service.js';
 import { WorkThreadService } from './work-thread-service.js';
 import { WorkRouter, prepareWorkRoute, suggestWorkRoute } from './work-router.js';
+import type { WebRequestReceipt } from './web-ui-types.js';
 import type { WebWorkJob } from './web-ui-types.js';
 import type { WebSearchCall } from './web-search-types.js';
 
@@ -34,6 +35,7 @@ export class WebUiChannel implements Channel {
   get eventsEnabled(): boolean { return !!this.config.workEventsEnabled && !!this.sourceEvents; }
   readonly workRouter?: WorkRouter;
   private readonly history?: WorkRecallService;
+  get coordinatorEnabled(): boolean { return !!this.config.workCoordinatorEnabled; }
   get recallEnabled(): boolean { return !!this.config.workRecallEnabled && !!this.history; }
   constructor(private readonly store: SqliteStore, private readonly tasks: TaskService, private readonly executor: AgentExecutor,
     private readonly config: Config, private readonly goals?: GoalService, private readonly lane?: BackgroundLane,
@@ -76,8 +78,8 @@ export class WebUiChannel implements Channel {
     const actor = { ownerId: 'local-user', target: webTarget };
     if (old) {
       if (old.mode !== 'policy' || old.selectionJson !== payload || old.text !== 'Web独立策略操作：' + input.action) throw new WebUiError(409, '此请求ID已用于其他模式或策略内容');
-      const policy = this.store.policies.sourceReceipt(actor, old.runId);
-      return { requestId: input.requestId, runId: old.runId, policy, status: policy ? 'applied' : 'not_applied',
+      const policy = this.store.policies.sourceReceipt(actor, old.runId!);
+      return { requestId: input.requestId, runId: old.runId!, policy, status: policy ? 'applied' : 'not_applied',
         message: policy ? '原策略操作已提交；本次只读取收据。' : '原请求未完成策略批准，未自动重放；请核对状态后发起新操作。' };
     }
     if (this.shutdown.signal.aborted) throw new WebUiError(503, '服务正在停止');
@@ -138,6 +140,7 @@ export class WebUiChannel implements Channel {
     const old = this.store.webUi.find(webOwner, requestId);
     if (old) {
       if (old.mode !== 'chat' || old.selectionJson !== '{}' || old.text !== text) throw new WebUiError(409, '此请求 ID 已用于其他内容');
+      if (!old.runId) throw new WebUiError(409, '原消息尚未领取；请通过消息收据查询或撤回');
       return this.run(old.runId);
     }
     if (this.shutdown.signal.aborted) throw new WebUiError(503, '服务正在停止');
@@ -145,8 +148,41 @@ export class WebUiChannel implements Channel {
     before?.();
     const run = this.store.webUi.accept(webOwner, requestId, text, new Date().toISOString());
     const release = this.lane?.foreground();
-    this.work = this.process(run.id, text).catch(this.reportError).finally(() => { this.work = undefined; release?.(); });
+    this.work = this.process(run.id, text).catch(this.reportError).finally(() => { this.work = undefined; release?.(); this.start(); });
     return this.run(run.id);
+  }
+  receive(requestId: string, text: string): WebRun | WebRequestReceipt {
+    if (!this.coordinatorEnabled) return this.submit(requestId, text);
+    const old = this.store.webUi.find(webOwner, requestId);
+    if (old && !old.coordinator) return this.submit(requestId, text);
+    // 停机仍允许原收据回读；新消息不能在停止后接收。
+    if (this.shutdown.signal.aborted && !old) throw new WebUiError(503, '服务正在停止');
+    this.store.webUi.enqueue(webOwner, requestId, text, new Date().toISOString());
+    const receipt = this.request(requestId);
+    this.start();
+    return receipt;
+  }
+  request(requestId: string): WebRequestReceipt {
+    const row = this.store.webUi.find(webOwner, requestId);
+    if (!row?.coordinator) throw new WebUiError(404, '消息收据不存在');
+    const { selectionJson: _selection, coordinator: _coordinator, ...receipt } = row;
+    return { ...receipt, run: row.runId ? this.run(row.runId, false) : null,
+      items: this.store.workCoordinator.items({ owner: webOwner, channel: targetJson }, requestId) };
+  }
+  cancelRequest(requestId: string): WebRequestReceipt {
+    this.store.webUi.cancelQueued(webOwner, requestId);
+    return this.request(requestId);
+  }
+  start(): void {
+    if (!this.coordinatorEnabled || this.shutdown.signal.aborted || this.work) return;
+    const row = this.store.webUi.claim(webOwner, new Date().toISOString());
+    if (!row) return;
+    // foreground只覆盖当前回合；排队本身不占后台门，每轮结束后交还事件循环。
+    const release = this.lane?.foreground();
+    this.work = this.process(row.runId!, row.text).catch(this.reportError).finally(() => {
+      this.work = undefined; release?.();
+      setImmediate(() => { try { this.start(); } catch (error) { this.reportError(error); } });
+    });
   }
   private async process(id: string, text: string): Promise<void> {
     try {
@@ -165,7 +201,7 @@ export class WebUiChannel implements Channel {
     if (!this.routingEnabled) throw new WebUiError(404, '接口不存在');
     const row = this.store.webUi.find(webOwner, requestId);
     if (!row || row.mode !== 'suggest') throw new WebUiError(404, '路由建议不存在');
-    const run = this.run(row.runId), events = this.store.events(row.runId);
+    const run = this.run(row.runId!), events = this.store.events(row.runId!);
     const event = events.findLast(event => event.type === 'work_route_suggested');
     let suggestion: WorkRouteSuggestion | null = null;
     if (run.status === 'succeeded' && event?.details) {
@@ -173,7 +209,7 @@ export class WebUiChannel implements Channel {
       suggestion = { ...ids, [ids.kind === 'clarify' ? 'question' : 'reason']: run.output ?? '' } as WorkRouteSuggestion;
     }
     const job = this.store.workJobs.findRequest(this.workThreads!.binding, requestId);
-    const privateError = this.store.getRun(row.runId)!.error;
+    const privateError = this.store.getRun(row.runId!)!.error;
     return { requestId, text: row.text, selection: JSON.parse(row.selectionJson), run, suggestion,
       revoked: events.some(event => event.type === 'work_route_revoked'),
       job: job && suggestion?.kind === 'work' && job.threadId === suggestion.threadId && job.instruction === row.text ? job : null,
@@ -220,7 +256,7 @@ export class WebUiChannel implements Channel {
       this.store.finishRun(run.id, 'interrupted', new Date().toISOString(), undefined, '接纳前已撤销路由建议');
       row = this.store.webUi.find(webOwner, input.requestId)!;
     }
-    if (!this.store.events(row.runId).some(event => event.type === 'work_route_revoked')) this.store.event(row.runId, 'work_route_revoked');
+    if (!this.store.events(row.runId!).some(event => event.type === 'work_route_revoked')) this.store.event(row.runId!, 'work_route_revoked');
     if (this.routing?.requestId === input.requestId) { this.routing.controller.abort(); await this.routing.work; }
     return this.workRoute(input.requestId);
   }
@@ -295,11 +331,27 @@ export class WebUiChannel implements Channel {
       return { id: f.id, runId: f.runId, path: f.path, kind: f.kind, hash: f.hash, contentHash: f.contentHash,
         createdAt: f.createdAt, expires: f.expires, status: f.status, acknowledged: f.acknowledged };
     });
+    const requests = this.coordinatorEnabled ? this.store.webUi.requests(webOwner).reverse().map(row => this.request(row.requestId)) : [];
+    // 结果直接读取已鉴权子项关联的原Job/Run；通知失败不影响交付，也不触发执行。
+    const jobIds = new Set<string>();
+    for (const request of requests) for (const item of request.items) {
+      if (item.targetKind === 'job' && item.targetId) jobIds.add(item.targetId);
+      if (item.consumedByJobId) jobIds.add(item.consumedByJobId);
+    }
+    const workResults = [...jobIds].slice(-100).map(id => {
+      const job = this.job(id), actor = this.workRouter!.actor, root = this.store.workJobs.get(actor, job.rootJobId);
+      const source = root.sourceItemId ? this.store.workCoordinator.item(actor, root.sourceItemId) : undefined;
+      const parent = source ? this.store.webUi.find(webOwner, source.requestId) : undefined;
+      const own = source?.ranges.find(range => range.role === 'instruction');
+      const title = (own && parent ? parent.text.slice(own.start, own.end) : root.instruction).split('\n')[0]!.slice(0,120);
+      return { ...job, title };
+    });
     return { chats, tasks, goals, files,
+      ...(this.coordinatorEnabled ? { requests, workResults } : {}),
       ...(this.routingEnabled ? { suggestions: this.store.webUi.chats(webOwner, 'suggest').reverse().map(row => this.workRoute(row.requestId)) } : {}),
       activity: this.store.webUi.runs(webOwner, targetJson).map(id => this.run(id, false)), inbox,
       capabilities: { goal: !!this.goals, skills: this.executor.skills?.list().map(s => s.id) ?? [], filesRead: !!this.config.localFiles?.enabled,
-        filesWrite: !!this.config.localOutput?.enabled, webRead: !!this.config.webReadEnabled, webSearch: !!this.config.webSearchEnabled, workThreads: !!this.workThreads, workJobs: !!this.workRouter, ...(this.eventsEnabled ? { workEvents: true } : {}), ...(this.recallEnabled ? { workRecall: true } : {}), ...(this.routingEnabled ? { workRouting: true, workRoutingBusy: !!this.routing } : {}), busy: !!this.work, push: false } };
+        filesWrite: !!this.config.localOutput?.enabled, webRead: !!this.config.webReadEnabled, webSearch: !!this.config.webSearchEnabled, workThreads: !!this.workThreads, workJobs: !!this.workRouter, ...(this.eventsEnabled ? { workEvents: true } : {}), ...(this.recallEnabled ? { workRecall: true } : {}), ...(this.coordinatorEnabled ? { workCoordinator: true } : {}), ...(this.routingEnabled ? { workRouting: true, workRoutingBusy: !!this.routing } : {}), busy: !!this.work, push: false } };
   }
   async sendMessage(message: OutboundMessage): Promise<void> {
     if (message.target?.channel !== 'web' || message.target.userId !== webTarget.userId || !message.runId
@@ -310,6 +362,11 @@ export class WebUiChannel implements Channel {
     if (!this.store.webUi.inbox(webOwner).some(n => n.runId === id)) throw new WebUiError(404, '通知不存在');
     this.store.webUi.viewNotice(webOwner, id);
   }
-  async drain(): Promise<void> { await Promise.all([this.work, this.routing?.work]); }
+  async drain(): Promise<void> {
+    do {
+      await Promise.all([this.work, this.routing?.work]);
+      this.start();
+    } while (this.work || this.routing);
+  }
   async stop(): Promise<void> { this.shutdown.abort(); await Promise.all([this.work, this.routing?.work]); }
 }

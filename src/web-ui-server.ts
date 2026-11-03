@@ -8,6 +8,7 @@ import { readFile, mkdir, readdir, writeFile } from 'node:fs/promises';
 import { resolve, sep, join, isAbsolute } from 'node:path';
 import { once } from 'node:events';
 import { WebUiChannel, WebUiError } from './web-ui-channel.js';
+import { WebRequestError } from './web-ui-store.js';
 import { WorkJobError } from './work-job-store.js';
 import { workInputBytes } from './work-job-types.js';
 import { SourceEventError } from './source-event-store.js';
@@ -97,8 +98,8 @@ export class WebUiServer {
   private origin = '';
   readonly server = createServer({ maxHeaderSize: 8192, requestTimeout: 15000, headersTimeout: 10000 }, (req, res) => {
     void this.handle(req, res).catch(error => {
-      if (!res.headersSent) this.json(res, error instanceof WebUiError || error instanceof WorkThreadError || error instanceof WorkJobError || error instanceof SourceEventError || error instanceof WorkRecallError ? error.status : 500,
-        { error: error instanceof WebUiError || error instanceof WorkThreadError || error instanceof WorkJobError || error instanceof SourceEventError || error instanceof WorkRecallError ? error.message : '本机服务暂时无法完成请求，请检查本地日志。' });
+      if (!res.headersSent) this.json(res, error instanceof WebUiError || error instanceof WebRequestError || error instanceof WorkThreadError || error instanceof WorkJobError || error instanceof SourceEventError || error instanceof WorkRecallError ? error.status : 500,
+        { error: error instanceof WebUiError || error instanceof WebRequestError || error instanceof WorkThreadError || error instanceof WorkJobError || error instanceof SourceEventError || error instanceof WorkRecallError ? error.message : '本机服务暂时无法完成请求，请检查本地日志。' });
       else res.end();
     });
   });
@@ -108,6 +109,7 @@ export class WebUiServer {
     const address = this.server.address();
     if (!address || typeof address === 'string') throw new Error('Web 监听失败');
     this.origin = `http://127.0.0.1:${address.port}`;
+    this.channel.start();
     return this.origin;
   }
   private json(res: ServerResponse, status: number, data: unknown): void {
@@ -299,10 +301,18 @@ export class WebUiServer {
         throw new WebUiError(404, '接口不存在');
       }
       if (path === '/api/snapshot' && req.method === 'GET') return this.json(res, 200, this.channel.snapshot());
+      const receipt = /^\/api\/chat-requests\/([a-f0-9-]{36})(\/cancel)?$/u.exec(path);
+      if (receipt && uuid.test(receipt[1]!)) {
+        if (!receipt[2] && req.method === 'GET') return this.json(res, 200, this.channel.request(receipt[1]!));
+        if (receipt[2] && req.method === 'POST') {
+          await this.body(req, []);
+          return this.json(res, 200, this.channel.cancelRequest(receipt[1]!));
+        }
+      }
       if (path === '/api/chat' && req.method === 'POST') {
         const data = await this.body(req, ['requestId', 'text']);
         if (typeof data.requestId !== 'string' || !uuid.test(data.requestId) || typeof data.text !== 'string' || !data.text.trim() || data.text.length > 10000) throw new WebUiError(400, '消息或请求 ID 无效');
-        return this.json(res, 202, this.channel.workRouter ? this.channel.workRouter.route({ mode: 'chat', requestId: data.requestId, text: data.text.trim() }) : this.channel.submit(data.requestId, data.text.trim()));
+        return this.json(res, 202, this.channel.coordinatorEnabled ? this.channel.receive(data.requestId, data.text.trim()) : this.channel.workRouter ? this.channel.workRouter.route({ mode: 'chat', requestId: data.requestId, text: data.text.trim() }) : this.channel.submit(data.requestId, data.text.trim()));
       }
       const run = /^\/api\/runs\/([a-f0-9-]{36})(\/ack)?$/u.exec(path);
       if (run && uuid.test(run[1]!)) {

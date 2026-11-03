@@ -19,6 +19,7 @@ import { defaultWebResources, webHash } from './web-read-types.js';
 import type { WebView } from './web-read-types.js';
 import { confirmsWebRequest, rejectsWebRequest, webPreview, webRequestSelection } from './web-read-authorization.js';
 import type { FileOutputService } from './file-output-service.js';
+import type { WorkCoordinatorService, WorkInterpret, WorkManageReceipt } from './work-coordinator.js';
 import { fileHash } from './file-operation-store.js';
 import type { FileActor } from './file-operation-store.js';
 
@@ -55,8 +56,9 @@ export interface DialogueReferences {
   goalView?: GoalDisplay;
   webView?: WebView;
   fileView?: { id: string; hash: string };
+  workFocus?: import('./work-coordinator.js').WorkFocus;
 }
-interface Frame { request: ExecutionRequest; references: DialogueReferences; plan?: Promise<WriteOperation | string>; used: boolean; webUsed?: boolean; goalUsed?: boolean; fileUsed?: boolean; answer?: string; contextResult?: string }
+interface Frame { request: ExecutionRequest; references: DialogueReferences; plan?: Promise<WriteOperation | string>; used: boolean; webUsed?: boolean; goalUsed?: boolean; fileUsed?: boolean; workUsed?: boolean; workReceipt?: Promise<WorkManageReceipt>; answer?: string; contextResult?: string }
 export type Interpret = (message: string, pending: { tool?: Tool | 'memory_review' | 'goal_manage'; count?: number; confirmation?: boolean; goalAction?: GoalAction }, request: ExecutionRequest) => Promise<unknown>;
 const normalize = (value: string) => value.normalize('NFKC').toLowerCase().replace(/\s+/gu, '');
 const segmenter = new Intl.Segmenter('zh', { granularity: 'word' });
@@ -142,9 +144,10 @@ export class OperationGuard {
     private readonly interpret: Interpret, private readonly state: DialogueReferences,
     private readonly saveState: (value: DialogueReferences) => void = () => {},
     private readonly web?: { service: WebReadService; store: WebReadStore; owner: string },
-    private readonly files?: { service: FileOutputService; owner: string }) {}
+    private readonly files?: { service: FileOutputService; owner: string },
+    private readonly work?: { service: WorkCoordinatorService; interpret: WorkInterpret }) {}
 
-  async withRequest<T extends { text: string }>(request: ExecutionRequest, action: () => Promise<T>, formation?: FormationService, saveGoalResult?: (text: string) => Promise<void>, saveFileResult?: (text: string) => Promise<void>): Promise<T> {
+  async withRequest<T extends { text: string }>(request: ExecutionRequest, action: () => Promise<T>, formation?: FormationService, saveGoalResult?: (text: string) => Promise<void>, saveFileResult?: (text: string) => Promise<void>, saveWorkResult?: (text: string) => Promise<void>): Promise<T> {
     if (request.scope !== 'chat') return action();
     // 短确认只指向紧接着的宿主文件预览；引用、假设、否定和附带修改均不匹配。
     const naturalFileConfirmation = !!this.files && !!this.state.fileView
@@ -165,12 +168,12 @@ export class OperationGuard {
         let result: T;
         try { result = await action(); }
         catch (error) {
-          if ((!frame.goalUsed && !frame.fileUsed) || !frame.answer || request.signal.aborted) {
+          if ((!frame.goalUsed && !frame.fileUsed && !frame.workUsed) || !frame.answer || request.signal.aborted) {
             if (frame.goalUsed && !request.signal.aborted) await saveGoalResult?.('本轮Goal工具执行失败，不能凭模型解释推断成功、未保存或已取消；请重新查看宿主当前状态，不自动重试。');
             throw error;
           }
           // 控制收据已经落盘时，模型收尾失败不能把成功操作说成失败，更不能重做操作。
-          request.observer.event(frame.fileUsed?'file_model_finalization_failed':'goal_model_finalization_failed',frame.fileUsed?'model_finalization_failed':String(error));
+          request.observer.event(frame.workUsed?'work_model_finalization_failed':frame.fileUsed?'file_model_finalization_failed':'goal_model_finalization_failed',frame.fileUsed?'model_finalization_failed':String(error));
           result = { text: frame.answer } as T;
         }
         // 主模型可能只口头答应拒绝；仅对当前原话中的有界拒绝补执行，仍走原显示/序号/版本校验。
@@ -180,6 +183,7 @@ export class OperationGuard {
           // 不把后台成果或动态Memory复制到交互Session；只追加宿主控制状态收据。
           await saveGoalResult?.(frame.contextResult ?? '本轮宿主要求澄清，未提交新的Goal控制；请重新查看当前状态。');
         }
+        if (frame.workUsed && frame.answer) await saveWorkResult?.(frame.answer);
         if(frame.fileUsed && frame.answer){request.signal.throwIfAborted();await saveFileResult?.(frame.answer);}
         if (this.files && !frame.fileUsed && /^本次允许(?:创建|编辑)输出文件：[^\n]+$/u.test(request.prompt.trim().split('\n')[0]!)) {
           // 只补充真实状态，不把模型草稿合成操作，也不追加模型纠错请求。
@@ -191,6 +195,8 @@ export class OperationGuard {
         }
         return frame.answer ? { ...result, text: frame.answer } : result;
       } finally {
+        // 普通用户回合已有新的回答对象；旧工作焦点不能自动解释随后省略目标的修改。
+        if (!frame.workUsed && this.state.workFocus) { delete this.state.workFocus; this.saveState(this.state); }
         if (!frame.plan && (this.state.choices || this.state.confirmation || this.state.candidateReview)) { delete this.state.choices; delete this.state.confirmation; delete this.state.candidateReview; this.saveState(this.state); }
       }
     });
@@ -319,6 +325,22 @@ export class OperationGuard {
 
   private local(time: string): string { return new Date(time).toLocaleString('zh-CN', { timeZone: this.tasks.timeZone, hour12: false }); }
 
+  async manageWork(signal?: AbortSignal): Promise<WorkManageReceipt> {
+    const frame = this.frame();
+    if (frame.workReceipt) return frame.workReceipt;
+    if (!this.work || frame.used || frame.plan) throw new Error('本轮操作已消费，不能同时管理工作和Task/Goal/Memory/文件');
+    frame.used = true; frame.workUsed = true; frame.plan = Promise.resolve('text_work_batch');
+    const request = signal ? { ...frame.request, signal: AbortSignal.any([frame.request.signal, signal]) } : frame.request;
+    frame.workReceipt = this.work.service.manage(request, this.work.interpret, frame.references.workFocus);
+    const receipt = await frame.workReceipt;
+    if (receipt.focus !== undefined) {
+      if (receipt.focus) this.state.workFocus = receipt.focus; else delete this.state.workFocus;
+      this.saveState(this.state);
+    }
+    if (receipt.status === 'not_applicable') frame.workUsed = false;
+    else frame.answer = receipt.text;
+    return receipt;
+  }
   async manageGoals(goals: GoalService, signal?: AbortSignal): Promise<unknown> {
     const frame = this.frame();
     if (frame.used || frame.plan) throw new Error('本轮操作已经消费，不能同时控制Goal和Task/Memory');
@@ -353,6 +375,11 @@ export class OperationGuard {
     request.signal.throwIfAborted();
     if (!Value.Check(intentSchema, raw)) throw new Error('Goal意图格式无效');
     const intent = raw as Intent, action = intent.goalAction as GoalAction | undefined;
+    // 预期不适用不是工具故障；保留操作消费限制，不用Goal收据覆盖普通回答。
+    if (intent.action === 'none') {
+      frame.goalUsed = false;
+      return { status: 'not_applicable', executed: false, result: '当前原话没有Goal操作请求，未执行Goal操作。请按原始请求继续普通文本回答，不重复调用本工具或尝试其他写操作。' };
+    }
     if (intent.action !== 'goal_manage' || !action || !intent.evidence.trim() || !request.prompt.includes(intent.evidence)) throw new Error('没有当前Goal操作意图');
     const query = action === 'list' || action === 'view';
     if (query ? !['query', 'request'].includes(intent.mode) : intent.mode !== 'request') throw new Error('否定、假设、引用或不确定消息不能控制Goal');

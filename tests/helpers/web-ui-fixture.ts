@@ -15,6 +15,7 @@ import { initializeOutput } from '../../src/file-output-service.js';
 import type { TavilyService } from '../../src/tavily-service.js';
 import { GoalRunner } from '../../src/goal-runner.js';
 import type { ProactiveOptions } from '../../src/goal-policy-types.js';
+import { WorkCoordinatorService } from '../../src/work-coordinator.js';
 import { WorkRunner } from '../../src/work-runner.js';
 import { SourceEventService } from '../../src/source-event-service.js';
 import type { GitHubObserver } from '../../src/github-observer.js';
@@ -23,7 +24,7 @@ import { BackgroundLane } from '../../src/background-lane.js';
 import { reply } from './skills-fixture.js';
 import type { Payload } from './skills-fixture.js';
 
-export async function webUiFixture(handle: (p: Payload) => string | Promise<string> = () => reply('真实 Pi 路径的模拟回答'), search?: TavilyService, workThreads = false, workJobs = false, workRouting = false, workEvents = false, sourceObserver?: GitHubObserver, goalEnabled = true, runtime?: { clock: () => Date; proactive: ProactiveOptions; recall?: boolean }) {
+export async function webUiFixture(handle: (p: Payload) => string | Promise<string> = () => reply('真实 Pi 路径的模拟回答'), search?: TavilyService, workThreads = false, workJobs = false, workRouting = false, workEvents = false, sourceObserver?: GitHubObserver, goalEnabled = true, runtime?: { clock: () => Date; proactive: ProactiveOptions; recall?: boolean }, coordinatorEnabled = false) {
   const root = mkdtempSync(join(tmpdir(), 'ppa-web-ui-')), payloads: Payload[] = [], errors: unknown[] = [];
   const model = createServer(async (req, res) => {
     try {
@@ -35,15 +36,16 @@ export async function webUiFixture(handle: (p: Payload) => string | Promise<stri
   model.listen(0, '127.0.0.1'); await once(model, 'listening'); const a = model.address();
   if (!a || typeof a === 'string') throw new Error('fixture port');
   const config = readConfig({ DATABASE_PATH: join(root, 'app.db'), GOAL_ENABLED: String(goalEnabled), LLM_API_KEY: 'fake-web-llm',
-    WORK_EVENTS_ENABLED: String(workEvents), WORK_ROUTING_ENABLED: String(workRouting), WORK_JOBS_ENABLED: String(workJobs), WORK_THREADS_ENABLED: String(workThreads), WEB_SEARCH_ENABLED: String(!!search), LLM_MODEL: 'local-stub', LLM_BASE_URL: `http://127.0.0.1:${a.port}/v1` });
-  if (runtime) { config.proactive = runtime.proactive; config.workRecallEnabled = !!runtime.recall; }
+    WORK_COORDINATOR_ENABLED: String(coordinatorEnabled), WORK_RECALL_ENABLED: String(coordinatorEnabled || !!runtime?.recall), WORK_EVENTS_ENABLED: String(workEvents), WORK_ROUTING_ENABLED: String(workRouting), WORK_JOBS_ENABLED: String(workJobs || coordinatorEnabled), WORK_THREADS_ENABLED: String(workThreads || coordinatorEnabled), WEB_SEARCH_ENABLED: String(!!search), LLM_MODEL: 'local-stub', LLM_BASE_URL: `http://127.0.0.1:${a.port}/v1` });
+  if (runtime) { config.proactive = runtime.proactive; config.workRecallEnabled = coordinatorEnabled || !!runtime.recall; }
   const output = join(root, 'output'); initializeOutput(output); config.localOutput = { enabled: true, workspace: output };
   const key = 'fake-web-access-key-with-32-bytes-for-tests';
   let store = new SqliteStore(config.databasePath, redactor(config.apiKey, key)), tasks = new TaskService(store, config.timeZone), memory = new FileMemoryService(config.memoryDir);
   let goalRunner: GoalRunner | undefined;
   if (config.proactive) store.policies.configure(config.proactive);
   let goals = new GoalService(store, tasks, id => goalRunner?.interrupt(id)), lane = new BackgroundLane();
-  let executor = await createPiExecutor(config, tasks, webChatKey, memory, undefined, lane, config.goalEnabled ? goals : undefined, undefined, store.files, search);
+  let coordinator = coordinatorEnabled ? new WorkCoordinatorService(store, { owner: webOwner, channel: JSON.stringify(webTarget) }, id => workRunner?.interrupt(id), goalEnabled) : undefined;
+  let executor = await createPiExecutor(config, tasks, webChatKey, memory, undefined, lane, config.goalEnabled ? goals : undefined, undefined, store.files, search, coordinator);
   let workRunner: WorkRunner | undefined;
   let channel = new WebUiChannel(store, tasks, executor, config, config.goalEnabled ? goals : undefined, lane, error => errors.push(error), memory, id => workRunner?.interrupt(id));
   const makeSources = () => config.workEventsEnabled ? new SourceEventService(store.sourceEvents, { owner: webOwner, target: webTarget }, {
@@ -54,7 +56,7 @@ export async function webUiFixture(handle: (p: Payload) => string | Promise<stri
   let sourceEvents = makeSources(); channel.sourceEvents = sourceEvents;
   let server = new WebUiServer(channel, key, join(process.cwd(), 'web-dist')), origin = await server.start(0), cookie = '', csrf = '';
   const makeRunner = () => channel.workRouter ? new WorkRunner(store, executor, channel, lane, {
-    actor: channel.workRouter.actor, target: { channel: 'web', userId: 'local-user' }, pollIntervalMs: 25,
+    coordinatorEnabled: config.workCoordinatorEnabled, goalsEnabled: config.goalEnabled, actor: channel.workRouter.actor, target: { channel: 'web', userId: 'local-user' }, pollIntervalMs: 25,
     goalReady: () => !!config.goalEnabled && store.goals.readyForHost().some(g => g.ownerId === 'local-user'
       && g.target.channel === 'web' && g.target.userId === 'local-user' && (g.readyInput?.kind !== 'policy' || !!config.proactive?.enabled)),
     reportError: error => errors.push(error), fatal: () => errors.push(new Error('WorkRunner停止领取')),
@@ -89,7 +91,8 @@ export async function webUiFixture(handle: (p: Payload) => string | Promise<stri
       tasks = new TaskService(store, config.timeZone); memory = new FileMemoryService(config.memoryDir);
       if (config.proactive) store.policies.configure(config.proactive);
       goals = new GoalService(store, tasks, id => goalRunner?.interrupt(id)); lane = new BackgroundLane();
-      executor = await createPiExecutor(config, tasks, webChatKey, memory, undefined, lane, config.goalEnabled ? goals : undefined, undefined, store.files, search);
+      coordinator = config.workCoordinatorEnabled ? new WorkCoordinatorService(store, { owner: webOwner, channel: JSON.stringify(webTarget) }, id => workRunner?.interrupt(id), goalEnabled) : undefined;
+      executor = await createPiExecutor(config, tasks, webChatKey, memory, undefined, lane, config.goalEnabled ? goals : undefined, undefined, store.files, search, coordinator);
       channel = new WebUiChannel(store, tasks, executor, config, config.goalEnabled ? goals : undefined, lane, error => errors.push(error), memory, id => workRunner?.interrupt(id));
       workRunner = makeRunner(); goalRunner = makeGoalRunner(); store.policies.interrupt = id => goalRunner?.interrupt(id); sourceEvents = makeSources(); channel.sourceEvents = sourceEvents;
       server = new WebUiServer(channel, key, join(process.cwd(), 'web-dist')); origin = await server.start(0); cookie = ''; csrf = '';

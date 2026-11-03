@@ -1,0 +1,153 @@
+{
+  "status": "T1-T6 isolated implementation and offline acceptance passed",
+  "scope": "isolated/offline only",
+  "branch": "codex/chat-coordinator-mvp",
+  "head": "d0cfcbc608ace1a79b9938a8c7a782fa80b5958c",
+  "committed": false,
+  "coordinatorDefault": false,
+  "t6ProductionChanges": false,
+  "a3": {
+    "actualWorkerHttp": 5,
+    "A": 2,
+    "B": 2,
+    "C": 1
+  },
+  "a6": {
+    "window": "Job committed / parent Chat running before final response",
+    "offSwitches": {
+      "coordinator": false,
+      "workJobs": false
+    },
+    "expectedChatHttp": 2,
+    "expectedParseHttp": 1,
+    "expectedWorkerHttp": 1,
+    "replayExpected": 0,
+    "actualMainStarts": 4,
+    "actualChatHttp": 2,
+    "actualParseHttp": 1,
+    "actualWorkerHttp": 1,
+    "oldChatOrParserReplays": 0
+  },
+  "browserGroups": {
+    "T5Main": {
+      "mainSourcePrefix": "193a831a",
+      "http": 47,
+      "main": 26,
+      "parser": 10,
+      "worker": 11,
+      "requests": 16,
+      "jobs": 13
+    },
+    "T5R1Supplemental": {
+      "http": 20,
+      "main": 15,
+      "parser": 3,
+      "worker": 2
+    },
+    "T5SourceSupplement": {
+      "mainSourcePrefix": "cf8ed86e",
+      "http": 6,
+      "mockSearchCalls": 3,
+      "cases": [
+        "success",
+        "truncated",
+        "failed"
+      ]
+    }
+  },
+  "checks": {
+    "a3-a6-final-same-source.log": {
+      "command": "TMPDIR=/private/tmp node --import tsx --test --test-reporter=tap --test-name-pattern='同主题两工作各两轮|Job已提交但Chat未finish' tests/work-continuation.test.ts tests/work-coordinator-process.test.ts",
+      "exitCode": 0,
+      "seconds": 15.638,
+      "tests": 2,
+      "pass": 2,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "duration_ms": 15598.356084
+    },
+    "typecheck-final.log": {
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "seconds": 1.991
+    },
+    "build-final.log": {
+      "command": "npm run build",
+      "exitCode": 0,
+      "seconds": 0.965
+    },
+    "web-build-final.log": {
+      "command": "npm run web:build",
+      "exitCode": 0,
+      "seconds": 1.114
+    },
+    "full-test-final.log": {
+      "command": "TMPDIR=/private/tmp npm test",
+      "exitCode": 0,
+      "seconds": 69.833,
+      "tests": 934,
+      "pass": 934,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "duration_ms": 69664.73325
+    },
+    "diff-check.log": {
+      "command": "git diff --check",
+      "exitCode": 0,
+      "seconds": 0.05
+    }
+  },
+  "independentT6Review": {
+    "status": "PASS",
+    "blockingFindings": [],
+    "actionableNonblockingFindings": [],
+    "report": "/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/chat-coordinator-mvp/t6/reviewer-r1/review.md",
+    "reportSha256": "dd8c285b4c46ed681b1e258a88c626ca62ea7f2614b6308a16b0dd72e98173de",
+    "groups": {
+      "a3a6": {
+        "pass": 2,
+        "tests": 2
+      },
+      "crossModule": {
+        "pass": 188,
+        "tests": 188
+      },
+      "coordinatorTaskMemoryPositive": {
+        "pass": 1,
+        "tests": 1,
+        "mockModelHttp": 17
+      },
+      "coordinatorPolicy": {
+        "pass": 2,
+        "tests": 2
+      }
+    },
+    "fullSuiteIndependentlyRepeated": false
+  },
+  "unverified": [
+    "real model routing and quality",
+    "real provider cost/latency",
+    "real phone",
+    "long run",
+    "production migration/switch/release"
+  ],
+  "manualTrial": {
+    "chatMessages": 6,
+    "maximumModelHttp": 53,
+    "currencyBudget": "requires separate explicit approval; not quoted",
+    "assuming": "only the six described messages parsed correctly; no retry or extra items",
+    "newCurrencyHardLimit": false
+  },
+  "evidenceRoot": "/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/chat-coordinator-mvp",
+  "validatedTestHashes": {
+    "tests/work-continuation.test.ts": "a7a2fba624d953ba3b223d917449414371a8d55d638ebb480349edcc47461922",
+    "tests/work-coordinator-process.test.ts": "558b31baeebfebea12671f201f646d72fc73aa2bcbf31044f8cbd6dfd6b2a7dd"
+  },
+  "postReviewDocumentationOnly": [
+    "docs/STATE.md",
+    "docs/evaluations/chat-coordinator-mvp.md",
+    "docs/evaluations/chat-coordinator-mvp-validation.json"
+  ]
+}

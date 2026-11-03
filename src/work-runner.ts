@@ -16,7 +16,7 @@ export class WorkRunner {
   constructor(private readonly store: SqliteStore, private readonly executor: AgentExecutor,
     private readonly channel: Channel, private readonly lane: BackgroundLane,
     private readonly options: { actor: WorkThreadActor; target: Extract<MessageTarget, { channel: 'web' }>;
-      pollIntervalMs: number; goalReady(): boolean; reportError(error: unknown): void; fatal(): void },
+      pollIntervalMs: number; coordinatorEnabled?: boolean; goalsEnabled?: boolean; goalReady(): boolean; reportError(error: unknown): void; fatal(): void },
     private readonly clock = () => new Date()) {}
   start(): void {
     if (this.loop || this.shutdown.signal.aborted) throw new Error('WorkRunner 不能重复启动');
@@ -35,7 +35,7 @@ export class WorkRunner {
   }
   interrupt(id: string): void { if (this.active?.id === id) this.active.controller.abort(); }
   private async runOne(): Promise<void> {
-    if (!this.store.workJobs.hasQueued(this.options.actor)) return;
+    if (!this.store.workJobs.hasQueued(this.options.actor) && !(this.options.coordinatorEnabled && this.store.workCoordinator.hasPending(this.options.actor))) return;
     const release = this.lane.acquire(true);
     if (!release) return;
     let finished: { runId: string; jobId: string; threadId: string } | undefined;
@@ -49,7 +49,9 @@ export class WorkRunner {
       }
       this.blockedReason = undefined;
       if (this.shutdown.signal.aborted || this.store.hasDueTasks(this.clock().toISOString()) || this.options.goalReady()) return;
-      const claimed = this.store.workJobs.claim(this.options.actor, this.clock().toISOString());
+      const claimed = this.options.coordinatorEnabled
+        ? this.store.workCoordinator.claimNext(this.options.actor, this.clock().toISOString(), !!this.options.goalsEnabled)
+        : this.store.workJobs.claim(this.options.actor, this.clock().toISOString());
       if (!claimed) return;
       const { job, run } = claimed, controller = new AbortController();
       this.active = { id: job.id, controller };

@@ -19,7 +19,9 @@ function host(views: WebWorkRoute[], shared = { suggestions: structuredClone(vie
   const snapshot: any = { chats: [], tasks: [], goals: [], files: [], activity: [], inbox: [],
     capabilities: { goal: false, skills: [], workThreads: true, workJobs: true, workRouting: true, busy: false } };
   const states: any[] = [], refs: any[] = [], calls: { path: string; body: any }[] = [];
+  let pendingChat: (() => void) | undefined, holdChat = false, chatStatus = 200;
   let cursor = 0, rootRender: any, fail: boolean | string[] = false, WorkRouteCard: any, chatTimeline: any;
+  function WebSourcesMarker() {}
   const jsx = (type: unknown, props: unknown) => ({ type, props });
   const sandbox: any = { setTimeout: () => 0, clearTimeout() {}, setInterval: () => 0, clearInterval() {}, AbortSignal, TextEncoder,
     crypto: { randomUUID }, location: { hash: '#chat' }, window: { scrollTo() {} }, document: { getElementById: () => ({}), visibilityState: 'visible' },
@@ -31,6 +33,7 @@ function host(views: WebWorkRoute[], shared = { suggestions: structuredClone(vie
       };
       if (name === 'react/jsx-runtime') return { jsx, jsxs: jsx, Fragment: 'fragment' };
       if (name === 'react-dom/client') return { createRoot: () => ({ render: (value: unknown) => { rootRender = value; } }) };
+      if (name === './web-sources.js') return { WebSources: WebSourcesMarker };
       if (name === './work-routes.js') return { WorkRouteCard };
       if (name === './chat-timeline.js') return { chatTimeline };
       return new Proxy({}, { get: () => function Stub() {} });
@@ -38,6 +41,7 @@ function host(views: WebWorkRoute[], shared = { suggestions: structuredClone(vie
     async fetch(path: string, options: any) {
       const body = options?.body ? JSON.parse(options.body) : null; calls.push({ path, body });
       let value: any = {};
+      if (path === '/api/chat') { if (holdChat) await new Promise<void>(done => { pendingChat = done; }); return { ok: chatStatus === 200, status: chatStatus, json: async () => chatStatus === 200 ? {} : { error: '队列已满，未接收' } }; }
       if (path === '/api/snapshot') value = { ...snapshot, suggestions: shared.suggestions };
       else if (path.endsWith('/revoke')) {
         if (fail === true || Array.isArray(fail) && fail.includes(path.split('/')[3]!)) throw new Error('模拟撤销网络失败');
@@ -62,8 +66,8 @@ function host(views: WebWorkRoute[], shared = { suggestions: structuredClone(vie
   WorkRouteCard = evaluate('web/src/work-routes.tsx').WorkRouteCard;
   chatTimeline = evaluate('web/src/chat-timeline.ts').chatTimeline;
   const source = readFileSync('web/src/main.tsx', 'utf8');
-  const instrumented = source.replace('  const filesPending =', `  globalThis.__handlers = { refresh, changeDraft, requestRoute, revokeRoute, routeToChat, currentRoute };
-  globalThis.__state = { draft, revokeRetry, routeRetry };
+  const instrumented = source.replace('  const filesPending =', `  globalThis.__handlers = { refresh, changeDraft, requestRoute, revokeRoute, routeToChat, currentRoute, send };
+  globalThis.__state = { draft, revokeRetry, routeRetry, retry, sending };
   const filesPending =`);
   assert.notEqual(instrumented, source); evaluate('web/src/main.tsx', instrumented);
   const render = () => { cursor = 0; return rootRender.type(); };
@@ -76,7 +80,8 @@ function host(views: WebWorkRoute[], shared = { suggestions: structuredClone(vie
   };
   render(); states[0] = true; states[6] = 'chat';
   return { render, nodes, card, details, enabled, calls, get handlers() { return sandbox.__handlers; }, get state() { return sandbox.__state; },
-    get serverViews() { return structuredClone(shared.suggestions); }, fail(value: boolean | string[]) { fail = value; } };
+    setSnapshot(value: any) { Object.assign(snapshot, value); }, sources(tree: any) { return nodes(tree).filter(n => n.type === WebSourcesMarker); },
+    coordinator(enabled = true) { snapshot.capabilities.workCoordinator = enabled; snapshot.capabilities.busy = true; }, hold() { holdChat = true; }, release(status = 200) { chatStatus = status; holdChat = false; pendingChat?.(); }, get serverViews() { return structuredClone(shared.suggestions); }, fail(value: boolean | string[]) { fail = value; } };
 }
 
 for (const revoked of [false, true]) test(`历史建议回填（历史revoked=${revoked}）保留双方撤销重试，刷新双方不复活`, async () => {
@@ -210,4 +215,41 @@ test('手动撤销当前卡片保持当前重试槽，当前空的历史卡片�
     h.fail(false); retries[0]!.props.onClick(); await tick(); assert.equal(h.serverViews[0]?.revoked, true);
     const reload = host(h.serverViews); await reload.handlers.refresh(); assert.equal(reload.enabled(reload.render(), A.requestId), false);
   }
+});
+
+for (const changed of [false, true]) test(`新模式busy仍接收；HTTP期间新草稿保留（changed=${changed}）`, async () => {
+  const h = host([]); h.coordinator(); await h.handlers.refresh(); h.render();
+  h.handlers.changeDraft('第一条原话'); h.render(); h.hold(); const sending = h.handlers.send(); h.render();
+  assert.equal(h.calls.filter(c => c.path === '/api/chat').length, 1);
+  assert.equal(h.state.sending, true);
+  if (changed) { h.handlers.changeDraft('等待期间写的下一条'); h.render(); }
+  h.release(); await sending; h.render();
+  assert.equal(h.state.draft, changed ? '等待期间写的下一条' : ''); assert.equal(h.state.retry, null);
+  const tree = h.render(); assert.ok(!h.nodes(tree).some(n => n.props?.id === 'work-job-thread' || n.props?.id === 'work-route-object' || n.props?.className === 'chat-work-jobs'));
+});
+
+test('队列满保留草稿与同UUID重试；未知结果刷新不新建请求，off忙时仍保留旧门', async () => {
+  const h = host([]); h.coordinator(); await h.handlers.refresh(); h.render(); h.handlers.changeDraft('队列原话'); h.render();
+  h.hold(); const sending = h.handlers.send(); h.render(); h.release(429); await sending; h.render();
+  assert.equal(h.state.draft, '队列原话'); const retry = h.state.retry; assert.ok(retry);
+  await h.handlers.refresh(); h.render(); assert.equal(h.calls.filter(c => c.path === '/api/chat').length, 1);
+  h.release(); await h.handlers.send(retry); h.render();
+  assert.deepEqual(h.calls.filter(c => c.path === '/api/chat').map(c => c.body.requestId), [retry.requestId, retry.requestId]);
+  const off = host([]); off.coordinator(false); await off.handlers.refresh(); off.render(); off.handlers.changeDraft('旧模式忙'); off.render(); await off.handlers.send();
+  assert.equal(off.calls.filter(c => c.path === '/api/chat').length, 0);
+});
+
+
+test('HTTP等待时欢迎建议写入的新草稿也保留，沿同一草稿版本判断', async () => {
+  const h = host([]); h.coordinator(); await h.handlers.refresh(); h.render(); h.handlers.changeDraft('正在发送的原话'); h.render(); h.hold(); const sending = h.handlers.send();
+  const tree = h.render(), suggestion = h.nodes(tree).find(n => n.type === 'button' && h.nodes(n).some(child => child.type === 'strong' && child.props.children === '一起想一想'));
+  assert.ok(suggestion); suggestion.props.onClick(); h.render(); h.release(); await sending; h.render(); assert.equal(h.state.draft, '帮我梳理一下今天要做的事情。');
+});
+
+
+for (const status of ['succeeded', 'failed', 'running']) test(`新请求分支保留原WebSources及只读详情入口：${status}`, async () => {
+  const h = host([]), run: any = { id: randomUUID(), status: status === 'running' ? 'running' : 'succeeded', startedAt: '2026-11-03T00:00:00Z', output: '普通网页回答', usage: { calls: 2 }, web: { status, sources: status === 'failed' ? 0 : 1, searches: 1, reads: 0, kind: 'search', ...(status === 'failed' ? { message: '网页失败说明' } : {}) } };
+  h.setSnapshot({ capabilities: { goal: false, skills: [], workCoordinator: true, busy: false }, requests: [{ requestId: randomUUID(), text: '查阅公开资料', createdAt: run.startedAt, status: 'claimed', run, items: [] }] });
+  await h.handlers.refresh(); const entry = h.sources(h.render()); assert.equal(entry.length, 1); assert.equal(entry[0].props.run.web.status, status);
+  await entry[0].props.load(); assert.deepEqual(h.calls.filter(c => c.path !== '/api/snapshot').map(c => ({ path: c.path, body: c.body })), [{ path: `/api/runs/${run.id}`, body: null }]);
 });

@@ -2599,3 +2599,9 @@ button.primary,
 .work-recall pre { white-space: pre-wrap; overflow-wrap: anywhere; max-width: 100%; }
 .work-recall button { white-space: normal; overflow-wrap: anywhere; max-width: 100%; margin: 4px 4px 4px 0; }
 .work-recall-candidates { display: grid; gap: 6px; }
+
+/* 接收回执与原工作成果复用消息布局，长引用只在详情内展开。 */
+.coordinator-request .message-content, .coordinator-result .message-content { min-width: 0; overflow-wrap: anywhere; }
+.request-item { border-top: 1px solid var(--border); padding-block: 10px; }
+.coordinator-request details, .coordinator-result details { margin-block: 8px; font-size: 12px; }
+.coordinator-request summary, .coordinator-result summary { cursor: pointer; color: var(--muted); }

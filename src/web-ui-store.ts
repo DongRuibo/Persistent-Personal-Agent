@@ -1,15 +1,23 @@
 import type { DatabaseSync } from 'node:sqlite';
 import type { Run } from './contracts.js';
 
-type RequestRow = { requestId: string; runId: string; text: string; mode: 'chat' | 'suggest' | 'policy'; selectionJson: string };
+export type WebRequestRow = { requestId: string; runId: string | null; text: string; mode: 'chat' | 'suggest' | 'policy';
+  selectionJson: string; status: 'queued' | 'claimed' | 'cancelled'; createdAt: string; coordinator: number };
+export class WebRequestError extends Error {
+  constructor(readonly status: 404 | 409 | 429, message: string) { super(message); }
+}
+const requestColumns = 'requestId,runId,text,mode,selectionJson,status,createdAt,coordinator';
 
-// 仅为 Web 展示和收件箱投影；模型上下文仍由 Pi 原生 Session 管理。
+// Web接收、领取与收件箱投影；模型上下文仍由Pi原生Session管理。
 export class WebUiStore {
   constructor(private readonly db: DatabaseSync, private readonly transaction: <T>(fn: () => T) => T,
     private readonly begin: (now: string) => Run) {
     db.exec(`CREATE TABLE IF NOT EXISTS web_ui_chats (
-      owner TEXT NOT NULL, requestId TEXT NOT NULL, runId TEXT NOT NULL UNIQUE REFERENCES runs(id), text TEXT NOT NULL,
-      PRIMARY KEY(owner,requestId)
+      owner TEXT NOT NULL, requestId TEXT NOT NULL, runId TEXT UNIQUE REFERENCES runs(id), text TEXT NOT NULL,
+      mode TEXT NOT NULL DEFAULT 'chat', selectionJson TEXT NOT NULL DEFAULT '{}',
+      status TEXT NOT NULL DEFAULT 'claimed' CHECK(status IN ('queued','claimed','cancelled')),
+      createdAt TEXT NOT NULL, coordinator INTEGER NOT NULL DEFAULT 0 CHECK(coordinator IN (0,1)),
+      PRIMARY KEY(owner,requestId), CHECK((status='claimed' AND runId IS NOT NULL) OR (status!='claimed' AND runId IS NULL))
     ) STRICT;
     CREATE TABLE IF NOT EXISTS web_ui_inbox (
       owner TEXT NOT NULL, runId TEXT NOT NULL REFERENCES runs(id), text TEXT NOT NULL, at TEXT NOT NULL,
@@ -18,23 +26,76 @@ export class WebUiStore {
     const columns = db.prepare('PRAGMA table_info(web_ui_chats)').all();
     if (!columns.some(column => column.name === 'mode')) db.exec("ALTER TABLE web_ui_chats ADD COLUMN mode TEXT NOT NULL DEFAULT 'chat'");
     if (!columns.some(column => column.name === 'selectionJson')) db.exec("ALTER TABLE web_ui_chats ADD COLUMN selectionJson TEXT NOT NULL DEFAULT '{}'");
+    if (!columns.some(column => column.name === 'status')) this.transaction(() => {
+      // 原表没有下游外键；重建仅放宽runId，旧Run、正文与模式逐字保留。
+      db.exec(`CREATE TABLE web_ui_chats_next (
+        owner TEXT NOT NULL, requestId TEXT NOT NULL, runId TEXT UNIQUE REFERENCES runs(id), text TEXT NOT NULL,
+        mode TEXT NOT NULL DEFAULT 'chat', selectionJson TEXT NOT NULL DEFAULT '{}',
+        status TEXT NOT NULL CHECK(status IN ('queued','claimed','cancelled')), createdAt TEXT NOT NULL,
+        coordinator INTEGER NOT NULL DEFAULT 0 CHECK(coordinator IN (0,1)), PRIMARY KEY(owner,requestId),
+        CHECK((status='claimed' AND runId IS NOT NULL) OR (status!='claimed' AND runId IS NULL))
+      ) STRICT;
+      INSERT INTO web_ui_chats_next SELECT c.owner,c.requestId,c.runId,c.text,c.mode,c.selectionJson,'claimed',r.startedAt,0
+        FROM web_ui_chats c JOIN runs r ON r.id=c.runId;
+      DROP TABLE web_ui_chats;
+      ALTER TABLE web_ui_chats_next RENAME TO web_ui_chats;`);
+    });
   }
   find(owner: string, requestId: string) {
-    return this.db.prepare('SELECT requestId,runId,text,mode,selectionJson FROM web_ui_chats WHERE owner=? AND requestId=?').get(owner, requestId) as RequestRow | undefined;
+    return this.db.prepare(`SELECT ${requestColumns} FROM web_ui_chats WHERE owner=? AND requestId=?`).get(owner, requestId) as WebRequestRow | undefined;
   }
-  accept(owner: string, requestId: string, text: string, now: string, mode: RequestRow['mode'] = 'chat', selectionJson = '{}'): Run {
+  coordinatorRequest(owner: string, runId: string): WebRequestRow | undefined {
+    return this.db.prepare(`SELECT ${requestColumns} FROM web_ui_chats WHERE owner=? AND runId=? AND coordinator=1`).get(owner, runId) as WebRequestRow | undefined;
+  }
+  accept(owner: string, requestId: string, text: string, now: string, mode: WebRequestRow['mode'] = 'chat', selectionJson = '{}'): Run {
     return this.transaction(() => {
       const run = this.begin(now);
-      this.db.prepare('INSERT INTO web_ui_chats(owner,requestId,runId,text,mode,selectionJson) VALUES(?,?,?,?,?,?)').run(owner, requestId, run.id, text, mode, selectionJson);
+      this.db.prepare("INSERT INTO web_ui_chats(owner,requestId,runId,text,mode,selectionJson,status,createdAt) VALUES(?,?,?,?,?,?,'claimed',?)").run(owner, requestId, run.id, text, mode, selectionJson, now);
       return run;
     });
   }
-  chats(owner: string, mode: RequestRow['mode'] = 'chat') {
-    return this.db.prepare(`SELECT c.requestId,c.runId,c.text,c.mode,c.selectionJson FROM web_ui_chats c JOIN runs r ON r.id=c.runId
-      WHERE c.owner=? AND c.mode=? ORDER BY r.startedAt DESC,c.rowid DESC LIMIT 100`).all(owner, mode) as RequestRow[];
+  enqueue(owner: string, requestId: string, text: string, now: string): WebRequestRow {
+    return this.transaction(() => {
+      const old = this.find(owner, requestId);
+      // 幂等先于容量；已接收请求的重投永远回读原收据。
+      if (old) {
+        if (old.mode !== 'chat' || old.selectionJson !== '{}' || old.text !== text || !old.coordinator) throw new WebRequestError(409, '此请求 ID 已用于其他内容或模式');
+        return old;
+      }
+      const waiting = this.db.prepare("SELECT count(*) AS n FROM web_ui_chats WHERE owner=? AND coordinator=1 AND status='queued'").get(owner)!;
+      if (Number(waiting.n) >= 8) throw new WebRequestError(429, '已有八条消息等待处理；本条未接收，请保留输入后稍后发送');
+      this.db.prepare("INSERT INTO web_ui_chats(owner,requestId,text,mode,selectionJson,status,createdAt,coordinator) VALUES(?,?,?,'chat','{}','queued',?,1)")
+        .run(owner, requestId, text, now);
+      return this.find(owner, requestId)!;
+    });
   }
-  requestMode(owner: string, runId: string): RequestRow['mode'] | undefined {
-    return this.db.prepare('SELECT mode FROM web_ui_chats WHERE owner=? AND runId=?').get(owner, runId)?.mode as RequestRow['mode'] | undefined;
+  claim(owner: string, now: string): WebRequestRow | undefined {
+    return this.transaction(() => {
+      const next = this.db.prepare("SELECT requestId FROM web_ui_chats WHERE owner=? AND coordinator=1 AND status='queued' ORDER BY createdAt,rowid LIMIT 1").get(owner);
+      if (!next) return undefined;
+      const run = this.begin(now), requestId = String(next.requestId);
+      this.db.prepare("UPDATE web_ui_chats SET status='claimed',runId=? WHERE owner=? AND requestId=? AND status='queued'").run(run.id, owner, requestId);
+      return this.find(owner, requestId)!;
+    });
+  }
+  cancelQueued(owner: string, requestId: string): WebRequestRow {
+    return this.transaction(() => {
+      const row = this.find(owner, requestId);
+      if (!row || !row.coordinator) throw new WebRequestError(404, '待处理消息不存在');
+      if (row.status === 'claimed') throw new WebRequestError(409, '消息已领取，不能撤回为未处理');
+      this.db.prepare("UPDATE web_ui_chats SET status='cancelled' WHERE owner=? AND requestId=? AND status='queued'").run(owner, requestId);
+      return this.find(owner, requestId)!;
+    });
+  }
+  requests(owner: string): WebRequestRow[] {
+    return this.db.prepare(`SELECT ${requestColumns} FROM web_ui_chats WHERE owner=? AND coordinator=1 ORDER BY createdAt DESC,rowid DESC LIMIT 100`).all(owner) as WebRequestRow[];
+  }
+  chats(owner: string, mode: WebRequestRow['mode'] = 'chat') {
+    return this.db.prepare(`SELECT ${requestColumns} FROM web_ui_chats
+      WHERE owner=? AND mode=? AND runId IS NOT NULL ORDER BY createdAt DESC,rowid DESC LIMIT 100`).all(owner, mode) as (WebRequestRow & { runId: string })[];
+  }
+  requestMode(owner: string, runId: string): WebRequestRow['mode'] | undefined {
+    return this.db.prepare('SELECT mode FROM web_ui_chats WHERE owner=? AND runId=?').get(owner, runId)?.mode as WebRequestRow['mode'] | undefined;
   }
   ownsRun(owner: string, target: string, id: string): boolean {
     return !!this.db.prepare(`SELECT 1 FROM runs r WHERE r.id=? AND (

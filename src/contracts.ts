@@ -46,7 +46,7 @@ export interface ModelCall {
   cost: number | null;
   stopReason: string;
   error?: string;
-  purpose?: 'memory_formation' | 'work_route';
+  purpose?: 'memory_formation' | 'work_route' | 'work_manage';
   jobId?: string;
 }
 

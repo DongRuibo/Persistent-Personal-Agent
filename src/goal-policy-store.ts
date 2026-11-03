@@ -74,6 +74,10 @@ export class GoalPolicyStore {
     if (goal.ownerId !== row.ownerId || goal.accessKey !== row.accessKey) throw new Error('策略身份不一致');
     return this.read(row);
   }
+  hasActiveForGoal(actor: GoalActor, goalId: string): boolean {
+    this.getGoal(actor, goalId);
+    return !!this.db.prepare("SELECT 1 FROM goal_policies WHERE goalId=? AND status='active'").get(goalId);
+  }
   list(actor: GoalActor): GoalPolicy[] {
     return this.db.prepare('SELECT * FROM goal_policies WHERE ownerId=? ORDER BY createdAt,id LIMIT 101').all(actor.ownerId)
       .filter(row => { try { this.getGoal(actor, String(row.goalId)); return true; } catch { return false; } }).map(row => this.read(row));

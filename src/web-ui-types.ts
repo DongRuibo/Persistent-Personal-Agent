@@ -1,4 +1,6 @@
 import type { WorkRouteRequest, WorkRouteSuggestion } from './work-route-types.js';
+import type { WebRequestRow } from './web-ui-store.js';
+import type { WorkRequestItem } from './work-coordinator-store.js';
 import type { WorkJob } from './work-job-types.js';
 import type { WebSearchCall, WebSearchSummary } from './web-search-types.js';
 
@@ -12,11 +14,12 @@ export interface WebRun {
   webCalls?: WebSearchCall[];
   usage: { calls: number; inputTokens: number; outputTokens: number; cacheReadTokens: number; cacheWriteTokens: number; cost: number | null };
 }
-export interface WebWorkJob extends WorkJob { run: WebRun | null }
+export interface WebWorkJob extends WorkJob { title?: string; run: WebRun | null }
 export interface WebWorkRoute {
   requestId: string; text: string; selection: WorkRouteRequest['selection']; run: WebRun;
   suggestion: WorkRouteSuggestion | null; revoked: boolean; job: WorkJob | null; error: string | null;
 }
+export interface WebRequestReceipt extends Omit<WebRequestRow, 'selectionJson' | 'coordinator'> { run: WebRun | null; items: WorkRequestItem[] }
 export interface WebChat { requestId: string; text: string; run: WebRun }
 export interface WebTask { id: string; instruction: string; dueAt: string; status: string; updatedAt: string; result: string | null }
 export interface WebGoal { id: string; objective: string; status: string; updatedAt: string; blockedReason: string | null }
@@ -36,6 +39,8 @@ export interface WebFile extends WebFileSummary {
 export interface WebNotice { runId: string; text: string; at: string; viewedAt: string | null; taskId: string | null; goalId: string | null }
 export interface WebSnapshot {
   suggestions?: WebWorkRoute[];
+  requests?: WebRequestReceipt[];
+  workResults?: WebWorkJob[];
   chats: WebChat[]; tasks: WebTask[]; goals: WebGoal[]; files: WebFileSummary[]; activity: WebRun[]; inbox: WebNotice[];
-  capabilities: { goal: boolean; skills: string[]; filesRead: boolean; filesWrite: boolean; webRead: boolean; webSearch?: boolean; workThreads?: boolean; workJobs?: boolean; workRouting?: boolean; workRoutingBusy?: boolean; workEvents?: boolean; workRecall?: boolean; busy: boolean; push: false };
+  capabilities: { goal: boolean; skills: string[]; filesRead: boolean; filesWrite: boolean; webRead: boolean; webSearch?: boolean; workThreads?: boolean; workJobs?: boolean; workRouting?: boolean; workRoutingBusy?: boolean; workEvents?: boolean; workRecall?: boolean; workCoordinator?: boolean; busy: boolean; push: false };
 }
