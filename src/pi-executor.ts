@@ -44,6 +44,30 @@ import { searchTools, tavilyTurn, type TavilyTurn } from './web-search-tools.js'
 import { TavilyService, webText } from './tavily-service.js';
 import type { WebSearchResult } from './web-search-types.js';
 
+// 主请求与公开压缩实验复用同一网页正文投影；保留原始消息与工具配对。
+export function projectWebContext(messages: ContextEvent['messages']): ContextEvent['messages'] {
+  let remaining = 24576;
+  messages = [...messages];
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const message = messages[i]!;
+    if (message.role !== 'toolResult' || !['web_search', 'web_fetch'].includes(message.toolName)) continue;
+    const content = message.content.map(part => {
+      if (part.type !== 'text') return part;
+      let result: WebSearchResult;
+      try { result = JSON.parse(part.text) as WebSearchResult; } catch { return part; }
+      if (result.trust !== 'UNTRUSTED_TAVILY_DATA_V1' || !Array.isArray(result.sources)) return part;
+      const sources = result.sources.map(source => {
+        const text = webText(source.text, remaining); remaining -= Buffer.byteLength(text);
+        return { ...source, text };
+      });
+      const omitted = sources.some((source, j) => source.text !== result.sources[j]!.text);
+      return { ...part, text: JSON.stringify({ ...result, sources, ...(omitted ? { truncated: true, omitted: true } : {}) }) };
+    });
+    messages[i] = { ...message, content };
+  }
+  return messages;
+}
+
 type SessionPort = Pick<AgentSession, 'prompt' | 'subscribe' | 'abort' | 'dispose' | 'getLastAssistantText'> & { saveHostResult?: (text: string) => Promise<void>; saveFileResult?: (text:string)=>Promise<void>; saveWorkResult?: (text: string) => Promise<void>; beginTurn?: (request: ExecutionRequest) => Promise<void>; finishTurn?: (request: ExecutionRequest, completed: boolean) => void };
 type SessionFactory = (scope: ExecutionRequest['scope'], policyExecution?: boolean, skill?: SkillSnapshot) => Promise<SessionPort>;
 const coordinatorStart = 'host-coordinator-turn-start-v1';
@@ -487,27 +511,7 @@ export async function createPiExecutor(config: Config, tasks: TaskService, chatK
               retainedTextRounds: summary.ordinary.retainedRounds, textBytes, metadataBytes: Buffer.byteLength(JSON.stringify(summary)) }));
           }
 
-          if (scope === 'chat' && search) {
-            let remaining = 24576;
-            messages = [...messages];
-            for (let i = messages.length - 1; i >= 0; i--) {
-              const message = messages[i]!;
-              if (message.role !== 'toolResult' || !['web_search', 'web_fetch'].includes(message.toolName)) continue;
-              const content = message.content.map(part => {
-                if (part.type !== 'text') return part;
-                let result: WebSearchResult;
-                try { result = JSON.parse(part.text) as WebSearchResult; } catch { return part; }
-                if (result.trust !== 'UNTRUSTED_TAVILY_DATA_V1' || !Array.isArray(result.sources)) return part;
-                const sources = result.sources.map(source => {
-                  const text = webText(source.text, remaining); remaining -= Buffer.byteLength(text);
-                  return { ...source, text };
-                });
-                const omitted = sources.some((source, j) => source.text !== result.sources[j]!.text);
-                return { ...part, text: JSON.stringify({ ...result, sources, ...(omitted ? { truncated: true, omitted: true } : {}) }) };
-              });
-              messages[i] = { ...message, content };
-            }
-          }
+          if (scope === 'chat' && search) messages = projectWebContext(messages);
           if (skill) {
             try {
               const message = event.messages.findLast(message => message.role === 'user');
