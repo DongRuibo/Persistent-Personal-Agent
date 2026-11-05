@@ -37,7 +37,7 @@ export type WorkInterpret = (text: string, catalog: WorkCatalog, request: Execut
 // 授权与原文目标提取共享动作头语法，不能在focus路径漏掉同一动作后的具名对象。
 function workCommand(cancel = false): RegExp {
   const verbs = cancel ? '停下|停止|取消|终止|撤回' : '重点讲|突出|简短|补上|整理|修改|改写|润色|总结|归纳|汇总|提炼|撰写|编写|准备|生成|制作|翻译|分析|设计|比较|压缩|简化|缩短|检查|校对|列出|给出|拟定|写|做';
-  return new RegExp('^\\s*(?:(?:请你?|麻烦你?|帮我|帮忙|替我|为我|给我|我(?:想|希望|需要|要)你?|需要|想要|先|只|仅|再|重新|继续|另外|此外|另请|第[一二三123]项工作|然后|并且|并|同时|现在|本次|本轮)\\s*)*(?:(?<prep>根据|基于|依据|按照|用|把|将|对|针对)(?<subject>[^:：\\n]{0,160}))?(?<verb>' + verbs + ')', 'u');
+  return new RegExp('^\\s*(?<prefix>(?:(?:请你?|麻烦你?|帮我|帮忙|替我|为我|给我|我(?:想|希望|需要|要)你?|需要|想要|先|只|仅|再|重新|继续|另外|此外|另请|第[一二三123]项工作|然后|并且|并|同时|现在|本次|本轮|在后台|后台|异步|持续|分阶段|逐步)\\s*)*)(?:(?<prep>根据|基于|依据|按照|用|把|将|对|针对)(?<subject>[^:：\\n]{0,160}))?(?<verb>' + verbs + ')', 'u');
 }
 
 // 模型的request标签不是许可；仅接受当前原话中可定位的肯定动作框架，材料/引文不能提供动作。
@@ -90,7 +90,7 @@ function namedFollowup(text: string): { name: string; frame: string } | undefine
 function sourceWorkBlocks(text: string, followups = false): { start: number; end: number; headEnd: number; certain: boolean; names?: string[]; followup?: boolean }[] {
   const visible = text.replace(/```[\s\S]*?```|`[^`]*`|“[^”]*”|‘[^’]*’|「[^」]*」|『[^』]*』|"[^"\n]*"|'[^'\n]*'/gu, value => ' '.repeat(value.length))
     .replace(/^\s*>[^\n]*/gmu, value => ' '.repeat(value.length));
-  const command = /^\s*(?:(?:请你?|麻烦你?|帮我|帮忙|替我|为我|给我|我(?:想|希望|需要|要)你?|需要|想要|先|只|仅|再|重新|继续|另外|此外|另请|第[一二三123]项工作|然后|并且|并|同时|现在|本次|本轮)\s*)*(?:(?:不要|别|先不|暂不|禁止)\s*)?(?:(?:根据|基于|依据|按照|用|把|将|对|针对)[^:：\n]{0,160})?(?:整理|修改|改写|润色|总结|归纳|汇总|提炼|撰写|编写|准备|生成|制作|翻译|分析|设计|比较|压缩|简化|缩短|检查|校对|列出|给出|拟定|写|做).+/u;
+  const command = /^\s*(?:(?:请你?|麻烦你?|帮我|帮忙|替我|为我|给我|我(?:想|希望|需要|要)你?|需要|想要|先|只|仅|再|重新|继续|另外|此外|另请|第[一二三123]项工作|然后|并且|并|同时|现在|本次|本轮|在后台|后台|异步|持续|分阶段|逐步)\s*)*(?:(?:不要|别|先不|暂不|禁止)\s*)?(?:(?:根据|基于|依据|按照|用|把|将|对|针对)[^:：\n]{0,160})?(?:整理|修改|改写|润色|总结|归纳|汇总|提炼|撰写|编写|准备|生成|制作|翻译|分析|设计|比较|压缩|简化|缩短|检查|校对|列出|给出|拟定|写|做).+/u;
   const blocks: { start: number; end: number; headEnd: number; certain: boolean; names?: string[]; followup?: boolean }[] = [];
   let framed = false, multiline = false;
   for (const part of visible.matchAll(/[^。！？!?；;\n，,]+/gu)) {
@@ -276,6 +276,7 @@ export class WorkCoordinatorService {
         const covered = new Uint8Array(request.prompt.length); for (const r of all) covered.fill(1, r.start, r.end);
         for (let i = 0; i < request.prompt.length; i++) if (!covered[i] && !/[\s，,；;。.!！?？:：、]/u.test(request.prompt[i]!)) throw new Error('解析没有覆盖完整原话，不能遗漏需求或材料；未提交批次');
         const blocks = sourceWorkBlocks(request.prompt);
+        if (parent.topicSessions && !blocks.length) return { status: 'not_applicable', text: '当前原话没有独立文字执行要求；请继续对话，未创建工作。', items: [] };
         // 名称和question只参与分配核对；不能增删原文块或改变其范围。
         const assignments = raw.items.map((item, index) => blocks.flatMap((block, blockIndex) => {
           const header = request.prompt.slice(block.start, block.headEnd);
@@ -320,6 +321,7 @@ export class WorkCoordinatorService {
           }
           return false;
         });
+        let directItems = 0;
         prepared = raw.items.map((item, index) => {
           const ranges = [...goodShared, ...itemRanges[index]!, ...localMaterial[index]!].sort((a, b) => a.start - b.start);
           if (!item.quotes.some(q => q.includes(item.name))) throw new Error('工作名称必须来自该项当前原话');
@@ -331,9 +333,20 @@ export class WorkCoordinatorService {
           if (assignments[index]!.length !== 1 || !blocks[assignments[index]![0]!]!.certain) return { ranges, decision: 'clarify', receipt: `“${item.name}”的原文工作与材料边界不明确，尚未启动；请明确本次范围。` };
           if (item.question) return { ranges, decision: 'clarify', receipt: `“${item.name}”待澄清，尚未启动：${item.question}` };
           if (!affirmativeAction(request.prompt, itemRanges[index]!, [item.name], false, scopeEnds[index], knownTargets)) return { ranges, decision: 'clarify', receipt: `当前原话不能证明肯定要求执行“${item.name}”；本项未启动，请明确本次要求。` };
+          // 后台/持续必须修饰本项实际动作，或是完整的尾随委托子句；写作宾语不是许可。
+          const executionFrame = request.prompt.slice(anchors[index]!, scopeEnds[index]).replace(/```[\s\S]*?```|`[^`]*`|“[^”]*”|‘[^’]*’|「[^」]*」|『[^』]*』|"[^"\n]*"|'[^'\n]*'/gu, value => ' '.repeat(value.length)).split(/[:：]/u)[0]!;
+          const executionHead = workCommand().exec(executionFrame);
+          const delegated = executionFrame.split(/[，,。！？!?；;\n]/u).slice(1).some(clause => /^\s*(?:请)?(?:交给(?:你|后台)|在后台|后台|异步)(?:处理|整理|完成)[。！!\s]*$/u.test(clause));
+          // 介词/把字句的subject末端可包含紧邻实际动词的‘在后台’，不能搜索宾语任意位置。
+          if (parent.topicSessions && (!(executionHead && (/在后台|后台|异步|持续|分阶段|逐步/u.test(executionHead.groups!.prefix!) || /在后台\s*$/u.test(executionHead.groups!.subject ?? '')) || delegated)
+            || /(?:不要|不用|无需|不必|先不|暂不|别|禁止|不在).{0,8}(?:后台|异步|持续|分阶段|逐步)/u.test(executionFrame))) {
+            directItems++;
+            return { ranges, decision: 'clarify', receipt: `“${item.name}”属于直接对话或单次文字请求，未委托后台执行；本项未创建工作。` };
+          }
           if (Buffer.byteLength(instruction) > workInputBytes) return { ranges, decision: 'clarify', receipt: `“${item.name}”材料超过14 KiB，未委派；请缩小该项范围。` };
           return { ranges, decision: 'work', name: item.name, instruction, inputHash: createHash('sha256').update(instruction).digest('hex'), receipt: '文字工作已接收。' };
         });
+        if (directItems === raw.items.length) return { status: 'not_applicable', text: '当前原话仅需对话或直接文字回答；没有明确后台执行委托，未创建工作。', items: [] };
       } else if (['query', 'cancel', 'revise', 'feedback'].includes(raw.action) && ['query', 'request'].includes(raw.mode)) {
         if (raw.items || raw.shared || raw.reason || raw.keywords?.some(k => !request.prompt.includes(k))) throw new Error('工作定位条件不属于当前原话');
         const keywords = raw.keywords ?? [];

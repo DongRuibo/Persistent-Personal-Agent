@@ -48,7 +48,7 @@ test('旧Web请求表增量mode/context默认值、显式INSERT及重开保留�
     const task = store.createTask('旧任务', now, now, webTarget); store.finishRun(old.id, 'succeeded', now, '旧回答'); store.close();
     const db = new DatabaseSync(path); db.exec('ALTER TABLE web_ui_chats DROP COLUMN selectionJson; ALTER TABLE web_ui_chats DROP COLUMN mode;'); db.close();
     store = new SqliteStore(path);
-    assert.deepEqual({ ...store.webUi.find(webOwner, requestId) }, { requestId, runId: old.id, text: '旧聊天原文', mode: 'chat', selectionJson: '{}', status: 'claimed', createdAt: now, coordinator: 0 });
+    assert.deepEqual({ ...store.webUi.find(webOwner, requestId) }, { requestId, runId: old.id, text: '旧聊天原文', mode: 'chat', selectionJson: '{}', status: 'claimed', createdAt: now, coordinator: 0, topicSessions: 0, topicRoute: null });
     assert.deepEqual(store.getTask(task.id), task); assert.equal(store.getRun(old.id)?.output, '旧回答');
     const newId = randomUUID(), selectionJson = JSON.stringify({ threadId: randomUUID() });
     const added = store.webUi.accept(webOwner, newId, '新建议', now, 'suggest', selectionJson); store.close(); store = new SqliteStore(path);

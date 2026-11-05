@@ -253,3 +253,22 @@ for (const status of ['succeeded', 'failed', 'running']) test(`新请求分支�
   await h.handlers.refresh(); const entry = h.sources(h.render()); assert.equal(entry.length, 1); assert.equal(entry[0].props.run.web.status, status);
   await entry[0].props.load(); assert.deepEqual(h.calls.filter(c => c.path !== '/api/snapshot').map(c => ({ path: c.path, body: c.body })), [{ path: `/api/runs/${run.id}`, body: null }]);
 });
+
+// Hook/fetch宿主验证标记只读；实际浏览器/窄屏闭环留给N5。
+test('已冻结路由轻量标记刷新稳定，通知/历史标记读取不ACK也不新增控件', async () => {
+  const at = '2026-11-03T00:00:00Z', topicId = randomUUID();
+  const requests = [{ kind: 'daily', reason: '日常' }, { kind: 'topic', threadId: topicId, title: '健身', contextKey: 'host-key', description: '虚构', selection: { kind: 'use' }, reason: '当前主题' }, { kind: 'clarify', question: '哪个项目？', reason: '不唯一' }].map((topicRoute, n) => ({
+    requestId: randomUUID(), text: 'N4合成历史' + n, createdAt: at, topicRoute, topicSessions: 1, status: 'claimed', items: [],
+    run: { id: randomUUID(), status: 'succeeded', startedAt: at, output: '原回答', usage: { calls: 1 } },
+  }));
+  const h = host([]); h.setSnapshot({ capabilities: { goal: false, skills: [], workCoordinator: true, busy: false }, requests });
+  const labels = () => h.nodes(h.render()).filter(n => n.props?.['data-topic-route']).map(n => ({ kind: n.props['data-topic-route'], text: JSON.stringify(n.props.children) }));
+  await h.handlers.refresh(); assert.deepEqual(labels().map(label => label.kind), ['daily', 'topic', 'clarify']); assert.match(labels()[1]!.text, /主题：健身/);
+  h.setSnapshot({ inbox: [{ runId: randomUUID(), at, text: '迟到结果', taskId: 'old-task', goalId: null, viewedAt: null }] });
+  await h.handlers.refresh(); const refreshed = labels(); assert.deepEqual(refreshed.map(label => label.kind), ['daily', 'topic', 'clarify']);
+  assert.ok(h.calls.every(call => call.path === '/api/snapshot'));
+  assert.ok(!h.nodes(h.render()).some(n => ['work-job-thread', 'work-route-object'].includes(n.props?.id)));
+  const restored = host([]); restored.setSnapshot({ capabilities: { goal: false, skills: [], workCoordinator: true, busy: false }, requests });
+  await restored.handlers.refresh(); assert.deepEqual(restored.nodes(restored.render()).filter(n => n.props?.['data-topic-route']).map(n => n.props['data-topic-route']), ['daily', 'topic', 'clarify']);
+  assert.ok(restored.calls.every(call => call.path === '/api/snapshot'));
+});

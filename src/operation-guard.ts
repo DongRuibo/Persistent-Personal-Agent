@@ -20,6 +20,7 @@ import type { WebView } from './web-read-types.js';
 import { confirmsWebRequest, rejectsWebRequest, webPreview, webRequestSelection } from './web-read-authorization.js';
 import type { FileOutputService } from './file-output-service.js';
 import type { WorkCoordinatorService, WorkInterpret, WorkManageReceipt } from './work-coordinator.js';
+import type { TopicReferences, BusinessReferenceKind } from './topic-route-types.js';
 import { fileHash } from './file-operation-store.js';
 import type { FileActor } from './file-operation-store.js';
 
@@ -54,6 +55,7 @@ export interface DialogueReferences {
   choices?: Choices; confirmation?: { operation: WriteOperation; expires: number };
   candidateReview?: CandidateView;
   goalView?: GoalDisplay;
+  goalShortConfirmationEnded?: boolean;
   webView?: WebView;
   fileView?: { id: string; hash: string };
   workFocus?: import('./work-coordinator.js').WorkFocus;
@@ -70,6 +72,8 @@ function matches(text: string, term: string): boolean {
   return words.length > 0 && words.every((word) => normalize(text).includes(normalize(word)));
 }
 const ttl = 5 * 60_000;
+// 类别/指代只能说明对象种类；具体名称仍用原keywords匹配，不改其内容或筛选语义。
+const hasConcreteKeywords = (keywords: string[]) => keywords.some(term => !/^(?:刚才|刚刚|上次|最新|最近|当前|那个|这个|那条|这条|我的|的|(?:学习|阅读|长期)?(?:目标|计划|任务)|提醒|记忆|goal|task|memory|候选|工作|成果)+$/u.test(normalize(term)));
 
 function memorySaveRequest(message: string, fact: string): 'direct' | 'confirm' | 'none' {
   const marker = '[事实]';
@@ -123,6 +127,33 @@ function deicticGoalLabel(message: string): { name: string; kind: string } | und
   return match ? { name: match[1]!, kind: match[2]! } : undefined;
 }
 
+// 与Goal实际操作复用同一指代判定；这里只定位上下文，不决定动作或许可。
+function goalReference(message: string, reference = referenceFromMessage(message)) {
+  const label = deicticGoalLabel(message);
+  return { label, demonstrative: !!label || reference === undefined && /(?:那个|这个)(?:学习计划|长期目标|长期任务|目标|计划)/u.test(message) };
+}
+export function businessReferenceFromMessage(message: string): BusinessReferenceKind | undefined {
+  const text = message.normalize('NFKC').replace(/「[^」]*」|『[^』]*』|“[^”]*”|‘[^’]*’|"[^"]*"|'[^']*'|`[^`]*`/gu, ' ');
+  const reference = referenceFromMessage(text), goal = goalReference(text, reference);
+  const choiceOnly = /^(?:选(?:择)?|就)?(?:第[0-9零〇一二两三四五六七八九十百]+(?:个|项|条|号)|[0-9零〇一二两三四五六七八九十百]+号)[。！!]?$/u.test(message.normalize('NFKC').trim());
+  // 归属只固定明确的业务操作/对象选择；疑问/讲解交原Chat，不把动词开头当执行授权。
+  if (/[?？]|怎么|如何|什么|为何|是否|能否/u.test(text)) return undefined;
+  const operation = /(?:^|[，,。；;\n])\s*(?:请(?:帮我)?|帮我)?(?:批准|确认|同意|继续|接着|推进|暂停|先停|停一下|取消|终止|放弃|忘记|删除|查看|查询|调整|修改|更新|保存)/u.exec(text);
+  // 仅接受完整的简短对象操作；讲解宾语或修饰尾部交原Chat，旧引用由实际Guard兜底。
+  const object = operation ? text.slice(operation.index + operation[0].length).trim() : '';
+  if (!choiceOnly && (!operation || !/^(?:(?:刚才|刚刚|上次|上一(?:个|条|次)?|最新|最近(?:一次)?(?:创建|新建|设置|保存)?|最后(?:一次|一个|一条)?(?:创建|新建|设置|保存)?|刚(?:创建|新建|设置|设|保存))(?:的)?(?:那个|这个)?|那个|这个|第[0-9零〇一二两三四五六七八九十百]+(?:个|项|条|号)|[0-9零〇一二两三四五六七八九十百]+号)(?:[^，,。；;！!?？\s：:]*?(?:学习计划|长期目标|长期任务|目标|计划|提醒|任务|记忆候选|记忆|工作|成果))?[。！!]?$/u.test(object))) return undefined;
+  if (reference && reference !== 'ambiguous' && reference.reference === 'choice' && !choiceOnly
+    && !/批准|确认|同意|继续|暂停|取消|终止|放弃|忘记|删除|查看|查询|调整|修改|更新/u.test(text)) return undefined;
+  if (goal.demonstrative || reference && /学习计划|长期目标|长期任务|目标|计划/u.test(text)) return 'goal';
+  if (!reference) return undefined;
+  if (/提醒|任务/u.test(text)) return 'task';
+  if (/记忆|记住|忘记|保存/u.test(text)) return 'memory';
+  if (/工作|成果/u.test(text)) return 'work';
+  if (/^(?:请)?(?:批准|确认|同意|暂停|取消|终止|放弃|忘记|删除|更新|修改|调整)(?:(?:刚才|刚刚|上次|上一|最新|最近)(?:的)?|那个|这个|第[0-9零〇一二两三四五六七八九十百]+(?:个|项|条|号)|[0-9]+号)/u.test(text.trim())) return 'unknown';
+  if (choiceOnly || /^(?:请)?(?:批准|确认|同意|继续|暂停|取消|终止|放弃|忘记|删除|查看|查询)(?:(?:刚才|刚刚|上次|上一|最新|最近)(?:的)?|那个|这个|第[0-9零〇一二两三四五六七八九十百]+(?:个|项|条|号)|[0-9]+号)+[。！!]?$/u.test(text.trim())) return 'unknown';
+  return undefined;
+}
+
 function candidateRejection(message: string): Intent | undefined {
   const text = message.normalize('NFKC').replace(/\s+/gu, '');
   const item = '(?:第[0-9零〇一二两三四五六七八九十百]+(?:条|个|项)|[0-9零〇一二两三四五六七八九十百]+号)(?:记忆候选|候选|记忆)?';
@@ -149,16 +180,7 @@ export class OperationGuard {
 
   async withRequest<T extends { text: string }>(request: ExecutionRequest, action: () => Promise<T>, formation?: FormationService, saveGoalResult?: (text: string) => Promise<void>, saveFileResult?: (text: string) => Promise<void>, saveWorkResult?: (text: string) => Promise<void>): Promise<T> {
     if (request.scope !== 'chat') return action();
-    // 短确认只指向紧接着的宿主文件预览；引用、假设、否定和附带修改均不匹配。
-    const naturalFileConfirmation = !!this.files && !!this.state.fileView
-      && /^(?:确认(?:允许|保存|创建|修改)?|同意保存|就这样保存|按这个(?:保存|修改))[。！!]?$/u.test(request.prompt.normalize('NFKC').trim());
-    if (this.state.fileView && !naturalFileConfirmation) { delete this.state.fileView; this.saveState(this.state); }
-    if (this.web && this.state.webView && !naturalFileConfirmation) {
-      // 后台Goal通知可能在Web等待确认时到达；先清理冲突视图，再建立本轮授权上下文。
-      this.clearWebConflicts();
-      if (!confirmsWebRequest(request.prompt)) delete this.state.webView;
-      this.saveState(this.state);
-    }
+    const naturalFileConfirmation = this.prepareReferences(request.prompt, true);
     const frame: Frame = { request, references: structuredClone(this.state), used: false };
     return this.context.run(frame, async () => {
       try {
@@ -196,10 +218,99 @@ export class OperationGuard {
         return frame.answer ? { ...result, text: frame.answer } : result;
       } finally {
         // 普通用户回合已有新的回答对象；旧工作焦点不能自动解释随后省略目标的修改。
-        if (!frame.workUsed && this.state.workFocus) { delete this.state.workFocus; this.saveState(this.state); }
-        if (!frame.plan && (this.state.choices || this.state.confirmation || this.state.candidateReview)) { delete this.state.choices; delete this.state.confirmation; delete this.state.candidateReview; this.saveState(this.state); }
+        this.finishReferences(!!frame.plan, !!frame.workUsed);
       }
     });
+  }
+
+  // 新普通回合已开始，即使隔离路由失败，也保留原入口/失败结束时点。
+  prepareRoutingReferences(request: ExecutionRequest): void { this.prepareReferences(request.prompt, true); }
+  finishRoutingReferences(): void { this.finishReferences(false, false); }
+
+  // 路由仅看当前实际上下文的引用元数据；不消费确认，也不输出正文或许可。
+  routingReferences(request: ExecutionRequest, goals?: GoalService, formation?: FormationService): TopicReferences {
+    const now = this.tasks.now().getTime(), kinds: TopicReferences['kinds'] = []; let count = 0, candidateReviewValid = false;
+    if (this.state.goalView && !this.state.goalShortConfirmationEnded && goals) {
+      try { goals.validateDisplay(this.state.goalView); kinds.push('goal'); count += this.state.goalView.items.length; }
+      catch (error) { if (!(error instanceof Error) || !/清单未成功|目标或计划版本|Goal 不存在或无权/u.test(error.message)) throw error; }
+    }
+    if (this.files && this.state.fileView) {
+      try {
+        this.files.service.verify();
+        this.files.service.store.validateConfirmation(this.state.fileView.id, this.state.fileView.hash,
+          { owner: this.files.owner, channel: JSON.stringify(this.tasks.currentTarget()) }, this.files.service.key, now, 'any');
+        kinds.push('file'); count++;
+      } catch (error) { if (!(error instanceof Error) || !/^(?:file_|output_|snapshot_changed|read_race|link_not_allowed|file_type_or_hardlink)/u.test(error.message)) throw error; }
+    }
+    if (this.web && this.state.webView && this.web.store.displayed(this.state.webView,
+      { owner: this.web.owner, channel: JSON.stringify(this.tasks.currentTarget()) }, now)) {
+      const resource = this.web.service.list().find(item => item.id === this.state.webView!.resourceId);
+      if (resource?.hash === this.state.webView.catalogHash) { kinds.push('web'); count++; }
+    }
+    if (this.state.choices && this.state.choices.expires > now) { kinds.push(this.state.choices.tool === 'cancel_task' ? 'task' : 'memory'); count += this.state.choices.ids.length; }
+    else if ((this.state.taskViewExpires ?? 0) > now && this.state.tasks?.length) { kinds.push('task'); count += this.state.tasks.length; }
+    else if ((this.state.lastTaskExpires ?? 0) > now && this.state.lastTask) { kinds.push('task'); count++; }
+    if ((this.state.lastMemoryExpires ?? 0) > now && this.state.lastMemory) { kinds.push('memory'); count++; }
+    if (this.state.confirmation && this.state.confirmation.expires > now) { kinds.push('memory'); count++; }
+    if (this.state.candidateReview && this.state.candidateReview.expires > now && formation?.options.enabled) {
+      try { formation.validateDisplay(this.state.candidateReview); candidateReviewValid = true; kinds.push('memory'); count += this.state.candidateReview.items.length; }
+      catch (error) { if (!(error instanceof Error) || error.message !== '该候选清单没有成功发送的记录，请重新查看后再审批') throw error; }
+    }
+    if (this.state.workFocus) { kinds.push('work'); count++; }
+    request.signal.throwIfAborted();
+    const kind = businessReferenceFromMessage(request.prompt), reference = referenceFromMessage(request.prompt);
+    let selectedCount = 0;
+    if (kind) {
+      const goal = this.state.goalView;
+      const goalCount = kinds.includes('goal') && goal ? reference && reference !== 'ambiguous' && reference.reference === 'choice'
+        ? goal.items[(reference.position ?? 0) - 1] ? 1 : 0
+        : goalReference(request.prompt, reference).demonstrative && (!goal.details || goal.items.length !== 1) ? 0 : goal.items.length : 0;
+      const taskChoices = this.state.choices?.tool === 'cancel_task' && this.state.choices.expires > now ? this.state.choices.ids
+        : (this.state.taskViewExpires ?? 0) > now ? this.state.tasks : undefined;
+      const taskIds = reference && reference !== 'ambiguous' && reference.reference === 'choice' ? taskChoices?.slice((reference.position ?? 0) - 1, reference.position)
+        : reference && reference !== 'ambiguous' && reference.reference === 'last' && (this.state.lastTaskExpires ?? 0) > now && this.state.lastTask ? [this.state.lastTask] : taskChoices;
+      const visible = kind === 'task' || kind === 'unknown' ? this.tasks.visibleTasks() : [];
+      const taskCount = reference && reference !== 'ambiguous' && reference.reference === 'latest' ? visible.length ? 1 : 0
+        : reference && reference !== 'ambiguous' && reference.reference === 'last' && (this.state.lastTaskExpires ?? 0) <= now ? 0 : taskIds?.filter(id => visible.some(task => task.id === id)).length ?? 0;
+      const memoryChoices = this.state.choices && this.state.choices.tool !== 'cancel_task' && this.state.choices.expires > now ? this.state.choices.ids : undefined;
+      const memoryCount = !this.memory ? 0 : reference && reference !== 'ambiguous' && reference.reference === 'choice'
+        ? (memoryChoices ?? (candidateReviewValid ? this.state.candidateReview?.items.map(item => item.id) : undefined))?.[(reference.position ?? 0) - 1] ? 1 : 0
+        : kinds.includes('memory') ? 1 : 0;
+      const available = { goal: goalCount, task: taskCount, memory: memoryCount, work: this.state.workFocus ? 1 : 0 };
+      selectedCount = kind === 'unknown' ? Object.values(available).filter(n => n > 0).length === 1 ? Object.values(available).find(n => n > 0)! : 0 : available[kind];
+      if (reference === 'ambiguous') selectedCount = 0;
+    }
+    return { kinds: [...new Set(kinds)], count: Math.min(count, 21), ...(kind ? { reference: { kind, count: Math.min(selectedCount, 21) } } : {}) };
+  }
+
+  private prepareReferences(prompt: string, allowConfirmation: boolean): boolean {
+    // 短确认只指向紧接着的宿主文件预览；引用、假设、否定和附带修改均不匹配。
+    const naturalFileConfirmation = allowConfirmation && !!this.files && !!this.state.fileView
+      && /^(?:确认(?:允许|保存|创建|修改)?|同意保存|就这样保存|按这个(?:保存|修改))[。！!]?$/u.test(prompt.normalize('NFKC').trim());
+    if (this.state.fileView && !naturalFileConfirmation) { delete this.state.fileView; this.saveState(this.state); }
+    if (this.web && this.state.webView && !naturalFileConfirmation) {
+      // 后台Goal通知可能在Web等待确认时到达；先清理冲突视图，再建立本轮授权上下文。
+      this.clearWebConflicts();
+      if (!allowConfirmation || !confirmsWebRequest(prompt)) delete this.state.webView;
+      this.saveState(this.state);
+    }
+    return naturalFileConfirmation;
+  }
+  private finishReferences(hasPlan: boolean, workUsed: boolean): void {
+    if (!workUsed && this.state.workFocus) { delete this.state.workFocus; this.saveState(this.state); }
+    if (!hasPlan && (this.state.choices || this.state.confirmation || this.state.candidateReview)) {
+      delete this.state.choices; delete this.state.confirmation; delete this.state.candidateReview; this.saveState(this.state);
+    }
+  }
+  // 另一Session已成为本轮对象；复用原入口/普通结束规则，不清空Goal等独立引用。
+  otherChat(request: ExecutionRequest): void {
+    this.prepareReferences(request.prompt, false);
+    this.finishReferences(false, false);
+    // Task/Memory短对象随原Session切换结束；具名和全局latest仍由原Guard查询。
+    delete this.state.tasks; delete this.state.taskViewExpires; delete this.state.lastTask; delete this.state.lastTaskExpires;
+    delete this.state.lastMemory; delete this.state.lastMemoryExpires;
+    if (this.state.goalView) this.state.goalShortConfirmationEnded = true;
+    this.saveState(this.state);
   }
 
   private fileActor(): FileActor {
@@ -355,6 +466,7 @@ export class OperationGuard {
       records = views.map(view => view.goal);
       const text = records.length === 1 ? renderGoal(views[0]!) : records.length
         ? records.map((goal, index) => `${index + 1}. ${goal.objective}；${goal.status}；版本${goal.revision}`).join('\n') : '当前没有匹配的长期目标。';
+      delete this.state.goalShortConfirmationEnded;
       this.state.goalView = { items: records.map(goal => ({ id: goal.id, revision: goal.revision, draftHash: goal.pendingAction?.hash })),
         expires: this.tasks.now().getTime() + ttl, displayRunId: request.source.reference, action, details: records.length === 1 };
       delete this.state.choices; delete this.state.confirmation; delete this.state.candidateReview;
@@ -366,6 +478,10 @@ export class OperationGuard {
     if (priorReceipt) return show([priorReceipt], undefined, '此请求已有控制收据，以下为当前状态：\n');
     const display = frame.references.goalView;
     const shortConfirm = /^(?:确认|同意|就这样|好的，就这样)[。！!]?$/u.test(request.prompt.trim());
+    if (shortConfirm && frame.references.goalShortConfirmationEnded) {
+      frame.answer = '原Goal短确认引用已结束，请重新查看完整计划并核对后再确认；本轮未批准。';
+      return { status: 'clarification' };
+    }
     let raw: unknown;
     if (shortConfirm && display?.items.length === 1 && display.items[0]?.draftHash) {
       raw = { action: 'goal_manage', goalAction: 'approve_plan', mode: 'request', evidence: request.prompt,
@@ -385,12 +501,19 @@ export class OperationGuard {
     if (query ? !['query', 'request'].includes(intent.mode) : intent.mode !== 'request') throw new Error('否定、假设、引用或不确定消息不能控制Goal');
     const message = request.prompt.normalize('NFKC');
     const activeText = message.replace(/「[^」]*」|『[^』]*』|“[^”]*”|‘[^’]*’|"[^"]*"|'[^']*'|`[^`]*`/gu, ' ');
+    const permitted = request.prepareChat
+      ? /^\s*(?:(?:请你?|麻烦你?|帮我|帮忙|替我|为我|给我|我(?:想|希望|需要|要)你?|需要|想要|先|只|仅|现在|本次|本轮|持续|分阶段|逐步)\s*)*(?:创建|新建|建立|保存)[^。！？!?；;\n，,:：]{0,15}?(?:长期目标|长期任务|学习计划|Goal)(?!\s*的)/iu.test(activeText)
+      : /(?:创建|新建|建立|保存).{0,15}(?:长期目标|长期任务|学习计划)|(?:帮我|和我|跟我).{0,8}(?:逐步|持续|分阶段)|(?:长期目标|长期任务).{0,8}(?:创建|建立)/u.test(activeText);
+    // 新主题模式中，创建必须是当前主动作；写作宾语里的Goal或“Goal的说明”不授予许可。
+    if (action === 'create' && request.prepareChat && !permitted) {
+      frame.goalUsed = false;
+      return { status: 'not_applicable', executed: false, result: '当前原话没有明确创建Goal的请求；请继续对话，未创建长期目标。' };
+    }
     // 仅创建时区分完整的产物真实性约束与操作否定；原话仍完整保存，混合或未知子句不放行。
     const authorizationText = action === 'create' ? activeText.replace(/(?:^|[。；;，,])\s*不要(?:替我|擅自)?(?:假设(?:我)?(?:已经|已)?掌握(?:相关)?(?:知识|技能)|虚构(?:任何|我的)?(?:经历|事实|能力))(?=[。；;，,]|$)/gu, ' ') : activeText;
     if (!query && /如果|假设|假如|要是|他说|她说|引用|不要|不用|无需|先不|别|[?？]/u.test(action === 'cancel' ? authorizationText.replace('不用做了', '') : authorizationText)) throw new Error('当前请求没有明确执行授权');
     if (action === 'create') {
-      if (!/(?:创建|新建|建立|保存).{0,15}(?:长期目标|长期任务|学习计划)|(?:帮我|和我|跟我).{0,8}(?:逐步|持续|分阶段)|(?:长期目标|长期任务).{0,8}(?:创建|建立)/u.test(activeText)
-        || /自动|定时|每[天周月]|无人/u.test(activeText)) { frame.answer = '请明确是否保存为可手动继续的长期目标；每次只执行一段，暂不支持自动或定时推进。'; return { status: 'clarification' }; }
+      if (!permitted || /自动|定时|每[天周月]|无人/u.test(activeText)) { frame.answer = '请明确是否保存为可手动继续的长期目标；每次只执行一段，暂不支持自动或定时推进。'; return { status: 'clarification' }; }
       const created = goals.apply(request, action);
       request.observer.event('operation_committed', JSON.stringify({ tool: 'goal_manage', id: created.id }));
       return show([created], undefined, '已创建并排队，最多执行一个初始化片段。\n');
@@ -404,8 +527,7 @@ export class OperationGuard {
       frame.answer = '指代存在歧义，请明确一个目标或重新查看并选择编号；本轮未操作。'; return { status: 'clarification' };
     }
     // “那个计划”只指向宿主刚完整展示的唯一Goal；不能仅凭模型last标签选择数据库记录。
-    const label = deicticGoalLabel(activeText);
-    const demonstrative = !!label || reference === undefined && /(?:那个|这个)(?:学习计划|长期目标|长期任务|目标|计划)/u.test(activeText);
+    const { label, demonstrative } = goalReference(activeText, reference);
     if (demonstrative) {
       if (!display?.details || display.items.length !== 1) {
         frame.answer = '没有唯一的完整目标视图，请先查看并明确选择目标；本轮未操作。'; return { status: 'clarification' };
@@ -421,10 +543,16 @@ export class OperationGuard {
     let records = goals.list();
     if (records.length > 100) { frame.answer = '目标较多，请先归档或使用更具体的范围；本轮未操作。'; return { status: 'clarification' }; }
     const hasFilters = selector.keywords.length > 0;
-    if (selector.reference === 'choice' || shortConfirm || selector.reference === 'last' || demonstrative) {
+    const selectedReference = selector.reference ?? (!hasConcreteKeywords(selector.keywords) && reference ? reference.reference : undefined);
+    // 真正消费展示时兜底，包含模型漏selector后的单项回退；归属解析不授予旧展示权限。
+    if (frame.references.goalShortConfirmationEnded && (selectedReference === 'choice' || shortConfirm || selectedReference === 'last' || demonstrative
+      || !query && !selectedReference && !hasFilters)) {
+      frame.answer = '原Goal引用已结束，请重新查看并明确目标；本轮未操作。'; return { status: 'clarification' };
+    }
+    if (selectedReference === 'choice' || shortConfirm || selectedReference === 'last' || demonstrative) {
       if (!display) { frame.answer = '没有有效目标清单，请先查看进度。'; return { status: 'clarification' }; }
       goals.validateDisplay(display);
-      const item = selector.reference === 'choice' ? display.items[(selector.position ?? 0) - 1] : display.items.length === 1 ? display.items[0] : undefined;
+      const item = selectedReference === 'choice' ? display.items[(selector.position ?? 0) - 1] : display.items.length === 1 ? display.items[0] : undefined;
       records = records.filter(goal => goal.id === item?.id);
     }
     records = records.filter(goal => (!label?.name || normalize(goal.objective).includes(normalize(label.name)))
@@ -434,8 +562,8 @@ export class OperationGuard {
         if (label?.name && term === label.name + label.kind) return matches(goal.objective, label.name);
         return matches(goal.objective, term);
       }));
-    if (selector.reference === 'latest') records = records.slice(0, 1);
-    if (!query && !selector.reference && !hasFilters && !shortConfirm) {
+    if (selectedReference === 'latest') records = records.slice(0, 1);
+    if (!query && !selectedReference && !hasFilters && !shortConfirm) {
       if (display?.items.length === 1) { goals.validateDisplay(display); records = records.filter(goal => goal.id === display.items[0]!.id); }
       else return show(records, action, '请明确要操作的目标或选择清单编号；本轮未操作。\n');
     }
@@ -668,15 +796,17 @@ export class OperationGuard {
     const taskOperation = intent.action === 'cancel_task';
     const all: (Task | MemoryRecord)[] = taskOperation ? this.tasks.visibleTasks() : this.memory?.listForHost() ?? [];
     let records = all;
-    const hasFilters = selector.keywords.length > 0 || !!selector.when;
-    if (selector.reference === 'choice') {
+    const hasFilters = hasConcreteKeywords(selector.keywords) || !!selector.when;
+    // 只有真正具名/时间条件保留原独立筛选；类别词不能让已结束的宿主last回退全库。
+    const selectedReference = selector.reference ?? (!hasFilters && reference ? reference.reference : undefined);
+    if (selectedReference === 'choice') {
       const ids = choices?.tool === intent.action ? choices.ids : taskOperation && (references.taskViewExpires ?? 0) > now ? references.tasks : undefined;
       const id = ids?.[(selector.position ?? 0) - 1];
       records = id ? all.filter((item) => item.id === id) : [];
-    } else if (selector.reference === 'last' && !hasFilters) {
+    } else if (selectedReference === 'last' && !hasFilters) {
       const id = taskOperation ? (references.lastTaskExpires ?? 0) > now ? references.lastTask : undefined : (references.lastMemoryExpires ?? 0) > now ? references.lastMemory : undefined;
       records = all.filter((item) => item.id === id);
-    } else if (selector.reference === 'latest') records = all;
+    } else if (selectedReference === 'latest') records = all;
     else {
       if (!selector.keywords.length && !selector.when) return '请补充提醒内容或时间，以便确定目标。';
       if (all.length > 100) return '候选记录较多，请补充更具体的内容；本轮没有操作。';
@@ -689,8 +819,8 @@ export class OperationGuard {
         records = records.filter((item) => 'dueAt' in item && item.dueAt >= start && item.dueAt < end);
       } catch { return '筛选时间不明确，请补充日期或具体时段。'; }
     }
-    if (selector.reference === 'latest') records = records.slice(0, 1);
-    if (taskOperation && (!selector.reference || selector.reference === 'last' && hasFilters)) {
+    if (selectedReference === 'latest') records = records.slice(0, 1);
+    if (taskOperation && (!selectedReference || selectedReference === 'last' && hasFilters)) {
       const pendingTasks = records.filter((item) => 'status' in item && item.status === 'pending');
       if (pendingTasks.length) records = pendingTasks;
     }

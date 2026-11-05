@@ -40,7 +40,7 @@ API Key 只从环境变量读取，仓库仅放脱敏样例。准确依赖版本
 | 概念 | 职责与生命周期 |
 | --- | --- |
 | Task / Run | SQLite 保存指令、下次执行时间、渠道接收目标、状态、执行结果与日志，跨进程重启保留 |
-| WorkThread | 当前本机Web工作主题；同应用库的独立关系元数据，按ID组织Goal/Task/Run/Memory，不代替其事实源、权限或执行 |
+| WorkThread | 当前本机Web工作主题；同库关系及默认关闭的持续主题Session绑定元数据，按ID组织对象，不代替其事实源、权限或执行 |
 | WorkJob（2A） | 显式归属一个主题的一次纯文本后台工作；独立queued/取消/恢复生命周期，结果与用量沿用Run，不改变Task提醒或Goal授权 |
 | Pi Session | 短期对话上下文；交互使用 Pi JSONL 文件跨重启恢复，每个后台任务使用独立内存 Session 并释放；不是长期记忆 |
 | Memory Service | 跨 Session 的四类长期知识；Markdown 为事实源，独立 SQLite 为索引，不负责任务状态或完整聊天历史 |
@@ -340,6 +340,20 @@ UI范围变化清旧呈现、忽略迟到响应，状态仅当前组件内存。
 
 运行中修改先登记，纯资料无执行许可；领取前补充共享最早有限许可合并一轮，领取后新增补充待下一次许可。在原WorkRunner取得lane/checkReady并让到期Task/就绪Goal优先后，同一SQLite事务重读成功前序/Hash、聚合、创建并claim后继Job/Run、消费许可；不创建可暗改的后继queued，不新调度器。失败/取消/中断不自动后继，取消撤销未消费许可。Coordinator关闭不领新协调消息或后继；已建普通queued Job是否领取仍由WorkJobs开关决定，不能把关闭Coordinator当暂停既有Job。
 
-总管+辅助解析共八次HTTP；纯文本Worker独立临时Session/零工具/一次HTTP/4096输出token，14KiB冻结输入、32KiB实际请求体和原超时。原唯一context事件链叠加投影：prompt前通过公开sendCustomMessage以details.runId记录宿主开始边界、triggerTurn:false不触发模型；公开appendCustomEntry记录同一runId的宿主结束分类，不进入模型context。边界不猜原文字串，不改SDK数组或Session格式。当前完整原话/工具配对及Guard原ExecutionRequest保留，历史工作只有限目录/focus/当时收据/来源，普通完整纯文字历史最多两轮4KiB；旧无标记/缺结束混合历史只引用，原JSONL不删改。Memory/Web低信任预算继续原链，不被投影跳过。
+总管+辅助解析共八次HTTP；纯文本Worker独立临时Session/零工具/一次HTTP/4096输出token，14KiB冻结输入、32KiB实际请求体和原超时。原唯一context事件链叠加投影：prompt前通过公开sendCustomMessage以details.runId记录宿主开始边界、triggerTurn:false不触发模型；公开appendCustomEntry记录同一runId的宿主结束分类，不进入模型context。边界不猜原文字串，不改SDK数组或Session格式。当前完整原话/工具配对及Guard原ExecutionRequest保留，历史工作只有限目录/focus/当时收据/来源，主题开关关闭的日常/旧Coordinator路径中，普通完整纯文字历史最多两轮4KiB；旧无标记/缺结束混合历史只引用，原JSONL不删改。Memory/Web低信任预算继续原链，不被投影跳过。
 
 新UI以requestId合并queued/claimed旧聊天、itemId稳定反馈、jobId/runId去重成果。只读最多100关联Job/Run，根请求自身范围生成短标题，续接JSON不当标题；通知失败/父Chat中断仍能从原成果读取，不额外唤醒模型。已获准Goal事实仅投影原通知，原文件完整预览/hash ACK与明确decision、Goal/Policy/Task/Memory权限保持；网页来源复用原WebSources成功/失败/截断入口，展开只读原Run而不重搜。旧显式工作台仅辅助，Coordinator关闭时旧路径保留。
+
+## 持续主题与独立Session（隔离实现，默认关闭）
+
+`WORK_TOPIC_SESSIONS_ENABLED`仅本机Web，依赖Coordinator/Threads/Jobs/Recall且默认关闭。原请求表保存接收模式及冻结daily/topic/clarify路由，WorkThread只增加简介和宿主生成的chatContextKey；主题绑定/route同事务提交。旧记录不批量重分类或搬正文，旧未绑定主题须当前明确持续用途才绑定。日常小事不新建主题。
+
+宿主在主prompt前最多一次受控主题解析，候选仅有界名称/简介/原有效引用，没有别的Session全文或Memory正文。先保存归属，再用原Pi公开SessionManager按contextKey恢复各自Session及Guard/DialogueReferences；业务owner/channel不随主题改变。明确完整切换/纠正只选择，不执行上一条请求；引用别的主题不自动搬其历史。仅持续健身/求职不创建Job/Goal，明确业务执行仍须当前许可。
+
+语义归属不确定时保留真实clarify路由，由宿主只传当前原话做一次无工具临时文字补答；无历史、Memory或其他主题正文，不进入任何持久Session、不建主题/Job/Goal。候选由宿主原样附在正文后，仍须完整展示ACK及原有效期才能编号选择；选择不重放上一条。业务对象缺失、裸确认及无效编号仍按原澄清/Guard规则，路由格式/ID/HTTP/取消/超时/预算失败不降级补答。补答与路由共用原回合计量及硬门。
+
+主题保留压缩感知的原上下文，通过公开compact和内联扩展前置压缩；路由/摘要/Chat共用原同轮8次HTTP、65536字节发送门、绝对超时和取消。保留1536 recent/reserve4096及原模型窗口；精确无工作错误只在发送前按已核SDK1.3.0边界跳过软阈值，不放宽硬门。摘要仍低信任，Memory依当前版本临时投影，历史批准不能复活；split部分失败、未知用量和崩溃不自动重放。
+
+新Job继承原Web请求冻结threadId；原Job修订保持root/previous/thread链，主题不能代选最新工作。daily明确后台只创建原组织、不绑定持久Session。主Chat/工具/隔离解析按本轮模式区分持续对话与后台/Goal执行；原时间线显示只读日常/主题/澄清标记，无新必选入口。通知、结果和只读刷新不改当前主题；原显式文件decision走旧日常Session，可让下一条路由线索为null并结束旧短引用，但不删除绑定或改写原route，这是当前保留的审批路径限制。
+
+N1—N4离线机制已独立通过；N5全量和实际Chrome/启动器离线证据见[N5评估](evaluations/topic-session-routing-n5.md)，N5独立R1已PASS、无阻断。没有正式启用/迁移或真实模型语义验收。安装运行集中在README，手动隔离试用见[短指南](topic-session-trial.md)。

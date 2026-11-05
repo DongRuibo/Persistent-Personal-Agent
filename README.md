@@ -15,9 +15,9 @@ V2.1b.3 按授权定点修复上述三个问题：有成功显示的候选时，
 
 ## Web App V1（独立本机模式）
 
-Node.js >=24.15.0（当前Mac使用24.19.0）。React/Vite 前端与 Node HTTP API 同源，固定绑定 `127.0.0.1`，默认关闭。本模式不读取 `.env`，不启动飞书；不要使用会自动加载正式配置的 `npm start/dev`。完整启动说明见 [Web App](docs/web-app.md)。
+Node.js >=24.15.0（当前Mac使用24.19.0）。React/Vite 前端与 Node HTTP API 同源，固定绑定 `127.0.0.1`，默认关闭。原服务直接启动不自动读取 `.env`，不启动飞书；macOS日常启动器只复用四项LLM连接字段。不要使用会自动加载正式配置的 `npm start/dev`。完整启动说明见 [Web App](docs/web-app.md)。
 
-macOS日常启动：在当前代码目录运行`npm run web:local`，自动构建、复用主项目四项LLM配置并打开浏览器自动登录，无需填写访问密钥。数据固定在主项目`data/web-ui`；保持终端运行，`Ctrl+C`停止，重复运行只打开现有实例。首次Mac运行不会自动导入旧Windows历史。下面是离线界面检查命令，日常使用无需运行它。
+macOS既有日常启动（保持原默认行为）：在当前代码目录运行`npm run web:local`，自动构建、复用主项目四项LLM配置并打开浏览器自动登录，无需填写访问密钥。未设置`WEB_UI_DATA_DIR`时数据固定在主项目`data/web-ui`；**持续主题的新隔离试用请使用下节及专用指南，不能直接沿用这个默认目录。**保持终端运行，`Ctrl+C`停止，重复运行只打开现有实例。首次Mac运行不会自动导入旧Windows历史。下面是离线界面检查命令，日常使用无需运行它。
 
 ```powershell
 npm ci
@@ -51,11 +51,23 @@ TMPDIR=/private/tmp PREVIEW_COORDINATOR=true npm run web:preview:offline
 
 修改只选择本工作一个成功前序的完整成果，加当前补充和有效原约束；来源/Hash缺失、变化或超过14KiB输入/32KiB实际HTTP上限时澄清，不拿节选冒充全文。在途补充先保存，领取前共享最早一次明确修改许可合并一轮；领取后补充归下一次许可，纯资料不自动执行。失败、中断、取消或缺少成功前序时待用户，不自动重试。稳定工作引用为根Job，同主题不能代替身份。
 
-总管和辅助解析每轮共用八次模型HTTP上限；每个Worker使用独立临时Session、零工具、一次HTTP、最多4096输出token。当前Chat原话和工具配对完整保留；后续模型只收到有限工作目录/当时收据，普通历史最多两轮总4KiB，原Session正文不删除。界面直接读取原Job/Run成果，详情和技术ID收起；网页来源沿原只读入口，文件完整预览/hash ACK与明确批准、Goal/Policy权限不变。
+总管和辅助解析每轮共用八次模型HTTP上限；每个Worker使用独立临时Session、零工具、一次HTTP、最多4096输出token。当前Chat原话和工具配对完整保留；仅开Coordinator、未开持续主题时，后续模型只收到有限工作目录/当时收据，普通历史最多两轮总4KiB，原Session正文不删除。界面直接读取原Job/Run成果，详情和技术ID收起；网页来源沿原只读入口，文件完整预览/hash ACK与明确批准、Goal/Policy权限不变。
 
-当前没有按健身/饮食、求职面试、代码项目等语义主题自动路由到各自持久Session的能力：自动主题仅在名称完全相同时复用，Worker始终是临时Session，主Chat普通历史仅两轮总4KiB。这些主题元数据和工作续接不能当作长期主题Context。
+仅开Coordinator时，工作组织元数据及稳定根Job续接不等于长期对话Context；下节持续主题开关才提供独立持久Session。
 
-原2A显式主题/后台处理和2B建议控件在Coordinator关闭时保留。离线结果、浏览器版本区别、已保留失败和未验项见[总管评估](docs/evaluations/chat-coordinator-mvp.md)。真实模型语义、手机和长跑未验，真实请求/费用、Git发布及正式切换须另行确认。
+原2A显式主题/后台处理和2B建议控件在Coordinator关闭时保留。离线结果、浏览器版本区别、已保留失败和未验项见[总管评估](docs/evaluations/chat-coordinator-mvp.md)。该总管阶段的真实模型语义、手机和长跑未验；本次用户手动试用见下节，Git发布及正式切换仍须另行授权。
+
+## 持续主题与独立Session（默认关闭）
+
+`WORK_TOPIC_SESSIONS_ENABLED=false`。仅本机Web，需同时启用`WORK_COORDINATOR_ENABLED`、`WORK_THREADS_ENABLED`、`WORK_JOBS_ENABLED`、`WORK_RECALL_ENABLED`。保持原输入框，按当前请求选择日常/已有主题/明确持续新主题，歧义时澄清；每条已接受请求的归属先持久冻结，相同requestId回读、刷新和通知不重新分类或触发执行。主题Session与Web身份分离，旧未绑定主题不自动升级；既有关闭路径保留。
+
+“以后在这里帮我健身/求职”只建立持续对话，不因持续性创建Job/Goal；普通短文直接回答。明确后台/分阶段文字交付及既有工作管理仍走原工具；新Job继承本请求主题，旧Job修订沿原根链，切聊天主题不搬旧工作。明确Goal创建/推进、文件审批仍走原权限；选择主题不产生执行许可。
+
+主题使用Pi公开SessionManager与前置compact，按当前Session压缩感知上下文接续；路由、摘要和Chat共用原8次HTTP/65536字节门、取消和超时。压缩失败不偷偷换日常或重放工具，未知用量明确标记。原两轮4KiB普通历史投影仅保留在日常/旧Coordinator路径。跨主题资料引用不自动读取另一Session全文。
+
+本地N1—N4已独立通过；N5最终同源全量1115/1115，桌面1280×900及390×844实际Chrome假模型主链/原审批、同目录启动smoke已完成，**N5独立R1已PASS、无阻断**。这些是离线机制证据，390px不是实际手机，真实分类/成稿/时延仍待用户手动验证。文件显式审批仍经原日常入口，会结束隐含当前主题线索；主题绑定与原消息归属保留，不宣称审批后自动保持焦点。见[N5评估及A1—A12证据](docs/evaluations/topic-session-routing-n5.md)。
+
+实际试用只需按[短试用指南](docs/topic-session-trial.md)运行一段命令：固定新目录`$HOME/.ppa-trials/topic-sessions-20261103`、新端口`4329`，复用原启动器及本机四项LLM配置；停止后用同一目录重开保留会话。本轮未自动启动真实模型实例或发送收费消息，旧62414/4317/4318不变。原日常启动器关闭文件读写，真实手动试用不默认包含文件写入。
 
 ## WorkThread：工作主题与关联（默认关闭）
 

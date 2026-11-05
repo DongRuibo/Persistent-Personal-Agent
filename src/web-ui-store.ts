@@ -1,17 +1,25 @@
+import { randomUUID } from 'node:crypto';
+import { topicClarificationSeparator, type FrozenTopicRoute, type TopicRouteChoice, type TopicDecision } from './topic-route-types.js';
+import type { WorkThreadActor } from './work-thread-types.js';
+import type { WorkThreadStore } from './work-thread-store.js';
 import type { DatabaseSync } from 'node:sqlite';
 import type { Run } from './contracts.js';
 
 export type WebRequestRow = { requestId: string; runId: string | null; text: string; mode: 'chat' | 'suggest' | 'policy';
-  selectionJson: string; status: 'queued' | 'claimed' | 'cancelled'; createdAt: string; coordinator: number };
+  selectionJson: string; status: 'queued' | 'claimed' | 'cancelled'; createdAt: string; coordinator: number; topicSessions: number; topicRoute: FrozenTopicRoute | null };
+type StoredRequest = Omit<WebRequestRow, 'topicRoute'> & { topicRouteJson: string | null };
+function readRequest({ topicRouteJson, ...row }: StoredRequest): WebRequestRow {
+  return { ...row, topicRoute: topicRouteJson ? JSON.parse(topicRouteJson) as FrozenTopicRoute : null };
+}
 export class WebRequestError extends Error {
   constructor(readonly status: 404 | 409 | 429, message: string) { super(message); }
 }
-const requestColumns = 'requestId,runId,text,mode,selectionJson,status,createdAt,coordinator';
+const requestColumns = 'requestId,runId,text,mode,selectionJson,status,createdAt,coordinator,topicSessions,topicRouteJson';
 
 // Web接收、领取与收件箱投影；模型上下文仍由Pi原生Session管理。
 export class WebUiStore {
   constructor(private readonly db: DatabaseSync, private readonly transaction: <T>(fn: () => T) => T,
-    private readonly begin: (now: string) => Run) {
+    private readonly begin: (now: string) => Run, private readonly threads: WorkThreadStore) {
     db.exec(`CREATE TABLE IF NOT EXISTS web_ui_chats (
       owner TEXT NOT NULL, requestId TEXT NOT NULL, runId TEXT UNIQUE REFERENCES runs(id), text TEXT NOT NULL,
       mode TEXT NOT NULL DEFAULT 'chat', selectionJson TEXT NOT NULL DEFAULT '{}',
@@ -40,12 +48,17 @@ export class WebUiStore {
       DROP TABLE web_ui_chats;
       ALTER TABLE web_ui_chats_next RENAME TO web_ui_chats;`);
     });
+    const migrated = db.prepare('PRAGMA table_info(web_ui_chats)').all();
+    if (!migrated.some(column => column.name === 'topicSessions')) db.exec('ALTER TABLE web_ui_chats ADD COLUMN topicSessions INTEGER NOT NULL DEFAULT 0 CHECK(topicSessions IN (0,1))');
+    if (!migrated.some(column => column.name === 'topicRouteJson')) db.exec('ALTER TABLE web_ui_chats ADD COLUMN topicRouteJson TEXT');
   }
   find(owner: string, requestId: string) {
-    return this.db.prepare(`SELECT ${requestColumns} FROM web_ui_chats WHERE owner=? AND requestId=?`).get(owner, requestId) as WebRequestRow | undefined;
+    const row = this.db.prepare(`SELECT ${requestColumns} FROM web_ui_chats WHERE owner=? AND requestId=?`).get(owner, requestId) as StoredRequest | undefined;
+    return row ? readRequest(row) : undefined;
   }
   coordinatorRequest(owner: string, runId: string): WebRequestRow | undefined {
-    return this.db.prepare(`SELECT ${requestColumns} FROM web_ui_chats WHERE owner=? AND runId=? AND coordinator=1`).get(owner, runId) as WebRequestRow | undefined;
+    const row = this.db.prepare(`SELECT ${requestColumns} FROM web_ui_chats WHERE owner=? AND runId=? AND coordinator=1`).get(owner, runId) as StoredRequest | undefined;
+    return row ? readRequest(row) : undefined;
   }
   accept(owner: string, requestId: string, text: string, now: string, mode: WebRequestRow['mode'] = 'chat', selectionJson = '{}'): Run {
     return this.transaction(() => {
@@ -54,7 +67,7 @@ export class WebUiStore {
       return run;
     });
   }
-  enqueue(owner: string, requestId: string, text: string, now: string): WebRequestRow {
+  enqueue(owner: string, requestId: string, text: string, now: string, topicSessions = false): WebRequestRow {
     return this.transaction(() => {
       const old = this.find(owner, requestId);
       // 幂等先于容量；已接收请求的重投永远回读原收据。
@@ -64,18 +77,81 @@ export class WebUiStore {
       }
       const waiting = this.db.prepare("SELECT count(*) AS n FROM web_ui_chats WHERE owner=? AND coordinator=1 AND status='queued'").get(owner)!;
       if (Number(waiting.n) >= 8) throw new WebRequestError(429, '已有八条消息等待处理；本条未接收，请保留输入后稍后发送');
-      this.db.prepare("INSERT INTO web_ui_chats(owner,requestId,text,mode,selectionJson,status,createdAt,coordinator) VALUES(?,?,?,'chat','{}','queued',?,1)")
-        .run(owner, requestId, text, now);
+      this.db.prepare("INSERT INTO web_ui_chats(owner,requestId,text,mode,selectionJson,status,createdAt,coordinator,topicSessions) VALUES(?,?,?,'chat','{}','queued',?,1,?)")
+        .run(owner, requestId, text, now, Number(topicSessions));
       return this.find(owner, requestId)!;
     });
   }
-  claim(owner: string, now: string): WebRequestRow | undefined {
+  claim(owner: string, now: string, mode: 'legacy' | 'frozen' | 'all' = 'legacy'): WebRequestRow | undefined {
     return this.transaction(() => {
-      const next = this.db.prepare("SELECT requestId FROM web_ui_chats WHERE owner=? AND coordinator=1 AND status='queued' ORDER BY createdAt,rowid LIMIT 1").get(owner);
+      const next = this.db.prepare("SELECT requestId FROM web_ui_chats WHERE owner=? AND coordinator=1 AND status='queued' AND (topicSessions=0 OR ?='all' OR (?='frozen' AND topicRouteJson IS NOT NULL)) ORDER BY createdAt,rowid LIMIT 1").get(owner, mode, mode);
       if (!next) return undefined;
       const run = this.begin(now), requestId = String(next.requestId);
       this.db.prepare("UPDATE web_ui_chats SET status='claimed',runId=? WHERE owner=? AND requestId=? AND status='queued'").run(run.id, owner, requestId);
       return this.find(owner, requestId)!;
+    });
+  }
+  // 原实际执行事实定位上下文；未领取/仅冻结route不能伪装成已激活Session。
+  previousChatContext(owner: string, currentRunId: string): { contextKey: string | null } | undefined {
+    const row = this.db.prepare(`SELECT c.topicSessions,
+      (SELECT e.details FROM run_events e WHERE e.runId=c.runId AND (e.type='topic_context_entered' OR (e.type='topic_context_selected' AND r.status='succeeded')) ORDER BY e.id DESC LIMIT 1) AS entered
+      FROM web_ui_chats c JOIN runs r ON r.id=c.runId WHERE c.owner=? AND c.mode='chat' AND c.runId!=? AND (
+        EXISTS(SELECT 1 FROM run_events e WHERE e.runId=r.id AND (e.type='topic_context_entered' OR (e.type='topic_context_selected' AND r.status='succeeded'))) OR
+        (c.topicSessions=0 AND (r.status='succeeded' OR EXISTS(SELECT 1 FROM run_events e WHERE e.runId=r.id AND e.type='agent_start'))))
+      ORDER BY r.rowid DESC LIMIT 1`).get(owner, currentRunId);
+    return row ? row.entered ? JSON.parse(String(row.entered)) as { contextKey: string | null } : { contextKey: null } : undefined;
+  }
+  topicDecision(runId: string): TopicDecision | undefined {
+    const row = this.db.prepare("SELECT details FROM run_events WHERE runId=? AND type='topic_route_frozen' ORDER BY id DESC LIMIT 1").get(runId);
+    return row ? JSON.parse(String(row.details)) as TopicDecision : undefined;
+  }
+  // 编号只指向紧接的成功主题澄清；未执行队列、后台通知和旧业务展示不能冒充。
+  topicClarification(owner: string, currentRunId: string, now: number): TopicDecision | undefined {
+    const row = this.db.prepare(`SELECT r.id,r.status,r.output,r.finishedAt,c.topicRouteJson FROM web_ui_chats c JOIN runs r ON r.id=c.runId
+      WHERE c.owner=? AND c.mode='chat' AND r.id!=? ORDER BY r.rowid DESC LIMIT 1`).get(owner, currentRunId);
+    if (!row || row.status !== 'succeeded' || !row.finishedAt || now - Date.parse(String(row.finishedAt)) < 0
+      || now - Date.parse(String(row.finishedAt)) >= 300000 || !row.topicRouteJson) return undefined;
+    const route = JSON.parse(String(row.topicRouteJson)) as FrozenTopicRoute;
+    const decision = this.topicDecision(String(row.id));
+    if (route.kind !== 'clarify' || (row.output !== route.question
+      && !(decision?.action === 'answer' && typeof row.output === 'string' && row.output.endsWith(topicClarificationSeparator + route.question)))
+      || !this.db.prepare("SELECT 1 FROM run_events WHERE runId=? AND type='delivery_succeeded'").get(String(row.id))) return undefined;
+    return decision;
+  }
+  freezeTopicRoute(actor: WorkThreadActor, requestId: string, choice: TopicRouteChoice, now: string, explicitThreadId?: string, decision?: TopicDecision): FrozenTopicRoute {
+    return this.transaction(() => {
+      const row = this.find(actor.owner, requestId);
+      if (!row?.coordinator) throw new WebRequestError(404, '消息收据不存在');
+      if (!row.topicSessions) throw new WebRequestError(409, '原请求不是主题模式，不能重新解释');
+      const old = row.topicRoute;
+      if (old) {
+        if (old.kind === 'topic') this.threads.get(actor, old.threadId);
+        const same = choice.kind === 'daily' ? old.kind === 'daily' && old.reason === choice.reason
+          : choice.kind === 'clarify' ? old.kind === 'clarify' && old.question === choice.question && old.reason === choice.reason
+          : old.kind === 'topic' && old.reason === choice.reason && (choice.kind === 'create'
+            ? old.selection.kind === 'create' && old.title === choice.title && old.description === choice.description
+            : old.selection.kind === 'use' && old.threadId === choice.threadId);
+        if (!same) throw new WebRequestError(409, '本请求归属已冻结，不能改写');
+        return old;
+      }
+      if (row.status === 'cancelled') throw new WebRequestError(409, '消息已撤回，不能冻结新归属');
+      let route: FrozenTopicRoute;
+      if (choice.kind === 'daily' || choice.kind === 'clarify') route = choice;
+      else {
+        const id = choice.kind === 'create'
+          ? this.threads.createInTransaction(actor, randomUUID(), choice.title, now, choice.description).id : choice.threadId;
+        const thread = this.threads.bindChatInTransaction(actor, id, now, choice.kind === 'create' || explicitThreadId === id);
+        route = { kind: 'topic', threadId: thread.id, contextKey: thread.chatContextKey!, title: thread.title,
+          description: thread.description, reason: choice.reason,
+          selection: { kind: choice.kind } };
+      }
+      this.db.prepare('UPDATE web_ui_chats SET topicRouteJson=? WHERE owner=? AND requestId=?')
+        .run(JSON.stringify(route), actor.owner, requestId);
+      if (decision) {
+        if (!row.runId) throw new WebRequestError(409, '路由决定需要当前已领取Run');
+        this.db.prepare("INSERT INTO run_events(runId,at,type,details) VALUES(?,?,'topic_route_frozen',?)").run(row.runId, now, JSON.stringify(decision));
+      }
+      return route;
     });
   }
   cancelQueued(owner: string, requestId: string): WebRequestRow {
@@ -88,11 +164,11 @@ export class WebUiStore {
     });
   }
   requests(owner: string): WebRequestRow[] {
-    return this.db.prepare(`SELECT ${requestColumns} FROM web_ui_chats WHERE owner=? AND coordinator=1 ORDER BY createdAt DESC,rowid DESC LIMIT 100`).all(owner) as WebRequestRow[];
+    return this.db.prepare(`SELECT ${requestColumns} FROM web_ui_chats WHERE owner=? AND coordinator=1 ORDER BY createdAt DESC,rowid DESC LIMIT 100`).all(owner).map(row => readRequest(row as StoredRequest));
   }
   chats(owner: string, mode: WebRequestRow['mode'] = 'chat') {
     return this.db.prepare(`SELECT ${requestColumns} FROM web_ui_chats
-      WHERE owner=? AND mode=? AND runId IS NOT NULL ORDER BY createdAt DESC,rowid DESC LIMIT 100`).all(owner, mode) as (WebRequestRow & { runId: string })[];
+      WHERE owner=? AND mode=? AND runId IS NOT NULL ORDER BY createdAt DESC,rowid DESC LIMIT 100`).all(owner, mode).map(row => readRequest(row as StoredRequest)) as (WebRequestRow & { runId: string })[];
   }
   requestMode(owner: string, runId: string): WebRequestRow['mode'] | undefined {
     return this.db.prepare('SELECT mode FROM web_ui_chats WHERE owner=? AND runId=?').get(owner, runId)?.mode as WebRequestRow['mode'] | undefined;

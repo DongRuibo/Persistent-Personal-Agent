@@ -12,7 +12,7 @@ export interface WebRun {
   deliveryError?: string | null;
   web?: WebSearchSummary;
   webCalls?: WebSearchCall[];
-  usage: { calls: number; inputTokens: number; outputTokens: number; cacheReadTokens: number; cacheWriteTokens: number; cost: number | null };
+  usage: { calls: number; unknownCalls?: number; inputTokens: number; outputTokens: number; cacheReadTokens: number; cacheWriteTokens: number; cost: number | null };
 }
 export interface WebWorkJob extends WorkJob { title?: string; run: WebRun | null }
 export interface WebWorkRoute {

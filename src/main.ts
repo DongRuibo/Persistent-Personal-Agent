@@ -36,6 +36,7 @@ export async function main(webService?: WebReadService): Promise<void> {
   const webConfig = args.includes('--web-ui') ? readWebUiConfig() : undefined;
   const config = readConfig(webConfig ? { ...process.env, WEB_SEARCH_ENABLED: process.env.WEB_SEARCH_ENABLED ?? 'true', DATABASE_PATH: resolve(webConfig.dataDir, 'agent.db'),
     SESSION_DIR: resolve(webConfig.dataDir, 'sessions'), MEMORY_DIR: resolve(webConfig.dataDir, 'memory') } : process.env);
+  if (config.workTopicSessionsEnabled && !webConfig) throw new Error('WORK_TOPIC_SESSIONS_ENABLED 仅支持 --web-ui 本机模式');
   if (config.workCoordinatorEnabled && !webConfig) throw new Error('WORK_COORDINATOR_ENABLED 仅支持 --web-ui 本机模式');
   if (config.workRecallEnabled && !webConfig) throw new Error('WORK_RECALL_ENABLED 仅支持 --web-ui 本机模式');
   if (config.workEventsEnabled && !webConfig) throw new Error('WORK_EVENTS_ENABLED 仅支持 --web-ui 本机模式');
@@ -93,7 +94,8 @@ export async function main(webService?: WebReadService): Promise<void> {
     const goals = config.goalEnabled ? new GoalService(store, tasks, id => goalRunner?.interrupt(id)) : undefined;
     const coordinator = config.workCoordinatorEnabled && webConfig ? new WorkCoordinatorService(store, { owner: webOwner, channel: JSON.stringify(webTarget) }, id => workRunner?.interrupt(id), config.goalEnabled) : undefined;
     executor = await createPiExecutor(config, tasks, chatKey, memory, formation, lane, goals,
-      config.webReadEnabled ? { service: webService ?? new WebReadService(), store: store.web } : undefined,store.files, webConfig && config.webSearchEnabled ? new TavilyService() : undefined, coordinator);
+      config.webReadEnabled ? { service: webService ?? new WebReadService(), store: store.web } : undefined,store.files, webConfig && config.webSearchEnabled ? new TavilyService() : undefined, coordinator,
+      webConfig ? { previous: runId => store!.webUi.previousChatContext(webOwner, runId) } : undefined);
     if (shutdown.signal.aborted) return;
     const recovered = store.recoverInterrupted(new Date().toISOString());
     const otherGoals = config.goalEnabled ? store.goals.readyForHost().filter(goal => goal.ownerId !== 'local-user' || (feishuConfig

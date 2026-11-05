@@ -1,13 +1,18 @@
 # Personal Agent 当前状态与交接
 
-更新日期：2026-11-03（Asia/Shanghai）。此文件是当前快照；稳定架构见 [PROJECT.md](PROJECT.md)，开发规则见 [AGENTS.md](../AGENTS.md)，运行方法见 [README.md](../README.md)。
+更新日期：2026-11-05（Asia/Shanghai）。此文件是当前快照；稳定架构见 [PROJECT.md](PROJECT.md)，开发规则见 [AGENTS.md](../AGENTS.md)，运行方法见 [README.md](../README.md)。
 
 ## 当前阶段
 
-- **仅 N0 已获用户授权，公开 SDK 可行性实验已独立 R1 GO，0阻断/0本轮需修复项。** 独立树 `topic-session-n0` / 分支 `codex/topic-session-n0`，HEAD `2dc2bdd172b63a964ae67133aefb119b9c19e555`；[冻结验收](designs/topic-session-n0-validation-plan.md)、[评估与逐门证据](evaluations/topic-session-n0.md)。见[独立R1报告](/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/topic-session-n0/reviewer-r1/review.md)，实际独立29/29、exit0、9200.910542ms。N1—N5仍待用户明确批准，未创建正式主题路由/Session绑定或启用 compact。
-- 最终 N0 **29/29**（9676.999542ms），原19文件回归 **187/187**（36743.589709ms），typecheck/build 均 exit0；0失败/取消/跳过。只用真实Pi+localhost假HTTP/虚构临时数据；这些是本轮结果，旧939/153仍为历史证据。唯一生产差异是原 Tavily 24KiB 投影原样导出复用，原行为/CRLF不变。
-- 原生 compact 绕既有 provider hooks；split为两次HTTP；只取消provider可能提交空摘要；hook抛错可能回退默认。公开发送口预算、abortCompaction联动、显式cancel、preparation副本+原生compact/原Web投影已实证。短确认跨Session需入口失效维护；文件/Goal过期或撤销后恢复拒绝、新授权正向均已验。助手复述Memory会留在历史/摘要，当前服务版本与权限仍独立，不能承诺forget擦除聊天或真实生成永不引用旧值。
-- 计量known/unknown暂存原run_events实验记录，**未接产品model_calls/UI**；正式触发/路由/审批焦点接线仍属于后续未授权阶段。后续顺序仍为N1→N2→N3→N4→N5，N2须落实身份/contextKey、入口各引用原失效规则/Goal sink、实际HTTP共享预算与unknown审计、统一取消及共享低信任投影，沿用原规划候选模块。未收费、未读真实.env/数据库/Memory/Session、未操作62414/PID6239及4317/4318，未stage/commit/push/建PR/合并。本机证据为 `topic-session-n0/worker/`，首次红灯保留。
+- **2026-11-05已获用户授权，将已验收N1—N5及主题澄清补答共42路径，连同已有N0提交，提交并推送至独立分支`codex/topic-session-routing`。** 本轮处于发布准备：已逐Hash核对449文件与最终验收版一致，检查完整42路径diff及N0相对`2dc2bdd172b63a964ae67133aefb119b9c19e555`的7路径；仅本STATE更新发布状态，业务/测试/依赖不变。复用最终同源typecheck/build/web:build exit0、全量1135/1135及独立136/136和3/3证据，不重复收费或全量测试；精确暂存后交独立发布审查，通过后再提交、推送并核对远端SHA。当前准备基线HEAD为`ca1f6737d730565bdc41c9b18909a05de3ae88bf`，最终提交SHA及远端状态以Git实际核验为准，不预写成功。仅发布该分支，不创建PR、合并main、部署、迁移或重启实例；真实模型质量/时延未验，临时补答不持久化的限制保留。发布证据见本机`topic-session-routing/release-20261105/worker/`；下列未提交/index空等描述属于原验收时点。
+- **2026-11-05真实试用反馈限定修复独立R1已PASS，无阻断。** 用户报告普通求职提问被主题澄清吞掉；只给语义归属不确定增加当前原话的临时无工具文字补答，不放宽持久主题许可、业务Guard或工具权限。route/decision仍真实clarify，候选原样附友好问句；无候选不再强加泛化主题声明。详见[局部评估](evaluations/topic-clarification-answer.md)。未访问、停止或重启4329及旧62414/4317/4318，未读正式.env/Session/Memory/数据库，无收费API。
+- 最终源码已固定；typecheck/build exit0、定点136/136通过，最终同源全量1135/1135通过（105647.859375ms，0失败/取消/跳过）；web:build exit0（两条既有lucide警告）。原文仅在本机证据用SDK+localhost假模型重放：2HTTP、clarify、零主题/Job/Goal/Memory。独立R1另跑136/136及answer补答后的文件/Goal/Web审批3/3，均exit0，未重跑全量或构建；[审查报告](/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/topic-session-routing/clarification-reply-20261105/reviewer-r1/review.md)。临时补答没有长期Session绑定，不能宣称已开始持续跟进；真实模型文字质量/延迟仍待用户试用，运行中4329尚未加载本次修复。
+
+- **N4最后独立R3及N5独立R1已PASS，无阻断；隔离离线验收与真实试用方法交付完成。** 以下Git状态为该阶段验收快照：唯一业务树`topic-session-routing`/`codex/topic-session-routing`，HEAD `ca1f6737d730565bdc41c9b18909a05de3ae88bf`，本地未提交、index空，无Git发布、正式启用或旧62414/4317/4318操作。原R1两P1/R2一P2失败及独立关闭结论保留，见[N4评估](evaluations/topic-session-routing-n4.md)。
+- N5只改README/PROJECT/STATE/N5评估/短试用指南；先仅更新两份N4结论文档，再冻结445文件阶段基线。业务源码、测试、原preview和启动器均未改。新Job主题继承/旧根链、持续对话0Job/Goal、每Session Guard、原8次HTTP/65536字节与compact边界保持。完整A1—A12精确映射及边界见[N5评估](evaluations/topic-session-routing-n5.md)。
+- 最终同源`npm test` **1115/1115**，0失败/取消/跳过，86364.86275ms，exit0。工程输入Hash不变，typecheck/build复用N4 R3 exit0，web-build复用N4 R1 exit0及两条既有lucide警告，未重复无变化检查。确定性模型验证宿主机制，不是新真实语义验收；恶意简介短探针已补实际router低信任候选、误调零写、owner/path/tools输出拒绝及模型路径未创建，固定样本不外推真实抗注入质量。
+- 真实Chrome1280×900和390×844主链通过：普通0主题/Job/Goal、健身6→求职3→回健身首约束HTTP隔离、同主题两Job/后台聊天切题/迟到成果/刷新/澄清标记与单入口；原Goal创建→待批→批准→继续一段及两宽度文件完整预览/确认/落盘通过。精确纠正原文“不是求职，是健身”零新模型/Job、旧记录不改；训练/饮食/周反馈及引用隔离短HTTP probe通过。保留外部脚本selector/滚动条/模型误create三红；显式文件decision仍经旧日常Session，使后续隐含topic线索为null，绑定和旧route保留，不能宣称审批后自动保持当前主题。390px不是实际手机。
+- 原启动器`--no-open`经四dummy配置/全新固定/tmp目录/新端口两次正常启动，旧请求和Run保留，4次localhost HTTP、0Job/Goal、自有进程退出0；未读主.env或调用真实模型。证据在本机`topic-session-routing/n4-n5/n5/worker-r1/`；用户真实试用按[短指南](topic-session-trial.md)，固定新`$HOME/.ppa-trials/topic-sessions-20261103`和4329，重开同目录。原启动器关闭文件读写；本轮仅交方法，未启动真实试用或发送收费消息。N5[独立R1报告](/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/topic-session-routing/n4-n5/n5/reviewer-r1/review.md)：144/144、390主链、桌面/390原审批及A3/A6/A8均exit0；核验447源码及213件Worker证据不变。下一步由用户手动真实试用；真实语义/成稿/时延、实际手机和长跑仍未验。
 
 ### N0前既有阶段记录（下列授权/发布描述保留其历史时点）
 
@@ -100,11 +105,11 @@
 
 | 日期 | 修改及位置 |
 | --- | --- |
-| 2026-11-03 | N0公开SDK实验：原生缺口与薄适配29/29、原回归187/187；Web投影唯一最小接缝，冻结验收/评估及原始HTTP证据，文件/Goal恢复正负向齐；独立R1 GO、29/29，N1—N5待用户批准 |
-| 2026-11-03 | 已获准提交推送总管实现、纠偏与主题Session规划至独立分支；核对46文件完整diff、敏感项及939/153原日志与源码Hash，PR #5依赖未合并，N0—N5未实施、实例不切换 |
-| 2026-11-03 | 持续主题/独立Session规划完成并经独立R3通过：N0—N5任务、候选文件与A1—A12验收明确；只改设计文档/STATE，待批准后先验证公开SDK接缝 |
-| 2026-11-03 | 日常请求最小纠偏：主Chat/隔离解析/work_manage提示默认普通写作直接回答；新增none回退零工作/主题回归，明确未实现语义主题Session；先独立审查后启动全新隔离手动试用 |
-| 2026-11-03 | T6整体独立R1 PASS：补同主题两轮实际HTTP及Job已建/Chat未finish强杀；最终934全过、三工程通过；独立2/188/1/2分组通过，README/PROJECT/eval/STATE与45文件diff交付，仍默认关闭、未发布 |
+| 2026-11-05 | 已授权42路径及已有N0发布至独立topic分支；449原验收Hash一致，仅STATE维护发布准备，复用1135/136/3及构建证据；精确暂存后独立审查，Git实际SHA和远端回读为准，不合并/部署/重启 |
+| 2026-11-05 | 主题语义澄清补答：仅当前原话、零工具/历史注入、不建持久绑定；冻结候选后缀沿原ACK/时限，纯选择与业务Guard保持；定点136/136及全量1135/1135；独立R1 PASS，另验136及answer后原审批3项 |
+| 2026-11-03 | N5离线交付：1115全过，实际desktop/390主链与原审批、原启动器同目录smoke、精确A3/A6短probe、矩阵/短指南；仅文档和外部夹具；N5独立R1通过（144项及浏览器/短探针），真实模型未启动 |
+| 2026-11-03 | N4最后独立R3 PASS：新Job继承/旧根链/逐请求意图/只读标记；原R1误写及R2动作修饰回归红绿保留，独立338/338，无剩余阻断 |
+| 2026-11-03 | N3 compact无可用切点限定修复独立通过，原第8普通回合转绿；原1536/4096/8次/65536硬门不改，旧1086全量及原红保留 |
 
 ## 验证记录与证据边界
 
@@ -718,50 +723,6 @@ V1 原有自动化证据：39项测试使用模拟模型/飞书服务和虚拟�
 
 ## 下一步与需要提供的信息
 
-1. N0已[独立R1通过](/Users/onruio/.codex/visualizations/2026/10/31/01a19381-5bc8-7220-8166-cc210f227e22/topic-session-n0/reviewer-r1/review.md)，先交用户决定是否批准N1—N5；不自动推进。按[本轮N0评估](evaluations/topic-session-n0.md)及原规划保持顺序，N2落实已冻结的身份/引用/计量/取消/低信任接缝，不以SDK实验代替正式路由实现或真实语义验收。
-2. 用户已授权复用本机四项模型连接配置启动全新隔离真实Web试用，不设费用上限；所有真实模型消息由用户手动发送，Agent不主动发测试消息。独立R1通过及Planner放行后，已启动 `http://127.0.0.1:62414`，Node PID 6239（控制工具session 20208）；全新0700目录 `/private/tmp/ppa-small-work-trial-nWHXjY/data` 与独立 `chrome-profile`，Chrome spawn成功并保留专用进程，不继承旧cookie，不读取正式DB/Session/Memory。模型为 `openai` / `deepseek-ai/DeepSeek-V4.1-Flash`，Key只在内存。仅开启Coordinator/Threads/Jobs/Recall，其他新能力关闭；静态/session均200，自身launch成功，浏览器打开前新库runs/jobs/threads均0。Agent未发送模型消息、未读取用户输入；人民币不设上限不改变既有HTTP/token/timeout界限。就绪不等于真实语义验收，用户实模结果待测；进程、数据及profile保留供手动试用。
-3. 保持本N0树与旧树/试用实例隔离；本轮无Git发布授权，未暂存或提交。后续正式主题存储/路由/Session接线、数据迁移、模型收费验收与发布均须用户另行明确范围。
-
-## V2.0.2 关键文件（主体及本轮修复）
-
-8b531f9修复时修改 operation-guard.ts、两份 natural-language 测试、README/PROJECT/STATE，共6个文件；本次真实验收记录仅修改 STATE，下面其余文件属于已发布实现。
-
-- 宿主边界：[operation-guard.ts](../src/operation-guard.ts)、[pi-executor.ts](../src/pi-executor.ts)、[contracts.ts](../src/contracts.ts)。
-- 服务和工具：[task-service.ts](../src/task-service.ts)、[task-tools.ts](../src/task-tools.ts)、[sqlite-store.ts](../src/sqlite-store.ts)、[time.ts](../src/time.ts)、[memory-service.ts](../src/memory-service.ts)、[memory-tools.ts](../src/memory-tools.ts)。
-- 新增验证：[natural-language.test.ts](../tests/natural-language.test.ts)、[natural-language-integration.test.ts](../tests/natural-language-integration.test.ts)、[模拟解析适配](../tests/helpers/intent-stub.ts)；原集成用例适配新增解析响应，time.test.ts 补常见别名。
-- 文档：README、PROJECT、STATE 及 [真实模型摘要](evaluations/v2.0.2-natural-language-acceptance.json)。未修改配置、依赖、SDK 或数据库 Schema。
-
-## V2.0 本次关键文件
-
-- 新增 src/memory-service.ts、src/memory-tools.ts、tests/memory-service.test.ts、tests/memory-integration.test.ts、tests/fixtures/memory-eval.json。
-- 修改 src/pi-executor.ts、contracts.ts、config.ts、main.ts，及 Console/Feishu Channel 的可信来源传递；测试配置、.env.example、.gitignore。
-- 更新 README、PROJECT、STATE、AGENTS 的 Memory 架构边界，未变更协作确认规则；无依赖升级或 Task 表迁移。
-
-## V1.2 历史文件变更
-
-此前连接诊断修改 [feishu-transport.ts](../src/feishu-transport.ts)、[feishu-transport.test.ts](../tests/feishu-transport.test.ts)、README 和 STATE；真实验收补充保留。
-
-| 范围 | 文件 |
-| --- | --- |
-| 会话创建与配置 | [pi-executor.ts](../src/pi-executor.ts)、[main.ts](../src/main.ts)、[config.ts](../src/config.ts)、[.env.example](../.env.example)、[.gitignore](../.gitignore) |
-| 自动化 | 新增 [session-persistence.test.ts](../tests/session-persistence.test.ts)；扩展 [service.test.ts](../tests/service.test.ts)、[config.test.ts](../tests/config.test.ts)、[pi-integration.test.ts](../tests/pi-integration.test.ts) |
-| 说明与边界 | [README.md](../README.md)、[PROJECT.md](PROJECT.md)、[AGENTS.md](../AGENTS.md)、本 STATE |
-
-V1.2 当时没有新增依赖、数据库迁移或框架。Task Service、Scheduler、飞书收发/鉴权与工具实现在该次实现中未改动。
-
-## V1 历史文件变更
-
-| 范围 | 文件 |
-| --- | --- |
-| 新增飞书与路由 | [feishu-channel.ts](../src/feishu-channel.ts)、[feishu-transport.ts](../src/feishu-transport.ts)、[channel-router.ts](../src/channel-router.ts) |
-| 入口与配置 | [main.ts](../src/main.ts)、[config.ts](../src/config.ts)、[console-channel.ts](../src/console-channel.ts) |
-| 任务与消息边界 | [contracts.ts](../src/contracts.ts)、[task-service.ts](../src/task-service.ts)、[sqlite-store.ts](../src/sqlite-store.ts)、[scheduler.ts](../src/scheduler.ts) |
-| 自动化测试 | 新增 [feishu-channel.test.ts](../tests/feishu-channel.test.ts)、[feishu-transport.test.ts](../tests/feishu-transport.test.ts)；扩展 [config.test.ts](../tests/config.test.ts)、[pi-integration.test.ts](../tests/pi-integration.test.ts)、[service.test.ts](../tests/service.test.ts) |
-| 依赖与样例 | [package.json](../package.json)、[package-lock.json](../package-lock.json)、[.env.example](../.env.example) |
-| 说明与交接 | [README.md](../README.md)、[PROJECT.md](PROJECT.md)、本 STATE；保留本次开始前的 DeepSeek 文档更新 |
-
-V1 代码实现未修改 `src/pi-executor.ts`、`src/task-tools.ts`、Pi SDK 源码或 AGENTS 规则。后续本次真实联调仅写入实际 `.env`（被忽略）、更新 README / PROJECT / STATE 并启动现有服务，未新增运行框架。
-
-## 给下一位开发者或 AI
-
-先读 AGENTS → PROJECT → STATE，再检查相关代码及当前改动，确定一个任务与验收目标。向 ChatGPT 交接时提供 PROJECT、STATE 和问题相关代码/diff，必要时补 AGENTS；讨论结论不自动扩大授权。任务结束后覆盖更新此快照，报告真实测试结果及未验证事项，无需复制完整聊天历史。
+1. 本轮澄清补答独立R1已PASS，无阻断；旧N4/N5及本轮原红/excluded证据保留，不重新开启旧审查阶段。最终13文件diff、449源manifest及审后仅文档变化核对见本机`clarification-reply-20261105/final/`；该阶段交付时没有Git提交或发布，本轮按上述明确授权进行发布准备。
+2. 运行中4329尚未加载本次修复；用户需在运行试用的原终端按Ctrl+C，再按[短试用指南](topic-session-trial.md)原命令、同目录重开并亲自发送虚构求职问题。保持原目录和配置以保留会话；开发者不自动重启4329，不替用户发收费消息。临时补答不自动绑定长期主题；既有明确主题仍沿原Session接续。
+3. 如有失败，提供发生时间、虚构原话和消息详情中的Run/请求标识及局部结果，不发送Key、完整.env或私人数据库。本轮Git发布仅限上述已批准路径和独立分支；正式启用或数据迁移仍须另行授权，不能把离线通过或Git发布当作运行验收。

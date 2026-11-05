@@ -1,6 +1,7 @@
 export type WorkObjectKind = 'goal' | 'task' | 'run' | 'memory';
 export interface WorkThreadActor { owner: string; channel: string }
 export interface WorkThread {
+  description: string; chatContextKey: string | null;
   id: string; title: string; status: 'active' | 'archived'; createdAt: string; updatedAt: string;
 }
 export interface WorkLink {

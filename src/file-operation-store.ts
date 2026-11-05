@@ -46,22 +46,26 @@ export class FileOperationStore {
       || p.kind !== row.kind || p.expires !== row.expires || typeof preview !== 'string' || Buffer.byteLength(p.content) > 8192) throw new Error('file_operation_corrupt');
     return { proposal: p, status: String(row.status) };
   }
+  validateConfirmation(id: string, hash: string, actor: FileActor, root: string, now: number, naturalKind?: 'write' | 'edit' | 'any'): FileProposal {
+    const { proposal:p, status } = this.get(id);
+    const source = this.db.prepare('SELECT * FROM runs WHERE id=?').get(p.runId);
+    if (status !== 'pending' || p.hash !== hash || p.actor.owner !== actor.owner || p.actor.channel !== actor.channel || p.root !== root
+      || p.expires <= now || this.blocked(root) || !source || source.status !== 'succeeded' || source.deliveryError !== null || source.output !== p.preview
+      || !this.db.prepare("SELECT 1 FROM run_events WHERE runId=? AND type='delivery_succeeded'").get(p.runId)) throw new Error('file_confirmation_invalid');
+    if (naturalKind) {
+      if (naturalKind !== 'any' && naturalKind !== p.kind) throw new Error('file_confirmation_kind_mismatch');
+      // 与一次性消费处于同一事务；不把多项有效提议自动解释为最近一项。
+      if (this.db.prepare(`SELECT 1 FROM file_operations f JOIN runs r ON r.id=f.runId
+        WHERE f.owner=? AND f.channel=? AND f.root=? AND f.id<>? AND f.status='pending' AND f.expires>?
+        AND r.status='succeeded' AND r.deliveryError IS NULL AND r.output=json_extract(f.proposalJson,'$.preview')
+        AND EXISTS(SELECT 1 FROM run_events e WHERE e.runId=f.runId AND e.type='delivery_succeeded') LIMIT 1`)
+        .get(actor.owner,actor.channel,root,id,now)) throw new Error('file_confirmation_ambiguous');
+    }
+    return p;
+  }
   consume(id: string, hash: string, actor: FileActor, root: string, runId: string, now: number, approvalHash: string, cancel = false, naturalKind?: 'write' | 'edit' | 'any'): FileProposal {
     return this.transaction(() => {
-      this.chatRun(runId); const { proposal:p, status } = this.get(id);
-      const source = this.db.prepare('SELECT * FROM runs WHERE id=?').get(p.runId);
-      if (status !== 'pending' || p.hash !== hash || p.actor.owner !== actor.owner || p.actor.channel !== actor.channel || p.root !== root
-        || p.expires <= now || this.blocked(root) || !source || source.status !== 'succeeded' || source.deliveryError !== null || source.output !== p.preview
-        || !this.db.prepare("SELECT 1 FROM run_events WHERE runId=? AND type='delivery_succeeded'").get(p.runId)) throw new Error('file_confirmation_invalid');
-      if (naturalKind) {
-        if (naturalKind !== 'any' && naturalKind !== p.kind) throw new Error('file_confirmation_kind_mismatch');
-        // 与一次性消费处于同一事务；不把多项有效提议自动解释为最近一项。
-        if (this.db.prepare(`SELECT 1 FROM file_operations f JOIN runs r ON r.id=f.runId
-          WHERE f.owner=? AND f.channel=? AND f.root=? AND f.id<>? AND f.status='pending' AND f.expires>?
-          AND r.status='succeeded' AND r.deliveryError IS NULL AND r.output=json_extract(f.proposalJson,'$.preview')
-          AND EXISTS(SELECT 1 FROM run_events e WHERE e.runId=f.runId AND e.type='delivery_succeeded') LIMIT 1`)
-          .get(actor.owner,actor.channel,root,id,now)) throw new Error('file_confirmation_ambiguous');
-      }
+      this.chatRun(runId); const p = this.validateConfirmation(id, hash, actor, root, now, naturalKind);
       const result = this.db.prepare("UPDATE file_operations SET status=?,approvalRunId=?,approvalHash=? WHERE id=? AND status='pending'")
         .run(cancel ? 'cancelled' : 'executing',runId,approvalHash,id);
       if (Number(result.changes) !== 1) throw new Error('file_confirmation_consumed'); return p;

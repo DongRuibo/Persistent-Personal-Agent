@@ -1,3 +1,4 @@
+import type { FrozenTopicRoute, PreparedTopicChat, TopicReferences } from './topic-route-types.js';
 import type { WorkRouteModel } from './work-route-types.js';
 import type { SkillCatalog, SkillSnapshot } from './skill-service.js';
 export type TaskStatus = 'pending' | 'running' | 'succeeded' | 'failed' | 'interrupted' | 'cancelled';
@@ -46,7 +47,7 @@ export interface ModelCall {
   cost: number | null;
   stopReason: string;
   error?: string;
-  purpose?: 'memory_formation' | 'work_route' | 'work_manage';
+  purpose?: 'memory_formation' | 'work_route' | 'work_manage' | 'topic_route' | 'compaction' | 'chat' | 'intent' | 'memory_rewrite';
   jobId?: string;
 }
 
@@ -55,7 +56,14 @@ export interface ExecutionObserver {
   modelCall(call: ModelCall): void;
 }
 
+export interface ChatPreparation {
+  signal: AbortSignal;
+  current?: { contextKey: string | null; references: TopicReferences };
+  complete(systemPrompt: string, text: string): Promise<string>;
+}
 export interface ExecutionRequest {
+  // 仅可信Web宿主回调；选择在本轮统一预算内完成，不是模型工具参数。
+  prepareChat?: (preparation: ChatPreparation) => Promise<FrozenTopicRoute | PreparedTopicChat>;
   prompt: string;
   scope: 'chat' | 'task' | 'goal' | 'work';
   // Goal 的检索词由宿主独立构造，不把整个进度快照当检索问题。

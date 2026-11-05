@@ -1,3 +1,4 @@
+import { routeTopic } from './topic-router.js';
 import { WorkRecallService } from './work-recall.js';
 import type { WebTask } from './web-ui-types.js';
 import type { WebPolicyRequest, WebPolicyReceipt } from './goal-policy-types.js';
@@ -125,6 +126,9 @@ export class WebUiChannel implements Channel {
     const summary = last ? { calls: web.length, searches: web.filter(c => c.kind === 'search' && c.status === 'succeeded').length,
       reads: web.filter(c => c.kind === 'fetch' && c.status === 'succeeded').length, sources: new Set(web.flatMap(c => c.sources.map(s => s.url))).size,
       status: last.status, kind: last.kind, ...(last.message ? { message: last.message } : {}) } : undefined;
+    const http = events.filter(e => e.type === 'topic_model_http' && e.details).map(e => JSON.parse(e.details!)) as { phase: string; usageStatus?: string }[];
+    const dispatched = http.filter(e => e.phase === 'dispatch').length;
+    const unknownCalls = dispatched - http.filter(e => e.phase === 'result' && e.usageStatus === 'known').length;
     const sum = (key: 'inputTokens' | 'outputTokens' | 'cacheReadTokens' | 'cacheWriteTokens') => calls.reduce((n, c) => n + c[key], 0);
     return { ...(this.store.webUi.requestMode(webOwner, id) === 'suggest' ? { mode: 'suggest' as const } : {}), id: r.id, taskId: r.taskId, status: r.status, startedAt: r.startedAt, finishedAt: r.finishedAt,
       // 轮询中的文件Run只带详情引用，避免通过聊天/活动再次携带完整审批预览。
@@ -133,12 +137,13 @@ export class WebUiChannel implements Channel {
       viewed: events.some(e => e.type === 'delivery_succeeded'),
       ...(this.workRouter ? { deliveryError: r.deliveryError ? '通知投递失败；结果已保留。' : null } : {}),
       ...(summary ? { web: summary, ...(includeDetails ? { webCalls: web } : {}) } : {}),
-      usage: { calls: calls.length, inputTokens: sum('inputTokens'), outputTokens: sum('outputTokens'), cacheReadTokens: sum('cacheReadTokens'),
-        cacheWriteTokens: sum('cacheWriteTokens'), cost: calls.length && calls.every(c => c.cost !== null) ? calls.reduce((n, c) => n + c.cost!, 0) : null } };
+      usage: { calls: http.length ? dispatched : calls.length, ...(http.length ? { unknownCalls } : {}), inputTokens: sum('inputTokens'), outputTokens: sum('outputTokens'), cacheReadTokens: sum('cacheReadTokens'),
+        cacheWriteTokens: sum('cacheWriteTokens'), cost: !unknownCalls && calls.length && calls.every(c => c.cost !== null) ? calls.reduce((n, c) => n + c.cost!, 0) : null } };
   }
   submit(requestId: string, text: string, before?: () => void): WebRun {
     const old = this.store.webUi.find(webOwner, requestId);
     if (old) {
+      if (old.topicSessions) throw new WebUiError(409, '原请求属于主题模式；请通过原消息收据查询或撤回');
       if (old.mode !== 'chat' || old.selectionJson !== '{}' || old.text !== text) throw new WebUiError(409, '此请求 ID 已用于其他内容');
       if (!old.runId) throw new WebUiError(409, '原消息尚未领取；请通过消息收据查询或撤回');
       return this.run(old.runId);
@@ -152,12 +157,16 @@ export class WebUiChannel implements Channel {
     return this.run(run.id);
   }
   receive(requestId: string, text: string): WebRun | WebRequestReceipt {
-    if (!this.coordinatorEnabled) return this.submit(requestId, text);
     const old = this.store.webUi.find(webOwner, requestId);
+    if (old?.topicSessions) {
+      if (old.text !== text) throw new WebUiError(409, '此请求 ID 已用于其他内容');
+      return this.request(requestId);
+    }
+    if (!this.coordinatorEnabled) return this.submit(requestId, text);
     if (old && !old.coordinator) return this.submit(requestId, text);
     // 停机仍允许原收据回读；新消息不能在停止后接收。
     if (this.shutdown.signal.aborted && !old) throw new WebUiError(503, '服务正在停止');
-    this.store.webUi.enqueue(webOwner, requestId, text, new Date().toISOString());
+    this.store.webUi.enqueue(webOwner, requestId, text, new Date().toISOString(), !!this.config.workTopicSessionsEnabled);
     const receipt = this.request(requestId);
     this.start();
     return receipt;
@@ -175,7 +184,8 @@ export class WebUiChannel implements Channel {
   }
   start(): void {
     if (!this.coordinatorEnabled || this.shutdown.signal.aborted || this.work) return;
-    const row = this.store.webUi.claim(webOwner, new Date().toISOString());
+    // 新旧模式沿同一FIFO；关闭仅跳过接收时已标记的新模式。
+    const row = this.store.webUi.claim(webOwner, new Date().toISOString(), this.config.workTopicSessionsEnabled ? 'all' : 'legacy');
     if (!row) return;
     // foreground只覆盖当前回合；排队本身不占后台门，每轮结束后交还事件循环。
     const release = this.lane?.foreground();
@@ -187,7 +197,19 @@ export class WebUiChannel implements Channel {
   private async process(id: string, text: string): Promise<void> {
     try {
       const result = await this.tasks.withTarget(webTarget, () => this.executor.execute({ prompt: text, scope: 'chat',
-        signal: this.shutdown.signal, observer: this.store.observer(id), source: { channel: 'web', reference: id } }));
+        signal: this.shutdown.signal, observer: this.store.observer(id), source: { channel: 'web', reference: id },
+        ...(this.store.webUi.coordinatorRequest(webOwner, id)?.topicSessions
+          ? { prepareChat: async preparation => {
+            const row = this.store.webUi.coordinatorRequest(webOwner, id)!;
+            if (row.topicRoute) return { route: row.topicRoute, action: this.store.webUi.topicDecision(id)?.action ?? 'chat', hasCandidates: !!this.store.webUi.topicDecision(id)?.candidates.length };
+            const now = new Date().toISOString();
+            const proposal = await routeTopic({ text, threads: this.workThreads!.list(), current: preparation.current,
+              clarification: this.store.webUi.topicClarification(webOwner, id, Date.parse(now)) }, preparation);
+            preparation.signal.throwIfAborted();
+            const route = this.store.webUi.freezeTopicRoute(this.workThreads!.binding, row.requestId, proposal.choice, now,
+              proposal.decision.explicitThreadId, proposal.decision);
+            return { route, action: proposal.decision.action, hasCandidates: !!proposal.decision.candidates.length };
+          } } : {}) }));
       if (this.shutdown.signal.aborted) throw new ExecutionInterrupted('服务正在停止');
       this.store.finishRun(id, 'succeeded', new Date().toISOString(), result.text);
     } catch (error) {
@@ -331,7 +353,8 @@ export class WebUiChannel implements Channel {
       return { id: f.id, runId: f.runId, path: f.path, kind: f.kind, hash: f.hash, contentHash: f.contentHash,
         createdAt: f.createdAt, expires: f.expires, status: f.status, acknowledged: f.acknowledged };
     });
-    const requests = this.coordinatorEnabled ? this.store.webUi.requests(webOwner).reverse().map(row => this.request(row.requestId)) : [];
+    const requests = this.store.webUi.requests(webOwner).filter(row => this.coordinatorEnabled || row.topicSessions)
+      .reverse().map(row => this.request(row.requestId));
     // 结果直接读取已鉴权子项关联的原Job/Run；通知失败不影响交付，也不触发执行。
     const jobIds = new Set<string>();
     for (const request of requests) for (const item of request.items) {
@@ -347,7 +370,7 @@ export class WebUiChannel implements Channel {
       return { ...job, title };
     });
     return { chats, tasks, goals, files,
-      ...(this.coordinatorEnabled ? { requests, workResults } : {}),
+      ...(this.coordinatorEnabled || requests.length ? { requests, workResults } : {}),
       ...(this.routingEnabled ? { suggestions: this.store.webUi.chats(webOwner, 'suggest').reverse().map(row => this.workRoute(row.requestId)) } : {}),
       activity: this.store.webUi.runs(webOwner, targetJson).map(id => this.run(id, false)), inbox,
       capabilities: { goal: !!this.goals, skills: this.executor.skills?.list().map(s => s.id) ?? [], filesRead: !!this.config.localFiles?.enabled,

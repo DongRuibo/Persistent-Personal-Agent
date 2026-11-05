@@ -76,8 +76,8 @@ export class SqliteStore {
     this.notifications = new GoalNotificationStore(this.db, fn => this.transaction(fn));
     this.web = new WebReadStore(this.db, fn => this.transaction(fn));
     this.files = new FileOperationStore(this.db, fn => this.transaction(fn));
-    this.webUi = new WebUiStore(this.db, fn => this.transaction(fn), now => this.beginRunInTransaction(null, now));
     this.workThreads = new WorkThreadStore(this.db, fn => this.transaction(fn));
+    this.webUi = new WebUiStore(this.db, fn => this.transaction(fn), now => this.beginRunInTransaction(null, now), this.workThreads);
     this.workJobs = new WorkJobStore(this.db, this.workThreads, {
       transaction: fn => this.transaction(fn), begin: now => this.beginRunInTransaction(null, now),
       finish: (id, status, now, output, error) => { this.finishRunInTransaction(id, status, now, output, error); },

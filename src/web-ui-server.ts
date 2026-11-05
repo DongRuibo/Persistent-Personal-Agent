@@ -312,7 +312,7 @@ export class WebUiServer {
       if (path === '/api/chat' && req.method === 'POST') {
         const data = await this.body(req, ['requestId', 'text']);
         if (typeof data.requestId !== 'string' || !uuid.test(data.requestId) || typeof data.text !== 'string' || !data.text.trim() || data.text.length > 10000) throw new WebUiError(400, '消息或请求 ID 无效');
-        return this.json(res, 202, this.channel.coordinatorEnabled ? this.channel.receive(data.requestId, data.text.trim()) : this.channel.workRouter ? this.channel.workRouter.route({ mode: 'chat', requestId: data.requestId, text: data.text.trim() }) : this.channel.submit(data.requestId, data.text.trim()));
+        return this.json(res, 202, this.channel.receive(data.requestId, data.text.trim()));
       }
       const run = /^\/api\/runs\/([a-f0-9-]{36})(\/ack)?$/u.exec(path);
       if (run && uuid.test(run[1]!)) {

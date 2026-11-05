@@ -6,6 +6,7 @@ import type { GoalStore } from './goal-store.js';
 import type { FullWorkResult, WorkResultReference } from './work-recall.js';
 import { workInputBytes, type WorkInputReference } from './work-job-types.js';
 import type { WorkThreadActor } from './work-thread-types.js';
+import type { FrozenTopicRoute } from './topic-route-types.js';
 
 // 字符区间使用当前原话的UTF-16索引；解析入口负责验证，存储只保留宿主已核对的引用。
 export interface WorkTextRange { start: number; end: number; role: 'instruction' | 'shared' }
@@ -43,8 +44,9 @@ export class WorkCoordinatorStore {
     return this.hooks.transaction(() => {
       const old = this.items(actor, requestId);
       if (old.length) return { items: old, cancelled: [] };
-      const parent = this.db.prepare('SELECT text FROM web_ui_chats WHERE owner=? AND requestId=? AND runId=? AND coordinator=1').get(actor.owner, requestId, runId)!;
+      const parent = this.db.prepare('SELECT text,topicRouteJson FROM web_ui_chats WHERE owner=? AND requestId=? AND runId=? AND coordinator=1').get(actor.owner, requestId, runId)!;
       const sourceHash = createHash('sha256').update(String(parent.text)).digest('hex');
+      const route = parent.topicRouteJson ? JSON.parse(String(parent.topicRouteJson)) as FrozenTopicRoute : null;
       const cancelled: string[] = [];
       for (const [ordinal, prepared] of input.entries()) {
         const itemId = randomUUID();
@@ -62,7 +64,10 @@ export class WorkCoordinatorStore {
           if (earliest || pending.permit) this.db.prepare(`UPDATE web_request_items SET permissionItemId=? WHERE owner=? AND channel=? AND targetKind=? AND targetId=?
             AND baseJobId IS ? AND consumedByJobId IS NULL AND permission IN ('none','available')`).run(earliest?.itemId ?? itemId, actor.owner, actor.channel, prepared.targetKind ?? 'job', prepared.targetId!, pending.baseJobId);
         } else if (prepared.instruction !== undefined) {
-          const matched = this.hooks.threads.list(actor).filter(t => t.status === 'active' && t.title === prepared.name);
+          // 新工作只继承本请求已冻结的主题；续接仍由后面的原根工作链决定。
+          const inherited = route?.kind === 'topic' ? this.hooks.threads.get(actor, route.threadId) : undefined;
+          if (inherited?.status === 'archived') throw new Error('当前请求所属主题已归档；未创建工作');
+          const matched = inherited ? [inherited] : this.hooks.threads.list(actor).filter(t => t.status === 'active' && t.title === prepared.name);
           if (matched.length > 1) {
             this.db.prepare("UPDATE web_request_items SET decision='clarify',permission='needs_user',receipt=? WHERE itemId=?")
               .run(`同名主题不唯一，请明确“${prepared.name}”的范围；本项未启动。`, itemId);
@@ -75,7 +80,7 @@ export class WorkCoordinatorStore {
           });
           this.db.prepare("UPDATE web_request_items SET permission='consumed',targetKind='job',targetId=?,consumedByJobId=?,receipt=? WHERE itemId=?")
             .run(job.id, job.id, `“${prepared.name}”已排队；尚未开始执行。`, itemId);
-          this.hooks.event(runId, JSON.stringify({ source: 'host', itemId, threadId: thread.id, jobId: job.id, organization: matched.length ? 'reuse' : 'create' }), now);
+          this.hooks.event(runId, JSON.stringify({ source: 'host', itemId, threadId: thread.id, jobId: job.id, organization: inherited ? 'request_topic' : matched.length ? 'reuse' : 'create' }), now);
         } else if (prepared.decision === 'cancel' && prepared.targetId) {
           const target = this.hooks.jobs.get(actor, prepared.targetId);
           for (const job of this.hooks.jobs.chain(actor, target.rootJobId).filter(j => ['queued', 'running'].includes(j.status))) {
@@ -162,16 +167,19 @@ export class WorkCoordinatorStore {
         if (Buffer.byteLength(instruction) > workInputBytes || Buffer.byteLength(JSON.stringify(instruction)) + 8192 > 32768) {
           fail('完整成果与有效约束超过14 KiB输入或32 KiB请求预算；未节选、尚未采纳，请缩小范围。'); continue;
         }
-        const matched = root ? [] : this.hooks.threads.list(actor).filter(t => t.title === source.objective.slice(0,120) && t.status === 'active');
+        const parent = this.db.prepare('SELECT runId,topicRouteJson FROM web_ui_chats WHERE owner=? AND requestId=?').get(actor.owner, permit.requestId)!;
+        const route = !root && parent.topicRouteJson ? JSON.parse(String(parent.topicRouteJson)) as FrozenTopicRoute : null;
+        const inherited = route?.kind === 'topic' ? this.hooks.threads.get(actor, route.threadId) : undefined;
+        if (inherited?.status === 'archived') { fail('当前请求所属主题已归档；尚未采纳，请先明确恢复工作范围。'); continue; }
+        const matched = root || inherited ? [] : this.hooks.threads.list(actor).filter(t => t.title === source.objective.slice(0,120) && t.status === 'active');
         if (matched.length > 1) { fail('原成果对应多个同名主题，请明确范围；尚未采纳。'); continue; }
-        const threadId = root?.threadId ?? (matched[0] ?? this.hooks.threads.createInTransaction(actor, randomUUID(), source.objective.slice(0,120), now)).id;
+        const threadId = root?.threadId ?? inherited?.id ?? (matched[0] ?? this.hooks.threads.createInTransaction(actor, randomUUID(), source.objective.slice(0,120), now)).id;
         const job = this.hooks.jobs.createInTransaction(actor, threadId, permit.itemId, instruction, now, {
           sourceItemId: permit.itemId, rootJobId: root?.id, previousJobId: base?.id, inputReferences: references,
           inputHash: createHash('sha256').update(instruction).digest('hex') });
         const claimed = this.hooks.jobs.claimInTransaction(actor, now, job.id)!;
         for (const item of pending) this.db.prepare(`UPDATE web_request_items SET consumedByJobId=?,permissionItemId=?,permission=CASE WHEN permission='available' THEN 'consumed' ELSE permission END,
           receipt=? WHERE itemId=?`).run(job.id, permit.itemId, `补充已采纳于新执行${job.id}；原执行及其输入未改变。`, item.itemId);
-        const parent = this.db.prepare('SELECT runId FROM web_ui_chats WHERE owner=? AND requestId=?').get(actor.owner, permit.requestId)!;
         this.hooks.event(String(parent.runId), JSON.stringify({ source: 'host', successor: job.id, previous: base?.id, permissionItemId: permit.itemId,
           consumedItemIds: pending.map(item => item.itemId), inputHash: job.inputHash, references }), now);
         return claimed;

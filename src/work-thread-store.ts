@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import type { DatabaseSync } from 'node:sqlite';
 
 import type { WorkObjectKind, WorkThreadActor, WorkThread, WorkLink } from './work-thread-types.js';
@@ -19,28 +20,43 @@ export class WorkThreadStore {
       objectId TEXT NOT NULL, source TEXT NOT NULL CHECK(source='user'), createdAt TEXT NOT NULL,
       PRIMARY KEY(threadId,kind,objectId)
     ) STRICT;`);
+    const columns = db.prepare('PRAGMA table_info(work_threads)').all();
+    if (!columns.some(column => column.name === 'description')) db.exec("ALTER TABLE work_threads ADD COLUMN description TEXT NOT NULL DEFAULT ''");
+    if (!columns.some(column => column.name === 'chatContextKey')) db.exec('ALTER TABLE work_threads ADD COLUMN chatContextKey TEXT');
   }
   get(actor: WorkThreadActor, id: string): WorkThread {
-    const row = this.db.prepare('SELECT id,title,status,createdAt,updatedAt FROM work_threads WHERE id=? AND owner=? AND channel=?')
+    const row = this.db.prepare('SELECT id,title,status,createdAt,updatedAt,description,chatContextKey FROM work_threads WHERE id=? AND owner=? AND channel=?')
       .get(id, actor.owner, actor.channel) as WorkThread | undefined;
     if (!row) throw new WorkThreadError(404, '工作主题不存在或无权访问');
     return { ...row };
   }
   list(actor: WorkThreadActor): WorkThread[] {
-    return this.db.prepare('SELECT id,title,status,createdAt,updatedAt FROM work_threads WHERE owner=? AND channel=? ORDER BY updatedAt DESC,id')
+    return this.db.prepare('SELECT id,title,status,createdAt,updatedAt,description,chatContextKey FROM work_threads WHERE owner=? AND channel=? ORDER BY updatedAt DESC,id')
       .all(actor.owner, actor.channel).map(row => ({ ...row } as unknown as WorkThread));
   }
   create(actor: WorkThreadActor, id: string, title: string, now: string): WorkThread {
     return this.transaction(() => this.createInTransaction(actor, id, title, now));
   }
-  createInTransaction(actor: WorkThreadActor, id: string, title: string, now: string): WorkThread {
+  createInTransaction(actor: WorkThreadActor, id: string, title: string, now: string, description = ''): WorkThread {
     if (this.db.prepare('SELECT 1 FROM work_threads WHERE id=?').get(id)) {
       const old = this.get(actor, id);
       if (old.title !== title) throw new WorkThreadError(409, '此主题 ID 已用于其他名称');
       return old;
     }
     if (this.list(actor).length >= 100) throw new WorkThreadError(409, '当前工作空间最多保留100个主题');
-    this.db.prepare("INSERT INTO work_threads VALUES(?,?,?,?,'active',?,?)").run(id, actor.owner, actor.channel, title, now, now);
+    this.db.prepare("INSERT INTO work_threads(id,owner,channel,title,status,createdAt,updatedAt,description) VALUES(?,?,?,?,'active',?,?,?)")
+      .run(id, actor.owner, actor.channel, title, now, now, description);
+    return this.get(actor, id);
+  }
+  // 绑定只供同库请求事务使用；归属仍取owner/channel，key不是身份或许可。
+  bindChatInTransaction(actor: WorkThreadActor, id: string, now: string, bindUnbound: boolean): WorkThread {
+    const thread = this.get(actor, id);
+    if (thread.status === 'archived') throw new WorkThreadError(409, '归档主题不能用于新的对话归属');
+    if (!thread.chatContextKey) {
+      if (!bindUnbound) throw new WorkThreadError(409, '旧主题需要用户明确选用为持续主题后才能绑定');
+      this.db.prepare('UPDATE work_threads SET chatContextKey=?,updatedAt=? WHERE id=?')
+        .run(`topic-${randomUUID()}`, now, id);
+    }
     return this.get(actor, id);
   }
   update(actor: WorkThreadActor, id: string, change: { title?: string; status?: WorkThread['status'] }, now: string): WorkThread {

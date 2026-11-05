@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
+import { spawnSync } from 'node:child_process';
 import { resolve } from 'node:path';
 import { readConfig, readFeishuConfig, redactor } from '../src/config.js';
 
@@ -71,4 +72,24 @@ test('来源观察默认关闭、严格布尔且只依赖主题，不要求Goal/
   assert.throws(() => readConfig({ WORK_EVENTS_ENABLED: 'true' }), /WORK_THREADS_ENABLED/);
   const config = readConfig({ WORK_EVENTS_ENABLED: 'true', WORK_THREADS_ENABLED: 'true' });
   assert.equal(config.workEventsEnabled, true); assert.equal(config.goalEnabled, false); assert.equal(config.proactive?.enabled, false);
+});
+
+
+test('持续主题默认关闭、严格布尔且依赖Coordinator完整依赖', () => {
+  const dependencies = { WORK_COORDINATOR_ENABLED: 'true', WORK_THREADS_ENABLED: 'true', WORK_JOBS_ENABLED: 'true', WORK_RECALL_ENABLED: 'true' };
+  assert.equal(readConfig({}).workTopicSessionsEnabled, false);
+  assert.equal(readConfig({ WORK_TOPIC_SESSIONS_ENABLED: 'false' }).workTopicSessionsEnabled, false);
+  for (const value of ['', 'TRUE', '1', 'yes']) assert.throws(() => readConfig({ WORK_TOPIC_SESSIONS_ENABLED: value }), /WORK_TOPIC_SESSIONS_ENABLED/);
+  assert.throws(() => readConfig({ WORK_TOPIC_SESSIONS_ENABLED: 'true' }), /WORK_COORDINATOR_ENABLED/);
+  assert.throws(() => readConfig({ WORK_TOPIC_SESSIONS_ENABLED: 'true', WORK_COORDINATOR_ENABLED: 'true' }), /WORK_THREADS_ENABLED/);
+  assert.equal(readConfig({ ...dependencies, WORK_TOPIC_SESSIONS_ENABLED: 'true' }).workTopicSessionsEnabled, true);
+});
+
+
+test('持续主题开启时非Web入口在模型/数据初始化前拒绝', () => {
+  const result = spawnSync(process.execPath, ['--import', 'tsx', 'src/main.ts', '--daemon'], { encoding: 'utf8',
+    env: { PATH: process.env.PATH, TMPDIR: '/private/tmp', WORK_TOPIC_SESSIONS_ENABLED: 'true', WORK_COORDINATOR_ENABLED: 'true',
+      WORK_THREADS_ENABLED: 'true', WORK_JOBS_ENABLED: 'true', WORK_RECALL_ENABLED: 'true', LLM_API_KEY: 'fake-topic-config' } });
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /WORK_TOPIC_SESSIONS_ENABLED 仅支持 --web-ui/);
 });

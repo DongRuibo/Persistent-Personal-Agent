@@ -1016,7 +1016,7 @@ function App() {
                       if (item.kind === "request") {
                         const request = item.request, run = request.run;
                         return <div key={item.id} className="chat-turn coordinator-request" data-request-id={request.requestId}>
-                          <div className="message user"><div className="message-content"><p>{request.text}</p><small>你 · {time(request.createdAt)}</small></div><div className="avatar small">我</div></div>
+                          <div className="message user"><div className="message-content"><p>{request.text}</p><small>你 · {time(request.createdAt)}{request.topicRoute && <span data-topic-route={request.topicRoute.kind}>{" · "}{request.topicRoute.kind === "topic" ? `主题：${request.topicRoute.title}` : request.topicRoute.kind === "daily" ? "日常" : "待澄清主题"}</span>}</small></div><div className="avatar small">我</div></div>
                           <div className="message assistant"><div className="agent-avatar small"><Sparkles size={17} /></div><div className="message-content">
                             <div className="assistant-label">Personal Agent · {request.status === "queued" ? "已收到 · 等待处理" : request.status === "cancelled" ? "已撤回 · 未处理" : run?.status === "running" ? "正在处理消息" : run?.status === "succeeded" ? "消息已处理" : run?.status === "interrupted" ? "消息回应中断" : run?.status === "failed" ? "消息回应失败" : "已接收"}</div>
                             {request.status === "queued" && <button onClick={() => void api(`/chat-requests/${request.requestId}/cancel`, {}).then(refresh).catch(e => setError(e.message))}>撤回未处理消息</button>}
@@ -1822,7 +1822,7 @@ function App() {
                               <code>{r.id.slice(0, 8)}</code>
                             </strong>
                             <small>
-                              {time(r.startedAt)} · {r.usage.calls} 次模型响应 ·
+                              {time(r.startedAt)} · {r.usage.calls} {r.usage.unknownCalls === undefined ? "次模型响应" : "次模型请求"} ·
                               费用未确认
                             </small>
                           </span>
@@ -1837,7 +1837,7 @@ function App() {
                             {r.usage.cacheWriteTokens} Token
                           </p>
                           <small>
-                            仅统计供应商已报告的调用，缺失用量不代表零消耗。
+                            仅统计供应商已报告的用量，缺失用量不代表零消耗。{r.usage.unknownCalls !== undefined && ` 用量未知 ${r.usage.unknownCalls} 次。`}
                           </small>
                           {r.output && <Prose text={r.output} />}
                           {r.fileOperationId && (
