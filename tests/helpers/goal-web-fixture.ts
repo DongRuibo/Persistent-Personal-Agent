@@ -39,7 +39,7 @@ export async function goalWebFixture(body = 'PI_SNAPSHOT_ONLY：原生Skill按�
   function boot() {
     f.store.policies.configure(hostOptions);
     runner = new GoalRunner(f.store, f.executor, { sendMessage: async message => { sent.push(message.text); if (failNotifications-- > 0) throw new Error('模拟通知确认丢失'); } }, lane, {
-      ownerId: 'local-user', accepts: target => target.channel === 'console', pollIntervalMs: 10, proactiveEnabled: true,
+      ownerId: 'local-user', notificationTarget: { channel: 'console' }, accepts: target => target.channel === 'console', pollIntervalMs: 10, proactiveEnabled: true,
       reportError: error => errors.push(error), fatal: () => errors.push('fatal'), delivered: (goal, run) => f.goals.displayed(goal, run),
     }, () => f.tasks.now());
     f.setInterrupt(id => runner.interrupt(id)); f.store.policies.interrupt = id => runner.interrupt(id);

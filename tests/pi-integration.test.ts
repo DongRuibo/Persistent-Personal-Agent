@@ -130,7 +130,7 @@ test('真实 Pi SDK + 本地模拟 API：工具白名单、任务创建、Sessio
     const dispatcher = new lark.EventDispatcher({ loggerLevel: lark.LoggerLevel.fatal }).register({
       'im.message.receive_v1': async (event) => { feishu.receive(event); },
     });
-    const scheduler = new TaskScheduler(store, executor, new ChannelRouter({ sendMessage: async () => { throw new Error('不应投递 Console'); } }, feishu), 10, () => {}, () => new Date('2026-10-22T00:00:00Z'));
+    const scheduler = new TaskScheduler(store, executor, new ChannelRouter({ sendMessage: async () => { throw new Error('不应投递 Console'); } }, feishu), 10, () => {}, () => new Date('2026-10-22T00:00:00Z'), undefined, { channel: 'feishu', appId: 'cli_0123456789abcdef', userOpenId: 'ou_owner' });
     try {
       for (const eventId of ['event-one', 'event-redelivered']) {
         await dispatcher.invoke({ schema: '2.0', header: { event_id: eventId, event_type: 'im.message.receive_v1' }, event: {

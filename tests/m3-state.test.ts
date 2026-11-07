@@ -52,7 +52,7 @@ test('M3真实形态：确认只审批且明确未排队，原错误保留、三
     assert.ok(saved.content.endsWith(receipts.at(-1)!)); assert.ok(saved.content.includes(unqueued));
     await f.restart();
     runner = new GoalRunner(f.store, f.executor, { sendMessage: async () => assert.fail('审批不能触发投递') }, new BackgroundLane(), {
-      ownerId: 'local-user', accepts: () => true, pollIntervalMs: 10, reportError: e => { throw e; }, fatal: () => assert.fail('不应停止'),
+      ownerId: 'local-user', notificationTarget: { channel: 'console' }, accepts: () => true, pollIntervalMs: 10, reportError: e => { throw e; }, fatal: () => assert.fail('不应停止'),
     }, () => f.tasks.now());
     await runner.tick(); assert.deepEqual(f.goals.plan(created.id), after); assert.equal(f.payloads.length, 5);
     const audit = independentAudit(f.root); assert.ok(Object.values(audit.counts).every(n => n === 0));

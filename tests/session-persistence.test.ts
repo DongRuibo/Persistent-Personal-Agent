@@ -93,7 +93,7 @@ test('真实 Pi Session 文件：飞书上下文恢复、目标和去重跨重�
     assert.equal(tasks.list().length, 1, '恢复历史工具调用不重复创建任务');
     await receive('create', 'CREATE_ONCE_MARKER 重投');
     assert.equal(requests.length, beforeRestore, '已有去重记录跨重启生效');
-    const scheduler = new TaskScheduler(store, executor, new ChannelRouter({ sendMessage: async () => assert.fail('错误投递到 Console') }, feishu), 10, (error) => errors.push(error), () => new Date('2026-10-20T00:02:00Z'));
+    const scheduler = new TaskScheduler(store, executor, new ChannelRouter({ sendMessage: async () => assert.fail('错误投递到 Console') }, feishu), 10, (error) => errors.push(error), () => new Date('2026-10-20T00:02:00Z'), undefined, { channel: 'feishu', appId: identity.appId, userOpenId: identity.allowedOpenId });
     try { await scheduler.tick(); await scheduler.tick(); } finally { await scheduler.stop(); }
     assert.equal(tasks.get(task.id).status, 'succeeded');
     assert.equal(store.listRuns(task.id).length, 1);

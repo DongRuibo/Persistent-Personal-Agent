@@ -41,7 +41,7 @@ test('集成：慢Task通知不占模型门，WorkJob独立领取/回写/通知�
   const hold = new Promise<void>(resolve => { release = resolve; }), started = new Promise<void>(resolve => { entered = resolve; });
   const channel: Channel = { sendMessage: async message => { sent.push(message); if (message.taskId) { entered(); await hold; } } };
   const executor: AgentExecutor = { close: async () => {}, execute: async request => { calls.push(request.scope); return { text: request.scope + '唯一成果' }; } };
-  const worker = new NotificationWorker(store, channel, { ownerId: 'local-user', accepts: t => t.channel === 'web', pollIntervalMs: 10, reportError: e => { throw e; } }, () => new Date(epoch));
+  const worker = new NotificationWorker(store, channel, { ownerId: 'local-user', targetFilter: webTarget, pollIntervalMs: 10, reportError: e => { throw e; } }, () => new Date(epoch));
   const scheduler = new TaskScheduler(store, executor, channel, 10, e => { throw e; }, () => new Date(epoch), lane, worker);
   const runner = new WorkRunner(store, executor, channel, lane, { actor, target: webTarget, pollIntervalMs: 10, goalReady: () => false,
     reportError: e => { throw e; }, fatal: () => assert.fail('聚合提交不应失败') }, () => new Date(epoch));
@@ -84,7 +84,7 @@ test('集成恢复：同库Task/Goal/WorkJob各自中断，queued保留，仅已
     assert.equal(store.goals.get(ga, goal.id).status, 'blocked'); assert.equal(store.notifications.listForHost().length, 1);
     const sent: OutboundMessage[] = [];
     const worker = new NotificationWorker(store, { sendMessage: async m => { sent.push(m); } }, {
-      ownerId: 'local-user', accepts: () => true, pollIntervalMs: 10, reportError: e => { throw e; } }, () => new Date(epoch));
+      ownerId: 'local-user', targetFilter: { channel: 'console' as const }, pollIntervalMs: 10, reportError: e => { throw e; } }, () => new Date(epoch));
     try { await worker.tick(); await worker.tick(); } finally { await worker.stop(); }
     assert.equal(sent.length, 1); assert.equal(sent[0]?.notificationId, noticeId); assert.equal(sent[0]?.taskId, completed.id);
     assert.equal(store.workJobs.get(actor, queued.id).runId, null); assert.equal(store.recoverInterrupted(epoch), 0);

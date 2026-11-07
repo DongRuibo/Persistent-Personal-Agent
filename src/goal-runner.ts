@@ -3,7 +3,7 @@ import { Type } from 'typebox';
 import * as Value from 'typebox/value';
 import { ExecutionInterrupted, ExecutionTimeout } from './contracts.js';
 import { ExecutionFailure } from './execution-failure.js';
-import type { AgentExecutor, Channel, MessageTarget } from './contracts.js';
+import type { AgentExecutor, Channel, MessageTarget, NotificationTargetFilter } from './contracts.js';
 import type { Goal, GoalActor, GoalExecution, GoalResult, GoalView } from './goal-types.js';
 import { SqliteStore } from './sqlite-store.js';
 import { BackgroundLane } from './background-lane.js';
@@ -125,7 +125,7 @@ export class GoalRunner {
 
   constructor(private readonly store: SqliteStore, private readonly executor: AgentExecutor,
     private readonly channel: Channel, private readonly lane: BackgroundLane,
-    private readonly options: { ownerId: string; accepts(target: MessageTarget): boolean; pollIntervalMs: number;
+    private readonly options: { ownerId: string; notificationTarget: NotificationTargetFilter; accepts(target: MessageTarget): boolean; pollIntervalMs: number;
       reportError(error: unknown): void; fatal(): void; proactiveEnabled?: boolean; modelAttempts?: 1 | 2 | 3; delivered?(goal: Goal, runId: string): void }, private readonly clock = () => new Date()) {
     store.goals.setSkills(executor.skills);
   }
@@ -167,7 +167,7 @@ export class GoalRunner {
     const accepts = (item: Goal) => item.ownerId === this.options.ownerId && this.options.accepts(item.target);
     // 投递和只读观察不占模型执行门；等待期间旧Task仍可领取。
     if (this.options.proactiveEnabled) {
-      await this.store.notifications.deliver(this.channel, this.options.ownerId, this.options.accepts, this.clock().toISOString());
+      await this.store.notifications.deliver(this.channel, this.options.ownerId, this.options.notificationTarget, this.clock().toISOString());
       if (this.shutdown.signal.aborted) return;
       if (this.store.hasDueTasks(this.clock().toISOString())) return;
       this.store.policies.scan(this.clock().toISOString(), accepts);
@@ -275,7 +275,7 @@ export class GoalRunner {
     if (!finished || this.shutdown.signal.aborted) return;
     const { goal: finishedGoal, actor: finishedActor, runId } = finished;
     if (finished.policy) {
-      if (this.options.proactiveEnabled) await this.store.notifications.deliver(this.channel, this.options.ownerId, this.options.accepts, this.clock().toISOString());
+      if (this.options.proactiveEnabled) await this.store.notifications.deliver(this.channel, this.options.ownerId, this.options.notificationTarget, this.clock().toISOString());
       return;
     }
     try {

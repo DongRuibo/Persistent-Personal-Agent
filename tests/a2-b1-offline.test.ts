@@ -72,7 +72,7 @@ test('A2原始错误回答回放：旧bootstrap不代表正式Step提交，ToolR
     assert.equal(saved.length, 2);
     assert.ok(saved.at(-1)!.content.endsWith(receipts.at(-1)!));
     runner = new GoalRunner(f.store, f.executor, { sendMessage: async m => { notifications.push(m.text); } }, new BackgroundLane(), {
-      ownerId: 'local-user', accepts: () => true, pollIntervalMs: 10, reportError: e => { throw e; }, fatal: () => assert.fail('不应停止'),
+      ownerId: 'local-user', notificationTarget: { channel: 'console' }, accepts: () => true, pollIntervalMs: 10, reportError: e => { throw e; }, fatal: () => assert.fail('不应停止'),
     }, () => f.tasks.now());
     await runner.tick(); await runner.tick();
     assert.equal(goalCalls, 1); assert.equal(f.payloads.length, 7);
@@ -199,7 +199,7 @@ test('A2异步查看：后台running时Chat不等结果；投递失败仍只提�
   }, { productSkills: true });
   const failures: unknown[] = [];
   const runner = new GoalRunner(f.store, f.executor, { sendMessage: async () => { throw new Error('模拟投递失败'); } }, new BackgroundLane(), {
-    ownerId: 'local-user', accepts: () => true, pollIntervalMs: 10, reportError: e => { failures.push(e); }, fatal: () => assert.fail('不应停止'),
+    ownerId: 'local-user', notificationTarget: { channel: 'console' }, accepts: () => true, pollIntervalMs: 10, reportError: e => { failures.push(e); }, fatal: () => assert.fail('不应停止'),
   }, () => f.tasks.now());
   let work: Promise<void> | undefined;
   try {
@@ -244,7 +244,7 @@ test('agent-notes 1.0.0升级1.0.1：旧批准Plan不改Hash，领取前阻塞�
     assert.equal(before.plan.spec.skillBindings![0]!.packageHash, 'e42d303f2c12195e4c1a4ebe54365f34e0c25c0b5ae86e84481146bceb33822e', '保留原批准包的CRLF字节及实际Hash');
     writeFileSync(path, next); approveSkill(f.config.skillsDir!, 'agent-notes', true); await f.restart();
     runner = new GoalRunner(f.store, f.executor, { sendMessage: async () => {} }, new BackgroundLane(), {
-      ownerId: 'local-user', accepts: () => true, pollIntervalMs: 10, reportError: () => {}, fatal: () => assert.fail('不应停止'),
+      ownerId: 'local-user', notificationTarget: { channel: 'console' }, accepts: () => true, pollIntervalMs: 10, reportError: () => {}, fatal: () => assert.fail('不应停止'),
     }, () => f.tasks.now());
     await runner.tick(); await runner.tick();
     const after = f.goals.plan(goal.id);

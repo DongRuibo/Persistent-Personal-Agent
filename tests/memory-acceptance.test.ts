@@ -108,7 +108,7 @@ test('四类 Memory 固定验收：飞书入口 CRUD、重复/未授权事件、
       const run = store.listRuns().find((item) => item.output?.includes(updated))!;
       assert.ok(store.events(run.id).some((event) => event.type === 'memory_context' && event.details?.includes(record.id) && event.details.includes('"version":2')));
       const pending = tasks.withTarget({ channel: 'feishu', appId: identity.appId, chatId: 'oc_acceptance', userOpenId: identity.allowedOpenId }, () => tasks.create(`读取 ${sample.key} BACKGROUND_ONLY`, '1分钟后'));
-      const scheduler = new TaskScheduler(store, executor, feishu, 10, (error) => errors.push(error), () => new Date('2026-10-21T00:02:00Z'));
+      const scheduler = new TaskScheduler(store, executor, feishu, 10, (error) => errors.push(error), () => new Date('2026-10-21T00:02:00Z'), undefined, { channel: 'feishu', appId: identity.appId, userOpenId: identity.allowedOpenId });
       const before = readFileSync(sessionFile(config.sessionDir), 'utf8');
       try { await scheduler.tick(); await scheduler.tick(); } finally { await scheduler.stop(); }
       assert.equal(store.getTask(pending.id)?.status, 'succeeded');
@@ -164,7 +164,7 @@ test('停服备份迁移到新目录：四类 Markdown 重建索引、恢复 Ses
     await executor.execute(request('继续之前的话题'));
     assert.ok(JSON.stringify(payloads.at(-1)).includes('RESTORE_CHAT_HISTORY_MARKER'));
     const messages: unknown[] = [];
-    scheduler = new TaskScheduler(store, executor, { sendMessage: async (message) => { messages.push(message.target); assert.ok(message.text.includes('验收天河项目使用 SQLite')); } }, 10, (error) => { throw error; }, () => new Date('2026-10-21T00:02:00Z'));
+    scheduler = new TaskScheduler(store, executor, { sendMessage: async (message) => { messages.push(message.target); assert.ok(message.text.includes('验收天河项目使用 SQLite')); } }, 10, (error) => { throw error; }, () => new Date('2026-10-21T00:02:00Z'), undefined, target);
     await scheduler.tick(); await scheduler.tick();
     assert.deepEqual(messages, [target]); assert.equal(store.listRuns(task.id).length, 1);
     assert.ok(!JSON.stringify(payloads.at(-1)).includes('RESTORE_CHAT_HISTORY_MARKER'));

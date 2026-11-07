@@ -20,7 +20,7 @@ export async function notificationEnvironment(root: string, target: string,
   const store = new Store(join(root, 'app.db')), errors: string[] = [];
   const channel = { sendMessage: async (message: OutboundMessage) => { attempts++; await send(message, attempts, milliseconds); } };
   const clock = () => new Date(Date.parse(notificationEpoch) + milliseconds);
-  const workerOptions = { ownerId: 'local-user', accepts: () => true, pollIntervalMs: 10, timeoutMs: 1000, reportError: (error: unknown) => { errors.push(String(error)); } };
+  const workerOptions = { ownerId: 'local-user', targetFilter: { channel: 'console' as const }, accepts: () => true, pollIntervalMs: 10, timeoutMs: 1000, reportError: (error: unknown) => { errors.push(String(error)); } };
   const worker = Worker ? new Worker(store, channel, workerOptions, clock) : undefined;
   const executor: AgentExecutor = { close: async () => {}, execute: async () => { executions++; modelCompletedAt = Date.now(); return { text: '合成任务成果' }; } };
   const scheduler = new Scheduler(store, executor, channel, 10, error => errors.push(String(error)), clock, undefined, worker);

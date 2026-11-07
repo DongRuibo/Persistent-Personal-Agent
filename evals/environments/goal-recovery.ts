@@ -34,7 +34,7 @@ export async function goalRecoveryEnvironment(root: string, target: string, resp
   const store = new SqliteStore(config.databasePath), executor = await createPiExecutor(config, new TaskService(store, 'Asia/Shanghai'));
   const actor = { ownerId: 'local-user', target: { channel: 'console' as const } }, errors: string[] = [];
   const runner = new GoalRunner(store, executor, { sendMessage: async () => {} }, new BackgroundLane(), {
-    ownerId: actor.ownerId, accepts: () => true, pollIntervalMs: 10, modelAttempts: attempts, reportError: error => errors.push(String(error)), fatal: () => errors.push('fatal'),
+    ownerId: actor.ownerId, notificationTarget: actor.target, accepts: () => true, pollIntervalMs: 10, modelAttempts: attempts, reportError: error => errors.push(String(error)), fatal: () => errors.push('fatal'),
   }, () => new Date(notificationEpoch));
   const source = store.beginRun(null, notificationEpoch), goal = store.goals.create(actor, source.id, '合成手动Goal恢复', notificationEpoch);
   store.finishRun(source.id, 'succeeded', notificationEpoch);

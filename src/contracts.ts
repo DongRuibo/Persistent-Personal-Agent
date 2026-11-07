@@ -6,6 +6,11 @@ export type MessageTarget = { channel: 'console' } | { channel: 'web'; userId: s
   channel: 'feishu'; appId: string; chatId: string; userOpenId: string;
 };
 
+// 飞书宿主按应用和用户匹配通知；chatId保留为投递地址，不限定为单个聊天。
+export type NotificationTargetFilter = { channel: 'console' } | { channel: 'web'; userId: string } | {
+  channel: 'feishu'; appId: string; userOpenId: string;
+};
+
 export interface OutboundMessage {
   text: string;
   notificationId?: string;

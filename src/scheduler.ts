@@ -1,6 +1,6 @@
 import { setTimeout as delay } from 'node:timers/promises';
 import { ExecutionInterrupted } from './contracts.js';
-import type { AgentExecutor, Channel, Scheduler } from './contracts.js';
+import type { AgentExecutor, Channel, NotificationTargetFilter, Scheduler } from './contracts.js';
 import { SqliteStore } from './sqlite-store.js';
 import { BackgroundLane } from './background-lane.js';
 import { NotificationWorker } from './notification-worker.js';
@@ -21,11 +21,16 @@ export class TaskScheduler implements Scheduler {
     private readonly reportError: (error: unknown) => void,
     private readonly clock = () => new Date(),
     private readonly lane = new BackgroundLane(),
-    notifications?: NotificationWorker,
+    notifications: NotificationWorker | NotificationTargetFilter = { channel: 'console' },
   ) {
-    this.eagerDelivery = !notifications;
-    this.notifications = notifications ?? new NotificationWorker(store, channel,
-      { ownerId: 'local-user', accepts: () => true, pollIntervalMs, reportError }, clock);
+    if (notifications instanceof NotificationWorker) {
+      this.eagerDelivery = false;
+      this.notifications = notifications;
+    } else {
+      this.eagerDelivery = true;
+      this.notifications = new NotificationWorker(store, channel,
+        { ownerId: 'local-user', targetFilter: notifications, pollIntervalMs, reportError }, clock);
+    }
   }
 
   start(): void {

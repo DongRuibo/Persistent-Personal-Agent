@@ -108,14 +108,16 @@ export async function main(webService?: WebReadService): Promise<void> {
       console.log(`Web App：${await webUi.start(webConfig.port)}；仅本机；通知仅存入应用收件箱，无手机推送`);
     }
     const channels = new ChannelRouter(consoleChannel, feishu, webChannel);
+    const notificationTarget: import('./contracts.js').NotificationTargetFilter = webConfig ? { channel: 'web', userId: webTarget.userId }
+      : feishuConfig ? { channel: 'feishu', appId: feishuConfig.appId, userOpenId: feishuConfig.allowedOpenId } : { channel: 'console' };
     const accepts = (target: import('./contracts.js').MessageTarget) => webConfig ? target.channel === 'web' && target.userId === webTarget.userId : feishuConfig
       ? target.channel === 'feishu' && target.appId === feishuConfig.appId && target.userOpenId === feishuConfig.allowedOpenId : target.channel === 'console';
-    notifications = new NotificationWorker(store, channels, { ownerId: 'local-user', accepts, includeGoals: config.proactive?.enabled,
+    notifications = new NotificationWorker(store, channels, { ownerId: 'local-user', targetFilter: notificationTarget, includeGoals: config.proactive?.enabled,
       pollIntervalMs: config.pollIntervalMs, reportError });
     scheduler = new TaskScheduler(store, executor, channels, config.pollIntervalMs, reportError, () => new Date(), lane, notifications);
     if (goals) goalRunner = new GoalRunner(store, executor, channels, lane, { ownerId: 'local-user', pollIntervalMs: config.pollIntervalMs,
       modelAttempts: config.goalMaxAttempts,
-      accepts: target => webConfig ? target.channel === 'web' && target.userId === webTarget.userId : feishuConfig ? target.channel === 'feishu' && target.appId === feishuConfig.appId && target.userOpenId === feishuConfig.allowedOpenId : target.channel === 'console',
+      accepts, notificationTarget,
       reportError, proactiveEnabled: config.proactive?.enabled, fatal: () => { process.exitCode = 1; stop(); }, delivered: (goal, runId) => {
         // Web入箱并不表示用户已看见当前计划；需在Chat重新查看并完成渲染ACK。
         if (goal.target.channel !== 'web') goals.displayed(goal, runId);

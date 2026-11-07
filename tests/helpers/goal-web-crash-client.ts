@@ -13,6 +13,6 @@ const config = readConfig({ DATABASE_PATH: join(root, 'agent.db'), GOAL_ENABLED:
   LLM_API_KEY: 'fake-crash', LLM_MODEL: 'local-stub', LLM_BASE_URL: base });
 const store = new SqliteStore(config.databasePath), executor = await createPiExecutor(config, new TaskService(store, config.timeZone));
 const runner = new GoalRunner(store, executor, { sendMessage: async () => {} }, new BackgroundLane(), {
-  ownerId: 'local-user', accepts: target => target.channel === 'console', pollIntervalMs: 1000, reportError: error => { throw error; }, fatal: () => { throw new Error('测试不应停机'); },
+  ownerId: 'local-user', notificationTarget: { channel: 'console' }, accepts: target => target.channel === 'console', pollIntervalMs: 1000, reportError: error => { throw error; }, fatal: () => { throw new Error('测试不应停机'); },
 });
 try { await runner.tick(); } finally { await runner.stop(); await executor.close(); store.close(); }

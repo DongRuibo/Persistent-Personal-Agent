@@ -120,7 +120,7 @@ test('重复事件跨重启去重；Pending 任务目标持久化，无新消息
     await second.channel.drain();
     assert.equal(calls, 1, '重投消息不能重新调用模型或创建任务');
     const router = new ChannelRouter({ sendMessage: async () => { throw new Error('不应路由到 Console'); } }, second.channel);
-    scheduler = new TaskScheduler(second.store, second.executor, router, 10, (error) => { throw error; }, () => new Date('2026-10-20T00:02:00Z'));
+    scheduler = new TaskScheduler(second.store, second.executor, router, 10, (error) => { throw error; }, () => new Date('2026-10-20T00:02:00Z'), undefined, target);
     await scheduler.tick(); await scheduler.tick();
     assert.equal(calls, 2);
     assert.equal(second.store.getTask(taskId)?.status, 'succeeded');
@@ -142,7 +142,7 @@ test('飞书发送失败只记录 deliveryError，不重复创建或执行任务
     return { text: '结果' };
   });
   transport.fail = true;
-  const scheduler = new TaskScheduler(store, executor, new ChannelRouter({ sendMessage: async () => { throw new Error('不应路由到 Console'); } }, channel), 10, () => {}, () => new Date('2026-10-20T00:02:00Z'));
+  const scheduler = new TaskScheduler(store, executor, new ChannelRouter({ sendMessage: async () => { throw new Error('不应路由到 Console'); } }, channel), 10, () => {}, () => new Date('2026-10-20T00:02:00Z'), undefined, target);
   try {
     channel.receive(incoming()); await channel.drain();
     channel.receive(incoming()); await channel.drain();

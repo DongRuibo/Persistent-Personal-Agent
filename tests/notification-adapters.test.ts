@@ -39,7 +39,7 @@ test('Task通知Worker默认不激活关闭的策略Goal通知；显式开启才
   try {
     approve(f.store, proposal(seedGoal(f.store))); f.failDelivery(1); f.time('2026-10-23T01:00:00.000Z'); await f.runner.tick();
     f.time('2026-10-23T01:00:30.000Z');
-    const options = { ownerId: 'local-user', accepts: () => true, pollIntervalMs: 10, reportError: () => {} };
+    const options = { ownerId: 'local-user', targetFilter: { channel: 'console' as const }, pollIntervalMs: 10, reportError: () => {} };
     const channel = { sendMessage: async () => { accepted++; } }, disabled = new NotificationWorker(f.store, channel, options, () => f.now);
     await disabled.tick(); await disabled.stop(); assert.equal(accepted, 0);
     const enabled = new NotificationWorker(f.store, channel, { ...options, includeGoals: true }, () => f.now);

@@ -125,7 +125,7 @@ test('全新SQLite/原版Pi/模拟模型：真实Console进程A闭环→隔离B�
       let runner: GoalRunner | undefined;
       const goals = id === 'B1' ? undefined : new GoalService(store, tasks, goalId => runner?.interrupt(goalId));
       const executor = await createPiExecutor(config, tasks, 'console', memory, undefined, undefined, goals, id === 'B1' ? { service: webService, store: store.web } : undefined);
-      if (goals) runner = new GoalRunner(store, executor, { sendMessage: async () => {} }, new BackgroundLane(), { ownerId: 'local-user', accepts: () => true,
+      if (goals) runner = new GoalRunner(store, executor, { sendMessage: async () => {} }, new BackgroundLane(), { ownerId: 'local-user', notificationTarget: { channel: 'console' }, accepts: () => true,
         pollIntervalMs: 10, reportError: error => { throw error; }, fatal: () => assert.fail('不应停机'), delivered: (goal, run) => goals.displayed(goal, run) });
       try {
         const run = store.beginRun(null, new Date().toISOString());

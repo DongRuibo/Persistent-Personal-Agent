@@ -4,9 +4,10 @@
 
 ## 当前阶段
 
-- 第三阶段在独立临时Worktree `/private/tmp/ppa-phase3-integration`、分支`codex/phase3-integration`完成集成审查与稳定性收尾；固定main=91b7a65、通知恢复分支=d0c7125，共同祖先e2c95c0。原工作区不切换、不覆盖；用户随后已明确授权提交/推送本集成独立分支，发布标识以Git记录为准，不创建PR或合并main。
-- 已语义集成main的显式WorkJobs 2A与Task/Goal通知恢复。保留两种运行对象、共享BackgroundLane及独占锁；通知Worker只读取已有通知意图，不领取WorkJob。Console停止竞态已复现并最小修复，前测18/20、后测20/20；657/657回归、类型/两端构建通过，原20题17/2/1、新30题30/30；保留所有失败。真实调用/消息/正式数据库操作继续为0。
-- 完整阶段结论见[EVAL_PHASE3_INTEGRATION](EVAL_PHASE3_INTEGRATION.md)，测试数据以本次实际执行为准，不把此前单分支成绩充作集成成绩。
+- 本轮仅修复PR Readiness发现的通知队列饥饿P1。在独立Worktree `/private/tmp/ppa-notification-queue-p1-fix`、分支 `codex/notification-queue-p1-fix`，从已发布集成候选 `ff6e3465cde53f91e1e8639f1620872c211605df` 开始。原工作区、集成候选和旧审查目录保留；main仍为91b7a65。修复报告已交付，用户随后明确授权仅将本轮34个相关文件提交、推送至此独立修复分支，发布标识以Git记录为准；不创建PR或合并、不发布原始Trace/日志/无关修改。原ff6e346不包含此修复。
+- 原查询先LIMIT 100再筛渠道/身份/taskOnly，已用隔离SQLite复现并将全部资格移到SQL LIMIT 1前；Console/Web userId/飞书appId+userOpenId保持原授权，chatId仍是投递地址。运行期租约回收限定同范围，事务、fencing、退避、启动恢复和Task/WorkJob执行逻辑不变；不增加索引或迁移。
+- 新13项修复前6通过/7失败、修复后13/13；全量最终670/670，类型/后端/Web构建通过。全量首跑669/670的混合渠道Memory夹具遗漏已适配，原断言与失败日志保留；原20题17/2/1、新故障集30/30不变，B07/C04失败与D03未实现跳过继续保留。收费调用、真实飞书消息、正式数据操作均为0。
+- 详见[PR_READINESS_P1_FIX](PR_READINESS_P1_FIX.md)。此P1可以关闭并重新进入独立PR Readiness Review；不能据此直接合并原ff6e346。前三阶段历史集成结论仍见[EVAL_PHASE3_INTEGRATION](EVAL_PHASE3_INTEGRATION.md)。
 
 ### 集成前固定版本与历史验证
 
@@ -60,13 +61,20 @@
 
 | 日期 | 修改及位置 |
 | --- | --- |
+| 2026-11-07 | 独立通知队列P1修复：资格先SQL过滤再LIMIT，显式身份范围及租约隔离；新增13/13、最终全量670/670、原20题17/2/1及故障30/30。用户已授权仅提交/推送此独立修复分支，发布标识以Git记录为准，待重新独立复审；见[修复报告](PR_READINESS_P1_FIX.md) |
 | 2026-11-07 | 第三阶段临时分支集成WorkJobs 2A与通知恢复，调查Console异常、复核重复与历史失败；实际验证见[EVAL_PHASE3_INTEGRATION](EVAL_PHASE3_INTEGRATION.md)，仅按后续授权提交/推送集成分支，不创建PR或合并main |
 | 2026-11-01 | 2A发布准备：用户已授权提交、推送及创建依赖PR，base为`codex/workthread-foundation`并依赖PR #3；只整理STATE、[评估](evaluations/router-worker-mvp.md)及新增[验证摘要](evaluations/router-worker-mvp-validation.json)，源码/测试Hash不变，独立发布复审前不提交。原19/19专项、618/618全量及构建证据保留，不重复收费/浏览器/全量；不合并main、不开始2B |
 | 2026-11-01 | 第二阶段2A：Job/确定性Router/共用门Worker、无工具临时work Session与Web提交/队列/取消/结果；原Task/Goal/Guard实现保留。[交付记录](evaluations/router-worker-mvp.md)；类型/两端构建、最终全量及浏览器结果见下节，代码保持未提交 |
 | 2026-11-01 | PR #3发布后审查完成：未发现阻断问题，typecheck及12/12专项重验通过；更新[审查结论](evaluations/workthread-pr3-review.md)与[第二阶段首批执行计划](designs/work-router-worker-mvp.md)，由独立执行对话开发。本轮只改交接文档，不改代码、不提交推送或合并 |
-| 2026-11-01 | WorkThread第一阶段：新增关系类型/存储/服务与Web页面，复用现有鉴权/CSRF和对象归属；默认关闭。类型/两端构建、588/588离线回归和桌面/窄屏浏览器验证通过。按用户授权发布功能分支并创建[PR #3](https://github.com/DongRuibo/Persistent-Personal-Agent/pull/3)供审查；暂不合并main，正式数据未触碰 |
 
 ## 验证记录与证据边界
+
+### 通知候选队列P1修复（2026-11-07，本轮实际执行）
+
+- 新增A/B-app/B-user/C/D/Web、owner/status/到期、chatId原语义、includeGoals、顺序、双连接竞争、fencing及排除记录全列不变，共13项。旧源码6/13通过，修复后13/13；现有657项加新增13项最终670/670，0失败/取消/跳过，76.94秒。完整首跑669/670和所有早期失败日志保留。
+- typecheck/build/web:build退出0；Web依赖两条既有use-client告警。package.json无字面web/eval脚本，用户指定的web和两次eval均如实记录退出1，实际使用web:build、eval:agent和eval:phase2，未加别名或启动正式服务。
+- 固定原20题17通过/2失败/1跳过（退出1）；固定30题30/30（退出0）。N07/N08仍各两次Mock接受，Task各执行一次；2/9重复案例边界不因本轮修复消失。原数据集、故障场景和现有断言保持不变，无新真实模型或供应商投递实验。
+- EXPLAIN实际SQL仍用notifications_due(ownerId,status,nextAt)及原排序临时B-tree；未加索引/迁移。原工作区、集成候选和旧审查目录1,358项文件/证据Hash与Git状态不变。本轮证据在 `/private/tmp/ppa-p1-fix-evidence` 及忽略目录 `evals/reports/p1-fix*`，不默认发布原始Trace。
 
 ### 第二阶段2A P2收尾（2026-11-01，本轮重新验证）
 
@@ -531,6 +539,8 @@ V1 原有自动化证据：39项测试使用模拟模型/飞书服务和虚拟�
 
 ## 已知问题与限制
 
+- 通知队列P1修复在独立分支，用户已授权本轮提交/推送，仍需重新独立复审。旧配置通知仍保留，JSON过滤/排序的大规模性能未测；至少一次投递的不确定窗口仍可能重复，真实飞书及生产可靠性未新增验证。见[本轮报告](PR_READINESS_P1_FIX.md)。
+
 - 当前Web V1的基线合并见[PR #2](https://github.com/DongRuibo/Persistent-Personal-Agent/pull/2)；此前审查记录保留本地，本PR不发布该文件。以下为历史能力的分阶段限制，不把旧“无搜索/未验Mac”等描述泛化到最新Web基线；原模型语义失败与长期运行缺口仍保留。
 
 - S1-A仅Chat读取固定公开文本；S1-B已完成成功快照的Goal绑定与冻结，Goal不联网。常见标题/短句可直接读取，其他复合表达先确认；无搜索/HTML/账号/任意URL。Session/SQLite保留正文和记录，暂无自动清理；只读GET也可能被服务端记录，不保证外部恰好一次。真实模型选工具/遵循与收据质量、真实站点/飞书/手机、Windows ACL、原生Mac和长跑未验，不能因离线工程通过启用正式能力。统一验收v1账本缺失Web记录不得自动迁移续测，异常锁/未完成写入需人工核对，不能退额或重新获取。
@@ -568,9 +578,9 @@ V1 原有自动化证据：39项测试使用模拟模型/飞书服务和虚拟�
 
 ## 下一步与需要提供的信息
 
-1. 本轮集成审查、Console前后各20次及最终回归已完成，现按用户后续授权仅提交/推送独立集成分支；PR与main合并继续等待明确指示，不启用正式功能。
-2. 保留通知不确定性、死信、M3历史语义失败和自动路由未实现边界，不启用正式开关或沿用历史收费额度。
-3. 原工作区与旧证据Hash最终核对后交接，后续发布及真实验收另由用户决定。
+1. 将独立修复工作树、[P1报告](PR_READINESS_P1_FIX.md)及13项回归交给新的PR Readiness Review，重点复核SQL身份条件、全部调用方及租约范围；原ff6e346尚未包含修复。
+2. 修复报告已交付；现按用户明确授权仅提交/推送本轮34个相关文件至独立修复分支，不发布原始Trace或日志。创建PR或合并仍等待后续明确指示；不修改main、不启用正式功能、不沿用历史收费额度。
+3. 继续披露N07/N08重复窗口、死信、B07/C04历史失败和D03未实现；真实环境验收与PR #5后续集成由后续明确任务决定。原工作区和历史证据核对已完成。
 
 ## V2.0.2 关键文件（主体及本轮修复）
 

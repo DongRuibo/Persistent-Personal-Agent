@@ -27,7 +27,7 @@ function fixture(execute: AgentExecutor['execute'], objective = '虚构面试准
   const executor: AgentExecutor = { execute: request => { calls++; return execute(request); }, close: async () => {} };
   const messages: string[] = [], errors: unknown[] = [];
   const runner = new GoalRunner(store, executor, { sendMessage: async message => { messages.push(message.text); } }, lane,
-    { ownerId: actor.ownerId, accepts: target => target.channel === 'console', pollIntervalMs: 5, reportError: error => { errors.push(error); }, fatal: () => { fatal++; } }, () => new Date(now));
+    { ownerId: actor.ownerId, notificationTarget: actor.target, accepts: target => target.channel === 'console', pollIntervalMs: 5, reportError: error => { errors.push(error); }, fatal: () => { fatal++; } }, () => new Date(now));
   const goal = store.goals.create(actor, store.beginRun(null, now).id, objective, now);
   return { root, store, lane, runner, executor, goal, messages, errors, get calls() { return calls; }, get fatal() { return fatal; },
     async close() { await runner.stop(); store.close(); rmSync(root, { recursive: true, force: true }); } };
@@ -189,7 +189,7 @@ test('真实Pi SDK+模拟模型：Goal无工具、只读Memory、独立新Sessio
   const tasks = new TaskService(store, config.timeZone);
   const executor = await createPiExecutor(config, tasks, 'goal-pi-test', memory);
   const makeRunner = () => new GoalRunner(store, executor, { sendMessage: async () => {} }, new BackgroundLane(),
-    { ownerId: actor.ownerId, accepts: () => true, pollIntervalMs: 5, reportError: () => {}, fatal: () => { assert.fail('不应停机'); } });
+    { ownerId: actor.ownerId, notificationTarget: actor.target, accepts: () => true, pollIntervalMs: 5, reportError: () => {}, fatal: () => { assert.fail('不应停机'); } });
   let runner = makeRunner();
   try {
     const goal = store.goals.create(actor, store.beginRun(null, now).id, 'GOAL_PRIVATE_MARKER 虚构面试', now);
@@ -218,7 +218,7 @@ test('真实Pi故障：HTTP500/非法JSON/截断/非法工具不重试，Memory�
     });
     const executor = await createPiExecutor(config, tasks, 'goal-fault-test', memory);
     const runner = new GoalRunner(store, executor, { sendMessage: async () => {} }, new BackgroundLane(),
-      { ownerId: actor.ownerId, accepts: () => true, pollIntervalMs: 10, reportError: () => {}, fatal: () => {} });
+      { ownerId: actor.ownerId, notificationTarget: actor.target, accepts: () => true, pollIntervalMs: 10, reportError: () => {}, fatal: () => {} });
     try {
       const goal = store.goals.create(actor, store.beginRun(null, now).id, '虚构目标', now);
       if (mode === 'memory-before') t.mock.method(memory, 'repair', () => { throw new Error('领取前故障'); });

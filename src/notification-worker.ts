@@ -1,5 +1,5 @@
 import { setTimeout as delay } from 'node:timers/promises';
-import type { Channel, MessageTarget } from './contracts.js';
+import type { Channel, NotificationTargetFilter } from './contracts.js';
 import type { SqliteStore } from './sqlite-store.js';
 
 // 仅投递已提交的发送意图，不持有模型执行门，不领取或重跑Task。
@@ -8,7 +8,7 @@ export class NotificationWorker {
   private loop?: Promise<void>;
   private work?: Promise<void>;
   constructor(private readonly store: SqliteStore, private readonly channel: Channel,
-    private readonly options: { ownerId: string; accepts(target: MessageTarget): boolean; pollIntervalMs: number; reportError(error: unknown): void; timeoutMs?: number; includeGoals?: boolean },
+    private readonly options: { ownerId: string; targetFilter: NotificationTargetFilter; pollIntervalMs: number; reportError(error: unknown): void; timeoutMs?: number; includeGoals?: boolean },
     private readonly clock = () => new Date()) {}
   start(): void {
     if (this.loop || this.shutdown.signal.aborted) throw new Error('通知Worker不能重复启动');
@@ -22,7 +22,7 @@ export class NotificationWorker {
   }
   tick(): Promise<void> {
     if (this.work || this.shutdown.signal.aborted) return Promise.resolve();
-    this.work = this.store.notifications.deliver(this.channel, this.options.ownerId, this.options.accepts, this.clock().toISOString(),
+    this.work = this.store.notifications.deliver(this.channel, this.options.ownerId, this.options.targetFilter, this.clock().toISOString(),
       { timeoutMs: this.options.timeoutMs, clock: this.clock, taskOnly: !this.options.includeGoals }).then(result => { if (result?.error) this.options.reportError(new Error(result.error)); })
       .finally(() => { this.work = undefined; });
     return this.work;

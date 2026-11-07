@@ -92,7 +92,7 @@ test('宿主收据持久化失败：原控制收据仍有效，同Run重入和�
     assert.deepEqual(f.goals.get(before.id), before); assert.deepEqual(f.store.goals.controlReceipt(f.goals.actor(), run.id), receipt);
     assert.equal(f.goals.list().length, 1); assert.equal(goalCalls, 0);
     runner = new GoalRunner(f.store, f.executor, { sendMessage: async () => {} }, new BackgroundLane(), {
-      ownerId: 'local-user', accepts: target => target.channel === 'console', pollIntervalMs: 10, reportError: error => { throw error; }, fatal: () => assert.fail('不应致命停止'),
+      ownerId: 'local-user', notificationTarget: { channel: 'console' }, accepts: target => target.channel === 'console', pollIntervalMs: 10, reportError: error => { throw error; }, fatal: () => assert.fail('不应致命停止'),
     }, () => f.tasks.now());
     await runner.tick(); await runner.tick();
     assert.equal(goalCalls, 1, '只消费原始授权一次'); assert.equal(f.goals.plan(before.id).executions.length, 1);

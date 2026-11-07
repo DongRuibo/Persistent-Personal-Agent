@@ -17,7 +17,9 @@ const channel = { sendMessage: async (message: import('../../src/contracts.js').
   appendFileSync(join(root, 'accepted.jsonl'), JSON.stringify({ id: message.notificationId ?? message.runId, at: now, wallAt: Date.now() }) + '\n');
   if (mode === 'accepted-stop') window('accepted-before-sent');
 } };
-const worker = Worker ? new Worker(store, channel, { ownerId: 'local-user', accepts: () => true, pollIntervalMs: 10, reportError() {} }, () => new Date(now)) : undefined;
+// accepts仅供固定旧源码对照；新Worker使用明确的targetFilter。
+const workerOptions = { ownerId: 'local-user', targetFilter: { channel: 'console' as const }, accepts: () => true, pollIntervalMs: 10, reportError() {} };
+const worker = Worker ? new Worker(store, channel, workerOptions, () => new Date(now)) : undefined;
 let executions = 0;
 const scheduler = new TaskScheduler(store, { close: async () => {}, execute: async () => {
   executions++; writeFileSync(join(root, 'model-finished.json'), JSON.stringify({ wallAt: Date.now() })); return { text: '合成持久通知' };
@@ -39,7 +41,7 @@ process.on('message', async command => {
       const actor = { ownerId: 'local-user', target: { channel: 'console' as const } }, source = store.beginRun(null, now);
       store.goals.create(actor, source.id, '合成Goal强杀', now); store.finishRun(source.id, 'succeeded', now);
       const goalRunner = new GoalRunner(store, { close: async () => {}, execute: async () => { window('goal-running'); return { text: '不可提交' }; } },
-        channel, new BackgroundLane(), { ownerId: actor.ownerId, accepts: () => true, pollIntervalMs: 10, reportError() {}, fatal() {} }, () => new Date(now));
+        channel, new BackgroundLane(), { ownerId: actor.ownerId, notificationTarget: actor.target, accepts: () => true, pollIntervalMs: 10, reportError() {}, fatal() {} }, () => new Date(now));
       await goalRunner.tick(); return;
     }
     store.createTask('合成进程任务', now, now); await scheduler.tick();

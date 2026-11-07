@@ -30,7 +30,7 @@ function fixture(result: GoalResult = structuredClone(live.result)) {
   let runner: GoalRunner;
   const boot = () => runner = new GoalRunner(store, executor,
     { sendMessage: async message => { messages.push(message.text); } }, new BackgroundLane(),
-    { ownerId: actor.ownerId, accepts: () => true, pollIntervalMs: 10, reportError: error => { throw error; }, fatal: () => assert.fail('不应停机') }, () => new Date(now));
+    { ownerId: actor.ownerId, notificationTarget: actor.target, accepts: () => true, pollIntervalMs: 10, reportError: error => { throw error; }, fatal: () => assert.fail('不应停机') }, () => new Date(now));
   boot();
   const id = live.seed.goals[0].id as string;
   return { root, id, skills, executor, get store() { return store; }, get runner() { return runner; }, messages, get calls() { return calls; },

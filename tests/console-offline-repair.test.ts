@@ -44,7 +44,7 @@ for (const mode of ['approved', 'invalid'] as const) test(`本机原版Pi/SQLite
   }, { productSkills: true, body: 'OFFLINE_WEB_BODY：宿主保存授权与Checkpoint，Pi执行当前片段。' });
   let runner: GoalRunner;
   const boot = () => runner = new GoalRunner(f.store, f.executor, { sendMessage: async () => {} }, new BackgroundLane(), {
-    ownerId: 'local-user', accepts: () => true, pollIntervalMs: 10, reportError: error => { throw error; }, fatal: () => assert.fail('不应停机'),
+    ownerId: 'local-user', notificationTarget: { channel: 'console' }, accepts: () => true, pollIntervalMs: 10, reportError: error => { throw error; }, fatal: () => assert.fail('不应停机'),
     delivered: (goal, run) => f.goals.displayed(goal, run),
   }, () => f.tasks.now());
   boot();

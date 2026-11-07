@@ -59,7 +59,7 @@ function command(f: Environment, action: GoalAction, id?: string, options?: Para
 }
 function runner(f: Environment, c: Context, executor: AgentExecutor = f.executor) {
   return new GoalRunner(f.store, executor, { sendMessage: async message => { c.trace.push({ delivery: message }); } }, new BackgroundLane(), {
-    ownerId: 'local-user', accepts: target => target.channel === 'console', pollIntervalMs: 10,
+    ownerId: 'local-user', notificationTarget: { channel: 'console' }, accepts: target => target.channel === 'console', pollIntervalMs: 10,
     reportError: error => c.trace.push({ runner_error: String(error) }), fatal: () => c.trace.push({ fatal: true }),
   }, () => new Date(epoch));
 }

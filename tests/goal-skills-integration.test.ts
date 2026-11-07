@@ -73,7 +73,7 @@ async function fixture() {
     goals = new GoalService(store, tasks, id => runner?.interrupt(id));
     executor = await createPiExecutor(config, tasks, 'console', undefined, undefined, lane, goals);
     runner = new GoalRunner(store, executor, { sendMessage: async message => { sent.push(message.text); if (failDeliveries-- > 0) throw new Error('模拟通知失败'); } }, lane, {
-      ownerId: actor.ownerId, accepts: target => target.channel === 'console', pollIntervalMs: 1, proactiveEnabled: true,
+      ownerId: actor.ownerId, notificationTarget: actor.target, accepts: target => target.channel === 'console', pollIntervalMs: 1, proactiveEnabled: true,
       reportError: error => errors.push(error), fatal: () => { errors.push('fatal'); }, delivered: (goal, runId) => goals.displayed(goal, runId),
     }, () => new Date(now));
     store.policies.interrupt = id => runner.interrupt(id);

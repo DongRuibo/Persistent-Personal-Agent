@@ -41,8 +41,8 @@ test('Memory 文件或索引故障不领取到期任务，重开后只执行一�
   const errors: unknown[] = [];
   const channel = { sendMessage: async (message: OutboundMessage) => { messages.push(message); } };
   const report = (error: unknown) => { errors.push(error); };
-  let scheduler = new TaskScheduler(store, executor, channel, 5, report, due);
   const target = { channel: 'feishu' as const, appId: 'fake-app', chatId: 'fake-chat', userOpenId: 'fake-user' };
+  let scheduler = new TaskScheduler(store, executor, channel, 5, report, due, undefined, target);
   try {
     const record = memory.withRequest({ prompt: '记住：测试项目数据库为 SQLite。', scope: 'chat', signal: new AbortController().signal, observer: { event: () => {}, modelCall: () => {} }, source: { channel: 'feishu', reference: 'test-source' } },
       () => memory.remember({ kind: 'project', key: 'test.database', content: '测试项目数据库为 SQLite。' }));
@@ -64,7 +64,7 @@ test('Memory 文件或索引故障不领取到期任务，重开后只执行一�
     tasks = new TaskService(store, config.timeZone, created);
     memory = new FileMemoryService(config.memoryDir);
     executor = await createPiExecutor(config, tasks, 'memory-scheduler-test', memory);
-    scheduler = new TaskScheduler(store, executor, channel, 5, report, due);
+    scheduler = new TaskScheduler(store, executor, channel, 5, report, due, undefined, target);
     assert.equal(store.recoverInterrupted(due().toISOString()), 0, '阻塞期间没有 running Run');
     await scheduler.tick(); await scheduler.tick();
     assert.equal(store.getTask(task.id)?.status, 'succeeded');
@@ -73,6 +73,8 @@ test('Memory 文件或索引故障不领取到期任务，重开后只执行一�
     assert.equal(messages.length, 1);
     assert.deepEqual(messages[0]?.target, target, '重开后仍通知原飞书目标');
 
+    // 后两项是Console任务，切换到对应范围，不依赖跨渠道通配投递。
+    await scheduler.stop(); scheduler = new TaskScheduler(store, executor, channel, 5, report, due);
     const indexTask = tasks.create('测试项目第二次提醒', '1分钟后');
     const index = new DatabaseSync(join(config.memoryDir, 'index.db'));
     try {

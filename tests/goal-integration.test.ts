@@ -105,7 +105,7 @@ test('真实Pi+SQLite+HTTP模拟模型/飞书：创建→计划→片段→Check
     executor = await createPiExecutor(config, tasks, key, memory, formation, lane, goals);
     feishu = new FeishuChannel({ appId: target.appId, appSecret: 'fake-secret', allowedOpenId: target.userOpenId },
       { start: async () => {}, stop() {}, sendText: async (_id, text) => { sent.push(text); } }, executor, tasks, store, String, error => { throw error; }, formation, lane);
-    runner = new GoalRunner(store, executor, feishu, lane, { ownerId: 'local-user', accepts: value => value.channel === 'feishu', pollIntervalMs: 10,
+    runner = new GoalRunner(store, executor, feishu, lane, { ownerId: 'local-user', notificationTarget: target, accepts: value => value.channel === 'feishu', pollIntervalMs: 10,
       reportError: error => { throw error; }, fatal: () => { assert.fail('不应停机'); }, delivered: (goal, runId) => goals.displayed(goal, runId) });
   }
   let serial = 0;

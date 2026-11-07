@@ -218,7 +218,7 @@ test('Web收件箱落盘失败只记录投递失败，不重跑Task；任务结�
   const f = await webUiFixture(() => reply('独立任务最终结果')); try {
     const now = new Date().toISOString(), task = f.store.createTask('模拟提醒', now, now, webTarget);
     t.mock.method(f.store.webUi, 'putNotice', () => { throw new Error('fixture inbox unavailable'); });
-    const scheduler = new TaskScheduler(f.store, f.executor, f.channel, 1000, () => {}, () => new Date(), f.lane);
+    const scheduler = new TaskScheduler(f.store, f.executor, f.channel, 1000, () => {}, () => new Date(), f.lane, webTarget);
     await scheduler.tick(); await scheduler.tick();
     assert.equal(f.payloads.length, 1); assert.equal(f.store.getTask(task.id)?.status, 'succeeded');
     assert.equal(f.channel.snapshot().inbox.length, 0); assert.equal(f.channel.snapshot().tasks[0]?.result, '独立任务最终结果');
@@ -285,7 +285,7 @@ test('后台Task通过原Scheduler/Pi执行并投影到Chat，收件箱持久化
   try {
     await f.login(); const now = new Date().toISOString(), task = f.store.createTask('测试提醒', now, now, webTarget);
     const router = new ChannelRouter({ async sendMessage() { throw new Error('wrong channel'); } }, undefined, f.channel);
-    const scheduler = new TaskScheduler(f.store, f.executor, router, 1000, error => f.errors.push(error), () => new Date(), f.lane);
+    const scheduler = new TaskScheduler(f.store, f.executor, router, 1000, error => f.errors.push(error), () => new Date(), f.lane, webTarget);
     assert.equal(chatTimeline(f.channel.snapshot()).length, 0);
     await scheduler.tick(); await scheduler.tick(); assert.equal(f.payloads.length, 1);
     const notice = f.channel.snapshot().inbox[0]!; assert.equal(notice.taskId, task.id); assert.equal(notice.viewedAt, null);
@@ -321,7 +321,7 @@ test('Web Chat经Guard创建Goal，原Runner生成计划/Checkpoint并入箱；A
     await f.login();
     await f.request('/api/chat', { requestId: randomUUID(), text: '我想逐步准备离线面试，请创建长期目标' }); await f.channel.drain();
     const goal = f.channel.snapshot().goals[0]!; assert.ok(goal);
-    const runner = new GoalRunner(f.store, f.executor, f.channel, f.lane, { ownerId: 'local-user', accepts: t => t.channel === 'web' && t.userId === webTarget.userId,
+    const runner = new GoalRunner(f.store, f.executor, f.channel, f.lane, { ownerId: 'local-user', notificationTarget: webTarget, accepts: t => t.channel === 'web' && t.userId === webTarget.userId,
       pollIntervalMs: 1000, reportError: e => f.errors.push(e), fatal: () => assert.fail('unexpected fatal') });
     await runner.tick(); const calls = f.payloads.length; await runner.tick(); assert.equal(f.payloads.length, calls);
     const detailResponse = await f.request(`/api/goals/${goal.id}`); assert.equal(detailResponse.status, 200);

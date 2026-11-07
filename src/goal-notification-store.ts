@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import type { DatabaseSync } from 'node:sqlite';
-import type { Channel, MessageTarget, Run, Task } from './contracts.js';
+import type { Channel, MessageTarget, NotificationTargetFilter, Run, Task } from './contracts.js';
 import type { Goal, GoalExecution } from './goal-types.js';
 import { ExecutionFailure } from './execution-failure.js';
 
@@ -63,13 +63,20 @@ export class GoalNotificationStore {
     if (!this.db.isTransaction) throw new Error('通知恢复必须在恢复事务中');
     this.db.prepare("UPDATE goal_notifications SET status=CASE WHEN attempts>=3*(manualRetries+1) THEN 'dead' ELSE 'pending' END,nextAt=?,lastError='发送期间退出；可能已送达',errorKind='process_interrupted',uncertain=1,leaseToken=NULL,leaseUntil=NULL WHERE status='sending'").run(now);
   }
-  async deliver(channel: Channel, ownerId: string, accepts: (target: MessageTarget) => boolean, now: string,
+  async deliver(channel: Channel, ownerId: string, target: NotificationTargetFilter, now: string,
     options: { timeoutMs?: number; clock?: () => Date; taskOnly?: boolean } = {}): Promise<{ error?: string } | undefined> {
+    // 可投递范围先进入SQL；运行期租约回收也只处理当前宿主和能力范围。
+    const scope = "ownerId=? AND json_extract(targetJson,'$.channel')=?"
+      + (target.channel === 'web' ? " AND json_extract(targetJson,'$.userId')=?"
+        : target.channel === 'feishu' ? " AND json_extract(targetJson,'$.appId')=? AND json_extract(targetJson,'$.userOpenId')=?" : '')
+      + (options.taskOnly ? ' AND taskId IS NOT NULL' : '');
+    const parameters = [ownerId, target.channel, ...(target.channel === 'web' ? [target.userId]
+      : target.channel === 'feishu' ? [target.appId, target.userOpenId] : [])];
     const row = this.transaction(() => {
       this.db.prepare(`UPDATE goal_notifications SET status=CASE WHEN attempts>=3*(manualRetries+1) THEN 'dead' ELSE 'pending' END,
-        errorKind='lease_expired',uncertain=1,leaseToken=NULL,leaseUntil=NULL WHERE status='sending' AND leaseUntil<=?`).run(now);
-      const candidates = this.db.prepare("SELECT * FROM goal_notifications WHERE ownerId=? AND status='pending' AND nextAt<=? ORDER BY createdAt,id LIMIT 100").all(ownerId, now);
-      const item = candidates.find(item => (!options.taskOnly || !!item.taskId) && accepts(JSON.parse(String(item.targetJson)) as MessageTarget));
+        errorKind='lease_expired',uncertain=1,leaseToken=NULL,leaseUntil=NULL WHERE ${scope} AND status='sending' AND leaseUntil<=?`).run(...parameters, now);
+      const item = this.db.prepare(`SELECT * FROM goal_notifications WHERE ${scope} AND status='pending' AND nextAt<=?
+        ORDER BY createdAt,id LIMIT 1`).get(...parameters, now);
       if (!item) return undefined;
       if (item.taskId && this.db.prepare('SELECT status FROM tasks WHERE id=?').get(String(item.taskId))?.status === 'cancelled') {
         this.db.prepare("UPDATE goal_notifications SET status='cancelled',lastError='原任务已取消' WHERE id=?").run(String(item.id)); return undefined;

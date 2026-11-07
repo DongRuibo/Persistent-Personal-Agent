@@ -102,8 +102,8 @@ test('迟到成功忽略abort：取消先结束Run、执行门等Session结束�
 test('同一执行门保持前台、到期Task、原Goal优先，随后才执行Job', async () => {
   const scopes: string[] = [];
   const f = harness(async r => { scopes.push(r.scope); return { text: r.scope === 'goal' ? JSON.stringify({ stepOutcome: 'partial', artifactText: '原目标片段', progressSummary: '等待', question: '请补充信息' }) : '普通成果' }; });
-  const scheduler = new TaskScheduler(f.store, f.executor, f.channel, 10, e => f.errors.push(e), () => new Date(now), f.lane);
-  const goals = new GoalRunner(f.store, f.executor, f.channel, f.lane, { ownerId: 'local-user', accepts: t => t.channel === 'web', pollIntervalMs: 10, reportError: e => f.errors.push(e), fatal() {} }, () => new Date(now));
+  const scheduler = new TaskScheduler(f.store, f.executor, f.channel, 10, e => f.errors.push(e), () => new Date(now), f.lane, webTarget);
+  const goals = new GoalRunner(f.store, f.executor, f.channel, f.lane, { ownerId: 'local-user', notificationTarget: webTarget, accepts: t => t.channel === 'web', pollIntervalMs: 10, reportError: e => f.errors.push(e), fatal() {} }, () => new Date(now));
   try {
     const job = f.create(), source = f.store.beginRun(null, now); f.store.goals.create({ ownerId: 'local-user', target: webTarget }, source.id, '原长期目标', now); f.store.finishRun(source.id, 'succeeded', now, '授权');
     const task = f.store.createTask('到期提醒', now, now, webTarget), foreground = f.lane.foreground();

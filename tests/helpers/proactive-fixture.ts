@@ -63,7 +63,7 @@ export async function fixture(options: { lane?: BackgroundLane; channel?: Channe
   let executor = await createPiExecutor(config, new TaskService(store, config.timeZone));
   let runner = makeRunner();
   function makeRunner() { return new GoalRunner(store, executor, options.channel ?? { sendMessage: async value => { sent.push(value.text); if (deliveryFailures-- > 0) throw new Error('模拟已发送但确认丢失'); } }, options.lane ?? new BackgroundLane(), {
-    ownerId: actor.ownerId, accepts: value => value.channel === 'console', pollIntervalMs: 10, proactiveEnabled: true,
+    ownerId: actor.ownerId, notificationTarget: actor.target, accepts: value => value.channel === 'console', pollIntervalMs: 10, proactiveEnabled: true,
     reportError: error => errors.push(error), fatal: () => errors.push('fatal'),
   }, () => new Date(now)); }
   return { root, get store() { return store; }, get runner() { return runner; }, get executor() { return executor; }, get calls() { return calls; }, get now() { return new Date(now); }, payloads, sent, errors,
