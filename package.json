@@ -20,7 +20,8 @@
     "test": "node --import tsx --test tests/*.test.ts",
     "eval:memory": "node --import tsx scripts/evaluate-memory.ts",
     "eval:formation": "node --import tsx scripts/evaluate-formation.ts",
-    "eval:agent": "node --import tsx evals/runners/offline.ts"
+    "eval:agent": "node --import tsx evals/runners/offline.ts",
+    "eval:phase2": "node --import tsx evals/runners/phase2.ts"
   },
   "dependencies": {
     "@earendil-works/pi-ai": "1.3.0",

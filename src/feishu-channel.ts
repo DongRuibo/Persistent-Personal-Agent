@@ -106,7 +106,7 @@ export class FeishuChannel implements Channel {
     const parts = splitFeishuText(this.redact(message.text));
     if (!parts.length) throw new Error('飞书消息内容为空');
     for (const [index, text] of parts.entries()) {
-      const uuid = createHash('sha256').update(`${message.runId}:${index}`).digest('hex').slice(0, 32);
+      const uuid = createHash('sha256').update(`${message.notificationId ?? message.runId}:${index}`).digest('hex').slice(0, 32);
       await this.transport.sendText(target.chatId, text, uuid);
     }
   }

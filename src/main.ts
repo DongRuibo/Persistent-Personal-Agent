@@ -10,6 +10,7 @@ import { createPiExecutor } from './pi-executor.js';
 import { WebReadService } from './web-read-service.js';
 import { TavilyService } from './tavily-service.js';
 import { TaskScheduler } from './scheduler.js';
+import { NotificationWorker } from './notification-worker.js';
 import { SqliteStore } from './sqlite-store.js';
 import { TaskService } from './task-service.js';
 import { ChannelRouter } from './channel-router.js';
@@ -55,6 +56,7 @@ export async function main(webService?: WebReadService): Promise<void> {
   let store: SqliteStore | undefined;
   let executor: Awaited<ReturnType<typeof createPiExecutor>> | undefined;
   let scheduler: TaskScheduler | undefined;
+  let notifications: NotificationWorker | undefined;
   let goalRunner: GoalRunner | undefined;
   const lane = new BackgroundLane();
   let memory: FileMemoryService | undefined;
@@ -103,8 +105,13 @@ export async function main(webService?: WebReadService): Promise<void> {
       console.log(`Web App：${await webUi.start(webConfig.port)}；仅本机；通知仅存入应用收件箱，无手机推送`);
     }
     const channels = new ChannelRouter(consoleChannel, feishu, webChannel);
-    scheduler = new TaskScheduler(store, executor, channels, config.pollIntervalMs, reportError, () => new Date(), lane);
+    const accepts = (target: import('./contracts.js').MessageTarget) => webConfig ? target.channel === 'web' && target.userId === webTarget.userId : feishuConfig
+      ? target.channel === 'feishu' && target.appId === feishuConfig.appId && target.userOpenId === feishuConfig.allowedOpenId : target.channel === 'console';
+    notifications = new NotificationWorker(store, channels, { ownerId: 'local-user', accepts, includeGoals: config.proactive?.enabled,
+      pollIntervalMs: config.pollIntervalMs, reportError });
+    scheduler = new TaskScheduler(store, executor, channels, config.pollIntervalMs, reportError, () => new Date(), lane, notifications);
     if (goals) goalRunner = new GoalRunner(store, executor, channels, lane, { ownerId: 'local-user', pollIntervalMs: config.pollIntervalMs,
+      modelAttempts: config.goalMaxAttempts,
       accepts: target => webConfig ? target.channel === 'web' && target.userId === webTarget.userId : feishuConfig ? target.channel === 'feishu' && target.appId === feishuConfig.appId && target.userOpenId === feishuConfig.allowedOpenId : target.channel === 'console',
       reportError, proactiveEnabled: config.proactive?.enabled, fatal: () => { process.exitCode = 1; stop(); }, delivered: (goal, runId) => {
         // Web入箱并不表示用户已看见当前计划；需在Chat重新查看并完成渲染ACK。
@@ -112,6 +119,7 @@ export async function main(webService?: WebReadService): Promise<void> {
       } });
     store.policies.interrupt = id => goalRunner?.interrupt(id);
     scheduler.start();
+    notifications.start();
     goalRunner?.start();
     formation?.start();
     console.log(`Personal Agent 已启动；用户时区=${config.timeZone}；中断记录=${recovered}；模式=${webConfig ? 'web-ui' : feishu ? 'feishu' : args.includes('--daemon') ? 'daemon' : 'console'}；Goal=${config.goalEnabled ? 'enabled' : 'disabled'}`);
@@ -125,7 +133,7 @@ export async function main(webService?: WebReadService): Promise<void> {
     // 先中断并等待执行，再关闭存储；避免日志写入已关闭的数据库。
     try {
       await formation?.stop();
-      await Promise.all([scheduler?.stop(), goalRunner?.stop(), feishu?.stop(), webUi?.stop()]);
+      await Promise.all([scheduler?.stop(), goalRunner?.stop(), notifications?.stop(), feishu?.stop(), webUi?.stop()]);
       await executor?.close();
     } finally {
       store?.close();

@@ -14,6 +14,8 @@ export const consoleHelp = `Personal Agent
   /task <完整ID>                    查看任务、执行、用量及事件
   /cancel <完整ID>                  取消 pending 任务
   /runs                            查看最近100次执行（含对话）
+  /notifications                   查看当前Console通知状态
+  /notification retry <ID>         明确重试一条dead通知，不重跑任务
   /skills                          查看宿主已批准的Skill；/skill ID 查看版本和Hash（只读）
   /policies                        查看当前 Console 的执行策略（主动总开关开启时）
   /policy approve <JSON>           明确批准有界策略；show ID / pause|revoke JSON 查看或停用
@@ -59,6 +61,11 @@ export class ConsoleChannel implements Channel {
             output = policyConsole(store, { ownerId: 'local-user', target: { channel: 'console' } }, text, new Date().toISOString());
           }
           else if (text === '/tasks') output = tasks.list();
+          else if (text === '/notifications') output = store.notifications.listForHost().filter(row => row.ownerId === 'local-user' && JSON.parse(row.targetJson).channel === 'console');
+          else if (text.startsWith('/notification retry ')) {
+            store.notifications.retryDead(text.slice(20).trim(), 'local-user', target => target.channel === 'console', new Date().toISOString());
+            output = '通知已重新排队；原任务不会重跑。';
+          }
           else if (text.startsWith('/task ')) {
             const id = text.slice(6).trim();
             output = { task: tasks.get(id), runs: store.listRuns(id).map((run) => ({ ...run, modelCalls: store.modelCalls(run.id), events: store.events(run.id) })) };

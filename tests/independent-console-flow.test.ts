@@ -77,7 +77,7 @@ test('独立Console实际进程：P自然创建/唯一视图/泛称暂停，R异
       PATH: process.env.PATH, SystemRoot: process.env.SystemRoot, LLM_API_KEY: 'offline-only-fixture-key', LLM_MODEL: stagedModel.model, LLM_BASE_URL: 'https://api.siliconflow.cn/v1', LLM_PROVIDER: 'personal-compatible',
       ACCEPTANCE_INPUT_RATE: '2', ACCEPTANCE_OUTPUT_RATE: '8', ACCEPTANCE_CACHE_READ_RATE: '0.04', ACCEPTANCE_EXTRA_FEES_CNY: '0', ACCEPTANCE_PRICE_CHECKED_AT: checkedAt } });
     let out = ''; child.stdout.on('data', c => { out += c; }); child.stderr.on('data', c => { out += c; }); child.stdin.end('不应消费这条额外stdin\n');
-    const [code] = await once(child, 'exit'); assert.equal(code, expectedCode, id + '\n' + out); return out;
+    const [code, signal] = await once(child, 'exit'); assert.equal(code, expectedCode, id + '\nexitSignal=' + String(signal) + '\n' + out); return out;
   }
   try {
     await cli('P1', root, false); await cli('P2');

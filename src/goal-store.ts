@@ -8,6 +8,7 @@ import type { Run, RunStatus } from './contracts.js';
 import { validatePlanQuantity, validateQuantityApproval } from './goal-plan-quantity.js';
 import { GoalCommitError } from './goal-commit-error.js';
 import type { GoalCommitFailureCode } from './goal-commit-error.js';
+import type { FailureKind } from './execution-failure.js';
 import type {
   Goal, GoalActor, GoalCheckpoint, GoalCommand, GoalControlReceipt, GoalExecution,
   GoalExecutionInput, GoalPlan, GoalPlanDraft, GoalPlanSpec, GoalResult, GoalStep, GoalView,
@@ -522,7 +523,8 @@ export class GoalStore {
     });
   }
 
-  finishFailure(runId: string, kind: 'failed' | 'interrupted', reason: string, now: string, reasonCode?: GoalCommitFailureCode): void {
+  finishFailure(runId: string, kind: 'failed' | 'interrupted', reason: string, now: string,
+    reasonCode?: GoalCommitFailureCode | FailureKind | 'process_interrupted' | 'user_cancelled' | 'interrupted'): void {
     this.tx.transaction(() => {
       this.time(now);
       const { execution, goal } = this.running(runId);
@@ -554,7 +556,7 @@ export class GoalStore {
         && goal.planRevision === execution.planRevision && goal.checkpointRunId === execution.baseCheckpointRunId
         && (goal.controlRequested !== null || goal.revision === execution.baseGoalRevision)
         && step?.status === 'running' && step.lastExecutionRunId === execution.runId && hash(execution.input) === execution.inputHash;
-      this.stopExecution(execution, goal, consistent ? 'interrupted' : 'uncertain', consistent ? 'interrupted' : 'invariant_violation', now);
+      this.stopExecution(execution, goal, consistent ? 'interrupted' : 'uncertain', consistent ? 'process_interrupted' : 'invariant_violation', now);
     }
   }
 }

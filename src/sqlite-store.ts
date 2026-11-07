@@ -66,7 +66,7 @@ export class SqliteStore {
     this.policies = new GoalPolicyStore(this.db, { transaction: fn => this.transaction(fn),
       begin: now => this.beginRunInTransaction(null, now), finish: (id, now) => { this.finishRunInTransaction(id, 'succeeded', now, '宿主策略触发审计，非聊天授权'); } },
     (actor, id) => this.goals.get(actor, id));
-    this.notifications = new GoalNotificationStore(this.db, fn => this.transaction(fn));
+    this.notifications = new GoalNotificationStore(this.db, fn => this.transaction(fn), this.redact);
     this.web = new WebReadStore(this.db, fn => this.transaction(fn));
     this.files = new FileOperationStore(this.db, fn => this.transaction(fn));
     this.webUi = new WebUiStore(this.db, fn => this.transaction(fn), now => this.beginRunInTransaction(null, now));
@@ -192,6 +192,15 @@ export class SqliteStore {
           this.event(id, 'formation_enqueue_failed', '聊天成功；候选入队失败，未自动重试', now);
         }
       }
+    });
+  }
+
+  finishTaskRun(id: string, status: Exclude<RunStatus, 'running'>, now: string, output?: string, error?: string): void {
+    this.transaction(() => {
+      const before = this.getRun(id);
+      if (!before?.taskId) throw new Error('Task通知只能关联Task Run');
+      this.finishRunInTransaction(id, status, now, output, error);
+      this.notifications.enqueueTask(this.getRun(id)!, this.getTask(before.taskId)!, now);
     });
   }
 

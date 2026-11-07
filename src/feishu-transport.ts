@@ -1,4 +1,5 @@
 import * as lark from '@larksuiteoapi/node-sdk';
+import { ExecutionFailure, httpFailure } from './execution-failure.js';
 import type { FeishuConfig } from './config.js';
 
 export interface FeishuTransport {
@@ -119,8 +120,10 @@ export class FeishuSdkTransport implements FeishuTransport {
         data: { receive_id: chatId, msg_type: 'text', content: JSON.stringify({ text }), uuid },
       });
     } catch (error) {
-      throw new Error(`飞书消息请求失败或超时；${feishuDiagnostic([error])}；结果可能已送达，不自动重发`);
+      const response = (error as { response?: { status?: number; headers?: Record<string, string> } })?.response;
+      if (typeof response?.status === 'number') throw httpFailure(response.status, response.headers?.['retry-after']);
+      throw new ExecutionFailure('unknown', undefined, undefined, `飞书消息请求失败或超时；${feishuDiagnostic([error])}；结果可能已送达，不自动重发`);
     }
-    if (response.code !== 0) throw new Error(`飞书消息发送失败，code=${typeof response.code === 'number' ? response.code : 'unknown'}`);
+    if (response.code !== 0) throw new ExecutionFailure('permanent_error', undefined, undefined, `飞书消息发送失败，code=${typeof response.code === 'number' ? response.code : 'unknown'}`);
   }
 }

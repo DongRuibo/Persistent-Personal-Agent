@@ -1,7 +1,8 @@
 import { setTimeout as delay } from 'node:timers/promises';
 import { Type } from 'typebox';
 import * as Value from 'typebox/value';
-import { ExecutionInterrupted } from './contracts.js';
+import { ExecutionInterrupted, ExecutionTimeout } from './contracts.js';
+import { ExecutionFailure } from './execution-failure.js';
 import type { AgentExecutor, Channel, MessageTarget } from './contracts.js';
 import type { Goal, GoalActor, GoalExecution, GoalResult, GoalView } from './goal-types.js';
 import { SqliteStore } from './sqlite-store.js';
@@ -125,7 +126,7 @@ export class GoalRunner {
   constructor(private readonly store: SqliteStore, private readonly executor: AgentExecutor,
     private readonly channel: Channel, private readonly lane: BackgroundLane,
     private readonly options: { ownerId: string; accepts(target: MessageTarget): boolean; pollIntervalMs: number;
-      reportError(error: unknown): void; fatal(): void; proactiveEnabled?: boolean; delivered?(goal: Goal, runId: string): void }, private readonly clock = () => new Date()) {
+      reportError(error: unknown): void; fatal(): void; proactiveEnabled?: boolean; modelAttempts?: 1 | 2 | 3; delivered?(goal: Goal, runId: string): void }, private readonly clock = () => new Date()) {
     store.goals.setSkills(executor.skills);
   }
 
@@ -217,22 +218,44 @@ export class GoalRunner {
       let result: GoalResult | undefined, failure: unknown;
       try {
         const projection = goalProjection(execution, this.store.goals.view(actor, goal.id));
-        const response = await this.executor.execute({ ...projection, scope: 'goal', policyExecution: execution.input.authorization.kind === 'policy',
-          ...(execution.input.skill ? { skill: execution.input.skill } : {}), signal, observer: this.store.observer(run.id) });
+        let response: { text: string } | undefined;
+        // 仅手动授权的无工具text_only片段可重试。策略片段仍限一次，不能超出已预留模型预算。
+        const attempts = execution.input.authorization.kind === 'policy' ? 1 : this.options.modelAttempts ?? 1;
+        for (let attempt = 1; attempt <= attempts; attempt++) {
+          try {
+            response = await this.executor.execute({ ...projection, scope: 'goal', policyExecution: execution.input.authorization.kind === 'policy',
+              ...(execution.input.skill ? { skill: execution.input.skill } : {}), signal, observer: this.store.observer(run.id) });
+            break;
+          } catch (error) {
+            if (!(error instanceof ExecutionFailure)) throw error;
+            const wait = Math.max(1000 * 2 ** (attempt - 1), error.retryAfterMs ?? 0);
+            this.store.event(run.id, 'goal_attempt_failed', JSON.stringify({ attempt, kind: error.kind, httpStatus: error.httpStatus,
+              retryAfterMs: error.retryAfterMs, retryAt: new Date(this.clock().getTime() + wait).toISOString() }));
+            if (signal.aborted || attempt === attempts || !['rate_limited','transient_server_error'].includes(error.kind) || wait > 60000) throw error;
+            this.store.event(run.id, 'goal_retry_scheduled', JSON.stringify({ attempt: attempt + 1, waitMs: wait }));
+            await delay(wait, undefined, { signal });
+            const current = this.store.goals.get(actor, goal.id);
+            if (signal.aborted || current.controlRequested || current.revision !== execution.baseGoalRevision) throw new ExecutionInterrupted('用户控制或目标版本已变化，不重试');
+          }
+        }
         if (signal.aborted) throw new ExecutionInterrupted('Goal 执行中断');
         if (execution.input.skill) {
           const current = this.executor.skills?.snapshot(execution.input.skill.id, execution.input.skill.hash);
           if (!current || current.text !== execution.input.skill.text) throw new GoalCommitError('goal_skill_changed');
         }
-        result = parseGoalResult(response.text);
+        result = parseGoalResult(response!.text);
       } catch (error) { failure = error; }
       try {
         if (result) this.store.goals.commit(run.id, result, this.clock().toISOString());
         else {
           const interrupted = signal.aborted || failure instanceof ExecutionInterrupted, safeFailure = safeGoalCommitFailure(failure);
+          const failureKind = interrupted ? this.shutdown.signal.aborted ? 'process_interrupted'
+            : controller.signal.aborted || this.store.goals.get(actor, goal.id).controlRequested ? 'user_cancelled'
+              : failure instanceof ExecutionTimeout ? 'timeout' : 'interrupted' : failure instanceof ExecutionFailure ? failure.kind : undefined;
+          if (failureKind) this.store.event(run.id, 'goal_failure_classified', JSON.stringify({ kind: failureKind }));
           this.store.goals.finishFailure(run.id, interrupted ? 'interrupted' : 'failed',
-            interrupted ? 'Goal 执行中断' : safeFailure?.message ?? 'goal_execution_failed', this.clock().toISOString(),
-            interrupted ? undefined : safeFailure?.code);
+            interrupted ? 'Goal 执行中断' : safeFailure?.message ?? (failure instanceof ExecutionFailure ? failure.message : 'goal_execution_failed'), this.clock().toISOString(),
+            safeFailure?.code ?? failureKind);
         }
       } catch (error) {
         // 提交返回异常先按 Run 重读，绝不再请求模型补交或覆盖已提交成果。
