@@ -1,0 +1,1300 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-07",
+  "environment": "isolated_sqlite_loopback_mock_posix_single_run",
+  "branch": "codex/notification-goal-recovery",
+  "head_before_phase2": "0d034ebc96bd2eb504b5eda1e4cb458678ebdfab",
+  "production_baseline": "e2c95c067d4f33aa5cd9fdb0c6b17e40bc82ba4b",
+  "phase2_commit": null,
+  "dataset_sha256": "125c3f54784e47984bc98f8c19a9355a62aacfe047403957fa208ca56fec10ef",
+  "runner_files": {
+    "evals/runners/phase2.ts": "8dcae2cda7978b7455c33f7c4d0f415d1eda8fd385992bd048a1b7f7e123730d",
+    "evals/runners/phase2-notifications.ts": "892d9640e92afd35b23b6b1966758323e86445d446b2aab7433b005910c36053",
+    "evals/runners/phase2-goals.ts": "936ca266355772842bffb7036dbe5ef9da442bdb5d1b9a834ef7524fe81ae9e3",
+    "evals/environments/notifications.ts": "596bc765dfac0046cdddcbde41d07644c70d997bb0397b17dff44bbaf9574654",
+    "evals/environments/goal-recovery.ts": "6a97a2bb1441cb7f4a96866c167e04aec9931bba13bcf58560be6d526140f501",
+    "evals/evaluators/phase2.ts": "b943938e5a410cce0d09b0e7402b78c9fbe3a77bb443281bcac50e8fb3809bac",
+    "tests/helpers/notification-process.ts": "7adb68955433319bea74852d2dd06fe8d07eb988bce97491a427cf8ff0a0e65c"
+  },
+  "before_source": {
+    "src/background-lane.ts": "4091ae6e3c495763b14063ffd59db040942ea07d1ec0c6599b7a8661ab3a733e",
+    "src/channel-router.ts": "112557d17c2e606da07ff96f17a88da17a64da8476a500382eeff51f46a5b282",
+    "src/config.ts": "7cbce62b0390892ec8c5b262a43a2023526be6831ff48853da07640352af2782",
+    "src/console-channel.ts": "15e5ca7066f9a987970eafd5066751ad334f4d74b37425e31034bfdb9a7f99b0",
+    "src/contracts.ts": "f03e1a61538b8098e15b74560ea0a6c9b4f4872899187bf932e2b742dd89a1c6",
+    "src/feishu-channel.ts": "3146ad02e4c5dbca3a1eb5b7f47e4a7d2da68209a9569bbcade587b5446625ad",
+    "src/feishu-transport.ts": "2faae4cd58cf299c206454b99d3b6a802e77485c0e002c1d130a31222b27a5c4",
+    "src/file-operation-store.ts": "e76794b74744b743687d60ee76fe7e76c18c3b0d939770c1b2fcca8bf57becd3",
+    "src/file-output-admin.ts": "54b253166ef2329d76f199c0a2f7e4fa759b38fcef5929b00db6724bcadc08d4",
+    "src/file-output-service.ts": "05626b21527310f9e7ec7bc2edbf0672b5be040bb7fb2f243dcdd79da4e1396c",
+    "src/file-output-tools.ts": "7ffa9c178ead496f2dcd7472ecfabbd1d06b69f95eb534c19984ef3ad3c40493",
+    "src/formation-service.ts": "65be5366177e31d64445f38c67406fd51bc4ecdbdc37f55fa3ec0dd850fb354e",
+    "src/formation-store.ts": "540c24d41ae806d50b3d3b925954039e6db8818845ff21a026b763d21b6bd199",
+    "src/formation-types.ts": "e46c3c7c956a2af591006cec0610ae48df869b05c561e691a41b9ef57332e32e",
+    "src/github-observer.ts": "61deabce1cb3099515d49fd173d1bbb2ac34f844b2a10a3756577251ef8a7df0",
+    "src/goal-commit-error.ts": "17cb182ee877bd799cad18d2b6f654d06e57036826922cabcfd6065cdafcdd84",
+    "src/goal-notification-store.ts": "0b0373fe0d81135a844ef25cb6743b7718824377cf58172328f2f9d2da1745b9",
+    "src/goal-plan-quantity.ts": "5c139333be7ce6e0e98190896544696ec9f560f6dabb8d6696296b5ade7d0270",
+    "src/goal-policy-console.ts": "41a8d0247ad439870ab1d3f2e8a260e1f0d818c32e1dc82874ba269533f9d378",
+    "src/goal-policy-store.ts": "6261ccb84e820246754fed398076a6bcb01ee3983f070b8df5b2821a0f572761",
+    "src/goal-policy-types.ts": "63f46bbb952b87430e0e3d6310f1d9fc19fa106f2735ad4bf5bd50105550e07b",
+    "src/goal-runner.ts": "3c617b2779b0c9711eebaf6810e6b9bb8beb5516ed2b5df5e96ec6b1ec04e4c0",
+    "src/goal-schedule.ts": "67a197f372b288a66247ffe9e428f0d424009ea5fa149dff8d360ef156f725b6",
+    "src/goal-service.ts": "b302a6c4cba4ae9c293c72f31a3412efc1419bf5735c9d22c129eac064a3f057",
+    "src/goal-store.ts": "a598ac00cfcf03c260cfc8ed21a1ae1a21d2888f240438d8268bd1750201bb8a",
+    "src/goal-tools.ts": "c4cd469c745c540e7e2537a5e38c6075e3cedaeffc12a1f9658fc24e5702518e",
+    "src/goal-types.ts": "6a09ee17e713068bc2f79b074ed8eafc86ac240fe4a86cbfe2299daa68ce98e3",
+    "src/local-file-service.ts": "1dc9f8815127184a76f6162488c0b4c2a14f02297d0c84a51d286e570b5069a9",
+    "src/local-file-tools.ts": "11f6d85b99cd71354a1940e3c8822183583fceadf3e3c6669d571ef65f4358f8",
+    "src/local-files-admin.ts": "986a477c3c8a7a7c66053d969cf77ce6470d77056c403ed17300988d4d968f44",
+    "src/main.ts": "96c1f4a17bec1b27c9177dc2c2924397bdc4c9daa45f66466e1a67df79e6932e",
+    "src/memory-retriever.ts": "ffa2cad1b2254b25510e463992998e69e8dc57d7f3a847dd0752744756d072f3",
+    "src/memory-service.ts": "1fbefcaf7a6f5432dd86298a9d0ed9a52430168604cf4b7aae4a4f23c1aebb10",
+    "src/memory-tools.ts": "799c529bbd401cf34603685c00171b6a05906d65f5e7a566e6330f6400ba15d8",
+    "src/operation-guard.ts": "8280526f98cf270428921e52c9cdab2847784a88d5aabe7dc4bf4a1fb806c735",
+    "src/pi-executor.ts": "23b0e3ebe69b7dee8e45a11bb80aed7a0980234e38c6e8a233fd0eb4c8000073",
+    "src/scheduler.ts": "9b9ec95f390130c24079d2147605d4e35eaec43fa88d526074b97d171cdd31fd",
+    "src/skill-service.ts": "bfb215ff8d0da9c911cf5939c05d8d6d0a897ab94dbf409830884537727e9818",
+    "src/skill-tools.ts": "7f135bba9e621b4cbfbb3a017a8e98b556ccd47d62b71e3b07ab250f147efffa",
+    "src/skills-admin.ts": "7a819fe30507d9ee91e9343b01aed6eb69cc569bb25f3838fbed3696342872ab",
+    "src/sqlite-store.ts": "58022a80c4dc0a0a51acbefa25b80144322b8d783dc00f048eb11fd477cc0078",
+    "src/task-service.ts": "c7fa22771cab8bb4112b555ab29a5086080b1d93fc7d2c9858f71fce211b4002",
+    "src/task-tools.ts": "173c28c2e37e6180d4688a0c06bcfce97d95ebfe97a21b8f51b79a9dc6d1ba9c",
+    "src/tavily-service.ts": "7f1778894055fee52dc9065cc6d2502f0e113bdd51dabce8eed760fbd10d6808",
+    "src/time.ts": "3492bf1516411e83f58029c361719587a2303f01fe138f0b97bc5c284ff0a70b",
+    "src/web-read-authorization.ts": "bb2a12a0e292914a7363a45859d2392434e1e239872f772ec5fcb41444994dbd",
+    "src/web-read-service.ts": "e476cb97f14f79609f0b28c0157afc68f298619952771a390b31bc755fa4417b",
+    "src/web-read-store.ts": "060301b5b9bbe9c724be21a0f6ba834daeb02bab55058f56df754da2504ab591",
+    "src/web-read-types.ts": "701fc0a83dbf94963da82af2225a104c1c9beeaf9ee46c0c7ab30fd328ef23fa",
+    "src/web-search-tools.ts": "9f21c980a8a198a9107daecc459cf3d43a225a53f68b2b561ea89befb46b0fac",
+    "src/web-search-types.ts": "58ecf38bb8544beb77da8fb34c883b3d5a58848fd4855eb17c9cc80d0ca9ceed",
+    "src/web-tools.ts": "94afaedbfa0a93a40d5d5752dd2c52c17d22fd28a4b6775278f50dd2bf7b2e4e",
+    "src/web-ui-channel.ts": "0c0204bde59abbb6fee60557a3da18372f3b6e13bbc6c858f02622315e649928",
+    "src/web-ui-server.ts": "eb476ba2f4f7ede843a7b96d4f9c04883b0f6f5b1d64305f9b6d68f5afe51b7b",
+    "src/web-ui-store.ts": "1038884eb4ed56dbd76bf1270271c1b5cefa537cbc4cb79688334e32a17e1bec",
+    "src/web-ui-types.ts": "24a2c0ea995c0c4579402bb34c62a6a853d24730f917b7af6c9b041b823c3876",
+    "src/work-thread-service.ts": "5dbbf3c52a55be58aa2a69d9d8b8d93efeb6d91cf2b379a44b489d644644bff8",
+    "src/work-thread-store.ts": "8267a9f75430f89091acb31c9a473885464eab331ead0a6cb550becdde2139f6",
+    "src/work-thread-types.ts": "2a2613979d2ab63fc0a9d04987c2350d9ad551e8257fba1e96be70347cf0ac63"
+  },
+  "after_source": {
+    "src/background-lane.ts": "4b5a14d6996a4dcb6e0d7ca34611c9b612d5b16a3ee8c96e29d42ee3d0467256",
+    "src/channel-router.ts": "112557d17c2e606da07ff96f17a88da17a64da8476a500382eeff51f46a5b282",
+    "src/config.ts": "4c495d1ecb34c4058e85137a7708469d3cf7a35830c6eb8f61c6eb55aded2a40",
+    "src/console-channel.ts": "febbc9a98a267e54a680904802726d264efe13540465bdad80e103cd64562241",
+    "src/contracts.ts": "0da5a46da059add0d10f2da58d03b6849cb010bb9a244dbe16c8107f85093f05",
+    "src/execution-failure.ts": "9a36f38eab94e1581d771da21fab9bdd845385fee0528ebb9a63c021486ba95c",
+    "src/feishu-channel.ts": "9b3d7599c144fc586b0a2ba62edc8987eb8076e8ede73dc3d34610a2e55f550f",
+    "src/feishu-transport.ts": "3804b117d44d8c28aa1bbb19e0a139810f1c1f77ca4f60500c80538dcfb3b300",
+    "src/file-operation-store.ts": "e76794b74744b743687d60ee76fe7e76c18c3b0d939770c1b2fcca8bf57becd3",
+    "src/file-output-admin.ts": "54b253166ef2329d76f199c0a2f7e4fa759b38fcef5929b00db6724bcadc08d4",
+    "src/file-output-service.ts": "05626b21527310f9e7ec7bc2edbf0672b5be040bb7fb2f243dcdd79da4e1396c",
+    "src/file-output-tools.ts": "7ffa9c178ead496f2dcd7472ecfabbd1d06b69f95eb534c19984ef3ad3c40493",
+    "src/formation-service.ts": "5a7e198d234a4fbf18d3400cd796accf51d138d76625305bab2099c87999187a",
+    "src/formation-store.ts": "96a254c58de44ab637ccf10ca8886eba49d2e01c8e65a8ad0521739ba78302b3",
+    "src/formation-types.ts": "14a31928772be2ce01ca60c8b34c66555792f1d8d58e5e528653ca842a7e16a3",
+    "src/github-observer.ts": "61deabce1cb3099515d49fd173d1bbb2ac34f844b2a10a3756577251ef8a7df0",
+    "src/goal-commit-error.ts": "17cb182ee877bd799cad18d2b6f654d06e57036826922cabcfd6065cdafcdd84",
+    "src/goal-notification-store.ts": "989c13147b7a0879fd750e99448e8bae8037433ba18bb463b08a47f2398679ae",
+    "src/goal-plan-quantity.ts": "254cd64aa504c1c301783fca74d38900e7c31f578ab6a9e127179cc705463bcb",
+    "src/goal-policy-console.ts": "41a8d0247ad439870ab1d3f2e8a260e1f0d818c32e1dc82874ba269533f9d378",
+    "src/goal-policy-store.ts": "6261ccb84e820246754fed398076a6bcb01ee3983f070b8df5b2821a0f572761",
+    "src/goal-policy-types.ts": "63f46bbb952b87430e0e3d6310f1d9fc19fa106f2735ad4bf5bd50105550e07b",
+    "src/goal-runner.ts": "2b940c582c05801ecc6aafdfdbb2a29614fa4438a4ca50fe03d8cfa42c4bfcbd",
+    "src/goal-schedule.ts": "67a197f372b288a66247ffe9e428f0d424009ea5fa149dff8d360ef156f725b6",
+    "src/goal-service.ts": "b302a6c4cba4ae9c293c72f31a3412efc1419bf5735c9d22c129eac064a3f057",
+    "src/goal-store.ts": "924aa67a954bcb96503db262630aabed7819ab911e72df8801ef46fdb20a0715",
+    "src/goal-tools.ts": "fca2d16ca582152e82f5146e5427b77291b15dceb5d57d4276d6872fc110a592",
+    "src/goal-types.ts": "6a09ee17e713068bc2f79b074ed8eafc86ac240fe4a86cbfe2299daa68ce98e3",
+    "src/local-file-service.ts": "1dc9f8815127184a76f6162488c0b4c2a14f02297d0c84a51d286e570b5069a9",
+    "src/local-file-tools.ts": "11f6d85b99cd71354a1940e3c8822183583fceadf3e3c6669d571ef65f4358f8",
+    "src/local-files-admin.ts": "986a477c3c8a7a7c66053d969cf77ce6470d77056c403ed17300988d4d968f44",
+    "src/main.ts": "82d5f8780dc9ba8343e5571b1a89c32f9d7ccbb38be3110282be0090ffa728cf",
+    "src/memory-retriever.ts": "ffa2cad1b2254b25510e463992998e69e8dc57d7f3a847dd0752744756d072f3",
+    "src/memory-service.ts": "1fbefcaf7a6f5432dd86298a9d0ed9a52430168604cf4b7aae4a4f23c1aebb10",
+    "src/memory-tools.ts": "b27df66bf0ef4d333c4a822a4cdf78f1e73a946567187023a6ef343abf2efc62",
+    "src/notification-worker.ts": "7adaacbb50e19abde787d8b473475eb76cea915f815cae3090ffc177f5506403",
+    "src/operation-guard.ts": "8280526f98cf270428921e52c9cdab2847784a88d5aabe7dc4bf4a1fb806c735",
+    "src/pi-executor.ts": "5ed8a1378b5b58af8cc014a19543e5201766055126437647c2ef5f7ccf6af3d6",
+    "src/scheduler.ts": "f89348a51250e88fd580916e217f416a93e3fe180c46f33910fd412ac2443ef7",
+    "src/skill-service.ts": "bfb215ff8d0da9c911cf5939c05d8d6d0a897ab94dbf409830884537727e9818",
+    "src/skill-tools.ts": "7f135bba9e621b4cbfbb3a017a8e98b556ccd47d62b71e3b07ab250f147efffa",
+    "src/skills-admin.ts": "7a819fe30507d9ee91e9343b01aed6eb69cc569bb25f3838fbed3696342872ab",
+    "src/sqlite-store.ts": "a2f406056c2cf229a0e939e86d0e3606f8a1c451097ace7e526794d40b35b918",
+    "src/task-service.ts": "59854b71ed5ddfff1a1a3384a11e3878dac85b0b85ce9be90f6aee4878733e74",
+    "src/task-tools.ts": "9a1f8710563df587ca2f02385111edf8b86d120d7b8a1170cb73170095493bf9",
+    "src/tavily-service.ts": "7f1778894055fee52dc9065cc6d2502f0e113bdd51dabce8eed760fbd10d6808",
+    "src/time.ts": "733f13be44ae782caca141f0646c7c95137bd325232ca1fd9615830d7b303365",
+    "src/web-read-authorization.ts": "bb2a12a0e292914a7363a45859d2392434e1e239872f772ec5fcb41444994dbd",
+    "src/web-read-service.ts": "e476cb97f14f79609f0b28c0157afc68f298619952771a390b31bc755fa4417b",
+    "src/web-read-store.ts": "060301b5b9bbe9c724be21a0f6ba834daeb02bab55058f56df754da2504ab591",
+    "src/web-read-types.ts": "701fc0a83dbf94963da82af2225a104c1c9beeaf9ee46c0c7ab30fd328ef23fa",
+    "src/web-search-tools.ts": "9f21c980a8a198a9107daecc459cf3d43a225a53f68b2b561ea89befb46b0fac",
+    "src/web-search-types.ts": "58ecf38bb8544beb77da8fb34c883b3d5a58848fd4855eb17c9cc80d0ca9ceed",
+    "src/web-tools.ts": "94afaedbfa0a93a40d5d5752dd2c52c17d22fd28a4b6775278f50dd2bf7b2e4e",
+    "src/web-ui-channel.ts": "0c0204bde59abbb6fee60557a3da18372f3b6e13bbc6c858f02622315e649928",
+    "src/web-ui-server.ts": "eb476ba2f4f7ede843a7b96d4f9c04883b0f6f5b1d64305f9b6d68f5afe51b7b",
+    "src/web-ui-store.ts": "1038884eb4ed56dbd76bf1270271c1b5cefa537cbc4cb79688334e32a17e1bec",
+    "src/web-ui-types.ts": "24a2c0ea995c0c4579402bb34c62a6a853d24730f917b7af6c9b041b823c3876",
+    "src/work-thread-service.ts": "c82fdb1197155e0b90db57714a8e2170568745ec270027cb970476f2a3b48a1b",
+    "src/work-thread-store.ts": "142c6b28d2b3eda11766e94e55ef96318fbe59003606d89f992534c81949b4e7",
+    "src/work-thread-types.ts": "792a08096c606c7ee6b51b9159cd78e13771cf50572ccd044c8233eb01f0c912"
+  },
+  "before_metrics": {
+    "counts": {
+      "passed": 6,
+      "failed": 24,
+      "error": 0,
+      "skipped": 0
+    },
+    "notification_intent_persistence_rate": {
+      "numerator": 0,
+      "denominator": 11,
+      "value": 0,
+      "scope": "fixed_11_common_notification_cases"
+    },
+    "notification_delivery_success_rate": {
+      "numerator": 4,
+      "denominator": 11,
+      "value": 0.36363636363636365,
+      "scope": "external_acceptance_in_fixed_11_cases_including_permanent_faults"
+    },
+    "local_sent_confirmation_rate": {
+      "numerator": 2,
+      "denominator": 11,
+      "value": 0.18181818181818182,
+      "scope": "local_ack_in_fixed_11_cases"
+    },
+    "notification_loss_rate": {
+      "numerator": 7,
+      "denominator": 11,
+      "value": 0.6363636363636364,
+      "scope": "no_external_acceptance_within_case_observation_window"
+    },
+    "duplicate_notification_rate": {
+      "numerator": 0,
+      "denominator": 4,
+      "value": 0,
+      "scope": "cases_with_multiple_acceptances_per_accepted_case"
+    },
+    "notification_recovery_rate": {
+      "numerator": 0,
+      "denominator": 6,
+      "value": 0,
+      "scope": "fixed_6_recoverable_fault_cases_require_external_and_local_confirmation"
+    },
+    "recoverable_notification_loss_rate": {
+      "numerator": 4,
+      "denominator": 6,
+      "value": 0.6666666666666666,
+      "scope": "fixed_6_recoverable_fault_cases"
+    },
+    "task_state_consistency_rate": {
+      "numerator": 11,
+      "denominator": 11,
+      "value": 1,
+      "scope": "fixed_11_cases_task_succeeded_and_one_model_execution"
+    },
+    "retry_classification_accuracy": {
+      "numerator": 0,
+      "denominator": 11,
+      "value": 0,
+      "scope": "first_failure_per_case_no_retry_attempt_weighting"
+    },
+    "goal_state_accuracy": {
+      "numerator": 10,
+      "denominator": 12,
+      "value": 0.8333333333333334,
+      "scope": "offline_host_goal_state_not_model_semantic_accuracy"
+    },
+    "notification_delivery_latency_controlled_ms": {
+      "samples": 4,
+      "p50": 0,
+      "p95": 0
+    },
+    "notification_delivery_latency_wall_ms": {
+      "samples": 4,
+      "p50": 0,
+      "p95": 0
+    },
+    "paid_model_calls": 0,
+    "cost_cny": 0
+  },
+  "after_metrics": {
+    "counts": {
+      "passed": 30,
+      "failed": 0,
+      "error": 0,
+      "skipped": 0
+    },
+    "notification_intent_persistence_rate": {
+      "numerator": 11,
+      "denominator": 11,
+      "value": 1,
+      "scope": "fixed_11_common_notification_cases"
+    },
+    "notification_delivery_success_rate": {
+      "numerator": 9,
+      "denominator": 11,
+      "value": 0.8181818181818182,
+      "scope": "external_acceptance_in_fixed_11_cases_including_permanent_faults"
+    },
+    "local_sent_confirmation_rate": {
+      "numerator": 9,
+      "denominator": 11,
+      "value": 0.8181818181818182,
+      "scope": "local_ack_in_fixed_11_cases"
+    },
+    "notification_loss_rate": {
+      "numerator": 2,
+      "denominator": 11,
+      "value": 0.18181818181818182,
+      "scope": "no_external_acceptance_within_case_observation_window"
+    },
+    "duplicate_notification_rate": {
+      "numerator": 2,
+      "denominator": 9,
+      "value": 0.2222222222222222,
+      "scope": "cases_with_multiple_acceptances_per_accepted_case"
+    },
+    "notification_recovery_rate": {
+      "numerator": 6,
+      "denominator": 6,
+      "value": 1,
+      "scope": "fixed_6_recoverable_fault_cases_require_external_and_local_confirmation"
+    },
+    "recoverable_notification_loss_rate": {
+      "numerator": 0,
+      "denominator": 6,
+      "value": 0,
+      "scope": "fixed_6_recoverable_fault_cases"
+    },
+    "task_state_consistency_rate": {
+      "numerator": 11,
+      "denominator": 11,
+      "value": 1,
+      "scope": "fixed_11_cases_task_succeeded_and_one_model_execution"
+    },
+    "retry_classification_accuracy": {
+      "numerator": 11,
+      "denominator": 11,
+      "value": 1,
+      "scope": "first_failure_per_case_no_retry_attempt_weighting"
+    },
+    "goal_state_accuracy": {
+      "numerator": 12,
+      "denominator": 12,
+      "value": 1,
+      "scope": "offline_host_goal_state_not_model_semantic_accuracy"
+    },
+    "notification_delivery_latency_controlled_ms": {
+      "samples": 9,
+      "p50": 0,
+      "p95": 300000
+    },
+    "notification_delivery_latency_wall_ms": {
+      "samples": 9,
+      "p50": 1,
+      "p95": 221
+    },
+    "paid_model_calls": 0,
+    "cost_cny": 0
+  },
+  "original20_before_counts": {
+    "passed": 16,
+    "failed": 3,
+    "skipped": 1,
+    "error": 0
+  },
+  "original20_after_counts": {
+    "passed": 17,
+    "failed": 2,
+    "skipped": 1,
+    "error": 0
+  },
+  "new_cases": [
+    {
+      "case_id": "N01",
+      "title": "正常完成、持久意图、外部接受、本地确认",
+      "before_result": "failed",
+      "after_result": "passed",
+      "before_checks": [
+        {
+          "name": "执行终态与发送意图存在",
+          "passed": false
+        },
+        {
+          "name": "外部接受与本地sent分别确认",
+          "passed": false
+        }
+      ],
+      "after_checks": [
+        {
+          "name": "执行终态与发送意图存在",
+          "passed": true
+        },
+        {
+          "name": "外部接受与本地sent分别确认",
+          "passed": true
+        }
+      ],
+      "before_trace_sha256": "f3217b78a221cf8ad37b68256b7b7aac40e09e6f0c17059f08629213f9d8e58f",
+      "after_trace_sha256": "3d80944dc2ab30e32475e861937ccf0472df9221fd9731bf67c58a5410285419"
+    },
+    {
+      "case_id": "N02",
+      "title": "意图事务内强杀整体回滚",
+      "before_result": "passed",
+      "after_result": "passed",
+      "before_checks": [
+        {
+          "name": "未提交窗口真实SIGKILL",
+          "passed": true
+        },
+        {
+          "name": "结果与意图整体回滚后安全中断",
+          "passed": true,
+          "actual": {
+            "type": "ready",
+            "pid": 15598,
+            "tasks": [
+              {
+                "id": "645bd930-0fe3-4b05-a43e-fb0ac33acea6",
+                "instruction": "合成进程任务",
+                "dueAt": "2026-11-07T00:00:00.000Z",
+                "status": "interrupted",
+                "createdAt": "2026-11-07T00:00:00.000Z",
+                "updatedAt": "2026-11-07T00:00:00.000Z",
+                "target": {
+                  "channel": "console"
+                }
+              }
+            ],
+            "notifications": [],
+            "goals": []
+          }
+        },
+        {
+          "name": "恢复不重跑模型",
+          "passed": true
+        }
+      ],
+      "after_checks": [
+        {
+          "name": "未提交窗口真实SIGKILL",
+          "passed": true
+        },
+        {
+          "name": "结果与意图整体回滚后安全中断",
+          "passed": true,
+          "actual": {
+            "type": "ready",
+            "pid": 15650,
+            "tasks": [
+              {
+                "id": "01879db3-c30d-42df-ae50-246daf95d6e3",
+                "instruction": "合成进程任务",
+                "dueAt": "2026-11-07T00:00:00.000Z",
+                "status": "interrupted",
+                "createdAt": "2026-11-07T00:00:00.000Z",
+                "updatedAt": "2026-11-07T00:00:00.000Z",
+                "target": {
+                  "channel": "console"
+                }
+              }
+            ],
+            "notifications": [],
+            "goals": []
+          }
+        },
+        {
+          "name": "恢复不重跑模型",
+          "passed": true
+        }
+      ],
+      "before_trace_sha256": "5a4a81d79de4f09afe5218d1405dd6fefb03d78c68fb007d2e0e65ff1d21b857",
+      "after_trace_sha256": "b98ab2c68e34dee0407853008b4c9d1613cfca234c68395eb2390ca5e942568e"
+    },
+    {
+      "case_id": "N03",
+      "title": "提交后发送前SIGKILL与重启",
+      "before_result": "failed",
+      "after_result": "passed",
+      "before_checks": [
+        {
+          "name": "真实发送窗口SIGKILL",
+          "passed": true
+        },
+        {
+          "name": "重启只恢复通知，不重跑Task",
+          "passed": true
+        },
+        {
+          "name": "持久意图重启后确认sent",
+          "passed": false
+        }
+      ],
+      "after_checks": [
+        {
+          "name": "真实发送窗口SIGKILL",
+          "passed": true
+        },
+        {
+          "name": "重启只恢复通知，不重跑Task",
+          "passed": true
+        },
+        {
+          "name": "持久意图重启后确认sent",
+          "passed": true
+        }
+      ],
+      "before_trace_sha256": "29ed2f713a9674e491b2223137d04883310c541a066acbd5d12ce9fe82c5797d",
+      "after_trace_sha256": "ffa70602ffb3325c41083c608ff9ce86787e3f307bbdc978cdc4cdaf2bdecd53"
+    },
+    {
+      "case_id": "N04",
+      "title": "发送前超时后恢复",
+      "before_result": "failed",
+      "after_result": "passed",
+      "before_checks": [
+        {
+          "name": "失败不改变Task成功终态",
+          "passed": true
+        },
+        {
+          "name": "未到退避期限不重发",
+          "passed": true
+        },
+        {
+          "name": "故障恢复后确认sent且不重跑Task",
+          "passed": false
+        },
+        {
+          "name": "不确定性显式保留",
+          "passed": false
+        }
+      ],
+      "after_checks": [
+        {
+          "name": "失败不改变Task成功终态",
+          "passed": true
+        },
+        {
+          "name": "未到退避期限不重发",
+          "passed": true
+        },
+        {
+          "name": "故障恢复后确认sent且不重跑Task",
+          "passed": true
+        },
+        {
+          "name": "不确定性显式保留",
+          "passed": true
+        }
+      ],
+      "before_trace_sha256": "e3b9a1b320aeee8f787099b30708a9e657468d39c199b8ce942d2da4c5f05f9f",
+      "after_trace_sha256": "50f9361ed5f8b8509f7be4c2f0e7427d68cd15499ea0ddb88c5ba2fbd2f40040"
+    },
+    {
+      "case_id": "N05",
+      "title": "429遵守Retry-After后恢复",
+      "before_result": "failed",
+      "after_result": "passed",
+      "before_checks": [
+        {
+          "name": "失败不改变Task成功终态",
+          "passed": true
+        },
+        {
+          "name": "未到退避期限不重发",
+          "passed": true
+        },
+        {
+          "name": "故障恢复后确认sent且不重跑Task",
+          "passed": false
+        }
+      ],
+      "after_checks": [
+        {
+          "name": "失败不改变Task成功终态",
+          "passed": true
+        },
+        {
+          "name": "未到退避期限不重发",
+          "passed": true
+        },
+        {
+          "name": "故障恢复后确认sent且不重跑Task",
+          "passed": true
+        }
+      ],
+      "before_trace_sha256": "7eccbdc3eca71dc1a51f3284675a8a877bb07bff3a0e20b6da71e80160c23633",
+      "after_trace_sha256": "b6ee03cf6897da1cbb490fd6e680c9b337d794b14e1b02b7c6e92ca36c6121e7"
+    },
+    {
+      "case_id": "N06",
+      "title": "500退避后恢复",
+      "before_result": "failed",
+      "after_result": "passed",
+      "before_checks": [
+        {
+          "name": "失败不改变Task成功终态",
+          "passed": true
+        },
+        {
+          "name": "未到退避期限不重发",
+          "passed": true
+        },
+        {
+          "name": "故障恢复后确认sent且不重跑Task",
+          "passed": false
+        }
+      ],
+      "after_checks": [
+        {
+          "name": "失败不改变Task成功终态",
+          "passed": true
+        },
+        {
+          "name": "未到退避期限不重发",
+          "passed": true
+        },
+        {
+          "name": "故障恢复后确认sent且不重跑Task",
+          "passed": true
+        }
+      ],
+      "before_trace_sha256": "53dbf0f489718e0bb8aacc0ab87e2f764fc37fddbefaec0e067cf04c44a15256",
+      "after_trace_sha256": "9446f372594f08de12bfc16444f15c6ecc0e8c081edfcd0ad9b37ee489d7e519"
+    },
+    {
+      "case_id": "N07",
+      "title": "外部接受但响应丢失",
+      "before_result": "failed",
+      "after_result": "passed",
+      "before_checks": [
+        {
+          "name": "失败不改变Task成功终态",
+          "passed": true
+        },
+        {
+          "name": "未到退避期限不重发",
+          "passed": true
+        },
+        {
+          "name": "故障恢复后确认sent且不重跑Task",
+          "passed": false
+        },
+        {
+          "name": "不确定性显式保留",
+          "passed": false
+        }
+      ],
+      "after_checks": [
+        {
+          "name": "失败不改变Task成功终态",
+          "passed": true
+        },
+        {
+          "name": "未到退避期限不重发",
+          "passed": true
+        },
+        {
+          "name": "故障恢复后确认sent且不重跑Task",
+          "passed": true
+        },
+        {
+          "name": "不确定性显式保留",
+          "passed": true
+        }
+      ],
+      "before_trace_sha256": "d107d9703e6813317c53d1db548d193007962d61be0efac021bb6638f7c72ad4",
+      "after_trace_sha256": "bcc4062267ddc0832e2b894071b99f0c1654be7b2571a434b0151ff5bf3eb2b7"
+    },
+    {
+      "case_id": "N08",
+      "title": "外部接受后Sent前SIGKILL",
+      "before_result": "failed",
+      "after_result": "passed",
+      "before_checks": [
+        {
+          "name": "真实发送窗口SIGKILL",
+          "passed": true
+        },
+        {
+          "name": "重启只恢复通知，不重跑Task",
+          "passed": true
+        },
+        {
+          "name": "持久意图重启后确认sent",
+          "passed": false
+        },
+        {
+          "name": "已接受未确认允许重复且标不确定",
+          "passed": false
+        }
+      ],
+      "after_checks": [
+        {
+          "name": "真实发送窗口SIGKILL",
+          "passed": true
+        },
+        {
+          "name": "重启只恢复通知，不重跑Task",
+          "passed": true
+        },
+        {
+          "name": "持久意图重启后确认sent",
+          "passed": true
+        },
+        {
+          "name": "已接受未确认允许重复且标不确定",
+          "passed": true
+        }
+      ],
+      "before_trace_sha256": "6d5cac4aea2daec8a59f467bb9bf106b400a8a337b67f30e719af47fa52c3a09",
+      "after_trace_sha256": "060792b7fbb00fd29fb3093cde799165a8470b4a364c764fa93958b9bd331668"
+    },
+    {
+      "case_id": "N09",
+      "title": "两个Worker不同SQLite连接并发领取",
+      "before_result": "failed",
+      "after_result": "passed",
+      "before_checks": [
+        {
+          "name": "独立通知Worker已实现",
+          "passed": false
+        }
+      ],
+      "after_checks": [
+        {
+          "name": "两个连接同刻只领取一次",
+          "passed": true
+        },
+        {
+          "name": "唯一发送确认",
+          "passed": true
+        }
+      ],
+      "before_trace_sha256": "122baaab0eb90ec407a43314626cb7057a242d51de23319f1f97c55f572a3c22",
+      "after_trace_sha256": "cc7a9275208ae7c8b4fdd3f5eb8a596e5c4502a952ce5062e857f868de43d126"
+    },
+    {
+      "case_id": "N10",
+      "title": "重复完成/重复触发通知",
+      "before_result": "failed",
+      "after_result": "passed",
+      "before_checks": [
+        {
+          "name": "重复提交被拒绝且唯一通知",
+          "passed": false
+        }
+      ],
+      "after_checks": [
+        {
+          "name": "重复提交被拒绝且唯一通知",
+          "passed": true
+        }
+      ],
+      "before_trace_sha256": "139ce0aadc2746db20d72ec9c1011205c2512f212b8db0e6efe047ff236b4734",
+      "after_trace_sha256": "3e9991bca3da5015cccb1e8213c80fe9539f0963ca987502a4ab24d7683d9356"
+    },
+    {
+      "case_id": "N11",
+      "title": "取消pending后迟到回调",
+      "before_result": "passed",
+      "after_result": "passed",
+      "before_checks": [
+        {
+          "name": "pending取消后旧回调不得改变状态或入队",
+          "passed": true
+        }
+      ],
+      "after_checks": [
+        {
+          "name": "pending取消后旧回调不得改变状态或入队",
+          "passed": true
+        }
+      ],
+      "before_trace_sha256": "bd7caf9f61be47ba8c695eda028d46aa5a28923b0fd24f72d84e980e03bdf2be",
+      "after_trace_sha256": "0549afefdfafc4b6a9b3e6f57a351c6a025ebae66ca714ba171ccf80e4fb242e"
+    },
+    {
+      "case_id": "N12",
+      "title": "达到三次上限进入dead",
+      "before_result": "failed",
+      "after_result": "passed",
+      "before_checks": [
+        {
+          "name": "三次上限进入dead且无第四次",
+          "passed": false
+        }
+      ],
+      "after_checks": [
+        {
+          "name": "三次上限进入dead且无第四次",
+          "passed": true
+        }
+      ],
+      "before_trace_sha256": "e60ad5cfc1db4ab8a5a3e65482a230280b953b8684f06aa8301a5ed5f7b4c33e",
+      "after_trace_sha256": "8fdcd6e2241d1f0d5409337f4bc818f6c7562291b9fec3183ebcc10d560b54d7"
+    },
+    {
+      "case_id": "N13",
+      "title": "永久业务错误直接dead",
+      "before_result": "failed",
+      "after_result": "passed",
+      "before_checks": [
+        {
+          "name": "永久错误直接dead且不自动重试",
+          "passed": false
+        }
+      ],
+      "after_checks": [
+        {
+          "name": "永久错误直接dead且不自动重试",
+          "passed": true
+        }
+      ],
+      "before_trace_sha256": "c2feea943b335e347754bf801d1f1752fedd04be11c56265b41073e0d903eaaf",
+      "after_trace_sha256": "ce443d47a9fb68f9064b77495fd378ba2a6d5f75e86ccab525c32e3726f37cde"
+    },
+    {
+      "case_id": "N14",
+      "title": "dead人工重试不重跑Task",
+      "before_result": "failed",
+      "after_result": "passed",
+      "before_checks": [
+        {
+          "name": "三次上限进入dead且无第四次",
+          "passed": false
+        },
+        {
+          "name": "人工重发入口已实现",
+          "passed": false
+        }
+      ],
+      "after_checks": [
+        {
+          "name": "三次上限进入dead且无第四次",
+          "passed": true
+        },
+        {
+          "name": "明确人工重发沿用ID且Task不重跑",
+          "passed": true
+        }
+      ],
+      "before_trace_sha256": "0918d4b88e1cc6d3bfec13c9616229620337255c468890b71116268cb30dd648",
+      "after_trace_sha256": "cb583727ba42969336257747eab7becc919fbea6a9b4208f7d92dae342c3aefc"
+    },
+    {
+      "case_id": "N15",
+      "title": "旧Goal Outbox无损升级",
+      "before_result": "passed",
+      "after_result": "passed",
+      "before_checks": [
+        {
+          "name": "旧ID状态次数和Checkpoint不变",
+          "passed": true
+        },
+        {
+          "name": "迁移外键一致",
+          "passed": true
+        }
+      ],
+      "after_checks": [
+        {
+          "name": "旧ID状态次数和Checkpoint不变",
+          "passed": true
+        },
+        {
+          "name": "迁移外键一致",
+          "passed": true
+        }
+      ],
+      "before_trace_sha256": "0ddf21b75eafb518b0354399279f6fbcc43a258e55c66c92447e3edea7f73787",
+      "after_trace_sha256": "58ae61e76a88c2543e4c314636d0b0f61b080d33894b9f9bccf131cb33f27a38"
+    },
+    {
+      "case_id": "N16",
+      "title": "过期租约fencing与重复风险",
+      "before_result": "failed",
+      "after_result": "passed",
+      "before_checks": [
+        {
+          "name": "租约与fencing已实现",
+          "passed": false
+        }
+      ],
+      "after_checks": [
+        {
+          "name": "旧租约回执不能覆盖新发送确认",
+          "passed": true
+        },
+        {
+          "name": "租约过期可能重复，稳定ID不变",
+          "passed": true
+        }
+      ],
+      "before_trace_sha256": "6884c2749e4352b8b7bd471c2fce62b63734f7cfa1cbe2efde29e0e1935ced58",
+      "after_trace_sha256": "2321726019d8292d080d908a8c0922eaccb350dfb4d58d29a8e99473ac48e2f4"
+    },
+    {
+      "case_id": "N17",
+      "title": "Task发送意图插入失败整体回滚",
+      "before_result": "failed",
+      "after_result": "passed",
+      "before_checks": [
+        {
+          "name": "Task聚合Outbox事务已实现",
+          "passed": false
+        }
+      ],
+      "after_checks": [
+        {
+          "name": "意图写入失败时Task与Run终态一起回滚",
+          "passed": true
+        },
+        {
+          "name": "核查中断，不重新执行模型补交",
+          "passed": true
+        }
+      ],
+      "before_trace_sha256": "20c1c53f041cc971be6ee3326136bdaca718d6bd2befe3c54030ff41fabd5368",
+      "after_trace_sha256": "20edcdab1b39fb0201871b143bbaa590d6d55da9a329260461e817d43382c917"
+    },
+    {
+      "case_id": "N18",
+      "title": "挂起渠道的真正超时与恢复",
+      "before_result": "failed",
+      "after_result": "passed",
+      "before_checks": [
+        {
+          "name": "独立Worker发送超时已实现",
+          "passed": false
+        }
+      ],
+      "after_checks": [
+        {
+          "name": "真正挂起的渠道被超时隔离",
+          "passed": true
+        },
+        {
+          "name": "超时后有界重发不重跑Task",
+          "passed": true
+        }
+      ],
+      "before_trace_sha256": "66544860de07432c150d221e04ee3d8877e1e308efea48005835f37a5aa2bd24",
+      "after_trace_sha256": "a47aab0d73b028c1c09c2659d51f6b3fccd500c32fa001a240a5f86f8585607c"
+    },
+    {
+      "case_id": "G01",
+      "title": "429分类与Retry-After元数据",
+      "before_result": "failed",
+      "after_result": "passed",
+      "before_checks": [
+        {
+          "name": "429是failed而非进程中断",
+          "passed": false
+        },
+        {
+          "name": "保留Retry-After且不擅自重试",
+          "passed": false
+        }
+      ],
+      "after_checks": [
+        {
+          "name": "429是failed而非进程中断",
+          "passed": true
+        },
+        {
+          "name": "保留Retry-After且不擅自重试",
+          "passed": true
+        }
+      ],
+      "before_trace_sha256": "e2e9e078aea31b33cabe233cdd63db1c6a0078d2399e3f763ac9d207ea6e55af",
+      "after_trace_sha256": "ca50cd9a581e1bde41a46537b48567b28d093f7d6795552b0a8e5940a1192a99"
+    },
+    {
+      "case_id": "G02",
+      "title": "429受控重试成功",
+      "before_result": "failed",
+      "after_result": "passed",
+      "before_checks": [
+        {
+          "name": "429到Retry-After后才重试并提交",
+          "passed": false
+        }
+      ],
+      "after_checks": [
+        {
+          "name": "429到Retry-After后才重试并提交",
+          "passed": true
+        }
+      ],
+      "before_trace_sha256": "1954fb72f777d05a21627bc728dbc3b7f88478c77aea7c55eab0bd288183adef",
+      "after_trace_sha256": "2178a6e32a01d8ece97428284e0e34abc13fab9f412ec633a65cdb468c804c93"
+    },
+    {
+      "case_id": "G03",
+      "title": "500受控退避成功",
+      "before_result": "failed",
+      "after_result": "passed",
+      "before_checks": [
+        {
+          "name": "500有限退避后提交唯一Checkpoint",
+          "passed": false
+        }
+      ],
+      "after_checks": [
+        {
+          "name": "500有限退避后提交唯一Checkpoint",
+          "passed": true
+        }
+      ],
+      "before_trace_sha256": "d417bfc5a425edca9df815b0f4da663f183450f53fffe242de4feb68ed63ebb1",
+      "after_trace_sha256": "6b23690653308948caad5856b939462caa45e3e1deacb9e09667e729605012d7"
+    },
+    {
+      "case_id": "G04",
+      "title": "永久400不重试",
+      "before_result": "failed",
+      "after_result": "passed",
+      "before_checks": [
+        {
+          "name": "永久错误不重试且明确原因",
+          "passed": false
+        }
+      ],
+      "after_checks": [
+        {
+          "name": "永久错误不重试且明确原因",
+          "passed": true
+        }
+      ],
+      "before_trace_sha256": "68e557962c46bdc68d05c23be349e7b69942fc05b235f2917e942d599f622eef",
+      "after_trace_sha256": "b85993dff02eaac5f04a9bb2164a0765b72de8b6ebda80206635637b0d85c361"
+    },
+    {
+      "case_id": "G05",
+      "title": "500三次耗尽明确失败",
+      "before_result": "failed",
+      "after_result": "passed",
+      "before_checks": [
+        {
+          "name": "三次耗尽后failed和blocked，旧进度不伪造",
+          "passed": false
+        }
+      ],
+      "after_checks": [
+        {
+          "name": "三次耗尽后failed和blocked，旧进度不伪造",
+          "passed": true
+        }
+      ],
+      "before_trace_sha256": "beee2658c9e23cb1e3386f362738534a3b6e439d773a94f8d154f8f4c85050a2",
+      "after_trace_sha256": "8f81a3713f2ad5e82d370ef0c432c4146e914d5d6fc9234c56c9fbd6fcc60712"
+    },
+    {
+      "case_id": "G06",
+      "title": "用户取消中止等待重试",
+      "before_result": "failed",
+      "after_result": "passed",
+      "before_checks": [
+        {
+          "name": "用户取消撤销等待中的重试",
+          "passed": false
+        }
+      ],
+      "after_checks": [
+        {
+          "name": "用户取消撤销等待中的重试",
+          "passed": true
+        }
+      ],
+      "before_trace_sha256": "05efd37b9189211ffb0c6856f0017441ed22db81c5cc9c8080e680bb885b3a12",
+      "after_trace_sha256": "f82d115b10cc72c71c876e1db6692d83adc7db3e7696e9d47b06cfda5edb7224"
+    },
+    {
+      "case_id": "G07",
+      "title": "等待审批不是执行授权",
+      "before_result": "passed",
+      "after_result": "passed",
+      "before_checks": [
+        {
+          "name": "等待审批不是失败或自动执行许可",
+          "passed": true
+        }
+      ],
+      "after_checks": [
+        {
+          "name": "等待审批不是失败或自动执行许可",
+          "passed": true
+        }
+      ],
+      "before_trace_sha256": "d813a43f59b8e1f6070fbf9726971bbaf53a5e07231eb8c0eb2bd34ec9963855",
+      "after_trace_sha256": "bc9e7fb3b0af23672deaea779fdf5c6a174c594f404144cbba3477ebf941b82d"
+    },
+    {
+      "case_id": "G08",
+      "title": "用户拒绝计划后不执行",
+      "before_result": "passed",
+      "after_result": "passed",
+      "before_checks": [
+        {
+          "name": "用户拒绝待批计划不触发正式执行",
+          "passed": true
+        }
+      ],
+      "after_checks": [
+        {
+          "name": "用户拒绝待批计划不触发正式执行",
+          "passed": true
+        }
+      ],
+      "before_trace_sha256": "b51eaa827694a0f02d81749028b086feea8701013242eb0edab73e2b4cb3857b",
+      "after_trace_sha256": "085f0f176b1af81443443b8f766a02269c8de72acf583f9c90df165e96a26752"
+    },
+    {
+      "case_id": "G09",
+      "title": "非幂等工具提议不得执行或重试",
+      "before_result": "passed",
+      "after_result": "passed",
+      "before_checks": [
+        {
+          "name": "非幂等外部工具提议不得执行或自动重试",
+          "passed": true
+        }
+      ],
+      "after_checks": [
+        {
+          "name": "非幂等外部工具提议不得执行或自动重试",
+          "passed": true
+        }
+      ],
+      "before_trace_sha256": "03dbab862cf0c8e9757728a31b140ec4334a594c9ac5cb662da7de15b29e68a7",
+      "after_trace_sha256": "9833d59168dca761a345121455703f2b6f9842d313d5b841a374c85863c7e1d3"
+    },
+    {
+      "case_id": "G10",
+      "title": "真实超时不当500重试",
+      "before_result": "failed",
+      "after_result": "passed",
+      "before_checks": [
+        {
+          "name": "超时不当已知500重试，保留中断和timeout原因",
+          "passed": false
+        }
+      ],
+      "after_checks": [
+        {
+          "name": "超时不当已知500重试，保留中断和timeout原因",
+          "passed": true
+        }
+      ],
+      "before_trace_sha256": "0a20989215873b9adfc4e1c8703f18954d97615d833ddc31fc5280fc9dfd5961",
+      "after_trace_sha256": "dcdd64b977b7d417adb8f0d964bff506776d1a6293819f8bd8feee50e8ac80a3"
+    },
+    {
+      "case_id": "G11",
+      "title": "Goal真实进程中断恢复",
+      "before_result": "failed",
+      "after_result": "passed",
+      "before_checks": [
+        {
+          "name": "Goal执行中真实SIGKILL",
+          "passed": true
+        },
+        {
+          "name": "真实进程中断保守恢复且不伪造Checkpoint",
+          "passed": true
+        },
+        {
+          "name": "中断原因明确为process_interrupted",
+          "passed": false
+        }
+      ],
+      "after_checks": [
+        {
+          "name": "Goal执行中真实SIGKILL",
+          "passed": true
+        },
+        {
+          "name": "真实进程中断保守恢复且不伪造Checkpoint",
+          "passed": true
+        },
+        {
+          "name": "中断原因明确为process_interrupted",
+          "passed": true
+        }
+      ],
+      "before_trace_sha256": "ee7451a81fd44e88e0829fd7a06f6719f22fbef15a6605e7cb4a6ab9a5e2b416",
+      "after_trace_sha256": "f9b04c14e708a0b5de64dcff35b195b912426add1bccbbb9c72a0919e2f093ba"
+    },
+    {
+      "case_id": "G12",
+      "title": "长Retry-After不能截短提前重试",
+      "before_result": "failed",
+      "after_result": "passed",
+      "before_checks": [
+        {
+          "name": "长Retry-After不截短为提前请求",
+          "passed": false
+        }
+      ],
+      "after_checks": [
+        {
+          "name": "长Retry-After不截短为提前请求",
+          "passed": true
+        }
+      ],
+      "before_trace_sha256": "0e8bfefaf7b25f2bb079355753fd89c97481776c4ed8851e9a916c43ae9d8667",
+      "after_trace_sha256": "b019752bd6ed1816f8d02fb6a32c4cbd5ed5f66fcaec46425406ff3ebba481e1"
+    }
+  ],
+  "original20_after": [
+    {
+      "case_id": "A01",
+      "result": "passed",
+      "failure_reason": null,
+      "trace_sha256": "5d859fda05b6615cd9305584baab14e067c448fd274cf9b439d91830fd511af5"
+    },
+    {
+      "case_id": "A02",
+      "result": "passed",
+      "failure_reason": null,
+      "trace_sha256": "222e3a43b4d9bcfd9006aad338dffe036858b50aaa0b9f5fd9696c0f66c208fa"
+    },
+    {
+      "case_id": "B01",
+      "result": "passed",
+      "failure_reason": null,
+      "trace_sha256": "e7af4e5aaffce33e0f2338a012d845177f1c82e0f96cec50936ed61f370afad3"
+    },
+    {
+      "case_id": "B02",
+      "result": "passed",
+      "failure_reason": null,
+      "trace_sha256": "5a150d0f6160e61146ba07163c2c6994ee8a6af4e9c56af84c516bd0f31ece2d"
+    },
+    {
+      "case_id": "B03",
+      "result": "passed",
+      "failure_reason": null,
+      "trace_sha256": "3d2621d000e76b517b9f30634b505b32bebfb6477c55d19ba41620be45c427ee"
+    },
+    {
+      "case_id": "B04",
+      "result": "passed",
+      "failure_reason": null,
+      "trace_sha256": "c2cc80b7d85e1e36873ca13574465a3a2c6e0fab96d3574b44cf553764a2476c"
+    },
+    {
+      "case_id": "B05",
+      "result": "passed",
+      "failure_reason": null,
+      "trace_sha256": "2fb4436c299fd3d44e9394d9d0661308ec017dcccd296bbb9e4e8c4f521ec681"
+    },
+    {
+      "case_id": "B06",
+      "result": "passed",
+      "failure_reason": null,
+      "trace_sha256": "9a849675d6f92c392c22364a3e3f77c7eb2ca769a9b877b2ecda5de306e666dd"
+    },
+    {
+      "case_id": "B07",
+      "result": "failed",
+      "failure_reason": "渠道恢复后用户最终收到提醒",
+      "trace_sha256": "57716afc4bf102f29d1ec11e3d45dc37761f240d0191bdf9406a4ab864e3311a"
+    },
+    {
+      "case_id": "C01",
+      "result": "passed",
+      "failure_reason": null,
+      "trace_sha256": "ecb6035fcfb6345fd82735c2c3eea01d885aaa9f4a823f2273270838af510ee4"
+    },
+    {
+      "case_id": "C02",
+      "result": "passed",
+      "failure_reason": null,
+      "trace_sha256": "c974a30d84ff8cbb6b80707278c44b6b15581bc12c9d119885df3d097ce98bcb"
+    },
+    {
+      "case_id": "C03",
+      "result": "passed",
+      "failure_reason": null,
+      "trace_sha256": "d48c7620202f9ad2e03f949c113cf1c75ea830a627a862291028ae7d8a187eac"
+    },
+    {
+      "case_id": "C04",
+      "result": "failed",
+      "failure_reason": "历史原始模型声明与宿主一致",
+      "trace_sha256": "8d2d4923bdf445ae0fe2aea26bf2d199401042ce611681fbaec582b684635bdb"
+    },
+    {
+      "case_id": "D01",
+      "result": "passed",
+      "failure_reason": null,
+      "trace_sha256": "1594476d0299cc4ce88c1e2ec575582347ea775c5294951395723b4f58f033bf"
+    },
+    {
+      "case_id": "D02",
+      "result": "passed",
+      "failure_reason": null,
+      "trace_sha256": "c7b7a0ba2172081f9edae6675010ad12d038075d92099e33aaf32a55a474630c"
+    },
+    {
+      "case_id": "D03",
+      "result": "skipped",
+      "failure_reason": "e2c95c0没有自动主题Session/总管路由；其他工作树实现不进入本基线",
+      "trace_sha256": "654a26c2e35066bb403ec28c2fe5f2d8c260d7ed1f65da972ed84508d6bbf91f"
+    },
+    {
+      "case_id": "E01",
+      "result": "passed",
+      "failure_reason": null,
+      "trace_sha256": "08fd3912c672ffbc4172d1bc2a0cd395995c65192231060af1d65a43444895ed"
+    },
+    {
+      "case_id": "E02",
+      "result": "passed",
+      "failure_reason": null,
+      "trace_sha256": "3c366ec7c5eb60d66162f073725e8c36b656a41c2f482b3ba46e750463ba4a3a"
+    },
+    {
+      "case_id": "F01",
+      "result": "passed",
+      "failure_reason": null,
+      "trace_sha256": "4ac9aabe789dfd83e735efde8a6231599227eed4d1f2382f7e2ce6eca9cd1f46"
+    },
+    {
+      "case_id": "F02",
+      "result": "passed",
+      "failure_reason": null,
+      "trace_sha256": "70fc47f1f99c2b1927f59782d86aa706e1e778ffd48225e0d3744e02a302bdbf"
+    }
+  ],
+  "verification": {
+    "full_tests": {
+      "total": 624,
+      "passed": 624,
+      "failed": 0,
+      "skipped": 0,
+      "exit_code": 0
+    },
+    "typecheck_exit_code": 0,
+    "build_exit_code": 0,
+    "web_build_exit_code": 0,
+    "paid_calls": 0,
+    "real_feishu_messages": 0,
+    "production_data_access": false
+  },
+  "remaining_risks": [
+    "external_acceptance_ack_loss_can_duplicate",
+    "dead_letters_can_remain_undelivered",
+    "console_child_abnormal_exit_in_two_prior_full_runs_root_unconfirmed",
+    "no_real_provider_or_channel_quality_measurement",
+    "chat_and_manual_goal_notifications_direct",
+    "automatic_topic_router_unimplemented_in_this_branch"
+  ]
+}

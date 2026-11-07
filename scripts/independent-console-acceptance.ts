@@ -264,7 +264,7 @@ export async function startIndependent(mode: boolean | 'manual-goal' | 'manual-g
     Object.assign(process.env, { DATABASE_PATH: join(data, 'agent.db'), MEMORY_DIR: join(data, 'memory'), SESSION_DIR: join(data, 'sessions'), SKILLS_DIR: managed,
       USER_TIMEZONE: 'Asia/Shanghai', GOAL_ENABLED: String(group !== 'S'), SKILLS_ENABLED: String(group !== 'P'), WEB_READ_ENABLED: 'false', PROACTIVE_ENABLED: 'false', MEMORY_FORMATION_ENABLED: 'false', MEMORY_QUERY_REWRITE: 'false' });
     const guarded = independentFetch(session, id, key);
-    globalThis.fetch = async (url, init) => { try { return await guarded(url, init); } catch (error) { if (!manual && !(error instanceof GroupBudgetExhausted)) setImmediate(() => process.emit('SIGTERM')); throw error; } };
+    globalThis.fetch = async (url, init) => { try { return await guarded(url, init); } catch (error) { if (!manual && !(error instanceof GroupBudgetExhausted)) setImmediate(() => { if (!quitting) { quitting = true; process.emit('SIGTERM'); } }); throw error; } };
     const { main } = await import('../src/main.js'); process.argv = [process.argv[0]!, resolve('src/main.ts')];
     const started = Date.now(); let quitting = false;
     const timer = setInterval(() => {
@@ -272,7 +272,7 @@ export async function startIndependent(mode: boolean | 'manual-goal' | 'manual-g
         const a = stagedAudit(data), current = a.foreground.slice(before.foreground.length), busy = a.goals.some(g => ['ready', 'running'].includes(String(g.status)));
         if (Date.now() - started > 240000 || session.budget.ledger.halted) {
           if (!session.budget.ledger.halted) session.halt('case_timeout');
-          if (!manual || !quitting) {
+          if (!quitting) {
             quitting = true;
             if (manual && !current.length && !busy) input.end('/quit\n'); else process.emit('SIGTERM');
           }
@@ -280,7 +280,7 @@ export async function startIndependent(mode: boolean | 'manual-goal' | 'manual-g
         else if (!quitting && current.length && current.every(r => r.status !== 'running') && !busy) { quitting = true; input.end('/quit\n'); }
       } catch {
         session.halt('audit_read_failure');
-        if (!manual || !quitting) { quitting = true; process.emit('SIGTERM'); }
+        if (!quitting) { quitting = true; process.emit('SIGTERM'); }
       }
     }, 100);
     try {

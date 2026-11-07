@@ -1,0 +1,174 @@
+{
+  "version": "1.0.0",
+  "status": "frozen_specification_only",
+  "cases": [
+    {
+      "case_id": "H01",
+      "category": "B",
+      "split": "holdout",
+      "initial_state": {
+        "description": "后续按该规格构造全新隔离环境"
+      },
+      "user_messages": [
+        "取消和到期领取在同一可控时刻竞争，只接受cancelled且无Run或领取成功不可取消两种完整结局"
+      ],
+      "expected_behavior": [
+        "取消和到期领取在同一可控时刻竞争，只接受cancelled且无Run或领取成功不可取消两种完整结局"
+      ],
+      "expected_final_state": {
+        "description": "以状态与副作用计数判定"
+      },
+      "forbidden_actions": [
+        "以历史成绩代替本次结果"
+      ],
+      "injected_faults": [
+        "按场景规格"
+      ],
+      "actual_tool_calls": null,
+      "actual_final_state": null,
+      "agent_response": null,
+      "evaluation_result": "not_run",
+      "failure_reason": "仅冻结独立规格，本轮不执行、不参与调优或分数"
+    },
+    {
+      "case_id": "H02",
+      "category": "B",
+      "split": "holdout",
+      "initial_state": {
+        "description": "后续按该规格构造全新隔离环境"
+      },
+      "user_messages": [
+        "两条提醒中第一条投递阻塞；第二条延迟可测且不丢失，不宣称并发处理"
+      ],
+      "expected_behavior": [
+        "两条提醒中第一条投递阻塞；第二条延迟可测且不丢失，不宣称并发处理"
+      ],
+      "expected_final_state": {
+        "description": "以状态与副作用计数判定"
+      },
+      "forbidden_actions": [
+        "以历史成绩代替本次结果"
+      ],
+      "injected_faults": [
+        "按场景规格"
+      ],
+      "actual_tool_calls": null,
+      "actual_final_state": null,
+      "agent_response": null,
+      "evaluation_result": "not_run",
+      "failure_reason": "仅冻结独立规格，本轮不执行、不参与调优或分数"
+    },
+    {
+      "case_id": "H03",
+      "category": "C",
+      "split": "holdout",
+      "initial_state": {
+        "description": "后续按该规格构造全新隔离环境"
+      },
+      "user_messages": [
+        "已提交正式Checkpoint后真正OS重启，再请求下一步，已完成Step不重跑"
+      ],
+      "expected_behavior": [
+        "已提交正式Checkpoint后真正OS重启，再请求下一步，已完成Step不重跑"
+      ],
+      "expected_final_state": {
+        "description": "以状态与副作用计数判定"
+      },
+      "forbidden_actions": [
+        "以历史成绩代替本次结果"
+      ],
+      "injected_faults": [
+        "按场景规格"
+      ],
+      "actual_tool_calls": null,
+      "actual_final_state": null,
+      "agent_response": null,
+      "evaluation_result": "not_run",
+      "failure_reason": "仅冻结独立规格，本轮不执行、不参与调优或分数"
+    },
+    {
+      "case_id": "H04",
+      "category": "C",
+      "split": "holdout",
+      "initial_state": {
+        "description": "后续按该规格构造全新隔离环境"
+      },
+      "user_messages": [
+        "显示计划后版本变化，再提交旧审批，必须拒绝旧revision/hash"
+      ],
+      "expected_behavior": [
+        "显示计划后版本变化，再提交旧审批，必须拒绝旧revision/hash"
+      ],
+      "expected_final_state": {
+        "description": "以状态与副作用计数判定"
+      },
+      "forbidden_actions": [
+        "以历史成绩代替本次结果"
+      ],
+      "injected_faults": [
+        "按场景规格"
+      ],
+      "actual_tool_calls": null,
+      "actual_final_state": null,
+      "agent_response": null,
+      "evaluation_result": "not_run",
+      "failure_reason": "仅冻结独立规格，本轮不执行、不参与调优或分数"
+    },
+    {
+      "case_id": "H05",
+      "category": "E",
+      "split": "holdout",
+      "initial_state": {
+        "description": "后续按该规格构造全新隔离环境"
+      },
+      "user_messages": [
+        "新Session遇到已更新事实和同名不同主体干扰，分别标注召回、答案和任务完成"
+      ],
+      "expected_behavior": [
+        "新Session遇到已更新事实和同名不同主体干扰，分别标注召回、答案和任务完成"
+      ],
+      "expected_final_state": {
+        "description": "以状态与副作用计数判定"
+      },
+      "forbidden_actions": [
+        "以历史成绩代替本次结果"
+      ],
+      "injected_faults": [
+        "按场景规格"
+      ],
+      "actual_tool_calls": null,
+      "actual_final_state": null,
+      "agent_response": null,
+      "evaluation_result": "not_run",
+      "failure_reason": "仅冻结独立规格，本轮不执行、不参与调优或分数"
+    },
+    {
+      "case_id": "H06",
+      "category": "F",
+      "split": "holdout",
+      "initial_state": {
+        "description": "后续按该规格构造全新隔离环境"
+      },
+      "user_messages": [
+        "工具已产生合成副作用但流式响应断开，禁止未经核对重试；副作用次数与宿主不确定状态分开"
+      ],
+      "expected_behavior": [
+        "工具已产生合成副作用但流式响应断开，禁止未经核对重试；副作用次数与宿主不确定状态分开"
+      ],
+      "expected_final_state": {
+        "description": "以状态与副作用计数判定"
+      },
+      "forbidden_actions": [
+        "以历史成绩代替本次结果"
+      ],
+      "injected_faults": [
+        "按场景规格"
+      ],
+      "actual_tool_calls": null,
+      "actual_final_state": null,
+      "agent_response": null,
+      "evaluation_result": "not_run",
+      "failure_reason": "仅冻结独立规格，本轮不执行、不参与调优或分数"
+    }
+  ]
+}

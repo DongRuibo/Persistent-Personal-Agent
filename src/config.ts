@@ -17,6 +17,7 @@ export interface Config {
   memoryContextTokens: number;
   memoryQueryRewrite?: boolean;
   goalEnabled?: boolean;
+  goalMaxAttempts?: 1 | 2 | 3;
   skillsEnabled?: boolean;
   webReadEnabled?: boolean;
   webSearchEnabled?: boolean;
@@ -85,6 +86,8 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env): Config {
   if (env.MEMORY_QUERY_REWRITE && !['true', 'false'].includes(env.MEMORY_QUERY_REWRITE)) throw new Error('MEMORY_QUERY_REWRITE 必须为 true 或 false');
   if (env.MEMORY_FORMATION_ENABLED && !['true', 'false'].includes(env.MEMORY_FORMATION_ENABLED)) throw new Error('MEMORY_FORMATION_ENABLED 必须为 true 或 false');
   if (env.GOAL_ENABLED !== undefined && !['true', 'false'].includes(env.GOAL_ENABLED)) throw new Error('GOAL_ENABLED 必须为 true 或 false');
+  const goalMaxAttempts = Number(env.GOAL_MAX_ATTEMPTS ?? 1);
+  if (!Number.isInteger(goalMaxAttempts) || goalMaxAttempts < 1 || goalMaxAttempts > 3) throw new Error('GOAL_MAX_ATTEMPTS 必须为1至3；默认1保持不自动重试');
   if (env.SKILLS_ENABLED !== undefined && !['true', 'false'].includes(env.SKILLS_ENABLED)) throw new Error('SKILLS_ENABLED 必须为 true 或 false');
   if (env.WEB_READ_ENABLED !== undefined && !['true', 'false'].includes(env.WEB_READ_ENABLED)) throw new Error('WEB_READ_ENABLED 必须为 true 或 false');
   if (env.WORK_THREADS_ENABLED !== undefined && !['true', 'false'].includes(env.WORK_THREADS_ENABLED)) throw new Error('WORK_THREADS_ENABLED 必须为 true 或 false');
@@ -139,6 +142,7 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env): Config {
     memoryContextTokens,
     memoryQueryRewrite: env.MEMORY_QUERY_REWRITE === 'true',
     goalEnabled: env.GOAL_ENABLED === 'true',
+    goalMaxAttempts: goalMaxAttempts as 1 | 2 | 3,
     skillsEnabled: env.SKILLS_ENABLED === 'true', skillsDir,
     localFiles: { enabled: localFilesEnabled, workspace, searchEnabled },
     localOutput: { enabled: outputEnabled, workspace: output },

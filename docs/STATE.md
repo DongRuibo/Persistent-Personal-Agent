@@ -1,14 +1,34 @@
 # Personal Agent 当前状态与交接
 
-更新日期：2026-11-01（Asia/Shanghai）。此文件是当前快照；稳定架构见 [PROJECT.md](PROJECT.md)，开发规则见 [AGENTS.md](../AGENTS.md)，运行方法见 [README.md](../README.md)。
+更新日期：2026-11-07（Asia/Shanghai）。此文件是当前快照；稳定架构见 [PROJECT.md](PROJECT.md)，开发规则见 [AGENTS.md](../AGENTS.md)，运行方法见 [README.md](../README.md)。
 
 ## 当前阶段
+
+- 第三阶段在独立临时Worktree `/private/tmp/ppa-phase3-integration`、分支`codex/phase3-integration`完成集成审查与稳定性收尾；固定main=91b7a65、通知恢复分支=d0c7125，共同祖先e2c95c0。原工作区不切换、不覆盖；用户随后已明确授权提交/推送本集成独立分支，发布标识以Git记录为准，不创建PR或合并main。
+- 已语义集成main的显式WorkJobs 2A与Task/Goal通知恢复。保留两种运行对象、共享BackgroundLane及独占锁；通知Worker只读取已有通知意图，不领取WorkJob。Console停止竞态已复现并最小修复，前测18/20、后测20/20；657/657回归、类型/两端构建通过，原20题17/2/1、新30题30/30；保留所有失败。真实调用/消息/正式数据库操作继续为0。
+- 完整阶段结论见[EVAL_PHASE3_INTEGRATION](EVAL_PHASE3_INTEGRATION.md)，测试数据以本次实际执行为准，不把此前单分支成绩充作集成成绩。
+
+### 集成前固定版本与历史验证
 
 - 当前在独立工作树、分支`codex/router-worker-mvp`完成第二阶段2A；基线是已审查的PR #3 head `e2c95c067d4f33aa5cd9fdb0c6b17e40bc82ba4b`。开始时远端PR #3仍open/未合并，main为`75b724f17d17a70ad51caf7c4697251259d7ef3c`，本轮均未改。
 - 2A已实现默认关闭的确定性分派、work_jobs、同BackgroundLane串行Worker、独立临时Pi work Session，以及Chat继续交互、主题/收件箱结果。queued/running取消、迟到结果、统一恢复、去重、归属和预算均在原边界内；不含模型辅助路由、联网/并行Worker、订阅或Chain of Recall。
 - 2A的P2分类修复已核验复用：work模型HTTP500、length和禁止工具提议准确failed，保留原因且无成功输出；运行取消仍Job cancelled/Run interrupted，停机/真实超时Job/Run interrupted，保护性abort与旧scope语义保留。本轮专项19/19、完整618/618通过（0失败/取消/跳过，测试68.85秒），typecheck/build/web:build均退出0。原615/615仅为初交付历史；第1轮独立只读复审已通过，无阻断及追加可执行缺陷；不进入2B。全部使用临时SQLite、合成文本、假Key和本机模拟端点；无正式数据访问、收费调用或正式服务启停。证据与逐文件目的见[2A交付记录](evaluations/router-worker-mvp.md)。
 - 新功能仍`WORK_JOBS_ENABLED=false`，启用还需WorkThread及本机Web。工作列表最近100项、无分页；串行不抢占和通知无通用Outbox的限制保留。原Goal自然暂停/收据理解等真实语义缺口不因本轮离线通过而消失。
 - 用户已明确授权本次2A代码、测试和相关文档提交、推送至`codex/router-worker-mvp`并创建PR；发布准备时尚未commit/push/建PR。新PR以`codex/workthread-foundation`为base，只展示2A增量并依赖[PR #3](https://github.com/DongRuibo/Persistent-Personal-Agent/pull/3)；不合并或修改PR #3/main，不开始2B。原审查工作区分支和未提交内容保留；只带入STATE、PR #3审查及本轮计划，原未跟踪路线图与PR #2报告未复制或覆盖。
+- 第二轮Notification Reliability & Goal Error Recovery已在独立`codex/notification-goal-recovery`完成实现与离线验证；验证基于第一轮评测提交`0d034eb`；用户现已授权仅提交本轮相关改动并推送独立分支，不合并main，发布标识以Git记录为准。固定生产源码基线`e2c95c0`，未纳入其他工作树能力。
+- 复用`goal_notifications`接入Task结果同事务入箱、独立Worker、原子租约/令牌确认、有限退避/Retry-After、dead人工重试；HTTP分类修复及默认一次、可选手动text_only有界重试。Task不因投递失败重跑，SDK及生产数据未改。
+- 同一新增30题：旧代码6通过/24失败，当前30/30；原20题不改，16/3/1→17/2/1。F01通过；B07崩溃窗口子项通过但立即重发断言仍失败；C04历史M3语义失败、D03未实现跳过继续保留。
+- 固定6种可恢复通知故障0/6→6/6，未接受4/6→0/6；固定11题意图0/11→11/11，未接受7/11→2/11；重复0/4→2/9，非Exactly-once。最终回归624/624、类型及两端构建通过；两次此前全量Console异常退出根因未确认，日志保留，最终未复现。
+- [第二轮报告](EVAL_PHASE2.md)、[结果](EVAL_RESULTS.md)、[面试材料](EVAL_INTERVIEW.md)、[机器摘要](../evals/reports/phase2-2026-11-07-v1-summary.json)含架构/逐题/指标分母。原始JSON/Trace及初次失败仅本地保留，不默认发布；首轮150份证据与原20题Hash核对保留。收费调用0、真实消息0、正式数据访问0。
+- 仍未验证真实飞书幂等/分片恢复、其他Provider、生产库迁移、长期运行和跨OS；Chat/手动Goal通知仍直接发送。原本地工作区跨工作树记录及未跟踪文档保留。
+
+### 评测前版本交接（历史上下文）
+
+- PR #2已按此前确认严格快进合并，main与origin/main为`75b724f17d17a70ad51caf7c4697251259d7ef3c`；原4提交保留，GitHub已merged，合并状态见[PR #2](https://github.com/DongRuibo/Persistent-Personal-Agent/pull/2)。本轮从该基线创建本地`codex/workthread-foundation`，未再修改main。
+- 用户随后通过粘贴任务明确授权第一阶段WorkThread。已实现默认关闭的主题/关联底座：同SQLite增量建表、手动创建/改名/归档/恢复、四类对象关联/去重/移除、归属校验和Web页面；只保存关系元数据，不改变Pi/GoalRunner/Scheduler/Memory/OperationGuard。没有Router、Worker并行、事件订阅或Chain of Recall。
+- Mac/Node24.19.0完成typecheck、build、web:build及全量588/588测试，0失败/0跳过；含旧库迁移、真正Web进程重启、四类关联及跨渠道拒绝。隔离浏览器通过创建、关联、改名、归档/恢复、移除/恢复关联和刷新恢复；1280px/390px无横向溢出，控制台warn/error为空。详细文件、数据模型与限制见[WorkThread交付记录](evaluations/workthread-foundation.md)。
+- 本PR仅包含WorkThread代码、测试及相关README/PROJECT/STATE与交付记录。前轮路线图`docs/personal-agent-roadmap.md`和PR审查报告`docs/evaluations/web-app-v1-pr2-merge-review.md`保留本地、内容未改，不随本PR发布。
+- 已按用户授权通过GitHub连接器发布到`codex/workthread-foundation`并创建[PR #3](https://github.com/DongRuibo/Persistent-Personal-Agent/pull/3)供审查，未合并main。远端功能提交`8134e34119e97224aeae3d8c6fb9be164b3767d4`与本地原提交`d54eeebfa8c417627b037704a3b5349cd24a9f35`的Git树完全一致；终端Git缺少可用认证，本地原提交保留。未访问/修改正式.env、数据库、Session、Memory或备份；未启用正式WorkThread、运行飞书或发起收费模型/Tavily请求。验证只使用新临时数据与本机模拟端点，不能视为正式数据/真实模型/手机/长期运行验收。
 
 ## 已完成功能
 
@@ -40,11 +60,11 @@
 
 | 日期 | 修改及位置 |
 | --- | --- |
+| 2026-11-07 | 第三阶段临时分支集成WorkJobs 2A与通知恢复，调查Console异常、复核重复与历史失败；实际验证见[EVAL_PHASE3_INTEGRATION](EVAL_PHASE3_INTEGRATION.md)，仅按后续授权提交/推送集成分支，不创建PR或合并main |
 | 2026-11-01 | 2A发布准备：用户已授权提交、推送及创建依赖PR，base为`codex/workthread-foundation`并依赖PR #3；只整理STATE、[评估](evaluations/router-worker-mvp.md)及新增[验证摘要](evaluations/router-worker-mvp-validation.json)，源码/测试Hash不变，独立发布复审前不提交。原19/19专项、618/618全量及构建证据保留，不重复收费/浏览器/全量；不合并main、不开始2B |
 | 2026-11-01 | 第二阶段2A：Job/确定性Router/共用门Worker、无工具临时work Session与Web提交/队列/取消/结果；原Task/Goal/Guard实现保留。[交付记录](evaluations/router-worker-mvp.md)；类型/两端构建、最终全量及浏览器结果见下节，代码保持未提交 |
 | 2026-11-01 | PR #3发布后审查完成：未发现阻断问题，typecheck及12/12专项重验通过；更新[审查结论](evaluations/workthread-pr3-review.md)与[第二阶段首批执行计划](designs/work-router-worker-mvp.md)，由独立执行对话开发。本轮只改交接文档，不改代码、不提交推送或合并 |
 | 2026-11-01 | WorkThread第一阶段：新增关系类型/存储/服务与Web页面，复用现有鉴权/CSRF和对象归属；默认关闭。类型/两端构建、588/588离线回归和桌面/窄屏浏览器验证通过。按用户授权发布功能分支并创建[PR #3](https://github.com/DongRuibo/Persistent-Personal-Agent/pull/3)供审查；暂不合并main，正式数据未触碰 |
-| 2026-11-01 | PR #2按确认严格快进至75b724f，GitHub已merged；本地main同步、原4提交保留。日常目录按lock离线补齐依赖，语法/类型/两端构建通过；同SHA前轮577/577回归有效，零新收费调用。合并状态可在GitHub PR #2核对 |
 
 ## 验证记录与证据边界
 
@@ -540,18 +560,17 @@ V1 原有自动化证据：39项测试使用模拟模型/飞书服务和虚拟�
 - Session 文件未加密、不自动清理；无法读取或被 SDK 判定无效时阻止启动，不额外修复 SDK 容忍的损坏行。它与 SQLite 不构成跨存储事务，强杀/断电可能造成记录不一致或最后一条不完整；不自动补偿或重放，任务状态仍以 SQLite 为准。
 - 显式配置 SESSION_DIR 时，每份数据库使用独立目录；锁仍以数据库为单位，不支持多个数据库进程共享同一会话目录。
 - 旧Task时间解析是有界语法，不支持任意自然语言或Cron；Goal周期仅显式策略下的每日/每周固定时间，不明表达要求补充。
-- 后台串行执行；慢任务/观察/投递会延后后续任务。旧Task、聊天和手动Goal无Outbox，仍可能丢通知；策略Goal最多3次投递，发送超时可能重复，长消息可能只送达部分；所有通知失败均不重跑模型。
+- 后台串行执行；慢任务/观察/投递会延后后续任务。Task/策略Goal已复用Outbox；聊天和手动Goal仍可能丢通知；通知每轮最多3次投递，发送超时可能重复，长消息可能只送达部分；所有通知失败均不重跑模型。
 - 入站去重提交后执行前崩溃可能丢失回复/未执行请求，Run 标记 interrupted 且重投不重放；应先查询任务再决定新请求。去重和 Run 记录暂不自动清理，Mac 睡眠/离线期间不保证准点通知。
 - 协作式 abort 依赖供应商/SDK 响应；外部副作用不保证恰好一次，中断后需核实。
 - SQLite 未加密、无自动清理；强杀或供应商未报告时用量可能缺失，费用不是供应商账单。
-- 旧Task/聊天的通知Outbox、供应商幂等和分片进度仍是后续范围；本次仅实现策略Goal结果与通知同事务和有限重投，没有永久恰好一次保证。
+- 第二轮Task已接入与策略Goal共用的Outbox及有限重投；聊天/手动Goal仍直接发送，供应商幂等与分片进度未验证，没有永久恰好一次保证。
 
 ## 下一步与需要提供的信息
 
-1. 2A P2已通过第1轮独立复审，用户已授权本次提交、推送及创建PR。按[交付记录](evaluations/router-worker-mvp.md)与[验证摘要](evaluations/router-worker-mvp-validation.json)精确发布；PR base为`codex/workthread-foundation`，注明依赖尚未合并的PR #3。独立发布复审通过后执行；不合并main、不启用正式开关、不开始2B。无需真实Key或收费验收。
-2. PR #3仍为本分支前置底座，未获合并许可前不操作main。审查工作区的旧路线图、PR #2报告及所有个人历史保留，不清理或迁移。
-3. 2B再单独规划模型路由建议与澄清；联网Worker需独立预算验收。事件订阅、Chain of Recall、分页/容量、大规模Memory性能及真实手机/长期运行不夹带进本批。
-4. 原Goal自然暂停/收据理解和Memory形成语义质量仍保留历史失败，不沿用旧收费额度，不因工程测试通过自动启用正式开关。
+1. 本轮集成审查、Console前后各20次及最终回归已完成，现按用户后续授权仅提交/推送独立集成分支；PR与main合并继续等待明确指示，不启用正式功能。
+2. 保留通知不确定性、死信、M3历史语义失败和自动路由未实现边界，不启用正式开关或沿用历史收费额度。
+3. 原工作区与旧证据Hash最终核对后交接，后续发布及真实验收另由用户决定。
 
 ## V2.0.2 关键文件（主体及本轮修复）
 

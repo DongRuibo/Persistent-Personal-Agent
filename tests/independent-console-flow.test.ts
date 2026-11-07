@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import { createServer } from 'node:http';
 import { once } from 'node:events';
 import { spawn } from 'node:child_process';
-import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -71,13 +71,27 @@ test('独立Console实际进程：P自然创建/唯一视图/泛称暂停，R异
   // 官方端点仅作被检验的元数据；测试传输严格改投127.0.0.1，不执行DNS/公网请求。
   writeFileSync(preload, `const native=globalThis.fetch;globalThis.fetch=async(url,init)=>{if(String(url)!==${JSON.stringify(stagedModel.endpoint)})throw new Error('unexpected URL');return native(${JSON.stringify(`http://127.0.0.1:${addr.port}/model`)},init)};`);
   const checkedAt = new Date().toISOString();
+  const diagnostics = process.env.PPA_CONSOLE_TRACE_DIR ?? join(parent, 'diagnostics');
+  mkdirSync(diagnostics, { recursive: true, mode: 0o700 });
+  let childSequence = 0;
   async function cli(id: IndependentCase, target = root, resume = true, expectedCode = 0) {
+    const startedAt = new Date().toISOString(), sequence = ++childSequence;
     const child = spawn(process.execPath, ['--import', 'tsx', '--import', pathToFileURL(preload).href, 'scripts/independent-console-acceptance.ts', '--authorized', '--rates-confirmed', '--case=' + id, '--root=' + target,
       ...(resume ? ['--resume'] : []), ...(['P2', 'P3', 'R2'].includes(id) ? ['--previous-reviewed'] : [])], { windowsHide: true, stdio: ['pipe', 'pipe', 'pipe'], env: {
       PATH: process.env.PATH, SystemRoot: process.env.SystemRoot, LLM_API_KEY: 'offline-only-fixture-key', LLM_MODEL: stagedModel.model, LLM_BASE_URL: 'https://api.siliconflow.cn/v1', LLM_PROVIDER: 'personal-compatible',
       ACCEPTANCE_INPUT_RATE: '2', ACCEPTANCE_OUTPUT_RATE: '8', ACCEPTANCE_CACHE_READ_RATE: '0.04', ACCEPTANCE_EXTRA_FEES_CNY: '0', ACCEPTANCE_PRICE_CHECKED_AT: checkedAt } });
-    let out = ''; child.stdout.on('data', c => { out += c; }); child.stderr.on('data', c => { out += c; }); child.stdin.end('不应消费这条额外stdin\n');
-    const [code] = await once(child, 'exit'); assert.equal(code, expectedCode, id + '\n' + out); return out;
+    let out = '', stdout = '', stderr = '', exitedAt: string | undefined;
+    child.stdout.on('data', c => { stdout += c; out += c; }); child.stderr.on('data', c => { stderr += c; out += c; });
+    child.once('exit', () => { exitedAt = new Date().toISOString(); });
+    child.stdin.end('不应消费这条额外stdin\n');
+    // close发生在退出和管道关闭之后；保留原退出码断言，并落盘分开的输出与真实signal。
+    const [code, signal] = await once(child, 'close');
+    writeFileSync(join(diagnostics, String(sequence).padStart(2, '0') + '-' + id + '.json'), JSON.stringify({
+      id, sequence, pid: child.pid, startedAt, exitedAt, closedAt: new Date().toISOString(), code, signal,
+      exitCode: child.exitCode, signalCode: child.signalCode, killed: child.killed, expectedCode, stdout, stderr,
+      parentTmpdir: tmpdir(), childTmpdirEnv: null, stdio: 'pipe', fixtureRoot: parent,
+    }, null, 2), { flag: 'wx', mode: 0o600 });
+    assert.equal(code, expectedCode, id + '\npid=' + String(child.pid) + ' exitSignal=' + String(signal) + '\n' + out); return out;
   }
   try {
     await cli('P1', root, false); await cli('P2');

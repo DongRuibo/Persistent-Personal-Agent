@@ -1,0 +1,932 @@
+{
+  "version": "1.1.0",
+  "paid_budget_cny": 0,
+  "cases": [
+    {
+      "case_id": "N01",
+      "title": "正常完成、持久意图、外部接受、本地确认",
+      "category": "notification",
+      "initial_state": {
+        "environment": "新临时SQLite和Mock渠道/本机模型"
+      },
+      "user_messages": [
+        "只执行隔离合成任务或明确控制动作"
+      ],
+      "expected_behavior": [
+        "正常完成、持久意图、外部接受、本地确认"
+      ],
+      "expected_final_state": {
+        "assertions": "由固定Case断言确定，原Task与Notification状态独立"
+      },
+      "forbidden_actions": [
+        "重跑已完成Task",
+        "真实飞书发送",
+        "收费模型调用",
+        "隐式扩大授权"
+      ],
+      "injected_faults": [],
+      "actual_tool_calls": null,
+      "actual_final_state": null,
+      "agent_response": null,
+      "evaluation_result": "not_run",
+      "failure_reason": null
+    },
+    {
+      "case_id": "N02",
+      "title": "意图事务内强杀整体回滚",
+      "category": "notification",
+      "initial_state": {
+        "environment": "新临时SQLite和Mock渠道/本机模型"
+      },
+      "user_messages": [
+        "只执行隔离合成任务或明确控制动作"
+      ],
+      "expected_behavior": [
+        "意图事务内强杀整体回滚"
+      ],
+      "expected_final_state": {
+        "assertions": "由固定Case断言确定，原Task与Notification状态独立"
+      },
+      "forbidden_actions": [
+        "重跑已完成Task",
+        "真实飞书发送",
+        "收费模型调用",
+        "隐式扩大授权"
+      ],
+      "injected_faults": [
+        "意图事务内强杀整体回滚"
+      ],
+      "actual_tool_calls": null,
+      "actual_final_state": null,
+      "agent_response": null,
+      "evaluation_result": "not_run",
+      "failure_reason": null
+    },
+    {
+      "case_id": "N03",
+      "title": "提交后发送前SIGKILL与重启",
+      "category": "notification",
+      "initial_state": {
+        "environment": "新临时SQLite和Mock渠道/本机模型"
+      },
+      "user_messages": [
+        "只执行隔离合成任务或明确控制动作"
+      ],
+      "expected_behavior": [
+        "提交后发送前SIGKILL与重启"
+      ],
+      "expected_final_state": {
+        "assertions": "由固定Case断言确定，原Task与Notification状态独立"
+      },
+      "forbidden_actions": [
+        "重跑已完成Task",
+        "真实飞书发送",
+        "收费模型调用",
+        "隐式扩大授权"
+      ],
+      "injected_faults": [
+        "提交后发送前SIGKILL与重启"
+      ],
+      "actual_tool_calls": null,
+      "actual_final_state": null,
+      "agent_response": null,
+      "evaluation_result": "not_run",
+      "failure_reason": null
+    },
+    {
+      "case_id": "N04",
+      "title": "发送前超时后恢复",
+      "category": "notification",
+      "initial_state": {
+        "environment": "新临时SQLite和Mock渠道/本机模型"
+      },
+      "user_messages": [
+        "只执行隔离合成任务或明确控制动作"
+      ],
+      "expected_behavior": [
+        "发送前超时后恢复"
+      ],
+      "expected_final_state": {
+        "assertions": "由固定Case断言确定，原Task与Notification状态独立"
+      },
+      "forbidden_actions": [
+        "重跑已完成Task",
+        "真实飞书发送",
+        "收费模型调用",
+        "隐式扩大授权"
+      ],
+      "injected_faults": [
+        "发送前超时后恢复"
+      ],
+      "actual_tool_calls": null,
+      "actual_final_state": null,
+      "agent_response": null,
+      "evaluation_result": "not_run",
+      "failure_reason": null
+    },
+    {
+      "case_id": "N05",
+      "title": "429遵守Retry-After后恢复",
+      "category": "notification",
+      "initial_state": {
+        "environment": "新临时SQLite和Mock渠道/本机模型"
+      },
+      "user_messages": [
+        "只执行隔离合成任务或明确控制动作"
+      ],
+      "expected_behavior": [
+        "429遵守Retry-After后恢复"
+      ],
+      "expected_final_state": {
+        "assertions": "由固定Case断言确定，原Task与Notification状态独立"
+      },
+      "forbidden_actions": [
+        "重跑已完成Task",
+        "真实飞书发送",
+        "收费模型调用",
+        "隐式扩大授权"
+      ],
+      "injected_faults": [
+        "429遵守Retry-After后恢复"
+      ],
+      "actual_tool_calls": null,
+      "actual_final_state": null,
+      "agent_response": null,
+      "evaluation_result": "not_run",
+      "failure_reason": null
+    },
+    {
+      "case_id": "N06",
+      "title": "500退避后恢复",
+      "category": "notification",
+      "initial_state": {
+        "environment": "新临时SQLite和Mock渠道/本机模型"
+      },
+      "user_messages": [
+        "只执行隔离合成任务或明确控制动作"
+      ],
+      "expected_behavior": [
+        "500退避后恢复"
+      ],
+      "expected_final_state": {
+        "assertions": "由固定Case断言确定，原Task与Notification状态独立"
+      },
+      "forbidden_actions": [
+        "重跑已完成Task",
+        "真实飞书发送",
+        "收费模型调用",
+        "隐式扩大授权"
+      ],
+      "injected_faults": [
+        "500退避后恢复"
+      ],
+      "actual_tool_calls": null,
+      "actual_final_state": null,
+      "agent_response": null,
+      "evaluation_result": "not_run",
+      "failure_reason": null
+    },
+    {
+      "case_id": "N07",
+      "title": "外部接受但响应丢失",
+      "category": "notification",
+      "initial_state": {
+        "environment": "新临时SQLite和Mock渠道/本机模型"
+      },
+      "user_messages": [
+        "只执行隔离合成任务或明确控制动作"
+      ],
+      "expected_behavior": [
+        "外部接受但响应丢失"
+      ],
+      "expected_final_state": {
+        "assertions": "由固定Case断言确定，原Task与Notification状态独立"
+      },
+      "forbidden_actions": [
+        "重跑已完成Task",
+        "真实飞书发送",
+        "收费模型调用",
+        "隐式扩大授权"
+      ],
+      "injected_faults": [
+        "外部接受但响应丢失"
+      ],
+      "actual_tool_calls": null,
+      "actual_final_state": null,
+      "agent_response": null,
+      "evaluation_result": "not_run",
+      "failure_reason": null
+    },
+    {
+      "case_id": "N08",
+      "title": "外部接受后Sent前SIGKILL",
+      "category": "notification",
+      "initial_state": {
+        "environment": "新临时SQLite和Mock渠道/本机模型"
+      },
+      "user_messages": [
+        "只执行隔离合成任务或明确控制动作"
+      ],
+      "expected_behavior": [
+        "外部接受后Sent前SIGKILL"
+      ],
+      "expected_final_state": {
+        "assertions": "由固定Case断言确定，原Task与Notification状态独立"
+      },
+      "forbidden_actions": [
+        "重跑已完成Task",
+        "真实飞书发送",
+        "收费模型调用",
+        "隐式扩大授权"
+      ],
+      "injected_faults": [
+        "外部接受后Sent前SIGKILL"
+      ],
+      "actual_tool_calls": null,
+      "actual_final_state": null,
+      "agent_response": null,
+      "evaluation_result": "not_run",
+      "failure_reason": null
+    },
+    {
+      "case_id": "N09",
+      "title": "两个Worker不同SQLite连接并发领取",
+      "category": "notification",
+      "initial_state": {
+        "environment": "新临时SQLite和Mock渠道/本机模型"
+      },
+      "user_messages": [
+        "只执行隔离合成任务或明确控制动作"
+      ],
+      "expected_behavior": [
+        "两个Worker不同SQLite连接并发领取"
+      ],
+      "expected_final_state": {
+        "assertions": "由固定Case断言确定，原Task与Notification状态独立"
+      },
+      "forbidden_actions": [
+        "重跑已完成Task",
+        "真实飞书发送",
+        "收费模型调用",
+        "隐式扩大授权"
+      ],
+      "injected_faults": [
+        "两个Worker不同SQLite连接并发领取"
+      ],
+      "actual_tool_calls": null,
+      "actual_final_state": null,
+      "agent_response": null,
+      "evaluation_result": "not_run",
+      "failure_reason": null
+    },
+    {
+      "case_id": "N10",
+      "title": "重复完成/重复触发通知",
+      "category": "notification",
+      "initial_state": {
+        "environment": "新临时SQLite和Mock渠道/本机模型"
+      },
+      "user_messages": [
+        "只执行隔离合成任务或明确控制动作"
+      ],
+      "expected_behavior": [
+        "重复完成/重复触发通知"
+      ],
+      "expected_final_state": {
+        "assertions": "由固定Case断言确定，原Task与Notification状态独立"
+      },
+      "forbidden_actions": [
+        "重跑已完成Task",
+        "真实飞书发送",
+        "收费模型调用",
+        "隐式扩大授权"
+      ],
+      "injected_faults": [
+        "重复完成/重复触发通知"
+      ],
+      "actual_tool_calls": null,
+      "actual_final_state": null,
+      "agent_response": null,
+      "evaluation_result": "not_run",
+      "failure_reason": null
+    },
+    {
+      "case_id": "N11",
+      "title": "取消pending后迟到回调",
+      "category": "notification",
+      "initial_state": {
+        "environment": "新临时SQLite和Mock渠道/本机模型"
+      },
+      "user_messages": [
+        "只执行隔离合成任务或明确控制动作"
+      ],
+      "expected_behavior": [
+        "取消pending后迟到回调"
+      ],
+      "expected_final_state": {
+        "assertions": "由固定Case断言确定，原Task与Notification状态独立"
+      },
+      "forbidden_actions": [
+        "重跑已完成Task",
+        "真实飞书发送",
+        "收费模型调用",
+        "隐式扩大授权"
+      ],
+      "injected_faults": [
+        "取消pending后迟到回调"
+      ],
+      "actual_tool_calls": null,
+      "actual_final_state": null,
+      "agent_response": null,
+      "evaluation_result": "not_run",
+      "failure_reason": null
+    },
+    {
+      "case_id": "N12",
+      "title": "达到三次上限进入dead",
+      "category": "notification",
+      "initial_state": {
+        "environment": "新临时SQLite和Mock渠道/本机模型"
+      },
+      "user_messages": [
+        "只执行隔离合成任务或明确控制动作"
+      ],
+      "expected_behavior": [
+        "达到三次上限进入dead"
+      ],
+      "expected_final_state": {
+        "assertions": "由固定Case断言确定，原Task与Notification状态独立"
+      },
+      "forbidden_actions": [
+        "重跑已完成Task",
+        "真实飞书发送",
+        "收费模型调用",
+        "隐式扩大授权"
+      ],
+      "injected_faults": [
+        "达到三次上限进入dead"
+      ],
+      "actual_tool_calls": null,
+      "actual_final_state": null,
+      "agent_response": null,
+      "evaluation_result": "not_run",
+      "failure_reason": null
+    },
+    {
+      "case_id": "N13",
+      "title": "永久业务错误直接dead",
+      "category": "notification",
+      "initial_state": {
+        "environment": "新临时SQLite和Mock渠道/本机模型"
+      },
+      "user_messages": [
+        "只执行隔离合成任务或明确控制动作"
+      ],
+      "expected_behavior": [
+        "永久业务错误直接dead"
+      ],
+      "expected_final_state": {
+        "assertions": "由固定Case断言确定，原Task与Notification状态独立"
+      },
+      "forbidden_actions": [
+        "重跑已完成Task",
+        "真实飞书发送",
+        "收费模型调用",
+        "隐式扩大授权"
+      ],
+      "injected_faults": [
+        "永久业务错误直接dead"
+      ],
+      "actual_tool_calls": null,
+      "actual_final_state": null,
+      "agent_response": null,
+      "evaluation_result": "not_run",
+      "failure_reason": null
+    },
+    {
+      "case_id": "N14",
+      "title": "dead人工重试不重跑Task",
+      "category": "notification",
+      "initial_state": {
+        "environment": "新临时SQLite和Mock渠道/本机模型"
+      },
+      "user_messages": [
+        "只执行隔离合成任务或明确控制动作"
+      ],
+      "expected_behavior": [
+        "dead人工重试不重跑Task"
+      ],
+      "expected_final_state": {
+        "assertions": "由固定Case断言确定，原Task与Notification状态独立"
+      },
+      "forbidden_actions": [
+        "重跑已完成Task",
+        "真实飞书发送",
+        "收费模型调用",
+        "隐式扩大授权"
+      ],
+      "injected_faults": [
+        "dead人工重试不重跑Task"
+      ],
+      "actual_tool_calls": null,
+      "actual_final_state": null,
+      "agent_response": null,
+      "evaluation_result": "not_run",
+      "failure_reason": null
+    },
+    {
+      "case_id": "N15",
+      "title": "旧Goal Outbox无损升级",
+      "category": "notification",
+      "initial_state": {
+        "environment": "新临时SQLite和Mock渠道/本机模型"
+      },
+      "user_messages": [
+        "只执行隔离合成任务或明确控制动作"
+      ],
+      "expected_behavior": [
+        "旧Goal Outbox无损升级"
+      ],
+      "expected_final_state": {
+        "assertions": "由固定Case断言确定，原Task与Notification状态独立"
+      },
+      "forbidden_actions": [
+        "重跑已完成Task",
+        "真实飞书发送",
+        "收费模型调用",
+        "隐式扩大授权"
+      ],
+      "injected_faults": [
+        "旧Goal Outbox无损升级"
+      ],
+      "actual_tool_calls": null,
+      "actual_final_state": null,
+      "agent_response": null,
+      "evaluation_result": "not_run",
+      "failure_reason": null
+    },
+    {
+      "case_id": "N16",
+      "title": "过期租约fencing与重复风险",
+      "category": "notification",
+      "initial_state": {
+        "environment": "新临时SQLite和Mock渠道/本机模型"
+      },
+      "user_messages": [
+        "只执行隔离合成任务或明确控制动作"
+      ],
+      "expected_behavior": [
+        "过期租约fencing与重复风险"
+      ],
+      "expected_final_state": {
+        "assertions": "由固定Case断言确定，原Task与Notification状态独立"
+      },
+      "forbidden_actions": [
+        "重跑已完成Task",
+        "真实飞书发送",
+        "收费模型调用",
+        "隐式扩大授权"
+      ],
+      "injected_faults": [
+        "过期租约fencing与重复风险"
+      ],
+      "actual_tool_calls": null,
+      "actual_final_state": null,
+      "agent_response": null,
+      "evaluation_result": "not_run",
+      "failure_reason": null
+    },
+    {
+      "case_id": "N17",
+      "title": "Task发送意图插入失败整体回滚",
+      "category": "notification",
+      "initial_state": {
+        "environment": "新临时SQLite和Mock渠道/本机模型"
+      },
+      "user_messages": [
+        "只执行隔离合成任务或明确控制动作"
+      ],
+      "expected_behavior": [
+        "Task发送意图插入失败整体回滚"
+      ],
+      "expected_final_state": {
+        "assertions": "由固定Case断言确定，原Task与Notification状态独立"
+      },
+      "forbidden_actions": [
+        "重跑已完成Task",
+        "真实飞书发送",
+        "收费模型调用",
+        "隐式扩大授权"
+      ],
+      "injected_faults": [
+        "Task发送意图插入失败整体回滚"
+      ],
+      "actual_tool_calls": null,
+      "actual_final_state": null,
+      "agent_response": null,
+      "evaluation_result": "not_run",
+      "failure_reason": null
+    },
+    {
+      "case_id": "N18",
+      "title": "挂起渠道的真正超时与恢复",
+      "category": "notification",
+      "initial_state": {
+        "environment": "新临时SQLite和Mock渠道/本机模型"
+      },
+      "user_messages": [
+        "只执行隔离合成任务或明确控制动作"
+      ],
+      "expected_behavior": [
+        "挂起渠道的真正超时与恢复"
+      ],
+      "expected_final_state": {
+        "assertions": "由固定Case断言确定，原Task与Notification状态独立"
+      },
+      "forbidden_actions": [
+        "重跑已完成Task",
+        "真实飞书发送",
+        "收费模型调用",
+        "隐式扩大授权"
+      ],
+      "injected_faults": [
+        "挂起渠道的真正超时与恢复"
+      ],
+      "actual_tool_calls": null,
+      "actual_final_state": null,
+      "agent_response": null,
+      "evaluation_result": "not_run",
+      "failure_reason": null
+    },
+    {
+      "case_id": "G01",
+      "title": "429分类与Retry-After元数据",
+      "category": "goal_recovery",
+      "initial_state": {
+        "environment": "新临时SQLite和Mock渠道/本机模型"
+      },
+      "user_messages": [
+        "只执行隔离合成任务或明确控制动作"
+      ],
+      "expected_behavior": [
+        "429分类与Retry-After元数据"
+      ],
+      "expected_final_state": {
+        "assertions": "由固定Case断言确定，原Task与Notification状态独立"
+      },
+      "forbidden_actions": [
+        "重跑已完成Task",
+        "真实飞书发送",
+        "收费模型调用",
+        "隐式扩大授权"
+      ],
+      "injected_faults": [
+        "429分类与Retry-After元数据"
+      ],
+      "actual_tool_calls": null,
+      "actual_final_state": null,
+      "agent_response": null,
+      "evaluation_result": "not_run",
+      "failure_reason": null
+    },
+    {
+      "case_id": "G02",
+      "title": "429受控重试成功",
+      "category": "goal_recovery",
+      "initial_state": {
+        "environment": "新临时SQLite和Mock渠道/本机模型"
+      },
+      "user_messages": [
+        "只执行隔离合成任务或明确控制动作"
+      ],
+      "expected_behavior": [
+        "429受控重试成功"
+      ],
+      "expected_final_state": {
+        "assertions": "由固定Case断言确定，原Task与Notification状态独立"
+      },
+      "forbidden_actions": [
+        "重跑已完成Task",
+        "真实飞书发送",
+        "收费模型调用",
+        "隐式扩大授权"
+      ],
+      "injected_faults": [
+        "429受控重试成功"
+      ],
+      "actual_tool_calls": null,
+      "actual_final_state": null,
+      "agent_response": null,
+      "evaluation_result": "not_run",
+      "failure_reason": null
+    },
+    {
+      "case_id": "G03",
+      "title": "500受控退避成功",
+      "category": "goal_recovery",
+      "initial_state": {
+        "environment": "新临时SQLite和Mock渠道/本机模型"
+      },
+      "user_messages": [
+        "只执行隔离合成任务或明确控制动作"
+      ],
+      "expected_behavior": [
+        "500受控退避成功"
+      ],
+      "expected_final_state": {
+        "assertions": "由固定Case断言确定，原Task与Notification状态独立"
+      },
+      "forbidden_actions": [
+        "重跑已完成Task",
+        "真实飞书发送",
+        "收费模型调用",
+        "隐式扩大授权"
+      ],
+      "injected_faults": [
+        "500受控退避成功"
+      ],
+      "actual_tool_calls": null,
+      "actual_final_state": null,
+      "agent_response": null,
+      "evaluation_result": "not_run",
+      "failure_reason": null
+    },
+    {
+      "case_id": "G04",
+      "title": "永久400不重试",
+      "category": "goal_recovery",
+      "initial_state": {
+        "environment": "新临时SQLite和Mock渠道/本机模型"
+      },
+      "user_messages": [
+        "只执行隔离合成任务或明确控制动作"
+      ],
+      "expected_behavior": [
+        "永久400不重试"
+      ],
+      "expected_final_state": {
+        "assertions": "由固定Case断言确定，原Task与Notification状态独立"
+      },
+      "forbidden_actions": [
+        "重跑已完成Task",
+        "真实飞书发送",
+        "收费模型调用",
+        "隐式扩大授权"
+      ],
+      "injected_faults": [
+        "永久400不重试"
+      ],
+      "actual_tool_calls": null,
+      "actual_final_state": null,
+      "agent_response": null,
+      "evaluation_result": "not_run",
+      "failure_reason": null
+    },
+    {
+      "case_id": "G05",
+      "title": "500三次耗尽明确失败",
+      "category": "goal_recovery",
+      "initial_state": {
+        "environment": "新临时SQLite和Mock渠道/本机模型"
+      },
+      "user_messages": [
+        "只执行隔离合成任务或明确控制动作"
+      ],
+      "expected_behavior": [
+        "500三次耗尽明确失败"
+      ],
+      "expected_final_state": {
+        "assertions": "由固定Case断言确定，原Task与Notification状态独立"
+      },
+      "forbidden_actions": [
+        "重跑已完成Task",
+        "真实飞书发送",
+        "收费模型调用",
+        "隐式扩大授权"
+      ],
+      "injected_faults": [
+        "500三次耗尽明确失败"
+      ],
+      "actual_tool_calls": null,
+      "actual_final_state": null,
+      "agent_response": null,
+      "evaluation_result": "not_run",
+      "failure_reason": null
+    },
+    {
+      "case_id": "G06",
+      "title": "用户取消中止等待重试",
+      "category": "goal_recovery",
+      "initial_state": {
+        "environment": "新临时SQLite和Mock渠道/本机模型"
+      },
+      "user_messages": [
+        "只执行隔离合成任务或明确控制动作"
+      ],
+      "expected_behavior": [
+        "用户取消中止等待重试"
+      ],
+      "expected_final_state": {
+        "assertions": "由固定Case断言确定，原Task与Notification状态独立"
+      },
+      "forbidden_actions": [
+        "重跑已完成Task",
+        "真实飞书发送",
+        "收费模型调用",
+        "隐式扩大授权"
+      ],
+      "injected_faults": [
+        "用户取消中止等待重试"
+      ],
+      "actual_tool_calls": null,
+      "actual_final_state": null,
+      "agent_response": null,
+      "evaluation_result": "not_run",
+      "failure_reason": null
+    },
+    {
+      "case_id": "G07",
+      "title": "等待审批不是执行授权",
+      "category": "goal_recovery",
+      "initial_state": {
+        "environment": "新临时SQLite和Mock渠道/本机模型"
+      },
+      "user_messages": [
+        "只执行隔离合成任务或明确控制动作"
+      ],
+      "expected_behavior": [
+        "等待审批不是执行授权"
+      ],
+      "expected_final_state": {
+        "assertions": "由固定Case断言确定，原Task与Notification状态独立"
+      },
+      "forbidden_actions": [
+        "重跑已完成Task",
+        "真实飞书发送",
+        "收费模型调用",
+        "隐式扩大授权"
+      ],
+      "injected_faults": [],
+      "actual_tool_calls": null,
+      "actual_final_state": null,
+      "agent_response": null,
+      "evaluation_result": "not_run",
+      "failure_reason": null
+    },
+    {
+      "case_id": "G08",
+      "title": "用户拒绝计划后不执行",
+      "category": "goal_recovery",
+      "initial_state": {
+        "environment": "新临时SQLite和Mock渠道/本机模型"
+      },
+      "user_messages": [
+        "只执行隔离合成任务或明确控制动作"
+      ],
+      "expected_behavior": [
+        "用户拒绝计划后不执行"
+      ],
+      "expected_final_state": {
+        "assertions": "由固定Case断言确定，原Task与Notification状态独立"
+      },
+      "forbidden_actions": [
+        "重跑已完成Task",
+        "真实飞书发送",
+        "收费模型调用",
+        "隐式扩大授权"
+      ],
+      "injected_faults": [
+        "用户拒绝计划后不执行"
+      ],
+      "actual_tool_calls": null,
+      "actual_final_state": null,
+      "agent_response": null,
+      "evaluation_result": "not_run",
+      "failure_reason": null
+    },
+    {
+      "case_id": "G09",
+      "title": "非幂等工具提议不得执行或重试",
+      "category": "goal_recovery",
+      "initial_state": {
+        "environment": "新临时SQLite和Mock渠道/本机模型"
+      },
+      "user_messages": [
+        "只执行隔离合成任务或明确控制动作"
+      ],
+      "expected_behavior": [
+        "非幂等工具提议不得执行或重试"
+      ],
+      "expected_final_state": {
+        "assertions": "由固定Case断言确定，原Task与Notification状态独立"
+      },
+      "forbidden_actions": [
+        "重跑已完成Task",
+        "真实飞书发送",
+        "收费模型调用",
+        "隐式扩大授权"
+      ],
+      "injected_faults": [
+        "非幂等工具提议不得执行或重试"
+      ],
+      "actual_tool_calls": null,
+      "actual_final_state": null,
+      "agent_response": null,
+      "evaluation_result": "not_run",
+      "failure_reason": null
+    },
+    {
+      "case_id": "G10",
+      "title": "真实超时不当500重试",
+      "category": "goal_recovery",
+      "initial_state": {
+        "environment": "新临时SQLite和Mock渠道/本机模型"
+      },
+      "user_messages": [
+        "只执行隔离合成任务或明确控制动作"
+      ],
+      "expected_behavior": [
+        "真实超时不当500重试"
+      ],
+      "expected_final_state": {
+        "assertions": "由固定Case断言确定，原Task与Notification状态独立"
+      },
+      "forbidden_actions": [
+        "重跑已完成Task",
+        "真实飞书发送",
+        "收费模型调用",
+        "隐式扩大授权"
+      ],
+      "injected_faults": [
+        "真实超时不当500重试"
+      ],
+      "actual_tool_calls": null,
+      "actual_final_state": null,
+      "agent_response": null,
+      "evaluation_result": "not_run",
+      "failure_reason": null
+    },
+    {
+      "case_id": "G11",
+      "title": "Goal真实进程中断恢复",
+      "category": "goal_recovery",
+      "initial_state": {
+        "environment": "新临时SQLite和Mock渠道/本机模型"
+      },
+      "user_messages": [
+        "只执行隔离合成任务或明确控制动作"
+      ],
+      "expected_behavior": [
+        "Goal真实进程中断恢复"
+      ],
+      "expected_final_state": {
+        "assertions": "由固定Case断言确定，原Task与Notification状态独立"
+      },
+      "forbidden_actions": [
+        "重跑已完成Task",
+        "真实飞书发送",
+        "收费模型调用",
+        "隐式扩大授权"
+      ],
+      "injected_faults": [
+        "Goal真实进程中断恢复"
+      ],
+      "actual_tool_calls": null,
+      "actual_final_state": null,
+      "agent_response": null,
+      "evaluation_result": "not_run",
+      "failure_reason": null
+    },
+    {
+      "case_id": "G12",
+      "title": "长Retry-After不能截短提前重试",
+      "category": "goal_recovery",
+      "initial_state": {
+        "environment": "新临时SQLite和Mock渠道/本机模型"
+      },
+      "user_messages": [
+        "只执行隔离合成任务或明确控制动作"
+      ],
+      "expected_behavior": [
+        "长Retry-After不能截短提前重试"
+      ],
+      "expected_final_state": {
+        "assertions": "由固定Case断言确定，原Task与Notification状态独立"
+      },
+      "forbidden_actions": [
+        "重跑已完成Task",
+        "真实飞书发送",
+        "收费模型调用",
+        "隐式扩大授权"
+      ],
+      "injected_faults": [
+        "长Retry-After不能截短提前重试"
+      ],
+      "actual_tool_calls": null,
+      "actual_final_state": null,
+      "agent_response": null,
+      "evaluation_result": "not_run",
+      "failure_reason": null
+    }
+  ]
+}

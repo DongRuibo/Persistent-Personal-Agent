@@ -8,6 +8,7 @@ export type MessageTarget = { channel: 'console' } | { channel: 'web'; userId: s
 
 export interface OutboundMessage {
   text: string;
+  notificationId?: string;
   taskId?: string;
   goalId?: string;
   runId?: string;
@@ -78,6 +79,7 @@ export interface AgentExecutor {
 }
 
 export class ExecutionInterrupted extends Error {}
+export class ExecutionTimeout extends ExecutionInterrupted {}
 
 export interface Channel {
   sendMessage(message: OutboundMessage): Promise<void>;

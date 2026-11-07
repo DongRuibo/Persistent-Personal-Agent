@@ -35,7 +35,7 @@ API Key 只从环境变量读取，仓库仅放脱敏样例。准确依赖版本
 
 ## 整体架构与边界
 
-终端输入由 Console Channel 处理；飞书入口校验配置用户的文本私聊并落盘去重，在进程内串行调用同一个 AgentExecutor，复用交互 Pi Session。启动时通过原生 SessionManager 打开固定的私有 JSONL 文件，首次创建、以后恢复；Console 与飞书应用/白名单用户分别存储，不扫描全局 Pi 会话。Task Service 通过可信上下文绑定接收目标，不让模型选择接收人。独立 Scheduler 从 SQLite 领取到期任务，通过 AgentExecutor 创建新的临时后台 Pi Session，先提交结果，再通过 ChannelRouter 和 `Channel.sendMessage()` 通知持久化的接收会话。
+终端输入由 Console Channel 处理；飞书入口校验配置用户的文本私聊并落盘去重，在进程内串行调用同一个 AgentExecutor，复用交互 Pi Session。启动时通过原生 SessionManager 打开固定的私有 JSONL 文件，首次创建、以后恢复；Console 与飞书应用/白名单用户分别存储，不扫描全局 Pi 会话。Task Service 通过可信上下文绑定接收目标，不让模型选择接收人。独立 Scheduler 从 SQLite 领取到期任务，通过 AgentExecutor 创建新的临时后台 Pi Session，将Task/Run终态和通知意图同事务提交，独立Notification Worker再通过ChannelRouter和`Channel.sendMessage()`投递并确认。复用原策略Goal通知表，Worker仍在同一进程，不引入消息服务。
 
 | 概念 | 职责与生命周期 |
 | --- | --- |
@@ -48,6 +48,8 @@ API Key 只从环境变量读取，仓库仅放脱敏样例。准确依赖版本
 | Channel | Console 与 FeishuChannel，使用包含目标的统一消息接口；任务引擎不绑定 SDK 或具体渠道 |
 
 Pi SDK 使用公开 API，不 Fork、不修改内部源码和 Agent Loop。宿主负责业务状态、权限和投递策略；单用户、单进程、串行后台任务，不引入微服务或工作流框架。
+
+Task/策略Goal的通知表增量迁移保留旧记录；稳定ID、领取令牌、租约、发送超时和最多3次/人工一轮重试只影响投递，不反转Task终态。不补发历史已完成Task，也不承诺外部Exactly-once；详见[第二轮评测](EVAL_PHASE2.md)。
 
 ## 模块职责
 
@@ -87,7 +89,7 @@ Pi SDK 使用公开 API，不 Fork、不修改内部源码和 Agent Loop。宿�
 - `message_end` 记录模型响应与用量；`agent_settled` 后仍检查 aborted、模型与工具错误、截断及最终文本。执行结束、数据库成功提交、渠道投递成功互相区分。
 - UTC 持久化、IANA 用户时区解析。支持的中文时间语法见 README，歧义或 DST 无效时间要求用户明确，不让模型或服务器时区决定。
 - 交互白名单为三项任务工具及 `memory_search/get/remember/update/forget`；显式开启Formation后增加memory_review，显式开启S0后增加仅批准Skill文件的受限原生read，显式开启S1-A后增加固定资源web_get。后台始终无工具，可由宿主只读检索Memory。禁止默认Shell、任意文件读写和通用网络；数据库/模型请求不等于OS沙箱。
-- 飞书只允许配置的应用内 open_id 和文本私聊；`(appId, message_id)` 持久化去重后再安排执行，不自动重放中断消息。模型执行和发送均不阻塞事件接收；旧Task/聊天/手动Goal发送失败不重跑Agent。V3.3策略Goal具有最小持久通知Outbox，有限重投也可能重复或最终失败。
+- 飞书只允许配置的应用内 open_id 和文本私聊；`(appId, message_id)` 持久化去重后再安排执行，不自动重放中断消息。模型执行和发送均不阻塞事件接收；Task/聊天/手动Goal发送失败不重跑Agent。Task与策略Goal共用持久Outbox、租约领取及有限重投；本地确认与外部接受分开，响应丢失可能重复，耗尽进入dead。聊天/手动Goal仍直接发送。
 
 ## V2.0 四类长期 Memory
 
@@ -171,7 +173,7 @@ V3.0 采用“持久Goal + 多次短生命周期text_only Pi片段”，已在�
 
 V3.0.1增加有界原话数量校验：明确正式Step边界约束整个计划（含已完成Step），在草稿与审批事务核对；安排数量和单Step内部动作不直接等同于正式Step数，口径不明时完整展示并需明确确认。数量错误不裁剪、不补收费请求，保留旧Checkpoint；多重/二选一自然指代只澄清。规则不是通用语义证明；[独立报告](evaluations/v3.0.1-closeout.md)不改旧Batch5结论。后续经用户单独授权的Console真实复验使用新16/2入口，14请求/0.605440元预留后停服：数量及取消局部通过，泛称“学习计划”与“阅读计划”的筛选仍使自然暂停失败，主模型收尾也误读工具收据；宿主状态与最终呈现正确不等于模型全链路通过。详见[真实复验](evaluations/v3.0.1-live-retest.md)，暂不能完整收尾，未启用日常Goal。
 
-Checkpoint位于committed Execution，与Run/Step/Goal同事务提交；异常先重读，无法核对则停止新领取并停服，不请求模型补交。运行中pause/cancel先持久化、再abort；恢复以cancel、pause、普通中断阻塞的优先级落点。手动Goal通知无Outbox；策略Goal按下节持久投递，仍不保证送达。查询可重展示，不重跑成果。失败仅在明确重新生成文本时新建尝试；uncertain无强制重试入口。
+Checkpoint位于committed Execution，与Run/Step/Goal同事务提交；异常先重读，无法核对则停止新领取并停服，不请求模型补交。运行中pause/cancel先持久化、再abort；恢复以cancel、pause、普通中断阻塞的优先级落点。手动Goal通知无Outbox；策略Goal按下节持久投递，仍不保证送达。查询可重展示，不重跑成果。默认失败不重试；显式GOAL_MAX_ATTEMPTS=2/3仅允许手动无工具text_only的已分类429/5xx有界退避，保留一次授权、同一Execution和Checkpoint兼容性。策略仍最多一次HTTP；取消/审批拒绝/超时/未知结果不重试，非幂等外部操作没有开放自动重试。长Retry-After超过60秒则阻塞，不提前请求。兼容HTTP分类经公开SDK传输适配，只验证personal-compatible；其余Provider待验。uncertain无强制执行入口。
 
 计划增补或完整替换仅形成待批准草稿；已完成步骤和旧成果保留。运行中调整先暂停，停止后恢复审批；不原地改变目标原文，换目标新建Goal。Task/Run一次性唯一约束、Memory写入授权及Session隔离保留；Goal控制聊天和执行不进入Formation。原版Pi源码、node_modules、权限框架和依赖均未修改。完整[设计](designs/v3-persistent-goals.md)、[自动化证据](evaluations/v3-mvp-validation.md)和[待授权真实验收](evaluations/v3-live-acceptance-plan.md)明确区分机制通过与真实语义未验收。
 

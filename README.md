@@ -78,7 +78,7 @@ Batch 1–4 已接通 Goal/Plan/Step/Execution、独立 GoalRunner、受控自�
 
 “确认”只批准已经成功显示且五分钟内仍有效的计划，**不执行**；“批准并继续一段”才产生一次执行授权。计划可说“面试计划先补 Agent Loop”，或给出完整的新步骤、说明、产物和验收条件；宿主先展示草稿，再批准。旧计划和成果保留。运行中调整先登记暂停并中止旧片段，停止后先继续恢复审批界面，再批准新草稿。改变整个目标范围请创建新Goal，当前不原地改写objective。
 
-暂停/取消运行中的目标先显示“正在停止”，SDK结束后才落 paused/cancelled；迟到结果不能推进。模型失败/中断进入 blocked，不自动重试；核实后可明确“重新生成面试任务这一段”，可能再次计费。uncertain/invariant_violation必须人工核对，不能强行继续。查看进度只读取已提交成果，通知失败不重新执行；查看仍通过交互模型路由，可能有主模型及隔离意图解析消耗，没有后台推进请求。
+暂停/取消运行中的目标先显示“正在停止”，SDK结束后才落 paused/cancelled；迟到结果不能推进。模型失败/中断进入 blocked。`GOAL_MAX_ATTEMPTS`默认1，可显式设2或3（含首次）；仅手动无工具text_only片段的已分类HTTP429/5xx可退避重试，策略片段仍限一次。重试间隔至少1秒、2秒，并遵守更长的Retry-After；超过60秒则阻塞并记录下一可尝试时间，不截短后提前请求。取消、拒绝审批、超时、未知传输失败及工具提议均不自动重试。当前HTTP分类仅验证personal-compatible传输；核实后可明确“重新生成面试任务这一段”，可能再次计费。uncertain/invariant_violation必须人工核对，不能强行继续。查看进度只读取已提交成果，通知失败不重新执行；查看仍通过交互模型路由，可能有主模型及隔离意图解析消耗，没有后台推进请求。
 
 手动Goal输入快照最多14 KiB，加Memory最多2 KiB；目标/反馈、计划和摘要/问题超预算先阻塞，不悄悄截断条件。较长成果只提供明确标记的摘录及原Checkpoint引用，完整正文仍在数据库。每段临时Pi Session、零工具、输出最多4096 Token、沿用执行超时；不支持Shell、Browser、MCP或外部写工具。新增主动策略见下节。
 
@@ -593,15 +593,17 @@ SDK 错误只输出固定类别和可提取的安全状态码，不打印原始�
 - Task 新增持久化目标：渠道、App ID、chat_id、用户 open_id。启动时增量加列并新增 `feishu_messages` 去重表，保留 V0 任务和执行记录；旧任务默认 Console。不要在运行期间用旧版本进程操作已迁移数据库。
 - 只有通过白名单的私聊才能写入接收记录。`(appId, message_id)` 是去重主键，接收记录与 Run 原子提交，随后立即结束事件处理。模型和回复在进程内串行执行，同一交互 Pi Session 被复用，后台任务仍使用独立 Session；没有引入外部队列服务。
 - 消息目标由 Channel 的可信上下文绑定，模型工具没有选择或修改接收人的参数。出站再次检查 App ID 和白名单，配置更换后不会把旧任务通知发给新的用户；不匹配只记录投递错误。
-- 消息结果先写入 `runs`，再发送。飞书业务错误保存 code，网络错误只记录安全摘要，不记录 SDK 原始 Axios 对象、请求头、App Secret 或连接票据。文本按编码字节分片，每片关联稳定 uuid，但不自动重发。
+- 消息结果先写入 `runs`，再发送。飞书业务错误保存 code，网络错误只记录安全摘要，不记录 SDK 原始 Axios 对象、请求头、App Secret 或连接票据。文本按编码字节分片，Task/策略Goal的分片uuid由稳定notificationId派生；聊天/手动Goal仍直接发送。
 
-旧Task、聊天回复和手动Goal通知仍沿用直接发送，未使用Outbox，存在以下故障窗口（V3.3策略执行的通知例外，见前节）：
+Task终态、Run结果和通知意图现在由同一SQLite事务提交，复用策略Goal的`goal_notifications`表。独立Notification Worker在同一进程内投递，不持有模型执行门；重启恢复pending/sending，不重跑Task。旧表迁移保留原通知ID、状态及尝试次数；不为历史已完成Task补发未知通知。
 
-1. Run/任务结果已经提交，发送前进程崩溃：任务保持 succeeded，通知可能永久丢失，甚至没有机会记录 deliveryError。
-2. 飞书已接收但客户端超时，或发送后尚未记录 `delivery_succeeded` 就崩溃：送达状态不确定，不自动重发，也不重新调用模型。长消息分片可能只送达前半部分。
-3. 入站去重已提交但模型尚未执行就崩溃：该消息仍算接收过，Run 恢复为 interrupted，重投不会自动重放，以免重复创建已产生副作用的任务。用户应先发新消息查询任务，再决定是否重新提出请求。排队消息只在内存中，未实现入站补偿。
+通知状态为`pending → sending → sent / pending / dead`，已取消任务的待发记录标为cancelled。原子领取附带租约与令牌，确认必须匹配令牌；发送默认10秒超时，租约至少30秒。每轮最多3次（含首次），30秒、60秒退避并遵守更长Retry-After；永久业务错误直接dead。Task终态独立于通知状态。
 
-旧Task及前台回复的Outbox仍是后续范围。V3.3只为策略Goal执行增加最小持久通知及有限重试；未实现飞书分片进度或供应商幂等保证，不能宣称外部恰好一次。
+Console用`/notifications`查看本渠道记录，`/notification retry <完整ID>`明确重试一条dead通知，保留notificationId和累计次数，只新增一轮投递机会。人工重试也可能重复。其他渠道没有新增人工操作界面。
+
+外部已接受但响应丢失、发送后记录sent前崩溃及租约过期都可能重复；记录uncertain并保留Trace。稳定ID和飞书分片uuid不等于供应商幂等承诺。有限重试耗尽仍可能未送达；长消息也可能只送达部分，未实现分片进度恢复。聊天回复、手动Goal通知仍直接发送，提交后崩溃可能丢失。入站接收去重后崩溃仍不重放模型，排队消息仅在内存，不新增入站补偿。
+
+隔离故障注入、架构图和准确指标见[第二轮报告](docs/EVAL_PHASE2.md)。
 
 ## 时间规则
 
@@ -620,8 +622,8 @@ SDK 错误只输出固定类别和可提取的安全状态码，不打印原始�
 Console 输入 → Task Service / AgentExecutor → Pi 交互 Session
                      ↓ SQLite
 独立 Scheduler → 原子领取 → AgentExecutor → 新 Pi 任务 Session
-                     ↓ 执行结果提交
-                 Channel.sendMessage()
+                     ↓ Task/Run结果 + 通知意图（同事务）
+                 Notification Worker → Channel.sendMessage() → 本地确认
 ```
 
 - `contracts.ts`及各业务DTO定义宿主接口；Pi类型集中于`pi-executor.ts`及Task/Memory/Skill/Web工具适配层，业务服务不操作Pi内部对象。V1.2在适配层接入原生Session文件，未修改Pi SDK。
@@ -650,7 +652,7 @@ Console 输入 → Task Service / AgentExecutor → Pi 交互 Session
 
 ## 验证与限制
 
-`npm run typecheck` 同时检查源代码和测试；`npm run build` 输出到 `dist/`；`npm test` 使用 Node 内置测试框架。
+`npm run typecheck` 同时检查源代码和测试；`npm run build` 输出到 `dist/`；`npm test` 使用 Node 内置测试框架。 macOS默认临时目录若经`/var`符号链接，既有Skill路径校验会拒绝；可使用`TMPDIR=/private/tmp npm test`在真实临时路径运行，保留原校验。
 
 测试覆盖时间解析、服务器时区独立性、DST、取消与领取、SQLite 重开恢复、调度关闭、通知失败、用量与脱敏、Pi 生命周期及会话隔离。集成测试在 `127.0.0.1` 上运行临时模拟 Chat Completions API，使用虚拟 Key；进程测试会启动并关闭临时服务及数据库。在禁止回环监听的沙箱内需要允许本地监听。
 
@@ -663,3 +665,9 @@ V2.0 自动化覆盖四类 CRUD、来源/权限、去重/版本冲突、跨进�
 V1核心本机闭环及V1.2上下文跨重启恢复已有真实用户实测反馈；V2.0 Project Memory核心闭环已有真实飞书验收；Retriever真实语义与手机效果仍待验收。V3.1–V3.3及S0本地模拟与真实验收分开记录；S0只含上述纯文本Skills，WebUI、Computer Use、VPS及其他生态不在本轮范围。本版复用已有Run/Events/ModelCalls，不另建评测平台。
 
 官方参考：[Pi SDK](https://pi.dev/docs/latest/sdk)、[1.3.0 完整控制示例](https://github.com/earendil-works/pi/blob/v1.3.0/packages/coding-agent/examples/sdk/12-full-control.ts)、[Node SQLite](https://nodejs.org/api/sqlite.html)。
+
+## 两轮Agent离线评测
+
+`npm run eval:agent`保留原20题；`npm run eval:phase2`运行新增30题。均使用临时数据库、本机Mock API/渠道和真实子进程；不读正式.env或调用收费模型，不发送真实飞书消息。故障进程场景要求POSIX信号，Windows明确跳过。失败返回非零；`--out evals/reports/<新目录>`禁止覆盖既有运行。
+
+第二轮可用`npm run eval:phase2 -- --target <冻结源码绝对路径> --label before --out evals/reports/<新目录>`对固定代码运行同一测试器；冻结树需使用相同依赖。逐题JSON、Trace、Hash和指标保存在报告目录，原始记录默认Git忽略，仅脱敏摘要适合分享。详见[结果](docs/EVAL_RESULTS.md)。

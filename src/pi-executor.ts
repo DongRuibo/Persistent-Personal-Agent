@@ -4,13 +4,15 @@ import { chmod, mkdir, mkdtemp, open, writeFile } from 'node:fs/promises';
 import { rmSync } from 'node:fs';
 import { dirname, isAbsolute, join, resolve, sep } from 'node:path';
 import { InMemoryCredentialStore } from '@earendil-works/pi-ai';
+import { streamSimple as streamCompletions } from '@earendil-works/pi-ai/api/openai-completions';
 import {
   createAgentSession, createExtensionRuntime, createSyntheticSourceInfo, DefaultResourceLoader, formatSkillsForPrompt, ModelRuntime, parseSkillBlock, SessionManager, SettingsManager, stripFrontmatter,
 } from '@earendil-works/pi-coding-agent';
 import type { AgentSession, AgentSessionEvent, ResourceLoader } from '@earendil-works/pi-coding-agent';
 import { Temporal } from '@js-temporal/polyfill';
 import type { Config } from './config.js';
-import { ExecutionInterrupted } from './contracts.js';
+import { ExecutionInterrupted, ExecutionTimeout } from './contracts.js';
+import { ExecutionFailure, httpFailure } from './execution-failure.js';
 import type { AgentExecutor, ExecutionRequest } from './contracts.js';
 import { taskTools } from './task-tools.js';
 import type { TaskService } from './task-service.js';
@@ -51,9 +53,10 @@ export async function runPiSession(session: SessionPort, request: ExecutionReque
   let toolError = false;
   let auditError: unknown;
   let stopped = false;
+  let timedOut = false, contractStopped = false;
+  let contractStopReason: string | undefined;
   let abortError: unknown;
   let workFailure: Error | undefined;
-  let workTimedOut = false;
   const abort = () => {
     if (stopped) return;
     stopped = true;
@@ -77,8 +80,15 @@ export async function runPiSession(session: SessionPort, request: ExecutionReque
             : message.stopReason === 'length' ? '后台工作输出被截断，未完整完成'
             : '后台工作不允许调用工具');
         }
-        // Goal和后台工作没有工具或自动续跑；异常工具提议在下一次模型调用前中止。
-        if ((request.scope === 'goal' || request.scope === 'work') && message.stopReason !== 'stop') abort();
+        // Goal 没有工具或自动续跑；异常工具提议在下一次模型调用前中止。
+        if (request.scope === 'goal' && message.stopReason !== 'stop') {
+          if (!contractStopped) {
+            contractStopReason = message.stopReason;
+            request.observer.event('goal_contract_stopped', JSON.stringify({ stopReason: contractStopReason }));
+          }
+          contractStopped = true; abort();
+        }
+        if (request.scope === 'work' && message.stopReason !== 'stop') abort();
         if (message.stopReason === 'error') modelError = message.errorMessage || '模型请求失败';
         request.observer.modelCall({
           provider: message.provider, model: message.model,
@@ -94,13 +104,13 @@ export async function runPiSession(session: SessionPort, request: ExecutionReque
     }
   });
   request.signal.addEventListener('abort', abort, { once: true });
-  const timeout = setTimeout(() => { if (request.scope === 'work') workTimedOut = true; abort(); }, timeoutMs);
+  const timeout = setTimeout(() => { timedOut = true; abort(); }, timeoutMs);
   try {
     // 防止已有模板或命令改变任务含义；资源发现也由宿主完全关闭。
     await session.prompt(request.prompt, { expandPromptTemplates: false });
     if (auditError) throw new Error('执行日志写入失败', { cause: auditError });
     if (stopped || request.signal.aborted || settled?.aborted || lastStop === 'aborted') {
-      throw new ExecutionInterrupted('执行中断或超时；不自动重试，请核实可能产生的副作用', { cause: abortError });
+      throw new (timedOut ? ExecutionTimeout : ExecutionInterrupted)('执行中断或超时；不自动重试，请核实可能产生的副作用', { cause: abortError });
     }
     if (!settled) throw new Error('Pi 未发出 agent_settled，不能确认执行完成');
     if (modelError) throw new Error(modelError);
@@ -110,11 +120,11 @@ export async function runPiSession(session: SessionPort, request: ExecutionReque
     if (!text?.trim()) throw new Error('模型未返回文本结果');
     return { text };
   } catch (error) {
-    if (error instanceof PiBoundaryError) throw error;
-    // 保护性中止不等于用户中断；真实取消/停机或超时仍优先，旧scope保持原分类。
-    if (workFailure && !request.signal.aborted && !workTimedOut && !auditError) throw workFailure;
+    if (error instanceof PiBoundaryError || error instanceof ExecutionTimeout || error instanceof ExecutionFailure && !request.signal.aborted && !timedOut) throw error;
+    // Work保留首个业务失败；用户控制和真正超时仍优先。
+    if (workFailure && !request.signal.aborted && !timedOut && !auditError) throw workFailure;
     if (!auditError && (stopped || request.signal.aborted)) {
-      throw new ExecutionInterrupted('执行中断或超时；不自动重试，请核实可能产生的副作用');
+      throw new (timedOut ? ExecutionTimeout : ExecutionInterrupted)('执行中断或超时；不自动重试，请核实可能产生的副作用');
     }
     throw error;
   } finally {
@@ -182,6 +192,7 @@ export async function createPiExecutor(config: Config, tasks: TaskService, chatK
   const output=config.localOutput?.enabled?new FileOutputService(config.localOutput.workspace,fileStore!):undefined;
   goals?.setSkills(skills);
   const limits = new AsyncLocalStorage<{ calls: number; request: ExecutionRequest; web: TavilyTurn }>();
+  const transport = new AsyncLocalStorage<{ failure?: ExecutionFailure }>();
   const chargeChat = () => { const current = limits.getStore(); if (current?.request.scope === 'chat' && ++current.calls > 8) throw new Error('Chat本轮8次模型HTTP上限触发；不重试'); };
   if (!config.apiKey || config.apiKey === '<REDACTED>') throw new Error('请在本机环境变量或 .env 中配置 LLM_API_KEY');
   const runtime = await ModelRuntime.create({
@@ -193,6 +204,14 @@ export async function createPiExecutor(config: Config, tasks: TaskService, chatK
     const siliconflow = new URL(config.baseUrl).hostname === 'api.siliconflow.cn';
     runtime.registerProvider(provider, {
       baseUrl: config.baseUrl, api: 'openai-completions', authHeader: true,
+      // 复用公开原生传输，仅在HTTP入口保留状态/Retry-After；SDK错误归一化会丢失这些字段。
+      streamSimple: (model, context, options) => streamCompletions({ ...model, api: 'openai-completions' }, context, {
+        ...options, maxRetries: 0, fetch: async (input, init) => {
+          const response = await (options?.fetch ?? globalThis.fetch)(input, init), current = transport.getStore();
+          if (current && response.status >= 400) current.failure = httpFailure(response.status, response.headers.get('retry-after'));
+          return response;
+        },
+      }),
       models: [{
         id: config.model, name: config.model, reasoning: false, input: ['text'],
         cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
@@ -478,6 +497,7 @@ export async function createPiExecutor(config: Config, tasks: TaskService, chatK
       prompt: async (text, options) => {
         memoryContextError = undefined;
         boundaryError = undefined;
+        const response: { failure?: ExecutionFailure } = {};
         reader?.reset();
         fileTools?.reset();
         providerRequests = 0;
@@ -485,10 +505,11 @@ export async function createPiExecutor(config: Config, tasks: TaskService, chatK
         try {
           const input = `[当前用户时间：${Temporal.Now.zonedDateTimeISO(config.timeZone).toString()}]\n${text}`;
           expectedArgs = input; expanded = false;
-          await session.prompt(skill ? `/skill:${skill.id} ${input}` : input, skill ? { ...options, expandPromptTemplates: true } : options);
+          await transport.run(response, () => session.prompt(skill ? `/skill:${skill.id} ${input}` : input, skill ? { ...options, expandPromptTemplates: true } : options));
         } finally {
           if (boundaryError) throw new PiBoundaryError(boundaryError instanceof Error ? boundaryError.message : String(boundaryError), { cause: boundaryError });
           if (memoryContextError) throw new Error('Memory Context 读取失败，已中止本轮执行；请检查并修复记忆文件', { cause: memoryContextError });
+          if (response.failure) throw response.failure;
         }
       },
     };

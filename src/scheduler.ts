@@ -3,12 +3,15 @@ import { ExecutionInterrupted } from './contracts.js';
 import type { AgentExecutor, Channel, Scheduler } from './contracts.js';
 import { SqliteStore } from './sqlite-store.js';
 import { BackgroundLane } from './background-lane.js';
+import { NotificationWorker } from './notification-worker.js';
 
 export class TaskScheduler implements Scheduler {
   private readonly shutdown = new AbortController();
   private loop?: Promise<void>;
   private busy = false;
   private blockedReason?: string;
+  private readonly notifications: NotificationWorker;
+  private readonly eagerDelivery: boolean;
 
   constructor(
     private readonly store: SqliteStore,
@@ -18,7 +21,12 @@ export class TaskScheduler implements Scheduler {
     private readonly reportError: (error: unknown) => void,
     private readonly clock = () => new Date(),
     private readonly lane = new BackgroundLane(),
-  ) {}
+    notifications?: NotificationWorker,
+  ) {
+    this.eagerDelivery = !notifications;
+    this.notifications = notifications ?? new NotificationWorker(store, channel,
+      { ownerId: 'local-user', accepts: () => true, pollIntervalMs, reportError }, clock);
+  }
 
   start(): void {
     if (this.loop || this.shutdown.signal.aborted) throw new Error('调度器不能重复启动');
@@ -39,7 +47,10 @@ export class TaskScheduler implements Scheduler {
     if (!release) return;
     this.busy = true;
     try {
-      if (!this.store.hasDueTasks(this.clock().toISOString())) return;
+      if (!this.store.hasDueTasks(this.clock().toISOString())) {
+        if (this.eagerDelivery) await this.notifications.tick();
+        return;
+      }
       try { this.executor.checkReady?.(); }
       catch (error) {
         const reason = error instanceof Error ? error.message : String(error);
@@ -54,37 +65,32 @@ export class TaskScheduler implements Scheduler {
       const claimed = this.store.claimDue(this.clock().toISOString());
       if (!claimed) return;
       const { task, run } = claimed;
-      let message: string;
+      let output: string | undefined, failure: string | undefined;
+      let status: 'succeeded' | 'failed' | 'interrupted' = 'succeeded';
       try {
         const result = await this.executor.execute({
           prompt: task.instruction, scope: 'task', signal: this.shutdown.signal,
           observer: this.store.observer(run.id),
         });
         if (this.shutdown.signal.aborted) throw new ExecutionInterrupted('服务正在停止');
-        this.store.finishRun(run.id, 'succeeded', this.clock().toISOString(), result.text);
-        message = result.text;
+        output = result.text;
       } catch (error) {
-        const status = error instanceof ExecutionInterrupted || this.shutdown.signal.aborted ? 'interrupted' : 'failed';
-        const detail = error instanceof Error ? error.message : String(error);
-        this.store.finishRun(run.id, status, this.clock().toISOString(), undefined, detail);
-        message = `任务 ${status}: ${detail}`;
+        status = error instanceof ExecutionInterrupted || this.shutdown.signal.aborted ? 'interrupted' : 'failed';
+        failure = error instanceof Error ? error.message : String(error);
       }
-      // 先提交任务结果，再投递通知；通知失败只记录，不重新执行模型或工具。
-      try {
-        await this.channel.sendMessage({ text: message, taskId: task.id, runId: run.id, target: task.target });
-        this.store.event(run.id, 'delivery_succeeded');
-      } catch (error) {
-        this.store.deliveryFailed(run.id, error instanceof Error ? error.message : String(error));
-        this.reportError(error);
-      }
+      // 模型异常与聚合提交异常分开；Outbox失败整体回滚，不能将已生成结果再伪报模型失败。
+      this.store.finishTaskRun(run.id, status, this.clock().toISOString(), output, failure);
     } finally {
       this.busy = false;
       release();
     }
+    // main注入独立Worker；直接使用Scheduler的既有入口仍保留一次即时投递。
+    if (this.eagerDelivery) await this.notifications.tick();
   }
 
   async stop(): Promise<void> {
     this.shutdown.abort();
     await this.loop;
+    if (this.eagerDelivery) await this.notifications.stop();
   }
 }
