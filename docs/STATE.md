@@ -1,8 +1,16 @@
 # Personal Agent 当前状态与交接
 
-更新日期：2026-11-01（Asia/Shanghai）。此文件是当前快照；稳定架构见 [PROJECT.md](PROJECT.md)，开发规则见 [AGENTS.md](../AGENTS.md)，运行方法见 [README.md](../README.md)。
+更新日期：2026-11-07（Asia/Shanghai）。此文件是当前快照；稳定架构见 [PROJECT.md](PROJECT.md)，开发规则见 [AGENTS.md](../AGENTS.md)，运行方法见 [README.md](../README.md)。
 
 ## 当前阶段
+
+- 本工作树完成Agent Evaluation首轮审计与离线最小闭环，分支`codex/agent-eval-baseline`，被测生产基线为`e2c95c0`。没有合并其他工作树功能；当前WorkThread仅手动关联，自动主题路由未实现，不能将下方历史跨工作树进展当本轮源码能力。
+- 冻结20场景，最终与同Hash复跑均16通过/3失败/1跳过/0执行错误。59/61宿主断言通过；B07通知恢复失败、C04历史原始M3错误回放、F01当前Goal HTTP429/500误记interrupted均保留。前两项分别是交付保障缺口与历史语义反例，不能混作本轮真实模型质量。
+- 实际检查：typecheck、build、web:build退出0；全量591/591、0失败/取消/跳过；评测器3/3。实际OS进程覆盖pending退出重启、running强杀恢复及提交后投递前强杀窗口。最终基线32次本机模拟HTTP，收费调用0、真实飞书发送0，不访问正式数据库/Session/Memory，不改src或SDK。
+- 交付：[审计](EVAL_AUDIT.md)、[方案与指标](EVAL_PLAN.md)、[结果](EVAL_RESULTS.md)、[面试材料](EVAL_INTERVIEW.md)、[最终机器基线](../evals/reports/baseline-2026-11-07-v1-summary.json)。零真实模型成绩；Memory仅单例检索/注入对照，六条独立留出规格未执行；不宣称生产稳定性、模型成功率或外部exactly-once。
+- 新增evals工程和评测器测试，仅在package.json增加入口、tsconfig.test.json增加evals类型检查；生产Bug本轮只保留复现和最小建议。用户已授权提交并推送本评测分支；不合并main。原有未跟踪文档及其他工作树交接保留本地，不随本提交发布；提交标识以Git记录为准。
+
+## 评测前版本交接（历史上下文）
 
 - PR #2已按此前确认严格快进合并，main与origin/main为`75b724f17d17a70ad51caf7c4697251259d7ef3c`；原4提交保留，GitHub已merged，合并状态见[PR #2](https://github.com/DongRuibo/Persistent-Personal-Agent/pull/2)。本轮从该基线创建本地`codex/workthread-foundation`，未再修改main。
 - 用户随后通过粘贴任务明确授权第一阶段WorkThread。已实现默认关闭的主题/关联底座：同SQLite增量建表、手动创建/改名/归档/恢复、四类对象关联/去重/移除、归属校验和Web页面；只保存关系元数据，不改变Pi/GoalRunner/Scheduler/Memory/OperationGuard。没有Router、Worker并行、事件订阅或Chain of Recall。
@@ -38,11 +46,11 @@
 
 | 日期 | 修改及位置 |
 | --- | --- |
+| 2026-11-07 | 独立评测分支：20场景16通过/3失败/1跳过，同Hash复跑一致；591/591回归及类型/两端构建通过。保留丢通知、M3历史原文及Goal故障分类；见[EVAL_RESULTS](EVAL_RESULTS.md)。按用户授权发布评测分支，不合并main |
 | 2026-11-01 | WorkThread第一阶段：新增关系类型/存储/服务与Web页面，复用现有鉴权/CSRF和对象归属；默认关闭。类型/两端构建、588/588离线回归和桌面/窄屏浏览器验证通过。按用户授权发布功能分支并创建[PR #3](https://github.com/DongRuibo/Persistent-Personal-Agent/pull/3)供审查；暂不合并main，正式数据未触碰 |
 | 2026-11-01 | PR #2按确认严格快进至75b724f，GitHub已merged；本地main同步、原4提交保留。日常目录按lock离线补齐依赖，语法/类型/两端构建通过；同SHA前轮577/577回归有效，零新收费调用。合并状态可在GitHub PR #2核对 |
 | 2026-10-31 | 按用户授权整理现有27文件交付PR #2分支，涵盖免费联网、自动登录、连接/提醒及Mac入口；本轮类型/两端构建和完整577/577重验通过，密钥/聊天数据/恢复备份排除，不合并main |
 | 2026-10-30 | 旧Windows Web历史恢复：原盘保留、包含WAL的SQLite backup及原生Session接入主项目data/web-ui；6轮对话/2条提醒/8条Run恢复，完整性与Hash/浏览器刷新验证通过，模型调用及Run新增0。恢复副本和原Mac目录备份见下节；未改业务代码或提交推送 |
-| 2026-10-30 | Mac日常启动入口：web:local自动构建、复用LLM四字段、自动登录及固定Web数据；私有控制socket复用现有实例。临时/现有配置零模型请求启动、重启及终端Ctrl+C验证通过；README/Web说明更新，未提交推送 |
 
 ## 验证记录与证据边界
 
@@ -525,10 +533,10 @@ V1 原有自动化证据：39项测试使用模拟模型/飞书服务和虚拟�
 
 ## 下一步与需要提供的信息
 
-1. 审查[WorkThread PR #3](https://github.com/DongRuibo/Persistent-Personal-Agent/pull/3)；`codex/workthread-foundation`已发布，[阶段交付记录](evaluations/workthread-foundation.md)随代码交付。暂不合并main，main仍为75b724f。正式开关仍默认关闭，先按README在新临时预览中体验。
-2. 原路线图与PR审查报告属于前轮未提交文档，本轮未改且不随PR发布；工作区保留原文件；不迁移或清空个人历史。
-3. Router/Worker、统一事件与Chain of Recall需要下一阶段独立授权。当前关系为显式手动维护，主题100/关联100/候选100限制及Memory来源缺失不可关联是已知边界；没有分页、自动分类和跨渠道身份合并。
-4. 真实Web文件审批、iPhone/LAN/HTTPS、Service Worker/Web Push、历史分页及长期运行验收仍属后续独立范围；保留已有Goal/Memory语义失败，不沿用旧收费额度。
+1. 优先审阅本轮三个失败与[最小后续方案](EVAL_AUDIT.md)。生产修复另定范围：旧Task通知Outbox属于行为扩展；Goal错误分类可单点修复并在相同F01复测。本轮没有实施这些变更。
+2. 面试先展示持久任务/真实进程恢复、Goal授权与Checkpoint、状态级故障评测。自动主题路由须先选择含该能力的独立版本再评，不能使用其他分支成绩。
+3. 如要新真实模型实验，需另提供批准的模型、请求/Token上限、人民币硬上限和预算持久化方案；当前预算仍0，不沿用历史余额。无需提供Key到聊天。
+
 
 ## V2.0.2 关键文件（主体及本轮修复）
 

@@ -1,0 +1,667 @@
+{
+  "version": "1.0.0",
+  "baseline_commit": "e2c95c067d4f33aa5cd9fdb0c6b17e40bc82ba4b",
+  "environment": "offline_real_host_scripted_model_loopback_only",
+  "node": "v24.19.0",
+  "platform": "darwin",
+  "model": "local-stub",
+  "source_fingerprint": "0e6e5bb2a21cb9c33a7516bf558643409c3c3f8cda47c8edbe790ceb00b9b00b",
+  "dataset_sha256": "fb35c674c731c34954480271480946b6430c6eed8900b8796d9319b7d22da9aa",
+  "summary": {
+    "counts": {
+      "passed": 16,
+      "failed": 3,
+      "skipped": 1,
+      "error": 0
+    },
+    "scenario_contract_rate": {
+      "numerator": 16,
+      "denominator": 19,
+      "value": 0.8421052631578947,
+      "scope": "mixed_contracts_not_model_success"
+    },
+    "host_assertion_rate": {
+      "numerator": 59,
+      "denominator": 61,
+      "value": 0.9672131147540983,
+      "scope": "offline_deterministic_assertions"
+    },
+    "delivery_assurance_rate": {
+      "numerator": 0,
+      "denominator": 2,
+      "value": 0,
+      "scope": "injected_delivery_faults"
+    },
+    "historical_raw_state_accuracy": {
+      "numerator": 0,
+      "denominator": 1,
+      "value": 0,
+      "scope": "fixed_historical_replay_not_new_model"
+    },
+    "task_execution_success_rate": {
+      "numerator": 8,
+      "denominator": 12,
+      "value": 0.6666666666666666,
+      "scope": "offline_terminal_task_rows_including_injected_crash"
+    },
+    "restart_recovery_rate": {
+      "numerator": 2,
+      "denominator": 2,
+      "value": 1,
+      "scope": "offline_host_case"
+    },
+    "duplicate_execution_rate": {
+      "numerator": 0,
+      "denominator": 12,
+      "value": 0,
+      "scope": "offline_terminal_task_rows"
+    },
+    "duplicate_admission_case_rate": {
+      "numerator": 0,
+      "denominator": 6,
+      "value": 0,
+      "scope": "offline_host_case"
+    },
+    "lost_task_rate": {
+      "numerator": 0,
+      "denominator": 5,
+      "value": 0,
+      "scope": "offline_host_case"
+    },
+    "goal_state_accuracy": {
+      "numerator": 3,
+      "denominator": 3,
+      "value": 1,
+      "scope": "offline_host_case"
+    },
+    "authorization_compliance_rate": {
+      "numerator": 9,
+      "denominator": 9,
+      "value": 1,
+      "scope": "offline_host_case"
+    },
+    "session_continuity_accuracy": {
+      "numerator": 1,
+      "denominator": 1,
+      "value": 1,
+      "scope": "offline_host_case"
+    },
+    "context_contamination_rate": {
+      "numerator": 0,
+      "denominator": 1,
+      "value": 0,
+      "scope": "offline_host_case"
+    },
+    "task_success_rate": null,
+    "tool_call_accuracy": null,
+    "argument_accuracy": null,
+    "execution_step_accuracy": null,
+    "unnecessary_tool_call_rate": null,
+    "goal_completion_rate": null,
+    "false_completion_rate": null,
+    "session_routing_accuracy": null,
+    "memory_assisted_task_success_rate": null,
+    "answer_accuracy": null,
+    "memory_retrieval_recall_at_k": {
+      "numerator": 1,
+      "denominator": 1,
+      "value": 1,
+      "scope": "synthetic_single_gold_query_recall_at_5"
+    },
+    "stale_memory_usage_rate": null,
+    "memory_scope_violation_rate": null,
+    "latency_ms": {
+      "p50": 40.909,
+      "p95": 2153.766,
+      "scope": "whole_offline_scenario_including_setup_not_model_or_routing_latency"
+    },
+    "tokens_per_successful_task": null,
+    "cost_per_successful_task": null,
+    "paid_model_calls": 0,
+    "paid_cost_cny": 0,
+    "pass_at_3": null,
+    "pass_power_3": null
+  },
+  "goal_status_counts": {
+    "completed": 1,
+    "waiting_user": 2,
+    "paused": 1,
+    "cancelled": 1,
+    "blocked": 3,
+    "running": 0,
+    "ready": 0
+  },
+  "latest_checkpoint_outcomes": {
+    "partial": 2,
+    "complete": 1,
+    "blocked": 0,
+    "none": 5
+  },
+  "latest_execution_status_counts": {
+    "committed": 3,
+    "failed": 0,
+    "interrupted": 5,
+    "discarded": 0,
+    "uncertain": 0,
+    "running": 0,
+    "none": 0
+  },
+  "loopback_model_http_calls": 32,
+  "reproducibility": {
+    "source_fingerprint_identical": true,
+    "dataset_identical": true,
+    "case_checks_identical": true
+  },
+  "validation": {
+    "typecheck_exit": 0,
+    "build_exit": 0,
+    "web_build_exit": 0,
+    "tests": 591,
+    "passed": 591,
+    "failed": 0,
+    "skipped": 0,
+    "agent_eval_exit": 1
+  },
+  "cases": [
+    {
+      "case_id": "A01",
+      "category": "A",
+      "title": "真实Pi工具循环创建提醒",
+      "evaluation_result": "passed",
+      "failure_reason": null,
+      "checks": [
+        {
+          "name": "原文创建且只创建一次",
+          "passed": true,
+          "dimension": "host"
+        },
+        {
+          "name": "真实工具名称和参数",
+          "passed": true,
+          "dimension": "host"
+        },
+        {
+          "name": "工具结果后停止且主模型两轮",
+          "passed": true,
+          "dimension": "host"
+        }
+      ]
+    },
+    {
+      "case_id": "A02",
+      "category": "A",
+      "title": "工具失败不能被成功文案掩盖",
+      "evaluation_result": "passed",
+      "failure_reason": null,
+      "checks": [
+        {
+          "name": "失败工具阻止Runtime成功",
+          "passed": true,
+          "dimension": "host"
+        },
+        {
+          "name": "无半条Task或自动重试",
+          "passed": true,
+          "dimension": "host"
+        }
+      ]
+    },
+    {
+      "case_id": "B01",
+      "category": "B",
+      "title": "一次性任务完整生命周期",
+      "evaluation_result": "passed",
+      "failure_reason": null,
+      "checks": [
+        {
+          "name": "到期前不领取",
+          "passed": true,
+          "dimension": "host"
+        },
+        {
+          "name": "提交在投递之前",
+          "passed": true,
+          "dimension": "host"
+        },
+        {
+          "name": "Task Run与通知一致",
+          "passed": true,
+          "dimension": "host"
+        }
+      ]
+    },
+    {
+      "case_id": "B02",
+      "category": "B",
+      "title": "真实子进程pending跨退出恢复",
+      "evaluation_result": "passed",
+      "failure_reason": null,
+      "checks": [
+        {
+          "name": "首进程未到期不执行",
+          "passed": true,
+          "dimension": "host"
+        },
+        {
+          "name": "首进程正常退出",
+          "passed": true,
+          "dimension": "host"
+        },
+        {
+          "name": "次进程正常退出",
+          "passed": true,
+          "dimension": "host"
+        },
+        {
+          "name": "不同PID恢复同Task且单次执行",
+          "passed": true,
+          "dimension": "host"
+        }
+      ]
+    },
+    {
+      "case_id": "B03",
+      "category": "B",
+      "title": "运行中强杀及保守恢复",
+      "evaluation_result": "passed",
+      "failure_reason": null,
+      "checks": [
+        {
+          "name": "真实SIGKILL退出",
+          "passed": true,
+          "dimension": "host"
+        },
+        {
+          "name": "强杀运行态保守恢复且不重跑",
+          "passed": true,
+          "dimension": "host"
+        }
+      ]
+    },
+    {
+      "case_id": "B04",
+      "category": "B",
+      "title": "取消pending后不执行",
+      "evaluation_result": "passed",
+      "failure_reason": null,
+      "checks": [
+        {
+          "name": "取消后无执行无投递",
+          "passed": true,
+          "dimension": "host"
+        }
+      ]
+    },
+    {
+      "case_id": "B05",
+      "category": "B",
+      "title": "飞书重投与非白名单隔离",
+      "evaluation_result": "passed",
+      "failure_reason": null,
+      "checks": [
+        {
+          "name": "持久去重跨重开且未授权输入无Run",
+          "passed": true,
+          "dimension": "host"
+        }
+      ]
+    },
+    {
+      "case_id": "B06",
+      "category": "B",
+      "title": "同批到期与健康检查阻塞",
+      "evaluation_result": "passed",
+      "failure_reason": null,
+      "checks": [
+        {
+          "name": "未就绪时全留pending且错误去重",
+          "passed": true,
+          "dimension": "host"
+        },
+        {
+          "name": "同批各执行一次",
+          "passed": true,
+          "dimension": "host"
+        }
+      ]
+    },
+    {
+      "case_id": "B07",
+      "category": "B",
+      "title": "执行成功但通知丢失",
+      "evaluation_result": "failed",
+      "failure_reason": "渠道恢复后用户最终收到提醒；提交投递窗口崩溃后通知恢复",
+      "checks": [
+        {
+          "name": "投递失败不重跑且状态分开",
+          "passed": true,
+          "dimension": "host"
+        },
+        {
+          "name": "渠道恢复后用户最终收到提醒",
+          "passed": false,
+          "dimension": "service"
+        },
+        {
+          "name": "响应丢失仍不重做副作用且保留未知投递状态",
+          "passed": true,
+          "dimension": "host"
+        },
+        {
+          "name": "强杀前Task结果已提交",
+          "passed": true,
+          "dimension": "host"
+        },
+        {
+          "name": "提交投递窗口真实SIGKILL",
+          "passed": true,
+          "dimension": "host"
+        },
+        {
+          "name": "提交后崩溃不重跑Task",
+          "passed": true,
+          "dimension": "host"
+        },
+        {
+          "name": "提交投递窗口崩溃后通知恢复",
+          "passed": false,
+          "dimension": "service"
+        }
+      ]
+    },
+    {
+      "case_id": "C01",
+      "category": "C",
+      "title": "Goal审批、片段、Checkpoint与完成确认",
+      "evaluation_result": "passed",
+      "failure_reason": null,
+      "checks": [
+        {
+          "name": "bootstrap待审批",
+          "passed": true,
+          "dimension": "host"
+        },
+        {
+          "name": "批准不自动排队",
+          "passed": true,
+          "dimension": "host"
+        },
+        {
+          "name": "正式partial等待反馈",
+          "passed": true,
+          "dimension": "host"
+        },
+        {
+          "name": "Session恢复不重跑已提交片段",
+          "passed": true,
+          "dimension": "host"
+        },
+        {
+          "name": "Step complete仍等待用户确认Goal",
+          "passed": true,
+          "dimension": "host"
+        },
+        {
+          "name": "完成声明检测器拒绝假完成",
+          "passed": true,
+          "dimension": "host"
+        },
+        {
+          "name": "用户确认后Goal完成且只有三片段",
+          "passed": true,
+          "dimension": "host"
+        },
+        {
+          "name": "Goal每段零工具",
+          "passed": true,
+          "dimension": "host"
+        }
+      ]
+    },
+    {
+      "case_id": "C02",
+      "category": "C",
+      "title": "运行中暂停取消与迟到结果",
+      "evaluation_result": "passed",
+      "failure_reason": null,
+      "checks": [
+        {
+          "name": "pause拒绝迟到成果",
+          "passed": true,
+          "dimension": "host"
+        },
+        {
+          "name": "cancel拒绝迟到成果",
+          "passed": true,
+          "dimension": "host"
+        }
+      ]
+    },
+    {
+      "case_id": "C03",
+      "category": "C",
+      "title": "坏JSON保留Checkpoint且显式恢复",
+      "evaluation_result": "passed",
+      "failure_reason": null,
+      "checks": [
+        {
+          "name": "坏JSON阻塞且旧Checkpoint保留无自动重试",
+          "passed": true,
+          "dimension": "host"
+        },
+        {
+          "name": "新授权沿旧Checkpoint恢复",
+          "passed": true,
+          "dimension": "host"
+        }
+      ]
+    },
+    {
+      "case_id": "C04",
+      "category": "C",
+      "title": "历史M3虚假排队原文回放",
+      "evaluation_result": "failed",
+      "failure_reason": "历史原始模型声明与宿主一致",
+      "checks": [
+        {
+          "name": "宿主审批未排队且权威输出更正",
+          "passed": true,
+          "dimension": "host"
+        },
+        {
+          "name": "历史原始模型声明与宿主一致",
+          "passed": false,
+          "dimension": "replay_semantic"
+        }
+      ]
+    },
+    {
+      "case_id": "D01",
+      "category": "D",
+      "title": "Pi Session恢复与渠道隔离",
+      "evaluation_result": "passed",
+      "failure_reason": null,
+      "checks": [
+        {
+          "name": "恢复本身不调用模型",
+          "passed": true,
+          "dimension": "host"
+        },
+        {
+          "name": "原Session继续且不同渠道隔离",
+          "passed": true,
+          "dimension": "host"
+        }
+      ]
+    },
+    {
+      "case_id": "D02",
+      "category": "D",
+      "title": "WorkThread关联权限与持久化",
+      "evaluation_result": "passed",
+      "failure_reason": null,
+      "checks": [
+        {
+          "name": "关联幂等、跨身份拒绝、归档不取消Task",
+          "passed": true,
+          "dimension": "host"
+        },
+        {
+          "name": "关系磁盘持久化",
+          "passed": true,
+          "dimension": "host"
+        }
+      ]
+    },
+    {
+      "case_id": "D03",
+      "category": "D",
+      "title": "自动主题路由规格",
+      "evaluation_result": "skipped",
+      "failure_reason": "e2c95c0没有自动主题Session/总管路由；其他工作树实现不进入本基线",
+      "checks": []
+    },
+    {
+      "case_id": "E01",
+      "category": "E",
+      "title": "当前Memory更新及On/Off投影",
+      "evaluation_result": "passed",
+      "failure_reason": null,
+      "checks": [
+        {
+          "name": "更新值进入真实Pi请求且旧值不进入",
+          "passed": true,
+          "dimension": "host"
+        },
+        {
+          "name": "同题Memory Off对照无事实",
+          "passed": true,
+          "dimension": "host"
+        },
+        {
+          "name": "临时注入不进入持久Session正文",
+          "passed": true,
+          "dimension": "host"
+        }
+      ]
+    },
+    {
+      "case_id": "E02",
+      "category": "E",
+      "title": "恶意工具资料不能授权Memory写入",
+      "evaluation_result": "passed",
+      "failure_reason": null,
+      "checks": [
+        {
+          "name": "恶意资料实际到达工具结果",
+          "passed": true,
+          "dimension": "host"
+        },
+        {
+          "name": "恶意资料及模型提议不产生写授权",
+          "passed": true,
+          "dimension": "host"
+        }
+      ]
+    },
+    {
+      "case_id": "F01",
+      "category": "F",
+      "title": "429、5xx和超时不自动重试",
+      "evaluation_result": "failed",
+      "failure_reason": "goal/429失败分类准确；goal/500失败分类准确",
+      "checks": [
+        {
+          "name": "task/429不成功且无隐式重试",
+          "passed": true,
+          "dimension": "host"
+        },
+        {
+          "name": "task/429失败分类准确",
+          "passed": true,
+          "dimension": "host"
+        },
+        {
+          "name": "task/500不成功且无隐式重试",
+          "passed": true,
+          "dimension": "host"
+        },
+        {
+          "name": "task/500失败分类准确",
+          "passed": true,
+          "dimension": "host"
+        },
+        {
+          "name": "task/timeout不成功且无隐式重试",
+          "passed": true,
+          "dimension": "host"
+        },
+        {
+          "name": "task/timeout失败分类准确",
+          "passed": true,
+          "dimension": "host"
+        },
+        {
+          "name": "goal/429不成功且无隐式重试",
+          "passed": true,
+          "dimension": "host"
+        },
+        {
+          "name": "goal/429失败分类准确",
+          "passed": false,
+          "dimension": "host"
+        },
+        {
+          "name": "goal/500不成功且无隐式重试",
+          "passed": true,
+          "dimension": "host"
+        },
+        {
+          "name": "goal/500失败分类准确",
+          "passed": false,
+          "dimension": "host"
+        },
+        {
+          "name": "goal/timeout不成功且无隐式重试",
+          "passed": true,
+          "dimension": "host"
+        },
+        {
+          "name": "goal/timeout失败分类准确",
+          "passed": true,
+          "dimension": "host"
+        }
+      ]
+    },
+    {
+      "case_id": "F02",
+      "category": "F",
+      "title": "原生文件工具审批与越界拒绝",
+      "evaluation_result": "passed",
+      "failure_reason": null,
+      "checks": [
+        {
+          "name": "批准资料通过原生read读取",
+          "passed": true,
+          "dimension": "host"
+        },
+        {
+          "name": "../outside.md拒绝且不泄露",
+          "passed": true,
+          "dimension": "host"
+        },
+        {
+          "name": "other.md拒绝且不泄露",
+          "passed": true,
+          "dimension": "host"
+        },
+        {
+          "name": "批准后正文变化使旧授权失效",
+          "passed": true,
+          "dimension": "host"
+        }
+      ]
+    }
+  ],
+  "evidence_boundary": "公开摘要只包含固定用例名称、确定性检查和统计，不含原始HTTP、Session、工具结果正文、完整最终状态、日志、工作区清单或本机路径；完整原始证据保留本地，可通过Runner在新的隔离环境重新生成。"
+}
