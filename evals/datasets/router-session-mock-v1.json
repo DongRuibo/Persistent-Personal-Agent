@@ -1,0 +1,314 @@
+{
+  "schema_version": 1,
+  "version": "fixed-mock-v1",
+  "note": "逐题固定提议，与gold独立保存。不测真实语义。部分错误create/use用于检验宿主边界；允许拒绝但不能自动算gold命中。",
+  "cases": {
+    "N01": {
+      "kind": "create",
+      "target": "fitness"
+    },
+    "N02": {
+      "kind": "create",
+      "target": "career"
+    },
+    "N03": {
+      "kind": "create",
+      "target": "photo"
+    },
+    "N04": {
+      "kind": "create",
+      "target": "english"
+    },
+    "N05": {
+      "kind": "daily"
+    },
+    "N06": {
+      "kind": "daily"
+    },
+    "N07": {
+      "kind": "use",
+      "target": "legacy"
+    },
+    "N08": {
+      "kind": "create",
+      "target": "photo"
+    },
+    "R01": {
+      "kind": "use",
+      "target": "fitness"
+    },
+    "R02": {
+      "kind": "use",
+      "target": "career"
+    },
+    "R03": {
+      "kind": "use",
+      "target": "alpha"
+    },
+    "R04": {
+      "kind": "use",
+      "target": "fitness"
+    },
+    "R05": {
+      "kind": "use",
+      "target": "career"
+    },
+    "R06": {
+      "kind": "use",
+      "target": "alpha"
+    },
+    "R07": {
+      "kind": "use",
+      "target": "fitness"
+    },
+    "R08": {
+      "kind": "use",
+      "target": "career"
+    },
+    "S01": {
+      "kind": "use",
+      "target": "fitness"
+    },
+    "S02": {
+      "kind": "use",
+      "target": "career"
+    },
+    "S03": {
+      "kind": "use",
+      "target": "alpha"
+    },
+    "S04": {
+      "kind": "use",
+      "target": "fitness"
+    },
+    "S05": {
+      "kind": "use",
+      "target": "career"
+    },
+    "S06": {
+      "kind": "use",
+      "target": "alpha"
+    },
+    "S07": {
+      "kind": "use",
+      "target": "fitness"
+    },
+    "S08": {
+      "kind": "use",
+      "target": "career"
+    },
+    "T01": {
+      "kind": "use",
+      "target": "fitness"
+    },
+    "T02": {
+      "kind": "use",
+      "target": "career"
+    },
+    "T03": {
+      "kind": "use",
+      "target": "alpha"
+    },
+    "T04": {
+      "kind": "use",
+      "target": "fitness"
+    },
+    "T05": {
+      "kind": "use",
+      "target": "fitness"
+    },
+    "T06": {
+      "kind": "use",
+      "target": "career"
+    },
+    "T07": {
+      "kind": "use",
+      "target": "alpha"
+    },
+    "T08": {
+      "kind": "use",
+      "target": "fitness"
+    },
+    "M01": {
+      "kind": "clarify"
+    },
+    "M02": {
+      "kind": "clarify"
+    },
+    "M03": {
+      "kind": "use",
+      "target": "fitness"
+    },
+    "M04": {
+      "kind": "use",
+      "target": "career"
+    },
+    "M05": {
+      "kind": "clarify"
+    },
+    "M06": {
+      "kind": "use",
+      "target": "career"
+    },
+    "M07": {
+      "kind": "use",
+      "target": "career"
+    },
+    "M08": {
+      "kind": "clarify"
+    },
+    "P01": {
+      "kind": "use",
+      "target": "fitness"
+    },
+    "P02": {
+      "kind": "use",
+      "target": "career"
+    },
+    "P03": {
+      "kind": "use",
+      "target": "alpha"
+    },
+    "P04": {
+      "kind": "clarify"
+    },
+    "P05": {
+      "kind": "daily"
+    },
+    "P06": {
+      "kind": "daily"
+    },
+    "P07": {
+      "kind": "daily"
+    },
+    "P08": {
+      "kind": "use",
+      "target": "alpha"
+    },
+    "U01": {
+      "kind": "clarify"
+    },
+    "U02": {
+      "kind": "use",
+      "target": "sameA"
+    },
+    "U03": {
+      "kind": "clarify"
+    },
+    "U04": {
+      "kind": "use",
+      "target": "legacy"
+    },
+    "U05": {
+      "kind": "create",
+      "target": "photo"
+    },
+    "U06": {
+      "kind": "create",
+      "target": "writing"
+    },
+    "U07": {
+      "kind": "clarify"
+    },
+    "U08": {
+      "kind": "use",
+      "target": "legacy"
+    },
+    "K01": {
+      "kind": "use",
+      "target": "fitness"
+    },
+    "K02": {
+      "kind": "use",
+      "target": "career"
+    },
+    "K03": {
+      "kind": "use",
+      "target": "fitness"
+    },
+    "K04": {
+      "kind": "use",
+      "target": "career"
+    },
+    "K05": {
+      "kind": "use",
+      "target": "fitness"
+    },
+    "K06": {
+      "kind": "use",
+      "target": "career"
+    },
+    "K07": {
+      "kind": "use",
+      "target": "fitness"
+    },
+    "K08": {
+      "kind": "use",
+      "target": "career"
+    },
+    "C01": {
+      "kind": "use",
+      "target": "career"
+    },
+    "C02": {
+      "kind": "use",
+      "target": "career"
+    },
+    "C03": {
+      "kind": "use",
+      "target": "career"
+    },
+    "C04": {
+      "kind": "use",
+      "target": "alpha"
+    },
+    "C05": {
+      "kind": "use",
+      "target": "fitness"
+    },
+    "C06": {
+      "kind": "use",
+      "target": "career"
+    },
+    "C07": {
+      "kind": "use",
+      "target": "career"
+    },
+    "C08": {
+      "kind": "use",
+      "target": "fitness"
+    },
+    "L01": {
+      "kind": "use",
+      "target": "beta"
+    },
+    "L02": {
+      "kind": "use",
+      "target": "career"
+    },
+    "L03": {
+      "kind": "use",
+      "target": "photo"
+    },
+    "L04": {
+      "kind": "use",
+      "target": "fitness"
+    },
+    "L05": {
+      "kind": "use",
+      "target": "english"
+    },
+    "L06": {
+      "kind": "use",
+      "target": "writing"
+    },
+    "L07": {
+      "kind": "use",
+      "target": "fitness"
+    },
+    "L08": {
+      "kind": "use",
+      "target": "alpha"
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "source_path": "/Users/onruio/Documents/Codex/Projects/Persistent Personal Agent/evals/reports/phase2-2026-11-07-v1-summary.json",
+  "source_sha256": "4922607f2a6213bbd1791c0e60f11bcc1b2d952af7b52eae8780d70fd23c6b00",
+  "branch": "codex/notification-goal-recovery",
+  "production_baseline": "e2c95c067d4f33aa5cd9fdb0c6b17e40bc82ba4b",
+  "dataset_sha256": "125c3f54784e47984bc98f8c19a9355a62aacfe047403957fa208ca56fec10ef",
+  "fault_cases": {
+    "passed": 30,
+    "total": 30
+  },
+  "notification_recovery": {
+    "numerator": 6,
+    "denominator": 6,
+    "value": 1,
+    "scope": "fixed_6_recoverable_fault_cases_require_external_and_local_confirmation"
+  },
+  "http_classification": {
+    "case_ids": [
+      "N05",
+      "N06",
+      "G01",
+      "G02",
+      "G03",
+      "G05",
+      "G06",
+      "G12"
+    ],
+    "passed": 8,
+    "total": 8
+  },
+  "note": "历史隔离通知基线；只引用来源，不计入Router成绩，不代表ead27a7包含通知修复。"
+}

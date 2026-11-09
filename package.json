@@ -19,7 +19,9 @@
     "web:preview:offline": "node --import tsx scripts/preview-web-ui.ts",
     "test": "node --import tsx --test tests/*.test.ts",
     "eval:memory": "node --import tsx scripts/evaluate-memory.ts",
-    "eval:formation": "node --import tsx scripts/evaluate-formation.ts"
+    "eval:formation": "node --import tsx scripts/evaluate-formation.ts",
+    "eval:router": "node --import tsx evals/runners/router-session.ts",
+    "eval:router:typecheck": "tsc -p evals/tsconfig.json"
   },
   "dependencies": {
     "@earendil-works/pi-ai": "1.3.0",

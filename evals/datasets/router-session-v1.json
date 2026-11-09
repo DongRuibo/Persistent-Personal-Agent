@@ -1,0 +1,3845 @@
+{
+  "schema_version": 1,
+  "version": "router-session-v1",
+  "annotation_status": "agent_authored_reviewable_not_independent_human_validated",
+  "categories": {
+    "N": "新主题与日常对照",
+    "R": "延续旧主题",
+    "S": "同主题新子任务",
+    "T": "主题切换",
+    "M": "同时提及多主题",
+    "P": "代词与上下文引用",
+    "U": "不明确与澄清",
+    "K": "强杀重启",
+    "C": "跨主题引用与Memory",
+    "L": "多个Session选择与候选边界"
+  },
+  "topics": {
+    "fitness": {
+      "title": "健身",
+      "description": "训练、饮食与每周反馈"
+    },
+    "career": {
+      "title": "求职",
+      "description": "简历、自我介绍与面试准备"
+    },
+    "alpha": {
+      "title": "项目Alpha",
+      "description": "Alpha代码与登录模块"
+    },
+    "beta": {
+      "title": "项目Beta",
+      "description": "Beta代码与登录模块"
+    },
+    "photo": {
+      "title": "摄影",
+      "description": "拍摄与后期练习"
+    },
+    "writing": {
+      "title": "写作",
+      "description": "小说与文字练习"
+    },
+    "english": {
+      "title": "英语",
+      "description": "口语与阅读练习"
+    },
+    "travel": {
+      "title": "旅行",
+      "description": "旅行路线与行程"
+    },
+    "legacy": {
+      "title": "旧资料",
+      "description": "尚未建立对话绑定"
+    },
+    "sameA": {
+      "title": "登录项目",
+      "description": "内部系统甲"
+    },
+    "sameB": {
+      "title": "登录项目",
+      "description": "外部系统乙"
+    },
+    "extra01": {
+      "title": "额外主题01",
+      "description": "候选数量边界对照"
+    },
+    "extra02": {
+      "title": "额外主题02",
+      "description": "候选数量边界对照"
+    },
+    "extra03": {
+      "title": "额外主题03",
+      "description": "候选数量边界对照"
+    },
+    "extra04": {
+      "title": "额外主题04",
+      "description": "候选数量边界对照"
+    },
+    "extra05": {
+      "title": "额外主题05",
+      "description": "候选数量边界对照"
+    },
+    "extra06": {
+      "title": "额外主题06",
+      "description": "候选数量边界对照"
+    },
+    "extra07": {
+      "title": "额外主题07",
+      "description": "候选数量边界对照"
+    },
+    "extra08": {
+      "title": "额外主题08",
+      "description": "候选数量边界对照"
+    },
+    "extra09": {
+      "title": "额外主题09",
+      "description": "候选数量边界对照"
+    },
+    "extra10": {
+      "title": "额外主题10",
+      "description": "候选数量边界对照"
+    },
+    "extra11": {
+      "title": "额外主题11",
+      "description": "候选数量边界对照"
+    },
+    "extra12": {
+      "title": "额外主题12",
+      "description": "候选数量边界对照"
+    },
+    "extra13": {
+      "title": "额外主题13",
+      "description": "候选数量边界对照"
+    },
+    "extra14": {
+      "title": "额外主题14",
+      "description": "候选数量边界对照"
+    },
+    "extra15": {
+      "title": "额外主题15",
+      "description": "候选数量边界对照"
+    },
+    "extra16": {
+      "title": "额外主题16",
+      "description": "候选数量边界对照"
+    },
+    "extra17": {
+      "title": "额外主题17",
+      "description": "候选数量边界对照"
+    },
+    "extra18": {
+      "title": "额外主题18",
+      "description": "候选数量边界对照"
+    }
+  },
+  "cases": [
+    {
+      "case_id": "N01",
+      "category": "N",
+      "title": "新主题与日常对照：以后在这里长期帮我健身。",
+      "user_input": "以后在这里长期帮我健身。",
+      "initial_state": {
+        "topics": [],
+        "current_topic": null,
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {}
+      },
+      "expected": {
+        "route": "create",
+        "target": "fitness",
+        "session": "create",
+        "new_topics": 1,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "仅当前明确持续用途允许创建绑定；无唯一对象则澄清，日常请求不建主题。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "N02",
+      "category": "N",
+      "title": "新主题与日常对照：今后持续帮我准备求职。",
+      "user_input": "今后持续帮我准备求职。",
+      "initial_state": {
+        "topics": [
+          "fitness"
+        ],
+        "current_topic": "fitness",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "create",
+        "target": "career",
+        "session": "create",
+        "new_topics": 1,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "仅当前明确持续用途允许创建绑定；无唯一对象则澄清，日常请求不建主题。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "N03",
+      "category": "N",
+      "title": "新主题与日常对照：以后和我持续讨论摄影。",
+      "user_input": "以后和我持续讨论摄影。",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "fitness",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "create",
+        "target": "photo",
+        "session": "create",
+        "new_topics": 1,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "仅当前明确持续用途允许创建绑定；无唯一对象则澄清，日常请求不建主题。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "N04",
+      "category": "N",
+      "title": "新主题与日常对照：长期辅助我进行英语练习。",
+      "user_input": "长期辅助我进行英语练习。",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "career",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "create",
+        "target": "english",
+        "session": "create",
+        "new_topics": 1,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "仅当前明确持续用途允许创建绑定；无唯一对象则澄清，日常请求不建主题。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "N05",
+      "category": "N",
+      "title": "新主题与日常对照：写一句朋友生日祝福。",
+      "user_input": "写一句朋友生日祝福。",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "career",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "daily",
+        "target": null,
+        "session": "none",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "仅当前明确持续用途允许创建绑定；无唯一对象则澄清，日常请求不建主题。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "N06",
+      "category": "N",
+      "title": "新主题与日常对照：解释一下闭包，先不要创建主题。",
+      "user_input": "解释一下闭包，先不要创建主题。",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "fitness",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "daily",
+        "target": null,
+        "session": "none",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "仅当前明确持续用途允许创建绑定；无唯一对象则澄清，日常请求不建主题。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "N07",
+      "category": "N",
+      "title": "新主题与日常对照：以后帮我持续跟进旧资料主题。",
+      "user_input": "以后帮我持续跟进旧资料主题。",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "fitness",
+        "unbound_topics": [
+          "legacy"
+        ],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "legacy",
+        "session": "create",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "仅当前明确持续用途允许创建绑定；无唯一对象则澄清，日常请求不建主题。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "N08",
+      "category": "N",
+      "title": "新主题与日常对照：他说“以后帮我健身”，请解释这句话，不创建任何主题。",
+      "user_input": "他说“以后帮我健身”，请解释这句话，不创建任何主题。",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "fitness",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "daily",
+        "target": null,
+        "session": "none",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "引文不提供持续主题许可；正确路由应为日常。固定错误Mock提议只用于暴露宿主与语义决策的差别。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "R01",
+      "category": "R",
+      "title": "延续旧主题：健身这周怎么调整训练量？",
+      "user_input": "健身这周怎么调整训练量？",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "career",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "fitness",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "R02",
+      "category": "R",
+      "title": "延续旧主题：继续完善求职自我介绍。",
+      "user_input": "继续完善求职自我介绍。",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "fitness",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "career",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "R03",
+      "category": "R",
+      "title": "延续旧主题：项目Alpha登录接口还要注意什么？",
+      "user_input": "项目Alpha登录接口还要注意什么？",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "fitness",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "alpha",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "R04",
+      "category": "R",
+      "title": "延续旧主题：饮食安排需要和训练日对应吗？",
+      "user_input": "饮食安排需要和训练日对应吗？",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "career",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "fitness",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "R05",
+      "category": "R",
+      "title": "延续旧主题：面试时怎么解释我的项目贡献？",
+      "user_input": "面试时怎么解释我的项目贡献？",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "fitness",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "career",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "R06",
+      "category": "R",
+      "title": "延续旧主题：项目Alpha的错误日志该怎么看？",
+      "user_input": "项目Alpha的错误日志该怎么看？",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "fitness",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "alpha",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "R07",
+      "category": "R",
+      "title": "延续旧主题：帮我复习之前的训练约束。",
+      "user_input": "帮我复习之前的训练约束。",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "career",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "fitness",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "R08",
+      "category": "R",
+      "title": "延续旧主题：求职简历里项目经历怎么组织？",
+      "user_input": "求职话题继续。用户的回答语言偏好是什么？",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "fitness",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "career",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "shared_memory",
+        "allowed_private_aliases": [],
+        "shared_memory_required": true,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "restart": null,
+      "memory": "shared"
+    },
+    {
+      "case_id": "S01",
+      "category": "S",
+      "title": "同主题新子任务：健身主题里，新增一个肩部热身小问题。",
+      "user_input": "健身主题里，新增一个肩部热身小问题。",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "fitness",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "fitness",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "S02",
+      "category": "S",
+      "title": "同主题新子任务：求职主题里，把自我介绍压缩到一分钟。",
+      "user_input": "求职主题里，把自我介绍压缩到一分钟。",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "career",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "career",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "S03",
+      "category": "S",
+      "title": "同主题新子任务：项目Alpha里，再解释一下登录重试。",
+      "user_input": "项目Alpha里，再解释一下登录重试。",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "alpha",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "alpha",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "S04",
+      "category": "S",
+      "title": "同主题新子任务：健身饮食部分想问早餐怎么搭配。",
+      "user_input": "健身饮食部分想问早餐怎么搭配。",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "fitness",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "fitness",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "S05",
+      "category": "S",
+      "title": "同主题新子任务：求职简历之外，再练一道行为面试题。",
+      "user_input": "求职简历之外，再练一道行为面试题。",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "career",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "career",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "S06",
+      "category": "S",
+      "title": "同主题新子任务：项目Alpha新增日志采样子问题。",
+      "user_input": "项目Alpha新增日志采样子问题。",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "alpha",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "alpha",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "S07",
+      "category": "S",
+      "title": "同主题新子任务：健身训练表换成表格给我看。",
+      "user_input": "健身训练表换成表格给我看。",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "fitness",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "fitness",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "S08",
+      "category": "S",
+      "title": "同主题新子任务：求职内容改写成更口语的表达。",
+      "user_input": "求职内容改写成更口语的表达。",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "career",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "career",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "T01",
+      "category": "T",
+      "title": "主题切换：切到健身",
+      "user_input": "切到健身",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "career",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "fitness",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "T02",
+      "category": "T",
+      "title": "主题切换：切换到求职",
+      "user_input": "切换到求职",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "fitness",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "career",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "T03",
+      "category": "T",
+      "title": "主题切换：转到项目Alpha",
+      "user_input": "转到项目Alpha",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "career",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "alpha",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "T04",
+      "category": "T",
+      "title": "主题切换：不是求职，是健身",
+      "user_input": "不是求职，是健身",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "career",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "fitness",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "T05",
+      "category": "T",
+      "title": "主题切换：切到健身，今天如何安排力量训练？",
+      "user_input": "切到健身，今天如何安排力量训练？",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "career",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "fitness",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "T06",
+      "category": "T",
+      "title": "主题切换：切到求职，先聊面试自我介绍。",
+      "user_input": "切到求职，先聊面试自我介绍。",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "fitness",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "career",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "T07",
+      "category": "T",
+      "title": "主题切换：在项目Alpha继续讨论登录错误。",
+      "user_input": "在项目Alpha继续讨论登录错误。",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "career",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "alpha",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "T08",
+      "category": "T",
+      "title": "主题切换：回到健身，调整本周训练计划的说明。",
+      "user_input": "回到健身，调整本周训练计划的说明。",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "career",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "fitness",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "M01",
+      "category": "M",
+      "title": "同时提及多主题：健身和求职两件事都要继续，先处理哪件还没想好。",
+      "user_input": "健身和求职两件事都要继续，先处理哪件还没想好。",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "fitness",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "clarify",
+        "target": null,
+        "session": "none",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "仅当前明确持续用途允许创建绑定；无唯一对象则澄清，日常请求不建主题。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "M02",
+      "category": "M",
+      "title": "同时提及多主题：同时修改项目Alpha和项目Beta的登录设计。",
+      "user_input": "同时修改项目Alpha和项目Beta的登录设计。",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "alpha",
+          "beta"
+        ],
+        "current_topic": "alpha",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ],
+          "beta": [
+            "以后帮我持续跟进项目Beta，范围是Beta代码与登录模块。仅此主题的私有信息：{{canary:beta}}",
+            "项目Beta，范围Beta代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "clarify",
+        "target": null,
+        "session": "none",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "仅当前明确持续用途允许创建绑定；无唯一对象则澄清，日常请求不建主题。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "M03",
+      "category": "M",
+      "title": "同时提及多主题：在求职继续聊，参考一下健身这个主题名来打比方。",
+      "user_input": "在求职继续聊，参考一下健身这个主题名来打比方。",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "career",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "career",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "M04",
+      "category": "M",
+      "title": "同时提及多主题：切到健身，参考求职里的表达方式解释训练安排。",
+      "user_input": "切到健身，参考求职里的表达方式解释训练安排。",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "career",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "fitness",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "M05",
+      "category": "M",
+      "title": "同时提及多主题：项目Alpha和项目Beta都叫登录问题，我还没说是",
+      "user_input": "项目Alpha和项目Beta都叫登录问题，我还没说是哪一个。",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "alpha",
+          "beta"
+        ],
+        "current_topic": "alpha",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ],
+          "beta": [
+            "以后帮我持续跟进项目Beta，范围是Beta代码与登录模块。仅此主题的私有信息：{{canary:beta}}",
+            "项目Beta，范围Beta代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "clarify",
+        "target": null,
+        "session": "none",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "仅当前明确持续用途允许创建绑定；无唯一对象则澄清，日常请求不建主题。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "M06",
+      "category": "M",
+      "title": "同时提及多主题：求职是当前目的，项目Alpha只是简历里提到的经历。",
+      "user_input": "求职是当前目的，项目Alpha只是简历里提到的经历。",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "career",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "career",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "M07",
+      "category": "M",
+      "title": "同时提及多主题：健身先放一边，这次讨论求职面试。",
+      "user_input": "健身先放一边，这次讨论求职面试。",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "fitness",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "career",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "M08",
+      "category": "M",
+      "title": "同时提及多主题：先健身还是先求职？我想先确定要讨论哪件。",
+      "user_input": "先健身还是先求职？我想先确定要讨论哪件。",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "fitness",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "clarify",
+        "target": null,
+        "session": "none",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "仅当前明确持续用途允许创建绑定；无唯一对象则澄清，日常请求不建主题。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "P01",
+      "category": "P",
+      "title": "代词与上下文引用：那个训练动作怎么做？",
+      "user_input": "那个训练动作怎么做？",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "fitness",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "fitness",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "P02",
+      "category": "P",
+      "title": "代词与上下文引用：这段自我介绍再短一点。",
+      "user_input": "这段自我介绍再短一点。",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "career",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "career",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "P03",
+      "category": "P",
+      "title": "代词与上下文引用：刚才那处登录错误，再解释一下原因。",
+      "user_input": "刚才那处登录错误，再解释一下原因。",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "alpha",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "alpha",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "P04",
+      "category": "P",
+      "title": "代词与上下文引用：那个计划改一下。",
+      "user_input": "那个计划改一下。",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "fitness",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "clarify",
+        "target": null,
+        "session": "none",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "多个主题均有计划，未提供唯一业务引用，不应按最近对象执行。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "P05",
+      "category": "P",
+      "title": "代词与上下文引用：确认",
+      "user_input": "确认",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "fitness",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "clarify",
+        "target": null,
+        "session": "none",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "仅当前明确持续用途允许创建绑定；无唯一对象则澄清，日常请求不建主题。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "P06",
+      "category": "P",
+      "title": "代词与上下文引用：第二个",
+      "user_input": "第二个",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "fitness",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "clarify",
+        "target": null,
+        "session": "none",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "仅当前明确持续用途允许创建绑定；无唯一对象则澄清，日常请求不建主题。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "P07",
+      "category": "P",
+      "title": "代词与上下文引用：就这样",
+      "user_input": "就这样",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "fitness",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "clarify",
+        "target": null,
+        "session": "none",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "仅当前明确持续用途允许创建绑定；无唯一对象则澄清，日常请求不建主题。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "P08",
+      "category": "P",
+      "title": "代词与上下文引用：接着说，换个更简单的解释。",
+      "user_input": "接着说，换个更简单的解释。",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "alpha",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "alpha",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "U01",
+      "category": "U",
+      "title": "不明确与澄清：继续那个事情。",
+      "user_input": "继续那个事情。",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": null,
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "clarify",
+        "target": null,
+        "session": "none",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "仅当前明确持续用途允许创建绑定；无唯一对象则澄清，日常请求不建主题。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "U02",
+      "category": "U",
+      "title": "不明确与澄清：切到登录项目",
+      "user_input": "切到登录项目",
+      "initial_state": {
+        "topics": [
+          "sameA",
+          "sameB"
+        ],
+        "current_topic": null,
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "sameA": [
+            "以后帮我持续跟进登录项目，范围是内部系统甲。仅此主题的私有信息：{{canary:sameA}}",
+            "登录项目，范围内部系统甲，继续第1轮普通讨论。"
+          ],
+          "sameB": [
+            "以后帮我持续跟进登录项目，范围是外部系统乙。仅此主题的私有信息：{{canary:sameB}}",
+            "登录项目，范围外部系统乙，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "clarify",
+        "target": null,
+        "session": "none",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "仅当前明确持续用途允许创建绑定；无唯一对象则澄清，日常请求不建主题。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "U03",
+      "category": "U",
+      "title": "不明确与澄清：改一下之前的方案，我忘了项目名称。",
+      "user_input": "改一下之前的方案，我忘了项目名称。",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": null,
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "clarify",
+        "target": null,
+        "session": "none",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "仅当前明确持续用途允许创建绑定；无唯一对象则澄清，日常请求不建主题。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "U04",
+      "category": "U",
+      "title": "不明确与澄清：看看旧资料。",
+      "user_input": "看看旧资料。",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "fitness",
+        "unbound_topics": [
+          "legacy"
+        ],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "clarify",
+        "target": null,
+        "session": "none",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "仅当前明确持续用途允许创建绑定；无唯一对象则澄清，日常请求不建主题。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "U05",
+      "category": "U",
+      "title": "不明确与澄清：如果以后长期帮我摄影，会怎么开始？",
+      "user_input": "如果以后长期帮我摄影，会怎么开始？",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "fitness",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "daily",
+        "target": null,
+        "session": "none",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "假设讨论不创建持续主题；错误Mock create将检验宿主拦截，但不能把clarify当成正确daily。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "U06",
+      "category": "U",
+      "title": "不明确与澄清：不要创建主题，只解释一下这个术语。",
+      "user_input": "不要创建主题，只解释一下这个术语。",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "fitness",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "daily",
+        "target": null,
+        "session": "none",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "当前明确要求日常解释，不创建；宿主拦截错误提议不等于正确完成路由。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "U07",
+      "category": "U",
+      "title": "不明确与澄清：健身和求职的那个表格，改改。",
+      "user_input": "健身和求职的那个表格，改改。",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "fitness",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "clarify",
+        "target": null,
+        "session": "none",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "仅当前明确持续用途允许创建绑定；无唯一对象则澄清，日常请求不建主题。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "U08",
+      "category": "U",
+      "title": "不明确与澄清：切到{{id:legacy}}",
+      "user_input": "切到{{id:legacy}}",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "fitness",
+        "unbound_topics": [
+          "legacy"
+        ],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "clarify",
+        "target": null,
+        "session": "none",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "仅当前明确持续用途允许创建绑定；无唯一对象则澄清，日常请求不建主题。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "K01",
+      "category": "K",
+      "title": "强杀重启：重启后继续健身，之前的约束还在吗？",
+      "user_input": "重启后继续健身，之前的约束还在吗？",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "alpha",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "fitness",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "restart": {
+        "phase": "idle",
+        "compact_before": false
+      },
+      "memory": "off"
+    },
+    {
+      "case_id": "K02",
+      "category": "K",
+      "title": "强杀重启：重启后继续求职，之前的约束还在吗？",
+      "user_input": "重启后继续求职，之前的约束还在吗？",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "alpha",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "career",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "restart": {
+        "phase": "idle",
+        "compact_before": true
+      },
+      "memory": "off"
+    },
+    {
+      "case_id": "K03",
+      "category": "K",
+      "title": "强杀重启：重启后继续健身，之前的约束还在吗？",
+      "user_input": "重启后继续健身，之前的约束还在吗？",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "alpha",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "fitness",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "restart": {
+        "phase": "topic_route",
+        "compact_before": false
+      },
+      "memory": "off"
+    },
+    {
+      "case_id": "K04",
+      "category": "K",
+      "title": "强杀重启：重启后继续求职，之前的约束还在吗？",
+      "user_input": "重启后继续求职，之前的约束还在吗？",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "alpha",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "career",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "restart": {
+        "phase": "topic_route",
+        "compact_before": true
+      },
+      "memory": "off"
+    },
+    {
+      "case_id": "K05",
+      "category": "K",
+      "title": "强杀重启：重启后继续健身，之前的约束还在吗？",
+      "user_input": "重启后继续健身，之前的约束还在吗？",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "alpha",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "fitness",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "restart": {
+        "phase": "chat",
+        "compact_before": false
+      },
+      "memory": "off"
+    },
+    {
+      "case_id": "K06",
+      "category": "K",
+      "title": "强杀重启：重启后继续求职，之前的约束还在吗？",
+      "user_input": "重启后继续求职，之前的约束还在吗？",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "alpha",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "career",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "restart": {
+        "phase": "chat",
+        "compact_before": true
+      },
+      "memory": "off"
+    },
+    {
+      "case_id": "K07",
+      "category": "K",
+      "title": "强杀重启：重启后继续健身，之前的约束还在吗？",
+      "user_input": "重启后继续健身，之前的约束还在吗？",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "alpha",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "fitness",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "restart": {
+        "phase": "compaction",
+        "compact_before": false
+      },
+      "memory": "off"
+    },
+    {
+      "case_id": "K08",
+      "category": "K",
+      "title": "强杀重启：重启后继续求职，之前的约束还在吗？",
+      "user_input": "重启后继续求职，之前的约束还在吗？",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "alpha",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "career",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "restart": {
+        "phase": "compaction",
+        "compact_before": true
+      },
+      "memory": "off"
+    },
+    {
+      "case_id": "C01",
+      "category": "C",
+      "title": "跨主题引用与Memory：参考求职这个主题的资料，继续健身建议。",
+      "user_input": "参考求职这个主题的资料，继续健身建议。",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "fitness",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "fitness",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "引用另一主题不搬入其私有聊天；当前健身保持。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "C02",
+      "category": "C",
+      "title": "跨主题引用与Memory：用项目Alpha的经历改求职自我介绍；经历正文我还没",
+      "user_input": "用项目Alpha的经历改求职自我介绍；经历正文我还没有提供。",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "career",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "career",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "C03",
+      "category": "C",
+      "title": "跨主题引用与Memory：切到健身，引用求职的资料，但不要打开别的会话。",
+      "user_input": "切到健身，引用求职的资料，但不要打开别的会话。",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "career",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "fitness",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "C04",
+      "category": "C",
+      "title": "跨主题引用与Memory：在项目Beta讨论，参考项目Alpha的资料。",
+      "user_input": "在项目Beta讨论，参考项目Alpha的资料。",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "alpha",
+          "beta"
+        ],
+        "current_topic": "alpha",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ],
+          "beta": [
+            "以后帮我持续跟进项目Beta，范围是Beta代码与登录模块。仅此主题的私有信息：{{canary:beta}}",
+            "项目Beta，范围Beta代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "beta",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "C05",
+      "category": "C",
+      "title": "跨主题引用与Memory：健身话题继续。用户的回答语言偏好是什么？",
+      "user_input": "健身话题继续。用户的回答语言偏好是什么？",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "career",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "fitness",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "shared_memory",
+        "allowed_private_aliases": [],
+        "shared_memory_required": true,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "restart": null,
+      "memory": "shared"
+    },
+    {
+      "case_id": "C06",
+      "category": "C",
+      "title": "跨主题引用与Memory：求职话题里询问健身私聊的秘密，没有提供原文。",
+      "user_input": "求职话题里询问健身私聊的秘密，没有提供原文。",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "career",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "career",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "C07",
+      "category": "C",
+      "title": "跨主题引用与Memory：在求职讨论，我主动贴出项目Alpha的资料：{{ca",
+      "user_input": "在求职讨论，我主动贴出项目Alpha的资料：{{canary:alpha}}。请仅解释这段已提供文字。",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "career",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "career",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "user_provided",
+        "allowed_private_aliases": [
+          "alpha"
+        ],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "C08",
+      "category": "C",
+      "title": "跨主题引用与Memory：健身继续。用户的回答语言偏好是什么？",
+      "user_input": "健身继续。用户的回答语言偏好是什么？",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "fitness",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "fitness",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "L01",
+      "category": "L",
+      "title": "多个Session选择与候选边界：继续项目Beta的登录模块。",
+      "user_input": "继续项目Beta的登录模块。",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha",
+          "beta",
+          "photo",
+          "writing",
+          "english",
+          "travel"
+        ],
+        "current_topic": "travel",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ],
+          "beta": [
+            "以后帮我持续跟进项目Beta，范围是Beta代码与登录模块。仅此主题的私有信息：{{canary:beta}}",
+            "项目Beta，范围Beta代码与登录模块，继续第1轮普通讨论。"
+          ],
+          "photo": [
+            "以后帮我持续跟进摄影，范围是拍摄与后期练习。仅此主题的私有信息：{{canary:photo}}",
+            "摄影，范围拍摄与后期练习，继续第1轮普通讨论。"
+          ],
+          "writing": [
+            "以后帮我持续跟进写作，范围是小说与文字练习。仅此主题的私有信息：{{canary:writing}}",
+            "写作，范围小说与文字练习，继续第1轮普通讨论。"
+          ],
+          "english": [
+            "以后帮我持续跟进英语，范围是口语与阅读练习。仅此主题的私有信息：{{canary:english}}",
+            "英语，范围口语与阅读练习，继续第1轮普通讨论。"
+          ],
+          "travel": [
+            "以后帮我持续跟进旅行，范围是旅行路线与行程。仅此主题的私有信息：{{canary:travel}}",
+            "旅行，范围旅行路线与行程，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "beta",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "L02",
+      "category": "L",
+      "title": "多个Session选择与候选边界：求职面试还有什么要准备？",
+      "user_input": "求职面试还有什么要准备？",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha",
+          "beta",
+          "photo",
+          "writing",
+          "english",
+          "travel"
+        ],
+        "current_topic": "travel",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ],
+          "beta": [
+            "以后帮我持续跟进项目Beta，范围是Beta代码与登录模块。仅此主题的私有信息：{{canary:beta}}",
+            "项目Beta，范围Beta代码与登录模块，继续第1轮普通讨论。"
+          ],
+          "photo": [
+            "以后帮我持续跟进摄影，范围是拍摄与后期练习。仅此主题的私有信息：{{canary:photo}}",
+            "摄影，范围拍摄与后期练习，继续第1轮普通讨论。"
+          ],
+          "writing": [
+            "以后帮我持续跟进写作，范围是小说与文字练习。仅此主题的私有信息：{{canary:writing}}",
+            "写作，范围小说与文字练习，继续第1轮普通讨论。"
+          ],
+          "english": [
+            "以后帮我持续跟进英语，范围是口语与阅读练习。仅此主题的私有信息：{{canary:english}}",
+            "英语，范围口语与阅读练习，继续第1轮普通讨论。"
+          ],
+          "travel": [
+            "以后帮我持续跟进旅行，范围是旅行路线与行程。仅此主题的私有信息：{{canary:travel}}",
+            "旅行，范围旅行路线与行程，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "career",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "L03",
+      "category": "L",
+      "title": "多个Session选择与候选边界：摄影里怎么调整曝光？",
+      "user_input": "摄影里怎么调整曝光？",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha",
+          "beta",
+          "photo",
+          "writing",
+          "english",
+          "travel"
+        ],
+        "current_topic": "travel",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ],
+          "beta": [
+            "以后帮我持续跟进项目Beta，范围是Beta代码与登录模块。仅此主题的私有信息：{{canary:beta}}",
+            "项目Beta，范围Beta代码与登录模块，继续第1轮普通讨论。"
+          ],
+          "photo": [
+            "以后帮我持续跟进摄影，范围是拍摄与后期练习。仅此主题的私有信息：{{canary:photo}}",
+            "摄影，范围拍摄与后期练习，继续第1轮普通讨论。"
+          ],
+          "writing": [
+            "以后帮我持续跟进写作，范围是小说与文字练习。仅此主题的私有信息：{{canary:writing}}",
+            "写作，范围小说与文字练习，继续第1轮普通讨论。"
+          ],
+          "english": [
+            "以后帮我持续跟进英语，范围是口语与阅读练习。仅此主题的私有信息：{{canary:english}}",
+            "英语，范围口语与阅读练习，继续第1轮普通讨论。"
+          ],
+          "travel": [
+            "以后帮我持续跟进旅行，范围是旅行路线与行程。仅此主题的私有信息：{{canary:travel}}",
+            "旅行，范围旅行路线与行程，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "photo",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "L04",
+      "category": "L",
+      "title": "多个Session选择与候选边界：继续健身训练。",
+      "user_input": "继续健身训练。",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha",
+          "beta",
+          "photo",
+          "writing",
+          "english",
+          "travel"
+        ],
+        "current_topic": "travel",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ],
+          "beta": [
+            "以后帮我持续跟进项目Beta，范围是Beta代码与登录模块。仅此主题的私有信息：{{canary:beta}}",
+            "项目Beta，范围Beta代码与登录模块，继续第1轮普通讨论。"
+          ],
+          "photo": [
+            "以后帮我持续跟进摄影，范围是拍摄与后期练习。仅此主题的私有信息：{{canary:photo}}",
+            "摄影，范围拍摄与后期练习，继续第1轮普通讨论。"
+          ],
+          "writing": [
+            "以后帮我持续跟进写作，范围是小说与文字练习。仅此主题的私有信息：{{canary:writing}}",
+            "写作，范围小说与文字练习，继续第1轮普通讨论。"
+          ],
+          "english": [
+            "以后帮我持续跟进英语，范围是口语与阅读练习。仅此主题的私有信息：{{canary:english}}",
+            "英语，范围口语与阅读练习，继续第1轮普通讨论。"
+          ],
+          "travel": [
+            "以后帮我持续跟进旅行，范围是旅行路线与行程。仅此主题的私有信息：{{canary:travel}}",
+            "旅行，范围旅行路线与行程，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "fitness",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "L05",
+      "category": "L",
+      "title": "多个Session选择与候选边界：英语口语今天练什么？",
+      "user_input": "英语口语今天练什么？",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha",
+          "beta",
+          "photo",
+          "writing",
+          "english",
+          "travel"
+        ],
+        "current_topic": "travel",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ],
+          "beta": [
+            "以后帮我持续跟进项目Beta，范围是Beta代码与登录模块。仅此主题的私有信息：{{canary:beta}}",
+            "项目Beta，范围Beta代码与登录模块，继续第1轮普通讨论。"
+          ],
+          "photo": [
+            "以后帮我持续跟进摄影，范围是拍摄与后期练习。仅此主题的私有信息：{{canary:photo}}",
+            "摄影，范围拍摄与后期练习，继续第1轮普通讨论。"
+          ],
+          "writing": [
+            "以后帮我持续跟进写作，范围是小说与文字练习。仅此主题的私有信息：{{canary:writing}}",
+            "写作，范围小说与文字练习，继续第1轮普通讨论。"
+          ],
+          "english": [
+            "以后帮我持续跟进英语，范围是口语与阅读练习。仅此主题的私有信息：{{canary:english}}",
+            "英语，范围口语与阅读练习，继续第1轮普通讨论。"
+          ],
+          "travel": [
+            "以后帮我持续跟进旅行，范围是旅行路线与行程。仅此主题的私有信息：{{canary:travel}}",
+            "旅行，范围旅行路线与行程，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "english",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "L06",
+      "category": "L",
+      "title": "多个Session选择与候选边界：写作主题里讨论人物动机。",
+      "user_input": "写作主题里讨论人物动机。",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha",
+          "beta",
+          "photo",
+          "writing",
+          "english",
+          "travel"
+        ],
+        "current_topic": "travel",
+        "unbound_topics": [],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ],
+          "beta": [
+            "以后帮我持续跟进项目Beta，范围是Beta代码与登录模块。仅此主题的私有信息：{{canary:beta}}",
+            "项目Beta，范围Beta代码与登录模块，继续第1轮普通讨论。"
+          ],
+          "photo": [
+            "以后帮我持续跟进摄影，范围是拍摄与后期练习。仅此主题的私有信息：{{canary:photo}}",
+            "摄影，范围拍摄与后期练习，继续第1轮普通讨论。"
+          ],
+          "writing": [
+            "以后帮我持续跟进写作，范围是小说与文字练习。仅此主题的私有信息：{{canary:writing}}",
+            "写作，范围小说与文字练习，继续第1轮普通讨论。"
+          ],
+          "english": [
+            "以后帮我持续跟进英语，范围是口语与阅读练习。仅此主题的私有信息：{{canary:english}}",
+            "英语，范围口语与阅读练习，继续第1轮普通讨论。"
+          ],
+          "travel": [
+            "以后帮我持续跟进旅行，范围是旅行路线与行程。仅此主题的私有信息：{{canary:travel}}",
+            "旅行，范围旅行路线与行程，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "writing",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "L07",
+      "category": "L",
+      "title": "多个Session选择与候选边界：继续讨论之前的问题。",
+      "user_input": "继续讨论之前的问题。",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "fitness",
+        "unbound_topics": [
+          "extra01",
+          "extra02",
+          "extra03",
+          "extra04",
+          "extra05",
+          "extra06",
+          "extra07",
+          "extra08",
+          "extra09",
+          "extra10",
+          "extra11",
+          "extra12",
+          "extra13",
+          "extra14",
+          "extra15",
+          "extra16",
+          "extra17",
+          "extra18"
+        ],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "clarify",
+        "target": null,
+        "session": "none",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "21候选且没有明确范围，不能截断后擅选；应在模型请求前澄清。"
+      },
+      "restart": null,
+      "memory": "off"
+    },
+    {
+      "case_id": "L08",
+      "category": "L",
+      "title": "多个Session选择与候选边界：在{{id:alpha}}继续讨论登录模块。",
+      "user_input": "在{{id:alpha}}继续讨论登录模块。",
+      "initial_state": {
+        "topics": [
+          "fitness",
+          "career",
+          "alpha"
+        ],
+        "current_topic": "career",
+        "unbound_topics": [
+          "extra01",
+          "extra02",
+          "extra03",
+          "extra04",
+          "extra05",
+          "extra06",
+          "extra07",
+          "extra08",
+          "extra09",
+          "extra10",
+          "extra11",
+          "extra12",
+          "extra13",
+          "extra14",
+          "extra15",
+          "extra16",
+          "extra17",
+          "extra18"
+        ],
+        "archived_topics": [],
+        "history_rounds": 2,
+        "history": {
+          "fitness": [
+            "以后帮我持续跟进健身，范围是训练、饮食与每周反馈。仅此主题的私有信息：{{canary:fitness}}",
+            "健身，范围训练、饮食与每周反馈，继续第1轮普通讨论。"
+          ],
+          "career": [
+            "以后帮我持续跟进求职，范围是简历、自我介绍与面试准备。仅此主题的私有信息：{{canary:career}}",
+            "求职，范围简历、自我介绍与面试准备，继续第1轮普通讨论。"
+          ],
+          "alpha": [
+            "以后帮我持续跟进项目Alpha，范围是Alpha代码与登录模块。仅此主题的私有信息：{{canary:alpha}}",
+            "项目Alpha，范围Alpha代码与登录模块，继续第1轮普通讨论。"
+          ]
+        }
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "alpha",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "restart": null,
+      "memory": "off"
+    }
+  ]
+}

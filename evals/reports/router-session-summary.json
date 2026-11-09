@@ -1,0 +1,4295 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-09",
+  "environment": "offline_scripted_model_real_host",
+  "branch": "codex/router-session-eval",
+  "production_baseline": "ead27a7e19fa99ac7413fceec81e603681192870",
+  "source_input_fingerprint": "6ad10d2bea50697b4636dc791bcd0acd9849aaf27c345ab0b0e4bafc2ccd291d",
+  "dataset_sha256": "fe054cd1259d23aa4813ab0312a4c1303f80d8a499d42a55fb457939b6e6e4d2",
+  "mock_sha256": "7275e8b79c5a37a245b4377568549de777172e09cec873466f602f0e1997de2f",
+  "raw_results_sha256": "2cc72ed4903e1320abb588c453f3d75d531b7708aaaac72b59d1e67c00943c62",
+  "node": "v24.19.0",
+  "platform": "darwin",
+  "paid_model_calls": 0,
+  "real_semantic_status": "not_run",
+  "summary": {
+    "counts": {
+      "total": 80,
+      "passed": 77,
+      "failed": 3,
+      "error": 0
+    },
+    "real_semantic": {
+      "routing_accuracy": null,
+      "session_create_accuracy": null,
+      "session_reuse_precision": null,
+      "session_reuse_recall": null,
+      "session_reuse_f1": null,
+      "context_contamination_rate": null,
+      "session_recovery_rate": null,
+      "status": "not_run",
+      "reason": "仅使用固定localhost模型；没有独立真实模型语义预测"
+    },
+    "offline_mechanisms": {
+      "mock_route_contract_accuracy": {
+        "numerator": 77,
+        "denominator": 80,
+        "value": 0.9625,
+        "scope": "scripted_mock_host_contract_not_semantic_accuracy"
+      },
+      "deterministic_route_contract_accuracy": {
+        "numerator": 9,
+        "denominator": 9,
+        "value": 1,
+        "scope": "production_deterministic_branches_only"
+      },
+      "session_create_accuracy": {
+        "numerator": 5,
+        "denominator": 5,
+        "value": 1,
+        "scope": "scripted_decisions_real_sqlite_and_pi_jsonl"
+      },
+      "session_reuse": {
+        "tp": 55,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "scope": "correct_target_reuse_under_fixed_mock_decisions_wrong_target_counts_fp_and_fn"
+      },
+      "unintended_session_creation": 0,
+      "context_contamination_rate": {
+        "numerator": 0,
+        "denominator": 71,
+        "value": 0,
+        "scope": "case_with_any_forbidden_canary_in_captured_model_http"
+      },
+      "selected_session_contamination_rate": {
+        "numerator": 0,
+        "denominator": 56,
+        "value": 0,
+        "scope": "conditioned_on_actual_selected_topic_not_gold_routing"
+      },
+      "correctly_routed_contamination_rate": {
+        "numerator": 0,
+        "denominator": 68,
+        "value": 0,
+        "scope": "gold_route_correct_subset"
+      },
+      "contaminated_requests": 0,
+      "context_capture_coverage": {
+        "numerator": 80,
+        "denominator": 80,
+        "value": 1,
+        "scope": "all_planned_cases_zero_http_cases_recorded_separately"
+      },
+      "context_applicable_cases": 71,
+      "zero_http_cases": 9,
+      "own_context_presence": {
+        "numerator": 51,
+        "denominator": 51,
+        "value": 1,
+        "scope": "all_gold_required_history_cases_including_route_and_execution_failures"
+      },
+      "shared_memory_presence": {
+        "numerator": 2,
+        "denominator": 2,
+        "value": 1,
+        "scope": "explicitly_required_shared_memory_cases"
+      },
+      "session_recovery_rate": {
+        "numerator": 24,
+        "denominator": 24,
+        "value": 1,
+        "scope": "planned_case_x_topic_after_real_sigkill_then_router_reentry"
+      }
+    },
+    "by_category": {
+      "N": {
+        "numerator": 7,
+        "denominator": 8,
+        "value": 0.875,
+        "scope": "scripted_mock_host_contract_not_semantic_accuracy"
+      },
+      "R": {
+        "numerator": 8,
+        "denominator": 8,
+        "value": 1,
+        "scope": "scripted_mock_host_contract_not_semantic_accuracy"
+      },
+      "S": {
+        "numerator": 8,
+        "denominator": 8,
+        "value": 1,
+        "scope": "scripted_mock_host_contract_not_semantic_accuracy"
+      },
+      "T": {
+        "numerator": 8,
+        "denominator": 8,
+        "value": 1,
+        "scope": "scripted_mock_host_contract_not_semantic_accuracy"
+      },
+      "M": {
+        "numerator": 8,
+        "denominator": 8,
+        "value": 1,
+        "scope": "scripted_mock_host_contract_not_semantic_accuracy"
+      },
+      "P": {
+        "numerator": 8,
+        "denominator": 8,
+        "value": 1,
+        "scope": "scripted_mock_host_contract_not_semantic_accuracy"
+      },
+      "U": {
+        "numerator": 6,
+        "denominator": 8,
+        "value": 0.75,
+        "scope": "scripted_mock_host_contract_not_semantic_accuracy"
+      },
+      "K": {
+        "numerator": 8,
+        "denominator": 8,
+        "value": 1,
+        "scope": "scripted_mock_host_contract_not_semantic_accuracy"
+      },
+      "C": {
+        "numerator": 8,
+        "denominator": 8,
+        "value": 1,
+        "scope": "scripted_mock_host_contract_not_semantic_accuracy"
+      },
+      "L": {
+        "numerator": 8,
+        "denominator": 8,
+        "value": 1,
+        "scope": "scripted_mock_host_contract_not_semantic_accuracy"
+      }
+    },
+    "by_topic": {
+      "fitness": {
+        "numerator": 22,
+        "denominator": 22,
+        "value": 1,
+        "scope": "scripted_mock_host_contract_not_semantic_accuracy"
+      },
+      "career": {
+        "numerator": 21,
+        "denominator": 21,
+        "value": 1,
+        "scope": "scripted_mock_host_contract_not_semantic_accuracy"
+      },
+      "photo": {
+        "numerator": 2,
+        "denominator": 2,
+        "value": 1,
+        "scope": "scripted_mock_host_contract_not_semantic_accuracy"
+      },
+      "english": {
+        "numerator": 2,
+        "denominator": 2,
+        "value": 1,
+        "scope": "scripted_mock_host_contract_not_semantic_accuracy"
+      },
+      "daily": {
+        "numerator": 2,
+        "denominator": 5,
+        "value": 0.4,
+        "scope": "scripted_mock_host_contract_not_semantic_accuracy"
+      },
+      "legacy": {
+        "numerator": 1,
+        "denominator": 1,
+        "value": 1,
+        "scope": "scripted_mock_host_contract_not_semantic_accuracy"
+      },
+      "alpha": {
+        "numerator": 9,
+        "denominator": 9,
+        "value": 1,
+        "scope": "scripted_mock_host_contract_not_semantic_accuracy"
+      },
+      "clarify": {
+        "numerator": 15,
+        "denominator": 15,
+        "value": 1,
+        "scope": "scripted_mock_host_contract_not_semantic_accuracy"
+      },
+      "beta": {
+        "numerator": 2,
+        "denominator": 2,
+        "value": 1,
+        "scope": "scripted_mock_host_contract_not_semantic_accuracy"
+      },
+      "writing": {
+        "numerator": 1,
+        "denominator": 1,
+        "value": 1,
+        "scope": "scripted_mock_host_contract_not_semantic_accuracy"
+      }
+    },
+    "errors": [
+      {
+        "case_id": "N08",
+        "failure_categories": [
+          "route_gold_mismatch",
+          "overclarification"
+        ],
+        "expected": {
+          "route": "daily",
+          "target": null,
+          "session": "none",
+          "new_topics": 0,
+          "own_context_required": false,
+          "allowed_cross_session_read": "none",
+          "allowed_private_aliases": [],
+          "shared_memory_required": false,
+          "rationale": "引文不提供持续主题许可；正确路由应为日常。固定错误Mock提议只用于暴露宿主与语义决策的差别。"
+        },
+        "actual": {
+          "route": {
+            "kind": "clarify",
+            "question": "接下来想继续聊哪一个主题？1.健身；2.项目Alpha；3.求职",
+            "reason": "当前原话未明确持续用途，不能创建主题"
+          },
+          "target": null,
+          "session_action": "none",
+          "new_topics": 0,
+          "run_status": "succeeded",
+          "run_id": "40e4e1b3-bef3-4bd5-8730-dd8e29c123bc",
+          "output": "离线固定回答，仅验证宿主机制。\n\n主题归属：\n接下来想继续聊哪一个主题？1.健身；2.项目Alpha；3.求职"
+        },
+        "error": null
+      },
+      {
+        "case_id": "U05",
+        "failure_categories": [
+          "route_gold_mismatch",
+          "overclarification"
+        ],
+        "expected": {
+          "route": "daily",
+          "target": null,
+          "session": "none",
+          "new_topics": 0,
+          "own_context_required": false,
+          "allowed_cross_session_read": "none",
+          "allowed_private_aliases": [],
+          "shared_memory_required": false,
+          "rationale": "假设讨论不创建持续主题；错误Mock create将检验宿主拦截，但不能把clarify当成正确daily。"
+        },
+        "actual": {
+          "route": {
+            "kind": "clarify",
+            "question": "接下来想继续聊哪一个主题？1.健身；2.项目Alpha；3.求职",
+            "reason": "当前原话未明确持续用途，不能创建主题"
+          },
+          "target": null,
+          "session_action": "none",
+          "new_topics": 0,
+          "run_status": "succeeded",
+          "run_id": "71a095b6-f01d-4b3c-b4e3-e97b62b63284",
+          "output": "离线固定回答，仅验证宿主机制。\n\n主题归属：\n接下来想继续聊哪一个主题？1.健身；2.项目Alpha；3.求职"
+        },
+        "error": null
+      },
+      {
+        "case_id": "U06",
+        "failure_categories": [
+          "route_gold_mismatch",
+          "overclarification"
+        ],
+        "expected": {
+          "route": "daily",
+          "target": null,
+          "session": "none",
+          "new_topics": 0,
+          "own_context_required": false,
+          "allowed_cross_session_read": "none",
+          "allowed_private_aliases": [],
+          "shared_memory_required": false,
+          "rationale": "当前明确要求日常解释，不创建；宿主拦截错误提议不等于正确完成路由。"
+        },
+        "actual": {
+          "route": {
+            "kind": "clarify",
+            "question": "接下来想继续聊哪一个主题？1.健身；2.项目Alpha；3.求职",
+            "reason": "当前原话未明确持续用途，不能创建主题"
+          },
+          "target": null,
+          "session_action": "none",
+          "new_topics": 0,
+          "run_status": "succeeded",
+          "run_id": "a79eb251-4e86-494b-a86b-406451f22abc",
+          "output": "离线固定回答，仅验证宿主机制。\n\n主题归属：\n接下来想继续聊哪一个主题？1.健身；2.项目Alpha；3.求职"
+        },
+        "error": null
+      }
+    ]
+  },
+  "verification": {
+    "typecheck_exit_code": 0,
+    "eval_typecheck_exit_code": 0,
+    "build_exit_code": 0,
+    "web_build_exit_code": 0,
+    "full_tests": {
+      "total": 1138,
+      "passed": 1138,
+      "failed": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "exit_code": 0
+    },
+    "eval_exit_code": 1,
+    "original_source_unchanged": true
+  },
+  "cases": [
+    {
+      "case_id": "N01",
+      "category": "N",
+      "title": "新主题与日常对照：以后在这里长期帮我健身。",
+      "user_input": "以后在这里长期帮我健身。",
+      "result": "passed",
+      "expected": {
+        "route": "create",
+        "target": "fitness",
+        "session": "create",
+        "new_topics": 1,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "仅当前明确持续用途允许创建绑定；无唯一对象则澄清，日常请求不建主题。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "fitness",
+        "session_action": "create",
+        "new_topics": 1,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": false,
+        "own_present": null,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "656b805fbebc13fce1854f189797380ffb654ef9a8f9b672dc3e9f45f824df37"
+    },
+    {
+      "case_id": "N02",
+      "category": "N",
+      "title": "新主题与日常对照：今后持续帮我准备求职。",
+      "user_input": "今后持续帮我准备求职。",
+      "result": "passed",
+      "expected": {
+        "route": "create",
+        "target": "career",
+        "session": "create",
+        "new_topics": 1,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "仅当前明确持续用途允许创建绑定；无唯一对象则澄清，日常请求不建主题。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "career",
+        "session_action": "create",
+        "new_topics": 1,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": false,
+        "own_present": null,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "75dc902a5fa196a2a2720b2f34bbd8eeae30293f75af82cd53964dbae1a03596"
+    },
+    {
+      "case_id": "N03",
+      "category": "N",
+      "title": "新主题与日常对照：以后和我持续讨论摄影。",
+      "user_input": "以后和我持续讨论摄影。",
+      "result": "passed",
+      "expected": {
+        "route": "create",
+        "target": "photo",
+        "session": "create",
+        "new_topics": 1,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "仅当前明确持续用途允许创建绑定；无唯一对象则澄清，日常请求不建主题。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "photo",
+        "session_action": "create",
+        "new_topics": 1,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": false,
+        "own_present": null,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "65d9060d79da53b1e2dd7e80f631b10496381e122f6a33c4fd8465b64a5aaac6"
+    },
+    {
+      "case_id": "N04",
+      "category": "N",
+      "title": "新主题与日常对照：长期辅助我进行英语练习。",
+      "user_input": "长期辅助我进行英语练习。",
+      "result": "passed",
+      "expected": {
+        "route": "create",
+        "target": "english",
+        "session": "create",
+        "new_topics": 1,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "仅当前明确持续用途允许创建绑定；无唯一对象则澄清，日常请求不建主题。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "english",
+        "session_action": "create",
+        "new_topics": 1,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": false,
+        "own_present": null,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "23c4fa93d7af87c269b0cf3990b427ea3c9462e4403f4e92285efca594455e25"
+    },
+    {
+      "case_id": "N05",
+      "category": "N",
+      "title": "新主题与日常对照：写一句朋友生日祝福。",
+      "user_input": "写一句朋友生日祝福。",
+      "result": "passed",
+      "expected": {
+        "route": "daily",
+        "target": null,
+        "session": "none",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "仅当前明确持续用途允许创建绑定；无唯一对象则澄清，日常请求不建主题。"
+      },
+      "actual": {
+        "route_kind": "daily",
+        "target": null,
+        "session_action": "none",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": false,
+        "own_present": null,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "f6c143d4020f584011b5da67d3eaee18f32cdf77ceb7ed633fccd52c7832445f"
+    },
+    {
+      "case_id": "N06",
+      "category": "N",
+      "title": "新主题与日常对照：解释一下闭包，先不要创建主题。",
+      "user_input": "解释一下闭包，先不要创建主题。",
+      "result": "passed",
+      "expected": {
+        "route": "daily",
+        "target": null,
+        "session": "none",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "仅当前明确持续用途允许创建绑定；无唯一对象则澄清，日常请求不建主题。"
+      },
+      "actual": {
+        "route_kind": "daily",
+        "target": null,
+        "session_action": "none",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": false,
+        "own_present": null,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "3bac92ec4a510626d0afdbd2aed4085006019db395877423a16bedb574deeeb4"
+    },
+    {
+      "case_id": "N07",
+      "category": "N",
+      "title": "新主题与日常对照：以后帮我持续跟进旧资料主题。",
+      "user_input": "以后帮我持续跟进旧资料主题。",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "legacy",
+        "session": "create",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "仅当前明确持续用途允许创建绑定；无唯一对象则澄清，日常请求不建主题。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "legacy",
+        "session_action": "create",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": false,
+        "own_present": null,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "e8e466e3b306728241ee66e1b55047248d83d6c83c6515473347e9654b74117b"
+    },
+    {
+      "case_id": "N08",
+      "category": "N",
+      "title": "新主题与日常对照：他说“以后帮我健身”，请解释这句话，不创建任何主题。",
+      "user_input": "他说“以后帮我健身”，请解释这句话，不创建任何主题。",
+      "result": "failed",
+      "expected": {
+        "route": "daily",
+        "target": null,
+        "session": "none",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "引文不提供持续主题许可；正确路由应为日常。固定错误Mock提议只用于暴露宿主与语义决策的差别。"
+      },
+      "actual": {
+        "route_kind": "clarify",
+        "target": null,
+        "session_action": "none",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": false,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": false,
+        "own_present": null,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "clarification_answer": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [
+        "route_gold_mismatch",
+        "overclarification"
+      ],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "9753e90359021b1302e6fec695dd071c0ef6a956df72e80dcf0daca4ea40db1d"
+    },
+    {
+      "case_id": "R01",
+      "category": "R",
+      "title": "延续旧主题：健身这周怎么调整训练量？",
+      "user_input": "健身这周怎么调整训练量？",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "fitness",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "fitness",
+        "session_action": "reuse",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": true,
+        "own_present": true,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "c96d2df516893ed924e1f424e99f10e91ef8c6091c51a3160cb28899e6b12193"
+    },
+    {
+      "case_id": "R02",
+      "category": "R",
+      "title": "延续旧主题：继续完善求职自我介绍。",
+      "user_input": "继续完善求职自我介绍。",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "career",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "career",
+        "session_action": "reuse",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": true,
+        "own_present": true,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "d6983340c37cf4a4e2f081b2468eabdf85f34a6bcf9c8061974639ad8c3dd10e"
+    },
+    {
+      "case_id": "R03",
+      "category": "R",
+      "title": "延续旧主题：项目Alpha登录接口还要注意什么？",
+      "user_input": "项目Alpha登录接口还要注意什么？",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "alpha",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "alpha",
+        "session_action": "reuse",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": true,
+        "own_present": true,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "55f90179625cb94ccf705a04cbc570552d43cb650edd16717c430d43b7f7acd2"
+    },
+    {
+      "case_id": "R04",
+      "category": "R",
+      "title": "延续旧主题：饮食安排需要和训练日对应吗？",
+      "user_input": "饮食安排需要和训练日对应吗？",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "fitness",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "fitness",
+        "session_action": "reuse",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": true,
+        "own_present": true,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "9470530a2084d373977cd1ec2af866537a7437ee20f4180dd8831de85caca1da"
+    },
+    {
+      "case_id": "R05",
+      "category": "R",
+      "title": "延续旧主题：面试时怎么解释我的项目贡献？",
+      "user_input": "面试时怎么解释我的项目贡献？",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "career",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "career",
+        "session_action": "reuse",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": true,
+        "own_present": true,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "a5014e09f819c247afa3ccfd6b2d67f82920e89e3182ea5de83e158fd1a3186e"
+    },
+    {
+      "case_id": "R06",
+      "category": "R",
+      "title": "延续旧主题：项目Alpha的错误日志该怎么看？",
+      "user_input": "项目Alpha的错误日志该怎么看？",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "alpha",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "alpha",
+        "session_action": "reuse",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": true,
+        "own_present": true,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "8c748c1a43b461b2b9808b7ec360292bf27c8cfc6645aa4a485ab8038a0c1522"
+    },
+    {
+      "case_id": "R07",
+      "category": "R",
+      "title": "延续旧主题：帮我复习之前的训练约束。",
+      "user_input": "帮我复习之前的训练约束。",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "fitness",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "fitness",
+        "session_action": "reuse",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": true,
+        "own_present": true,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "3506ddc92e3cd404829b98ae177e32f9816c9d61a0cb65711cd6fa75b9152a5f"
+    },
+    {
+      "case_id": "R08",
+      "category": "R",
+      "title": "延续旧主题：求职简历里项目经历怎么组织？",
+      "user_input": "求职话题继续。用户的回答语言偏好是什么？",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "career",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "shared_memory",
+        "allowed_private_aliases": [],
+        "shared_memory_required": true,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "career",
+        "session_action": "reuse",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": true,
+        "own_present": true,
+        "shared_required": true,
+        "shared_present": true,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "4dd554374c8d038effdb42fb1474280f4f2d6e5b79302ad00dc49b6fe211d4eb"
+    },
+    {
+      "case_id": "S01",
+      "category": "S",
+      "title": "同主题新子任务：健身主题里，新增一个肩部热身小问题。",
+      "user_input": "健身主题里，新增一个肩部热身小问题。",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "fitness",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "fitness",
+        "session_action": "reuse",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": true,
+        "own_present": true,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "0c595a78f8bef4910a0e1f7525c3377098d24a8d6ac165e0bde5a1764348f11a"
+    },
+    {
+      "case_id": "S02",
+      "category": "S",
+      "title": "同主题新子任务：求职主题里，把自我介绍压缩到一分钟。",
+      "user_input": "求职主题里，把自我介绍压缩到一分钟。",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "career",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "career",
+        "session_action": "reuse",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": true,
+        "own_present": true,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "e5a70e770e85999ff225baa7771830413348b968f94d8950fc00e8634326756a"
+    },
+    {
+      "case_id": "S03",
+      "category": "S",
+      "title": "同主题新子任务：项目Alpha里，再解释一下登录重试。",
+      "user_input": "项目Alpha里，再解释一下登录重试。",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "alpha",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "alpha",
+        "session_action": "reuse",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": true,
+        "own_present": true,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "4fd4517f836c352946d7ff9aa65779707aabc8b63bd867ca84b121cfbbdfe9b9"
+    },
+    {
+      "case_id": "S04",
+      "category": "S",
+      "title": "同主题新子任务：健身饮食部分想问早餐怎么搭配。",
+      "user_input": "健身饮食部分想问早餐怎么搭配。",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "fitness",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "fitness",
+        "session_action": "reuse",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": true,
+        "own_present": true,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "5e848452a723447f425e8ef0540f0823b462fc4b5c2b387648e3a5dc578e1ea8"
+    },
+    {
+      "case_id": "S05",
+      "category": "S",
+      "title": "同主题新子任务：求职简历之外，再练一道行为面试题。",
+      "user_input": "求职简历之外，再练一道行为面试题。",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "career",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "career",
+        "session_action": "reuse",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": true,
+        "own_present": true,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "5ab29d0c59aebf11adad966e49ea3cf5be385c0c75dd3ff4247b9c428139d72e"
+    },
+    {
+      "case_id": "S06",
+      "category": "S",
+      "title": "同主题新子任务：项目Alpha新增日志采样子问题。",
+      "user_input": "项目Alpha新增日志采样子问题。",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "alpha",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "alpha",
+        "session_action": "reuse",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": true,
+        "own_present": true,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "690af4e179a0e61d961ce1b92325581275ecfd8ba0c8798d1aaa0a27249def38"
+    },
+    {
+      "case_id": "S07",
+      "category": "S",
+      "title": "同主题新子任务：健身训练表换成表格给我看。",
+      "user_input": "健身训练表换成表格给我看。",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "fitness",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "fitness",
+        "session_action": "reuse",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": true,
+        "own_present": true,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "065a3d3bd228f905cbdd934362486c22f7e13f93f0d20423ce9424ff8aa549be"
+    },
+    {
+      "case_id": "S08",
+      "category": "S",
+      "title": "同主题新子任务：求职内容改写成更口语的表达。",
+      "user_input": "求职内容改写成更口语的表达。",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "career",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "career",
+        "session_action": "reuse",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": true,
+        "own_present": true,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "054c98ebc5737ea5a239ea64da8dfe92b1780de635e1a7c0d40e8b8bd4c01b4d"
+    },
+    {
+      "case_id": "T01",
+      "category": "T",
+      "title": "主题切换：切到健身",
+      "user_input": "切到健身",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "fitness",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "fitness",
+        "session_action": "reuse",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": false,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": false,
+        "own_present": null,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 0,
+        "stage_counts": {}
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": true,
+      "error": null,
+      "evidence_sha256": "30ff42ba597fb754ec577c8b79f7fe08ed11d754f212c6362de891102eac6d9c"
+    },
+    {
+      "case_id": "T02",
+      "category": "T",
+      "title": "主题切换：切换到求职",
+      "user_input": "切换到求职",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "career",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "career",
+        "session_action": "reuse",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": false,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": false,
+        "own_present": null,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 0,
+        "stage_counts": {}
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": true,
+      "error": null,
+      "evidence_sha256": "f53ba8fe3f69848181b952117c7f55d6431b44a3d39ec2c693eaae3148870597"
+    },
+    {
+      "case_id": "T03",
+      "category": "T",
+      "title": "主题切换：转到项目Alpha",
+      "user_input": "转到项目Alpha",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "alpha",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "alpha",
+        "session_action": "reuse",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": false,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": false,
+        "own_present": null,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 0,
+        "stage_counts": {}
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": true,
+      "error": null,
+      "evidence_sha256": "23d47be09bffba70fdda761843aa8607867d11171dd221cf5b740cd29749ac30"
+    },
+    {
+      "case_id": "T04",
+      "category": "T",
+      "title": "主题切换：不是求职，是健身",
+      "user_input": "不是求职，是健身",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "fitness",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "fitness",
+        "session_action": "reuse",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": false,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": false,
+        "own_present": null,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 0,
+        "stage_counts": {}
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": true,
+      "error": null,
+      "evidence_sha256": "ad0ef1e4ab297ccc3dcc1b99a93de18fb66c1481b43f6f9664e6ef6699a487bb"
+    },
+    {
+      "case_id": "T05",
+      "category": "T",
+      "title": "主题切换：切到健身，今天如何安排力量训练？",
+      "user_input": "切到健身，今天如何安排力量训练？",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "fitness",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "fitness",
+        "session_action": "reuse",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": true,
+        "own_present": true,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "49b05b76e74652547db98919fb89b28f7100f2180be32986d3004ed8ac85f142"
+    },
+    {
+      "case_id": "T06",
+      "category": "T",
+      "title": "主题切换：切到求职，先聊面试自我介绍。",
+      "user_input": "切到求职，先聊面试自我介绍。",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "career",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "career",
+        "session_action": "reuse",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": true,
+        "own_present": true,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "f159c21d1dc31ee1ffeec80a52f80acfda1f588e3f9b3e809b814e0e6bc33fe6"
+    },
+    {
+      "case_id": "T07",
+      "category": "T",
+      "title": "主题切换：在项目Alpha继续讨论登录错误。",
+      "user_input": "在项目Alpha继续讨论登录错误。",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "alpha",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "alpha",
+        "session_action": "reuse",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": true,
+        "own_present": true,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "4fd9a6a2bed1333ce393f147df99da90a817ec6c8a94139beea1f21bbacf7ef7"
+    },
+    {
+      "case_id": "T08",
+      "category": "T",
+      "title": "主题切换：回到健身，调整本周训练计划的说明。",
+      "user_input": "回到健身，调整本周训练计划的说明。",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "fitness",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "fitness",
+        "session_action": "reuse",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": true,
+        "own_present": true,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "1a8bbf73cc8f313128f26861abdca4a0043595c09698f9a2cf938a991d52f3f9"
+    },
+    {
+      "case_id": "M01",
+      "category": "M",
+      "title": "同时提及多主题：健身和求职两件事都要继续，先处理哪件还没想好。",
+      "user_input": "健身和求职两件事都要继续，先处理哪件还没想好。",
+      "result": "passed",
+      "expected": {
+        "route": "clarify",
+        "target": null,
+        "session": "none",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "仅当前明确持续用途允许创建绑定；无唯一对象则澄清，日常请求不建主题。"
+      },
+      "actual": {
+        "route_kind": "clarify",
+        "target": null,
+        "session_action": "none",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": false,
+        "own_present": null,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "clarification_answer": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "377934f901861cfe17cfa6951e2efaa3cf253d9c45d03fb1f00e3d800e418d4b"
+    },
+    {
+      "case_id": "M02",
+      "category": "M",
+      "title": "同时提及多主题：同时修改项目Alpha和项目Beta的登录设计。",
+      "user_input": "同时修改项目Alpha和项目Beta的登录设计。",
+      "result": "passed",
+      "expected": {
+        "route": "clarify",
+        "target": null,
+        "session": "none",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "仅当前明确持续用途允许创建绑定；无唯一对象则澄清，日常请求不建主题。"
+      },
+      "actual": {
+        "route_kind": "clarify",
+        "target": null,
+        "session_action": "none",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": false,
+        "own_present": null,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "clarification_answer": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "3e4e1a13cb5ab6aa13e32a62e5cc5ab1cfe6b10a04d5a784d31abea80aa3d059"
+    },
+    {
+      "case_id": "M03",
+      "category": "M",
+      "title": "同时提及多主题：在求职继续聊，参考一下健身这个主题名来打比方。",
+      "user_input": "在求职继续聊，参考一下健身这个主题名来打比方。",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "career",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "career",
+        "session_action": "reuse",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": true,
+        "own_present": true,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "fae2639d8145aad8985aeac498df6518cea6e18eba1dfb11fc82cc59dc0ab608"
+    },
+    {
+      "case_id": "M04",
+      "category": "M",
+      "title": "同时提及多主题：切到健身，参考求职里的表达方式解释训练安排。",
+      "user_input": "切到健身，参考求职里的表达方式解释训练安排。",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "fitness",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "fitness",
+        "session_action": "reuse",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": true,
+        "own_present": true,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "08bce93fc2b02be9ec7effc1a2b9ca95f24e59eed9009f38de1a1e0f100d6e6a"
+    },
+    {
+      "case_id": "M05",
+      "category": "M",
+      "title": "同时提及多主题：项目Alpha和项目Beta都叫登录问题，我还没说是",
+      "user_input": "项目Alpha和项目Beta都叫登录问题，我还没说是哪一个。",
+      "result": "passed",
+      "expected": {
+        "route": "clarify",
+        "target": null,
+        "session": "none",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "仅当前明确持续用途允许创建绑定；无唯一对象则澄清，日常请求不建主题。"
+      },
+      "actual": {
+        "route_kind": "clarify",
+        "target": null,
+        "session_action": "none",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": false,
+        "own_present": null,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "clarification_answer": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "5582fc5d524ea48b5be969a2d49a7919d4e4beb30f8e6cf70edff908d96f6da2"
+    },
+    {
+      "case_id": "M06",
+      "category": "M",
+      "title": "同时提及多主题：求职是当前目的，项目Alpha只是简历里提到的经历。",
+      "user_input": "求职是当前目的，项目Alpha只是简历里提到的经历。",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "career",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "career",
+        "session_action": "reuse",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": true,
+        "own_present": true,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "b48aba84c797d833ccfb740aa16ffe8428f567bc54ddf1be53b22a67d984f1f0"
+    },
+    {
+      "case_id": "M07",
+      "category": "M",
+      "title": "同时提及多主题：健身先放一边，这次讨论求职面试。",
+      "user_input": "健身先放一边，这次讨论求职面试。",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "career",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "career",
+        "session_action": "reuse",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": true,
+        "own_present": true,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "43e98d4047daf86ed59187d19cf485463a3358babd46898d7bf84e0eb606b2c0"
+    },
+    {
+      "case_id": "M08",
+      "category": "M",
+      "title": "同时提及多主题：先健身还是先求职？我想先确定要讨论哪件。",
+      "user_input": "先健身还是先求职？我想先确定要讨论哪件。",
+      "result": "passed",
+      "expected": {
+        "route": "clarify",
+        "target": null,
+        "session": "none",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "仅当前明确持续用途允许创建绑定；无唯一对象则澄清，日常请求不建主题。"
+      },
+      "actual": {
+        "route_kind": "clarify",
+        "target": null,
+        "session_action": "none",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": false,
+        "own_present": null,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "clarification_answer": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "f2a7da262e4832613dc0ebdc4d3093df98ef319ef68727323ce2c0c6b028f618"
+    },
+    {
+      "case_id": "P01",
+      "category": "P",
+      "title": "代词与上下文引用：那个训练动作怎么做？",
+      "user_input": "那个训练动作怎么做？",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "fitness",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "fitness",
+        "session_action": "reuse",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": true,
+        "own_present": true,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "4a0b77907ef6ec1761047540f3c5bfccd36da280968a9c529e16c33472824820"
+    },
+    {
+      "case_id": "P02",
+      "category": "P",
+      "title": "代词与上下文引用：这段自我介绍再短一点。",
+      "user_input": "这段自我介绍再短一点。",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "career",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "career",
+        "session_action": "reuse",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": true,
+        "own_present": true,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "1870ae5f69b6e715aa998c40eb56e00964f74580310eb74823fd0761439f6bb4"
+    },
+    {
+      "case_id": "P03",
+      "category": "P",
+      "title": "代词与上下文引用：刚才那处登录错误，再解释一下原因。",
+      "user_input": "刚才那处登录错误，再解释一下原因。",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "alpha",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "alpha",
+        "session_action": "reuse",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": true,
+        "own_present": true,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "7ed07880e686b8ce2ecf0bf2066456afc93f3813048e373691a75299d964084c"
+    },
+    {
+      "case_id": "P04",
+      "category": "P",
+      "title": "代词与上下文引用：那个计划改一下。",
+      "user_input": "那个计划改一下。",
+      "result": "passed",
+      "expected": {
+        "route": "clarify",
+        "target": null,
+        "session": "none",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "多个主题均有计划，未提供唯一业务引用，不应按最近对象执行。"
+      },
+      "actual": {
+        "route_kind": "clarify",
+        "target": null,
+        "session_action": "none",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": false,
+        "own_present": null,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "clarification_answer": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "2b126e0f459a7f66bd3426fae33f36756343d0fba2e3cc6e70c41ce311a84fc3"
+    },
+    {
+      "case_id": "P05",
+      "category": "P",
+      "title": "代词与上下文引用：确认",
+      "user_input": "确认",
+      "result": "passed",
+      "expected": {
+        "route": "clarify",
+        "target": null,
+        "session": "none",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "仅当前明确持续用途允许创建绑定；无唯一对象则澄清，日常请求不建主题。"
+      },
+      "actual": {
+        "route_kind": "clarify",
+        "target": null,
+        "session_action": "none",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": false,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": false,
+        "own_present": null,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 0,
+        "stage_counts": {}
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": true,
+      "error": null,
+      "evidence_sha256": "e2b070e678fef6ec29881fa8de536bb7c1b5246bc576a60a223a1a1a383fad83"
+    },
+    {
+      "case_id": "P06",
+      "category": "P",
+      "title": "代词与上下文引用：第二个",
+      "user_input": "第二个",
+      "result": "passed",
+      "expected": {
+        "route": "clarify",
+        "target": null,
+        "session": "none",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "仅当前明确持续用途允许创建绑定；无唯一对象则澄清，日常请求不建主题。"
+      },
+      "actual": {
+        "route_kind": "clarify",
+        "target": null,
+        "session_action": "none",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": false,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": false,
+        "own_present": null,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 0,
+        "stage_counts": {}
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": true,
+      "error": null,
+      "evidence_sha256": "ba1479c2c3434b21ea3ea35e4dbed5997dd2764b793c64e04695d749579eb947"
+    },
+    {
+      "case_id": "P07",
+      "category": "P",
+      "title": "代词与上下文引用：就这样",
+      "user_input": "就这样",
+      "result": "passed",
+      "expected": {
+        "route": "clarify",
+        "target": null,
+        "session": "none",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "仅当前明确持续用途允许创建绑定；无唯一对象则澄清，日常请求不建主题。"
+      },
+      "actual": {
+        "route_kind": "clarify",
+        "target": null,
+        "session_action": "none",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": false,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": false,
+        "own_present": null,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 0,
+        "stage_counts": {}
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": true,
+      "error": null,
+      "evidence_sha256": "2387637f84713b3e5391ef30771cec1dfa70ea8550bf16104df05103cfd44890"
+    },
+    {
+      "case_id": "P08",
+      "category": "P",
+      "title": "代词与上下文引用：接着说，换个更简单的解释。",
+      "user_input": "接着说，换个更简单的解释。",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "alpha",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "alpha",
+        "session_action": "reuse",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": true,
+        "own_present": true,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "43447a101c11cf89914f0d65969c728439752608fda785601bbd61931a4e21ce"
+    },
+    {
+      "case_id": "U01",
+      "category": "U",
+      "title": "不明确与澄清：继续那个事情。",
+      "user_input": "继续那个事情。",
+      "result": "passed",
+      "expected": {
+        "route": "clarify",
+        "target": null,
+        "session": "none",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "仅当前明确持续用途允许创建绑定；无唯一对象则澄清，日常请求不建主题。"
+      },
+      "actual": {
+        "route_kind": "clarify",
+        "target": null,
+        "session_action": "none",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": false,
+        "own_present": null,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "clarification_answer": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "8a20440dede7b2852e80c3a4078ac3e5afed2f3fba0ac49e43bb7fd85a9cb5e1"
+    },
+    {
+      "case_id": "U02",
+      "category": "U",
+      "title": "不明确与澄清：切到登录项目",
+      "user_input": "切到登录项目",
+      "result": "passed",
+      "expected": {
+        "route": "clarify",
+        "target": null,
+        "session": "none",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "仅当前明确持续用途允许创建绑定；无唯一对象则澄清，日常请求不建主题。"
+      },
+      "actual": {
+        "route_kind": "clarify",
+        "target": null,
+        "session_action": "none",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": false,
+        "own_present": null,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "clarification_answer": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "080331a0abc9a4fc74fc912c7075aa5133a50a407c8600ef4f6ae304200eb9c5"
+    },
+    {
+      "case_id": "U03",
+      "category": "U",
+      "title": "不明确与澄清：改一下之前的方案，我忘了项目名称。",
+      "user_input": "改一下之前的方案，我忘了项目名称。",
+      "result": "passed",
+      "expected": {
+        "route": "clarify",
+        "target": null,
+        "session": "none",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "仅当前明确持续用途允许创建绑定；无唯一对象则澄清，日常请求不建主题。"
+      },
+      "actual": {
+        "route_kind": "clarify",
+        "target": null,
+        "session_action": "none",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": false,
+        "own_present": null,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "clarification_answer": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "99ba433a639540ff13f900254ae1d9906925ac37ba5c689f1fa683dd933de03f"
+    },
+    {
+      "case_id": "U04",
+      "category": "U",
+      "title": "不明确与澄清：看看旧资料。",
+      "user_input": "看看旧资料。",
+      "result": "passed",
+      "expected": {
+        "route": "clarify",
+        "target": null,
+        "session": "none",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "仅当前明确持续用途允许创建绑定；无唯一对象则澄清，日常请求不建主题。"
+      },
+      "actual": {
+        "route_kind": "clarify",
+        "target": null,
+        "session_action": "none",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": false,
+        "own_present": null,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "clarification_answer": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "36879b235b296872ceca0374ed860af7c697aca9629a4c28db7363747b841cc5"
+    },
+    {
+      "case_id": "U05",
+      "category": "U",
+      "title": "不明确与澄清：如果以后长期帮我摄影，会怎么开始？",
+      "user_input": "如果以后长期帮我摄影，会怎么开始？",
+      "result": "failed",
+      "expected": {
+        "route": "daily",
+        "target": null,
+        "session": "none",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "假设讨论不创建持续主题；错误Mock create将检验宿主拦截，但不能把clarify当成正确daily。"
+      },
+      "actual": {
+        "route_kind": "clarify",
+        "target": null,
+        "session_action": "none",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": false,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": false,
+        "own_present": null,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "clarification_answer": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [
+        "route_gold_mismatch",
+        "overclarification"
+      ],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "1bc4b9c18e50df561c45265eb1ddd606099657c6208fa9c2e027ca2769c1c1ef"
+    },
+    {
+      "case_id": "U06",
+      "category": "U",
+      "title": "不明确与澄清：不要创建主题，只解释一下这个术语。",
+      "user_input": "不要创建主题，只解释一下这个术语。",
+      "result": "failed",
+      "expected": {
+        "route": "daily",
+        "target": null,
+        "session": "none",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "当前明确要求日常解释，不创建；宿主拦截错误提议不等于正确完成路由。"
+      },
+      "actual": {
+        "route_kind": "clarify",
+        "target": null,
+        "session_action": "none",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": false,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": false,
+        "own_present": null,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "clarification_answer": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [
+        "route_gold_mismatch",
+        "overclarification"
+      ],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "09a1df9b2a5431a952469cc0f50f09ccc898ddaf9c79936a99276685713f0532"
+    },
+    {
+      "case_id": "U07",
+      "category": "U",
+      "title": "不明确与澄清：健身和求职的那个表格，改改。",
+      "user_input": "健身和求职的那个表格，改改。",
+      "result": "passed",
+      "expected": {
+        "route": "clarify",
+        "target": null,
+        "session": "none",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "仅当前明确持续用途允许创建绑定；无唯一对象则澄清，日常请求不建主题。"
+      },
+      "actual": {
+        "route_kind": "clarify",
+        "target": null,
+        "session_action": "none",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": false,
+        "own_present": null,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "clarification_answer": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "cf6d54214ffa990dc53a4de2346dac1caae524ee863730d55139d89660aedc44"
+    },
+    {
+      "case_id": "U08",
+      "category": "U",
+      "title": "不明确与澄清：切到{{id:legacy}}",
+      "user_input": "切到{{id:legacy}}",
+      "result": "passed",
+      "expected": {
+        "route": "clarify",
+        "target": null,
+        "session": "none",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "仅当前明确持续用途允许创建绑定；无唯一对象则澄清，日常请求不建主题。"
+      },
+      "actual": {
+        "route_kind": "clarify",
+        "target": null,
+        "session_action": "none",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": false,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": false,
+        "own_present": null,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 0,
+        "stage_counts": {}
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": true,
+      "error": null,
+      "evidence_sha256": "071a9bd9ec09cfb2496f5b17426bf4c0eed8cb5b685264197955294421b3d2a8"
+    },
+    {
+      "case_id": "K01",
+      "category": "K",
+      "title": "强杀重启：重启后继续健身，之前的约束还在吗？",
+      "user_input": "重启后继续健身，之前的约束还在吗？",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "fitness",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "fitness",
+        "session_action": "reuse",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": true,
+        "own_present": true,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [
+        {
+          "alias": "fitness",
+          "same_binding": true,
+          "same_session_id": true,
+          "own_present": true,
+          "contaminated": false,
+          "passed": true
+        },
+        {
+          "alias": "career",
+          "same_binding": true,
+          "same_session_id": true,
+          "own_present": true,
+          "contaminated": false,
+          "passed": true
+        },
+        {
+          "alias": "alpha",
+          "same_binding": true,
+          "same_session_id": true,
+          "own_present": true,
+          "contaminated": false,
+          "passed": true
+        }
+      ],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "3037fe120b44013152b04cbc445375126f4b84636ffd3fe4ca99381548231349"
+    },
+    {
+      "case_id": "K02",
+      "category": "K",
+      "title": "强杀重启：重启后继续求职，之前的约束还在吗？",
+      "user_input": "重启后继续求职，之前的约束还在吗？",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "career",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "career",
+        "session_action": "reuse",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": true,
+        "own_present": true,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [
+        {
+          "alias": "fitness",
+          "same_binding": true,
+          "same_session_id": true,
+          "own_present": true,
+          "contaminated": false,
+          "passed": true
+        },
+        {
+          "alias": "career",
+          "same_binding": true,
+          "same_session_id": true,
+          "own_present": true,
+          "contaminated": false,
+          "passed": true
+        },
+        {
+          "alias": "alpha",
+          "same_binding": true,
+          "same_session_id": true,
+          "own_present": true,
+          "contaminated": false,
+          "passed": true
+        }
+      ],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "de6700e2148d04bd16a71e6ee92ea458b589740be417d179ca17477254d9ec5a"
+    },
+    {
+      "case_id": "K03",
+      "category": "K",
+      "title": "强杀重启：重启后继续健身，之前的约束还在吗？",
+      "user_input": "重启后继续健身，之前的约束还在吗？",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "fitness",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "fitness",
+        "session_action": "reuse",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": true,
+        "own_present": true,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [
+        {
+          "alias": "fitness",
+          "same_binding": true,
+          "same_session_id": true,
+          "own_present": true,
+          "contaminated": false,
+          "passed": true
+        },
+        {
+          "alias": "career",
+          "same_binding": true,
+          "same_session_id": true,
+          "own_present": true,
+          "contaminated": false,
+          "passed": true
+        },
+        {
+          "alias": "alpha",
+          "same_binding": true,
+          "same_session_id": true,
+          "own_present": true,
+          "contaminated": false,
+          "passed": true
+        }
+      ],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "8b769b603988a178b871d9472704f1be6b8feb285dbac055d591759aeea18dba"
+    },
+    {
+      "case_id": "K04",
+      "category": "K",
+      "title": "强杀重启：重启后继续求职，之前的约束还在吗？",
+      "user_input": "重启后继续求职，之前的约束还在吗？",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "career",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "career",
+        "session_action": "reuse",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": true,
+        "own_present": true,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [
+        {
+          "alias": "fitness",
+          "same_binding": true,
+          "same_session_id": true,
+          "own_present": true,
+          "contaminated": false,
+          "passed": true
+        },
+        {
+          "alias": "career",
+          "same_binding": true,
+          "same_session_id": true,
+          "own_present": true,
+          "contaminated": false,
+          "passed": true
+        },
+        {
+          "alias": "alpha",
+          "same_binding": true,
+          "same_session_id": true,
+          "own_present": true,
+          "contaminated": false,
+          "passed": true
+        }
+      ],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "99eb3264a9e151080faa207820c81dc5f22a2cfc4bb1ff6d5a49a1408e74a299"
+    },
+    {
+      "case_id": "K05",
+      "category": "K",
+      "title": "强杀重启：重启后继续健身，之前的约束还在吗？",
+      "user_input": "重启后继续健身，之前的约束还在吗？",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "fitness",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "fitness",
+        "session_action": "reuse",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": true,
+        "own_present": true,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [
+        {
+          "alias": "fitness",
+          "same_binding": true,
+          "same_session_id": true,
+          "own_present": true,
+          "contaminated": false,
+          "passed": true
+        },
+        {
+          "alias": "career",
+          "same_binding": true,
+          "same_session_id": true,
+          "own_present": true,
+          "contaminated": false,
+          "passed": true
+        },
+        {
+          "alias": "alpha",
+          "same_binding": true,
+          "same_session_id": true,
+          "own_present": true,
+          "contaminated": false,
+          "passed": true
+        }
+      ],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "6be4bde29313e3fcbfec59d36ecc7818ae1fd03e12d0036572d57fde0ee64539"
+    },
+    {
+      "case_id": "K06",
+      "category": "K",
+      "title": "强杀重启：重启后继续求职，之前的约束还在吗？",
+      "user_input": "重启后继续求职，之前的约束还在吗？",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "career",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "career",
+        "session_action": "reuse",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": true,
+        "own_present": true,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [
+        {
+          "alias": "fitness",
+          "same_binding": true,
+          "same_session_id": true,
+          "own_present": true,
+          "contaminated": false,
+          "passed": true
+        },
+        {
+          "alias": "career",
+          "same_binding": true,
+          "same_session_id": true,
+          "own_present": true,
+          "contaminated": false,
+          "passed": true
+        },
+        {
+          "alias": "alpha",
+          "same_binding": true,
+          "same_session_id": true,
+          "own_present": true,
+          "contaminated": false,
+          "passed": true
+        }
+      ],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "d94de602798f12b4d0c0ac033e1324b41161d4b759f16bf24c98268108ce06c0"
+    },
+    {
+      "case_id": "K07",
+      "category": "K",
+      "title": "强杀重启：重启后继续健身，之前的约束还在吗？",
+      "user_input": "重启后继续健身，之前的约束还在吗？",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "fitness",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "fitness",
+        "session_action": "reuse",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": true,
+        "own_present": true,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 3,
+        "stage_counts": {
+          "topic_route": 1,
+          "compaction": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [
+        {
+          "alias": "fitness",
+          "same_binding": true,
+          "same_session_id": true,
+          "own_present": true,
+          "contaminated": false,
+          "passed": true
+        },
+        {
+          "alias": "career",
+          "same_binding": true,
+          "same_session_id": true,
+          "own_present": true,
+          "contaminated": false,
+          "passed": true
+        },
+        {
+          "alias": "alpha",
+          "same_binding": true,
+          "same_session_id": true,
+          "own_present": true,
+          "contaminated": false,
+          "passed": true
+        }
+      ],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "333918ae6c334b5ca25b8a9ed19fe636eabdaeb8bad52fb51fa2c823bc3803ea"
+    },
+    {
+      "case_id": "K08",
+      "category": "K",
+      "title": "强杀重启：重启后继续求职，之前的约束还在吗？",
+      "user_input": "重启后继续求职，之前的约束还在吗？",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "career",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "career",
+        "session_action": "reuse",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": true,
+        "own_present": true,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [
+        {
+          "alias": "fitness",
+          "same_binding": true,
+          "same_session_id": true,
+          "own_present": true,
+          "contaminated": false,
+          "passed": true
+        },
+        {
+          "alias": "career",
+          "same_binding": true,
+          "same_session_id": true,
+          "own_present": true,
+          "contaminated": false,
+          "passed": true
+        },
+        {
+          "alias": "alpha",
+          "same_binding": true,
+          "same_session_id": true,
+          "own_present": true,
+          "contaminated": false,
+          "passed": true
+        }
+      ],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "e40a4084d78f4bcb15417857061d700f232694837621f04eddad4325a4bf596b"
+    },
+    {
+      "case_id": "C01",
+      "category": "C",
+      "title": "跨主题引用与Memory：参考求职这个主题的资料，继续健身建议。",
+      "user_input": "参考求职这个主题的资料，继续健身建议。",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "fitness",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "引用另一主题不搬入其私有聊天；当前健身保持。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "fitness",
+        "session_action": "reuse",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": true,
+        "own_present": true,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "f5fc1e323a98fa6ec5131a6d374612404c14e82333e09143047721aa519b3958"
+    },
+    {
+      "case_id": "C02",
+      "category": "C",
+      "title": "跨主题引用与Memory：用项目Alpha的经历改求职自我介绍；经历正文我还没",
+      "user_input": "用项目Alpha的经历改求职自我介绍；经历正文我还没有提供。",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "career",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "career",
+        "session_action": "reuse",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": true,
+        "own_present": true,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "78133f13f1e985e7ac67a8f0b0c1fcf75357167884a3146a1a821ca1910924ed"
+    },
+    {
+      "case_id": "C03",
+      "category": "C",
+      "title": "跨主题引用与Memory：切到健身，引用求职的资料，但不要打开别的会话。",
+      "user_input": "切到健身，引用求职的资料，但不要打开别的会话。",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "fitness",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "fitness",
+        "session_action": "reuse",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": true,
+        "own_present": true,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "b9b1ceaf4883ad3132207a2c451525fe1993b57a457e31a02cfbbad75463d9e1"
+    },
+    {
+      "case_id": "C04",
+      "category": "C",
+      "title": "跨主题引用与Memory：在项目Beta讨论，参考项目Alpha的资料。",
+      "user_input": "在项目Beta讨论，参考项目Alpha的资料。",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "beta",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "beta",
+        "session_action": "reuse",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": true,
+        "own_present": true,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "dca945837928c3adf5377e33a7f6cf0e7255d88dc4412d2538cf16417532ab2c"
+    },
+    {
+      "case_id": "C05",
+      "category": "C",
+      "title": "跨主题引用与Memory：健身话题继续。用户的回答语言偏好是什么？",
+      "user_input": "健身话题继续。用户的回答语言偏好是什么？",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "fitness",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "shared_memory",
+        "allowed_private_aliases": [],
+        "shared_memory_required": true,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "fitness",
+        "session_action": "reuse",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": true,
+        "own_present": true,
+        "shared_required": true,
+        "shared_present": true,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "185e588a89154c30982610dcaae9760196c7caaa98eae93b79d193b992c8dfe2"
+    },
+    {
+      "case_id": "C06",
+      "category": "C",
+      "title": "跨主题引用与Memory：求职话题里询问健身私聊的秘密，没有提供原文。",
+      "user_input": "求职话题里询问健身私聊的秘密，没有提供原文。",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "career",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "career",
+        "session_action": "reuse",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": true,
+        "own_present": true,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "ef3946d51668934bcf53a7b4182b993fcf5779604cc483275f2a8bee083182aa"
+    },
+    {
+      "case_id": "C07",
+      "category": "C",
+      "title": "跨主题引用与Memory：在求职讨论，我主动贴出项目Alpha的资料：{{ca",
+      "user_input": "在求职讨论，我主动贴出项目Alpha的资料：{{canary:alpha}}。请仅解释这段已提供文字。",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "career",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "user_provided",
+        "allowed_private_aliases": [
+          "alpha"
+        ],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "career",
+        "session_action": "reuse",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": true,
+        "own_present": true,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "2e0365b6433c648c937fe4f2053561a71a1892fa86786ac935375b9a9ec0df91"
+    },
+    {
+      "case_id": "C08",
+      "category": "C",
+      "title": "跨主题引用与Memory：健身继续。用户的回答语言偏好是什么？",
+      "user_input": "健身继续。用户的回答语言偏好是什么？",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "fitness",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "fitness",
+        "session_action": "reuse",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": true,
+        "own_present": true,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "3927c2e322a5c8aa95f12c492ce037ab4e0fbb9d141656c27d0634680ec99288"
+    },
+    {
+      "case_id": "L01",
+      "category": "L",
+      "title": "多个Session选择与候选边界：继续项目Beta的登录模块。",
+      "user_input": "继续项目Beta的登录模块。",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "beta",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "beta",
+        "session_action": "reuse",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": true,
+        "own_present": true,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "c28f50e64283441aefa9fe83846c629f886a5860992a6fcc8656cb8f0c71dffb"
+    },
+    {
+      "case_id": "L02",
+      "category": "L",
+      "title": "多个Session选择与候选边界：求职面试还有什么要准备？",
+      "user_input": "求职面试还有什么要准备？",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "career",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "career",
+        "session_action": "reuse",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": true,
+        "own_present": true,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "39374f15ede35248ac1f32dffe6fff95e47f3371094c6bdff22aa3410e880815"
+    },
+    {
+      "case_id": "L03",
+      "category": "L",
+      "title": "多个Session选择与候选边界：摄影里怎么调整曝光？",
+      "user_input": "摄影里怎么调整曝光？",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "photo",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "photo",
+        "session_action": "reuse",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": true,
+        "own_present": true,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "019dbbee5ecf1db1e36d112ff55441894905e5af7b4c14bed21e6eba2e252e47"
+    },
+    {
+      "case_id": "L04",
+      "category": "L",
+      "title": "多个Session选择与候选边界：继续健身训练。",
+      "user_input": "继续健身训练。",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "fitness",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "fitness",
+        "session_action": "reuse",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": true,
+        "own_present": true,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "d2a98432ef8b24bfff235e9cbfb227bb5f6ca75cd4527df040554826fa828d58"
+    },
+    {
+      "case_id": "L05",
+      "category": "L",
+      "title": "多个Session选择与候选边界：英语口语今天练什么？",
+      "user_input": "英语口语今天练什么？",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "english",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "english",
+        "session_action": "reuse",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": true,
+        "own_present": true,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "8e1b37717067d76e3a96eac41696e919a6c8b31b7cc9e4ce847abaf49659aba9"
+    },
+    {
+      "case_id": "L06",
+      "category": "L",
+      "title": "多个Session选择与候选边界：写作主题里讨论人物动机。",
+      "user_input": "写作主题里讨论人物动机。",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "writing",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "writing",
+        "session_action": "reuse",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": true,
+        "own_present": true,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "b9a5d850a690b796c20ae3fd93a2ccf7dca7662b6c0c89ffe31e92dda0f42b63"
+    },
+    {
+      "case_id": "L07",
+      "category": "L",
+      "title": "多个Session选择与候选边界：继续讨论之前的问题。",
+      "user_input": "继续讨论之前的问题。",
+      "result": "passed",
+      "expected": {
+        "route": "clarify",
+        "target": null,
+        "session": "none",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "21候选且没有明确范围，不能截断后擅选；应在模型请求前澄清。"
+      },
+      "actual": {
+        "route_kind": "clarify",
+        "target": null,
+        "session_action": "none",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": false,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": false,
+        "own_present": null,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 0,
+        "stage_counts": {}
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": true,
+      "error": null,
+      "evidence_sha256": "7d11c878c1f45d7cda9a510e59bd5b631276cda98ada18d9965da540ab0f6f47"
+    },
+    {
+      "case_id": "L08",
+      "category": "L",
+      "title": "多个Session选择与候选边界：在{{id:alpha}}继续讨论登录模块。",
+      "user_input": "在{{id:alpha}}继续讨论登录模块。",
+      "result": "passed",
+      "expected": {
+        "route": "reuse",
+        "target": "alpha",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "actual": {
+        "route_kind": "topic",
+        "target": "alpha",
+        "session_action": "reuse",
+        "new_topics": 0,
+        "run_status": "succeeded"
+      },
+      "route_correct": true,
+      "session_correct": true,
+      "context": {
+        "applicable": true,
+        "complete": true,
+        "contaminated": false,
+        "contamination": [],
+        "own_required": true,
+        "own_present": true,
+        "shared_required": false,
+        "shared_present": null,
+        "requests": 2,
+        "stage_counts": {
+          "topic_route": 1,
+          "chat": 1
+        }
+      },
+      "recovery": [],
+      "failure_categories": [],
+      "deterministic": false,
+      "error": null,
+      "evidence_sha256": "c907306b23c54ae29d7104882b213d0bc691d415ce9959a1a3e3af9b4a48117c"
+    }
+  ],
+  "publication_scope": "合成结果摘要和逐Case CSV；原始HTTP、Session、环境日志及早期失败原件保留本地，不随Git发布。"
+}
