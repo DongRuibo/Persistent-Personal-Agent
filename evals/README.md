@@ -25,3 +25,29 @@ Session复用要求正确目标、原绑定及原JSONL Session ID保留；错用
 旧通知评测仅通过 [历史来源摘要](baselines/prior-evaluations.json)引用30/30、恢复6/6、HTTP分类8/8，来源基线不同，不进入Router成绩，也不表示本分支包含通知修复。生产源码、既有tests/web与lockfile在执行前按Git clean规则核对授权基线ead27a7的blob；评测提交可以前进，manifest单独记录evaluation_commit；实际执行字节的SHA-256另记manifest（仓库checkout可能转换CRLF）。
 
 Git中保留[合成结果摘要](reports/router-session-summary.json)和[逐Case CSV](reports/router-session-results.csv)，包括所有失败及未测字段。原始HTTP、Session和环境日志位于本地`reports/router-session/`且被Git忽略；复现命令可重新生成独立原件。
+
+## 真实模型Router首批小样本
+
+`npm run eval:router:semantic`默认只准备：通过真实Pi SDK捕获序列化请求但不发送网络，不读取Key。20条冻结状态见[计划](datasets/router-semantic-pilot-v1.json)。真正调用需要显式`-- --live --config <本机模型.env路径>`并事先获得模型、请求/Token和费用授权；本轮已批准预算5元、最多20HTTP、512输出、60000输入预留，实际只跑一次17个HTTP。不要用新输出目录自动补跑或消耗剩余额度。
+
+脚本只调用生产Router及原Store，不运行主Chat/Worker，不加载真实Session或Memory。模型原始提议与宿主最终归属分别统计，确定性分支不进入模型准确率分母；价格未知时cost为null。原始输入/输出仅保留于已忽略的`reports/router-session/semantic-*`目录。结果见[语义评测报告](../docs/EVAL_ROUTER_SEMANTIC.md)、[合成摘要](reports/router-semantic-pilot-summary.json)与[CSV](reports/router-semantic-pilot-results.csv)。
+
+该历史Router-only Runner固定检查生产基线`ead27a7`。当前分支已包含主题状态提示修复，因此直接运行会按原保护拒绝启动；历史复现需在独立的原生产源码快照中配套本评测脚本，不移除基线检查。历史成绩不自动作为修后成绩。
+
+## 真实连续对话验收
+
+独立的[21轮冻结输入](datasets/router-conversation-v1.json)经过生产Web HTTP、Router、主Chat和原生SessionManager，健身/求职/项目各放一个私有Canary，再切换、指代续聊、跨主题引用及SIGKILL恢复。使用新隔离数据库、Session和Memory目录，不启动正式实例、Scheduler或Worker。原始模型请求正文、SSE、Run、Session及生命周期仅保留在被忽略的`reports/router-session/conversation-*`中。
+
+```sh
+npm run eval:router:conversation -- --output evals/reports/router-session/conversation-prepare-new
+# 只有重新明确授权真实调用和预算后才执行；--output必须是全新目录。
+npm run eval:router:conversation -- --live --config /本机/模型.env --output evals/reports/router-session/conversation-live-new
+```
+
+默认prepare只启动/关闭隔离入口，模型HTTP为0。真实模式读取本机模型配置，子进程使用假Key；父进程对实际原始请求逐次计量后中继到既有模型，正文及生产max_tokens保持原样。中继缓冲完整SSE，故不测流式首字时延。全局上限5元保守预留、40次HTTP、500000输入预留、100000输出预留，无供应商自动重试；不能把预留或公开价估算说成实际账单。
+
+本轮21轮首验保留C06漏答和C14评测客户端轮询429失败；C01/C03模型否认宿主已创建主题另记人工审阅问题，不混入路由分数。只把评测轮询50ms改为1000ms，使用`--resume <首轮输出目录>`从隔离目录副本补验固定8轮（选求职、C14、空闲强杀、C15—C20）。该补验承接首轮实际请求的累计预算，不覆盖原件，不重跑收费首轮、不更改gold。此参数是本次补验专用，不能据此自动追加收费实验。
+
+结果见[连续验收报告](../docs/EVAL_ROUTER_CONVERSATION.md)、[摘要JSON](reports/router-conversation-summary.json)、[逐轮CSV](reports/router-conversation-results.csv)。首轮和补验单独列指标；零HTTP纯切换不进入上下文污染分母；Memory目录共享元数据和私有Session Canary分开判断。没有触发压缩，不宣称真实长上下文/共享记忆安全已验收。
+
+主题状态修复的独立小规模复验使用`--host-state-retest`，默认仍为零模型请求的prepare；新授权后才可追加`--live --config <本机模型.env路径>`。该固定计划共5轮、最多16HTTP、费用预留上限5元，不使用连续验收的旧余额。本次实际8HTTP，C01/C03均承认已建主题，两次续聊保留原Session；主回答0/4否认，费用预留0.619890元，账单未核验。求职答复偏长问题和旧否认失败均保留，见[复验报告](../docs/evaluations/topic-session-host-state-live-retest.md)、[摘要](reports/topic-host-state-retest-summary.json)与[CSV](reports/topic-host-state-retest-results.csv)。不要把再次运行当作默认授权。

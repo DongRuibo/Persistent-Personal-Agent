@@ -1,0 +1,185 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-09",
+  "evidence_type": "real_model_continuous_web_chat",
+  "head": "5f4764db08e82168cc5feb22d9fea77d526ce2be",
+  "production_base": "ead27a7e19fa99ac7413fceec81e603681192870",
+  "production_modified": false,
+  "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+  "runs": [
+    {
+      "run": "conversation-live-01",
+      "planned_turns": 21,
+      "evaluated_turns": 21,
+      "automatic_passed": 19,
+      "raw_model_routing": {
+        "correct": 15,
+        "total": 15,
+        "accuracy": 1.0
+      },
+      "host_routing": {
+        "correct": 20,
+        "total": 21,
+        "accuracy": 0.9523809523809523,
+        "semantic_turns": 15,
+        "deterministic_selections": 6
+      },
+      "session_reuse": {
+        "tp": 16,
+        "fp": 0,
+        "fn": 1,
+        "precision": 1,
+        "recall": 0.9411764705882353,
+        "f1": 0.9696969696969697
+      },
+      "context": {
+        "actual_requests": 30,
+        "contaminated_requests": 0,
+        "contamination_rate": 0,
+        "chat_requests": 14,
+        "own_history_required": 11,
+        "own_history_present": 10
+      },
+      "recovery": {
+        "correct": 3,
+        "total": 3,
+        "rate": 1,
+        "restart": {
+          "previous_pid": 5989,
+          "pid": 6008,
+          "observed_sigkill": true,
+          "automatic_http": 0,
+          "snapshot_unchanged": false
+        }
+      },
+      "native_session_checks": {
+        "passed": 19,
+        "total": 19
+      },
+      "production_transport_matches": true,
+      "restart_topic_files_identical": true,
+      "memory_record_count": 0,
+      "memory_context_all_empty": true,
+      "exit": 1
+    },
+    {
+      "run": "conversation-live-02",
+      "planned_turns": 8,
+      "evaluated_turns": 8,
+      "automatic_passed": 8,
+      "raw_model_routing": {
+        "correct": 4,
+        "total": 4,
+        "accuracy": 1.0
+      },
+      "host_routing": {
+        "correct": 8,
+        "total": 8,
+        "accuracy": 1,
+        "semantic_turns": 4,
+        "deterministic_selections": 4
+      },
+      "session_reuse": {
+        "tp": 8,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1,
+        "recall": 1,
+        "f1": 1
+      },
+      "context": {
+        "actual_requests": 8,
+        "contaminated_requests": 0,
+        "contamination_rate": 0,
+        "chat_requests": 4,
+        "own_history_required": 4,
+        "own_history_present": 4
+      },
+      "recovery": {
+        "correct": 3,
+        "total": 3,
+        "rate": 1,
+        "restart": {
+          "previous_pid": 6103,
+          "pid": 6106,
+          "observed_sigkill": true,
+          "automatic_http": 0,
+          "snapshot_unchanged": false
+        }
+      },
+      "native_session_checks": {
+        "passed": 8,
+        "total": 8
+      },
+      "production_transport_matches": true,
+      "restart_topic_files_identical": true,
+      "memory_record_count": 0,
+      "memory_context_all_empty": true,
+      "exit": 0
+    }
+  ],
+  "total_actual_http": 38,
+  "stage_counts": {
+    "chat": 18,
+    "clarification_answer": 1,
+    "topic_route": 19
+  },
+  "context": {
+    "contaminated_requests": 0,
+    "total_actual_requests": 38,
+    "rate": 0.0,
+    "violations": []
+  },
+  "own_history": {
+    "required_turns": 15,
+    "present_turns": 14,
+    "unobserved_due_to_client_429": 1
+  },
+  "budget": {
+    "cap_cny": 5,
+    "reserved_cny": 2.989335,
+    "input_tokens": 59049,
+    "output_tokens": 2740,
+    "price_source": "https://www.siliconflow.cn/pricing",
+    "pricing_peak_estimate_cny": 0.140018,
+    "actual_cost_cny": null
+  },
+  "failures": [
+    {
+      "run": "conversation-live-01",
+      "turns": [
+        "C01",
+        "C03"
+      ],
+      "category": "answer_denies_host_created_topic"
+    },
+    {
+      "run": "conversation-live-01",
+      "turns": [
+        "C06"
+      ],
+      "category": "answer_omits_typescript"
+    },
+    {
+      "run": "conversation-live-01",
+      "turns": [
+        "C14"
+      ],
+      "category": "eval_polling_429_interrupted_observation",
+      "supplement": "conversation-live-02/C14"
+    }
+  ],
+  "limitations": [
+    "首轮C14收据轮询自触发Web每分钟600请求门限，未观测最终宿主路由，严格分母保留失败；原始模型提议正确。",
+    "补验沿用首轮数据副本、冻结输入和累计预算，8轮单独报告，不覆盖首轮、不当作新的独立样本。",
+    "Canary级上下文隔离，不代表语义泄漏穷举或生产长期稳定性。",
+    "共享Memory未播种，实际记录0且Memory Context为空；允许共享记忆机制仍仅有旧离线证据。",
+    "没有触发真实模型压缩，未验长上下文压缩质量、浏览器UI、Goal或Worker。",
+    "模型回答否认宿主已创建主题的问题尚未修复。"
+  ],
+  "raw_artifacts": [
+    "router-session/conversation-live-01/",
+    "router-session/conversation-live-02/",
+    "router-session/conversation-validation/"
+  ]
+}

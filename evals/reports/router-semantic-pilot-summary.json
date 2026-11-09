@@ -1,0 +1,922 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-09",
+  "mode": "live_router_semantic_pilot",
+  "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+  "base_url": "https://api.siliconflow.cn/v1",
+  "source_baseline": "ead27a7e19fa99ac7413fceec81e603681192870",
+  "evaluation_commit": "5f4764db08e82168cc5feb22d9fea77d526ce2be",
+  "plan_sha256": "51c89c5af30b843e15042f74bc1d1cd7c20e9fc2241d15eb2f9f6d6585482d9c",
+  "source_sha256": "2f88f24e134ee72778b076367b9b41a9fa4c634d05e4a6e99d27603d9890bcb0",
+  "raw_results_sha256": "1987772469adaf5ca041a83b537c1ebf83466a36d8902700e4d1b48da612c99f",
+  "summary": {
+    "planned_cases": 20,
+    "completed_cases": 20,
+    "mode": "live",
+    "not_run_cases": [],
+    "model_raw_routing_accuracy": {
+      "numerator": 16,
+      "denominator": 17,
+      "value": 0.9411764705882353,
+      "needs_review": 0,
+      "observed_lower_bound": 0.9411764705882353
+    },
+    "host_final_routing_accuracy": {
+      "numerator": 19,
+      "denominator": 20,
+      "value": 0.95,
+      "needs_review": 0,
+      "observed_lower_bound": 0.95
+    },
+    "deterministic_routing_accuracy": {
+      "numerator": 3,
+      "denominator": 3,
+      "value": 1,
+      "needs_review": 0,
+      "observed_lower_bound": 1
+    },
+    "api_errors": 0,
+    "wrong_raw_cases": [
+      "U05"
+    ],
+    "wrong_final_cases": [
+      "U05"
+    ],
+    "by_category": {
+      "N": {
+        "raw": {
+          "numerator": 2,
+          "denominator": 2,
+          "value": 1,
+          "needs_review": 0,
+          "observed_lower_bound": 1
+        },
+        "final": {
+          "numerator": 2,
+          "denominator": 2,
+          "value": 1,
+          "needs_review": 0,
+          "observed_lower_bound": 1
+        }
+      },
+      "R": {
+        "raw": {
+          "numerator": 2,
+          "denominator": 2,
+          "value": 1,
+          "needs_review": 0,
+          "observed_lower_bound": 1
+        },
+        "final": {
+          "numerator": 2,
+          "denominator": 2,
+          "value": 1,
+          "needs_review": 0,
+          "observed_lower_bound": 1
+        }
+      },
+      "S": {
+        "raw": {
+          "numerator": 2,
+          "denominator": 2,
+          "value": 1,
+          "needs_review": 0,
+          "observed_lower_bound": 1
+        },
+        "final": {
+          "numerator": 2,
+          "denominator": 2,
+          "value": 1,
+          "needs_review": 0,
+          "observed_lower_bound": 1
+        }
+      },
+      "T": {
+        "raw": {
+          "numerator": 1,
+          "denominator": 1,
+          "value": 1,
+          "needs_review": 0,
+          "observed_lower_bound": 1
+        },
+        "final": {
+          "numerator": 2,
+          "denominator": 2,
+          "value": 1,
+          "needs_review": 0,
+          "observed_lower_bound": 1
+        }
+      },
+      "M": {
+        "raw": {
+          "numerator": 2,
+          "denominator": 2,
+          "value": 1,
+          "needs_review": 0,
+          "observed_lower_bound": 1
+        },
+        "final": {
+          "numerator": 2,
+          "denominator": 2,
+          "value": 1,
+          "needs_review": 0,
+          "observed_lower_bound": 1
+        }
+      },
+      "P": {
+        "raw": {
+          "numerator": 1,
+          "denominator": 1,
+          "value": 1,
+          "needs_review": 0,
+          "observed_lower_bound": 1
+        },
+        "final": {
+          "numerator": 2,
+          "denominator": 2,
+          "value": 1,
+          "needs_review": 0,
+          "observed_lower_bound": 1
+        }
+      },
+      "U": {
+        "raw": {
+          "numerator": 1,
+          "denominator": 2,
+          "value": 0.5,
+          "needs_review": 0,
+          "observed_lower_bound": 0.5
+        },
+        "final": {
+          "numerator": 1,
+          "denominator": 2,
+          "value": 0.5,
+          "needs_review": 0,
+          "observed_lower_bound": 0.5
+        }
+      },
+      "K": {
+        "raw": {
+          "numerator": 2,
+          "denominator": 2,
+          "value": 1,
+          "needs_review": 0,
+          "observed_lower_bound": 1
+        },
+        "final": {
+          "numerator": 2,
+          "denominator": 2,
+          "value": 1,
+          "needs_review": 0,
+          "observed_lower_bound": 1
+        }
+      },
+      "C": {
+        "raw": {
+          "numerator": 2,
+          "denominator": 2,
+          "value": 1,
+          "needs_review": 0,
+          "observed_lower_bound": 1
+        },
+        "final": {
+          "numerator": 2,
+          "denominator": 2,
+          "value": 1,
+          "needs_review": 0,
+          "observed_lower_bound": 1
+        }
+      },
+      "L": {
+        "raw": {
+          "numerator": 1,
+          "denominator": 1,
+          "value": 1,
+          "needs_review": 0,
+          "observed_lower_bound": 1
+        },
+        "final": {
+          "numerator": 2,
+          "denominator": 2,
+          "value": 1,
+          "needs_review": 0,
+          "observed_lower_bound": 1
+        }
+      }
+    },
+    "budget": {
+      "requests": 17,
+      "input_token_reservation": 34261,
+      "output_token_reservation": 8704,
+      "reserved_cny": 1.3815399999999998,
+      "cost_cny": null,
+      "note": "预留系数不是供应商单价，不能把SDK兼容模型的零cost当真实费用；账单未确认则null"
+    },
+    "real_session_reuse_rate": null,
+    "real_context_contamination_rate": null,
+    "real_session_recovery_rate": null,
+    "scope": "独立冻结状态上的真实Router语义；未运行主回答/Worker/实际Session重启，不是完整产品端到端质量"
+  },
+  "usage": {
+    "known_responses": 17,
+    "unknown_responses": 0,
+    "input_tokens": 6952,
+    "output_tokens": 867,
+    "cost_cny": null,
+    "scope": "只累加供应商已报告用量，未知不当0；费用未按.cn账单确认"
+  },
+  "latency_ms": {
+    "p50": 912,
+    "p95": 1395,
+    "scope": "SDK complete单请求，包括序列化、网络与响应解析；非完整Chat延迟"
+  },
+  "verification": {
+    "full_tests": {
+      "total": 1142,
+      "passed": 1142,
+      "failed": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "typecheck_exit_code": 0,
+    "eval_typecheck_exit_code": 0,
+    "build_exit_code": 0,
+    "semantic_eval_exit_code": 1,
+    "raw_key_occurrences": 0,
+    "gold_not_in_model_inputs": true
+  },
+  "cases": [
+    {
+      "case_id": "N01",
+      "category": "N",
+      "mode": "live",
+      "model_requested": true,
+      "prepared_http": false,
+      "raw_text": "{\"kind\":\"create\",\"title\":\"长期健身计划\",\"description\":\"长期协助用户进行健身相关的规划、记录与咨询。\",\"reason\":\"用户明确表示以后长期在此进行健身事项，属于持续新主题。\"}",
+      "raw_choice": {
+        "kind": "create",
+        "title": "长期健身计划",
+        "description": "长期协助用户进行健身相关的规划、记录与咨询。",
+        "reason": "用户明确表示以后长期在此进行健身事项，属于持续新主题。"
+      },
+      "final_choice": {
+        "kind": "create",
+        "title": "长期健身计划",
+        "description": "长期协助用户进行健身相关的规划、记录与咨询。",
+        "reason": "用户明确表示以后长期在此进行健身事项，属于持续新主题。"
+      },
+      "raw_grade": {
+        "correct": true,
+        "needs_review": false,
+        "action": "create",
+        "target": "fitness",
+        "reason": "动作及冻结范围词匹配"
+      },
+      "final_grade": {
+        "correct": true,
+        "needs_review": false,
+        "action": "create",
+        "target": "fitness",
+        "reason": "动作及冻结范围词匹配"
+      },
+      "logical_session_action": "create",
+      "error": null,
+      "elapsed_ms": 1222
+    },
+    {
+      "case_id": "N08",
+      "category": "N",
+      "mode": "live",
+      "model_requested": true,
+      "prepared_http": false,
+      "raw_text": "{\"kind\":\"daily\",\"reason\":\"用户要求解释一句引述话语，并明确不创建主题，属于日常问答。\"}",
+      "raw_choice": {
+        "kind": "daily",
+        "reason": "用户要求解释一句引述话语，并明确不创建主题，属于日常问答。"
+      },
+      "final_choice": {
+        "kind": "daily",
+        "reason": "用户要求解释一句引述话语，并明确不创建主题，属于日常问答。"
+      },
+      "raw_grade": {
+        "correct": true,
+        "needs_review": false,
+        "action": "daily",
+        "target": null,
+        "reason": "动作及目标匹配"
+      },
+      "final_grade": {
+        "correct": true,
+        "needs_review": false,
+        "action": "daily",
+        "target": null,
+        "reason": "动作及目标匹配"
+      },
+      "logical_session_action": "none",
+      "error": null,
+      "elapsed_ms": 780
+    },
+    {
+      "case_id": "R01",
+      "category": "R",
+      "mode": "live",
+      "model_requested": true,
+      "prepared_http": false,
+      "raw_text": "{\"kind\":\"use\",\"threadId\":\"7d994c6f-e3cb-1ace-9250-928027f9a997\",\"reason\":\"用户询问健身训练量调整，候选中有已绑定的健身主题，语义匹配\"}",
+      "raw_choice": {
+        "kind": "use",
+        "threadId": "7d994c6f-e3cb-1ace-9250-928027f9a997",
+        "reason": "用户询问健身训练量调整，候选中有已绑定的健身主题，语义匹配"
+      },
+      "final_choice": {
+        "kind": "use",
+        "threadId": "7d994c6f-e3cb-1ace-9250-928027f9a997",
+        "reason": "用户询问健身训练量调整，候选中有已绑定的健身主题，语义匹配"
+      },
+      "raw_grade": {
+        "correct": true,
+        "needs_review": false,
+        "action": "reuse",
+        "target": "fitness",
+        "reason": "动作及目标匹配"
+      },
+      "final_grade": {
+        "correct": true,
+        "needs_review": false,
+        "action": "reuse",
+        "target": "fitness",
+        "reason": "动作及目标匹配"
+      },
+      "logical_session_action": "reuse",
+      "error": null,
+      "elapsed_ms": 922
+    },
+    {
+      "case_id": "R08",
+      "category": "R",
+      "mode": "live",
+      "model_requested": true,
+      "prepared_http": false,
+      "raw_text": "{\"kind\":\"use\",\"threadId\":\"2b2b618f-7a9e-7567-156d-ad45cc2856de\",\"reason\":\"原话明确说“求职话题继续”，候选中有已绑定的求职主题，语义指向该主题。\"}",
+      "raw_choice": {
+        "kind": "use",
+        "threadId": "2b2b618f-7a9e-7567-156d-ad45cc2856de",
+        "reason": "原话明确说“求职话题继续”，候选中有已绑定的求职主题，语义指向该主题。"
+      },
+      "final_choice": {
+        "kind": "use",
+        "threadId": "2b2b618f-7a9e-7567-156d-ad45cc2856de",
+        "reason": "原话明确说“求职话题继续”，候选中有已绑定的求职主题，语义指向该主题。"
+      },
+      "raw_grade": {
+        "correct": true,
+        "needs_review": false,
+        "action": "reuse",
+        "target": "career",
+        "reason": "动作及目标匹配"
+      },
+      "final_grade": {
+        "correct": true,
+        "needs_review": false,
+        "action": "reuse",
+        "target": "career",
+        "reason": "动作及目标匹配"
+      },
+      "logical_session_action": "reuse",
+      "error": null,
+      "elapsed_ms": 973
+    },
+    {
+      "case_id": "S01",
+      "category": "S",
+      "mode": "live",
+      "model_requested": true,
+      "prepared_http": false,
+      "raw_text": "{\"kind\":\"use\",\"threadId\":\"e88a691b-71f8-b3b3-a3b8-78a38708fdb6\",\"reason\":\"明确指向健身主题，且当前已绑定该主题，新增肩部热身小问题属于该主题延续\"}",
+      "raw_choice": {
+        "kind": "use",
+        "threadId": "e88a691b-71f8-b3b3-a3b8-78a38708fdb6",
+        "reason": "明确指向健身主题，且当前已绑定该主题，新增肩部热身小问题属于该主题延续"
+      },
+      "final_choice": {
+        "kind": "use",
+        "threadId": "e88a691b-71f8-b3b3-a3b8-78a38708fdb6",
+        "reason": "明确指向健身主题，且当前已绑定该主题，新增肩部热身小问题属于该主题延续"
+      },
+      "raw_grade": {
+        "correct": true,
+        "needs_review": false,
+        "action": "reuse",
+        "target": "fitness",
+        "reason": "动作及目标匹配"
+      },
+      "final_grade": {
+        "correct": true,
+        "needs_review": false,
+        "action": "reuse",
+        "target": "fitness",
+        "reason": "动作及目标匹配"
+      },
+      "logical_session_action": "reuse",
+      "error": null,
+      "elapsed_ms": 927
+    },
+    {
+      "case_id": "S03",
+      "category": "S",
+      "mode": "live",
+      "model_requested": true,
+      "prepared_http": false,
+      "raw_text": "{\"kind\":\"use\",\"threadId\":\"bff0cb23-e08d-9a5b-51ef-bd0e8453ea7b\",\"reason\":\"当前原话明确指向项目Alpha的登录重试，且当前主题即项目Alpha，属于已有绑定主题的语义延续。\"}",
+      "raw_choice": {
+        "kind": "use",
+        "threadId": "bff0cb23-e08d-9a5b-51ef-bd0e8453ea7b",
+        "reason": "当前原话明确指向项目Alpha的登录重试，且当前主题即项目Alpha，属于已有绑定主题的语义延续。"
+      },
+      "final_choice": {
+        "kind": "use",
+        "threadId": "bff0cb23-e08d-9a5b-51ef-bd0e8453ea7b",
+        "reason": "当前原话明确指向项目Alpha的登录重试，且当前主题即项目Alpha，属于已有绑定主题的语义延续。"
+      },
+      "raw_grade": {
+        "correct": true,
+        "needs_review": false,
+        "action": "reuse",
+        "target": "alpha",
+        "reason": "动作及目标匹配"
+      },
+      "final_grade": {
+        "correct": true,
+        "needs_review": false,
+        "action": "reuse",
+        "target": "alpha",
+        "reason": "动作及目标匹配"
+      },
+      "logical_session_action": "reuse",
+      "error": null,
+      "elapsed_ms": 1267
+    },
+    {
+      "case_id": "T01",
+      "category": "T",
+      "mode": "live",
+      "model_requested": false,
+      "prepared_http": false,
+      "raw_text": null,
+      "raw_choice": null,
+      "final_choice": {
+        "kind": "use",
+        "threadId": "28092f26-5ea6-6b33-c62a-23ccfbda0e10",
+        "reason": "当前全文只要求切换主题"
+      },
+      "raw_grade": null,
+      "final_grade": {
+        "correct": true,
+        "needs_review": false,
+        "action": "reuse",
+        "target": "fitness",
+        "reason": "动作及目标匹配"
+      },
+      "logical_session_action": "reuse",
+      "error": null,
+      "elapsed_ms": 11
+    },
+    {
+      "case_id": "T05",
+      "category": "T",
+      "mode": "live",
+      "model_requested": true,
+      "prepared_http": false,
+      "raw_text": "{\"kind\":\"use\",\"threadId\":\"2a444eb8-4399-0848-23d1-13cd7c70c390\",\"reason\":\"用户明确要求切到健身并询问力量训练安排，候选中有已绑定的健身主题\"}",
+      "raw_choice": {
+        "kind": "use",
+        "threadId": "2a444eb8-4399-0848-23d1-13cd7c70c390",
+        "reason": "用户明确要求切到健身并询问力量训练安排，候选中有已绑定的健身主题"
+      },
+      "final_choice": {
+        "kind": "use",
+        "threadId": "2a444eb8-4399-0848-23d1-13cd7c70c390",
+        "reason": "用户明确要求切到健身并询问力量训练安排，候选中有已绑定的健身主题"
+      },
+      "raw_grade": {
+        "correct": true,
+        "needs_review": false,
+        "action": "reuse",
+        "target": "fitness",
+        "reason": "动作及目标匹配"
+      },
+      "final_grade": {
+        "correct": true,
+        "needs_review": false,
+        "action": "reuse",
+        "target": "fitness",
+        "reason": "动作及目标匹配"
+      },
+      "logical_session_action": "reuse",
+      "error": null,
+      "elapsed_ms": 1404
+    },
+    {
+      "case_id": "M01",
+      "category": "M",
+      "mode": "live",
+      "model_requested": true,
+      "prepared_http": false,
+      "raw_text": "{\"kind\":\"clarify\",\"question\":\"你希望先继续健身，还是先继续求职？\",\"reason\":\"原话同时提到健身和求职且未决定先处理哪件，存在多个绑定主题，不能代选。\"}",
+      "raw_choice": {
+        "kind": "clarify",
+        "question": "你希望先继续健身，还是先继续求职？",
+        "reason": "原话同时提到健身和求职且未决定先处理哪件，存在多个绑定主题，不能代选。"
+      },
+      "final_choice": {
+        "kind": "clarify",
+        "question": "接下来想继续聊哪一个主题？1.项目Alpha；2.健身；3.求职",
+        "reason": "原话同时提到健身和求职且未决定先处理哪件，存在多个绑定主题，不能代选。"
+      },
+      "raw_grade": {
+        "correct": true,
+        "needs_review": false,
+        "action": "clarify",
+        "target": null,
+        "reason": "动作及目标匹配"
+      },
+      "final_grade": {
+        "correct": true,
+        "needs_review": false,
+        "action": "clarify",
+        "target": null,
+        "reason": "动作及目标匹配"
+      },
+      "logical_session_action": "none",
+      "error": null,
+      "elapsed_ms": 910
+    },
+    {
+      "case_id": "M04",
+      "category": "M",
+      "mode": "live",
+      "model_requested": true,
+      "prepared_http": false,
+      "raw_text": "{\"kind\":\"use\",\"threadId\":\"0363830e-b977-d337-2cab-93403fff913f\",\"reason\":\"明确要求切到健身主题，仅参考求职的表达方式，不切换至求职\"}",
+      "raw_choice": {
+        "kind": "use",
+        "threadId": "0363830e-b977-d337-2cab-93403fff913f",
+        "reason": "明确要求切到健身主题，仅参考求职的表达方式，不切换至求职"
+      },
+      "final_choice": {
+        "kind": "use",
+        "threadId": "0363830e-b977-d337-2cab-93403fff913f",
+        "reason": "明确要求切到健身主题，仅参考求职的表达方式，不切换至求职"
+      },
+      "raw_grade": {
+        "correct": true,
+        "needs_review": false,
+        "action": "reuse",
+        "target": "fitness",
+        "reason": "动作及目标匹配"
+      },
+      "final_grade": {
+        "correct": true,
+        "needs_review": false,
+        "action": "reuse",
+        "target": "fitness",
+        "reason": "动作及目标匹配"
+      },
+      "logical_session_action": "reuse",
+      "error": null,
+      "elapsed_ms": 881
+    },
+    {
+      "case_id": "P01",
+      "category": "P",
+      "mode": "live",
+      "model_requested": true,
+      "prepared_http": false,
+      "raw_text": "{\"kind\":\"use\",\"threadId\":\"68dad087-0343-505a-fdce-ab1404019027\",\"reason\":\"当前绑定主题为健身，原话询问训练动作，语义延续该主题\"}",
+      "raw_choice": {
+        "kind": "use",
+        "threadId": "68dad087-0343-505a-fdce-ab1404019027",
+        "reason": "当前绑定主题为健身，原话询问训练动作，语义延续该主题"
+      },
+      "final_choice": {
+        "kind": "use",
+        "threadId": "68dad087-0343-505a-fdce-ab1404019027",
+        "reason": "当前绑定主题为健身，原话询问训练动作，语义延续该主题"
+      },
+      "raw_grade": {
+        "correct": true,
+        "needs_review": false,
+        "action": "reuse",
+        "target": "fitness",
+        "reason": "动作及目标匹配"
+      },
+      "final_grade": {
+        "correct": true,
+        "needs_review": false,
+        "action": "reuse",
+        "target": "fitness",
+        "reason": "动作及目标匹配"
+      },
+      "logical_session_action": "reuse",
+      "error": null,
+      "elapsed_ms": 1027
+    },
+    {
+      "case_id": "P05",
+      "category": "P",
+      "mode": "live",
+      "model_requested": false,
+      "prepared_http": false,
+      "raw_text": null,
+      "raw_choice": null,
+      "final_choice": {
+        "kind": "clarify",
+        "question": "请补充一个明确主题名称与项目范围以缩小选择；上一条请求没有执行。",
+        "reason": "没有唯一当前有效业务展示，请重新查看对象"
+      },
+      "raw_grade": null,
+      "final_grade": {
+        "correct": true,
+        "needs_review": false,
+        "action": "clarify",
+        "target": null,
+        "reason": "动作及目标匹配"
+      },
+      "logical_session_action": "none",
+      "error": null,
+      "elapsed_ms": 12
+    },
+    {
+      "case_id": "U02",
+      "category": "U",
+      "mode": "live",
+      "model_requested": true,
+      "prepared_http": false,
+      "raw_text": "{\"kind\":\"clarify\",\"question\":\"你要切换到哪个“登录项目”：外部系统乙，还是内部系统甲？\",\"reason\":\"存在两个同名且已绑定的候选主题，无法代为选择。\"}",
+      "raw_choice": {
+        "kind": "clarify",
+        "question": "你要切换到哪个“登录项目”：外部系统乙，还是内部系统甲？",
+        "reason": "存在两个同名且已绑定的候选主题，无法代为选择。"
+      },
+      "final_choice": {
+        "kind": "clarify",
+        "question": "接下来想继续聊哪一个主题？1.登录项目（外部系统乙）；2.登录项目（内部系统甲）",
+        "reason": "存在两个同名且已绑定的候选主题，无法代为选择。"
+      },
+      "raw_grade": {
+        "correct": true,
+        "needs_review": false,
+        "action": "clarify",
+        "target": null,
+        "reason": "动作及目标匹配"
+      },
+      "final_grade": {
+        "correct": true,
+        "needs_review": false,
+        "action": "clarify",
+        "target": null,
+        "reason": "动作及目标匹配"
+      },
+      "logical_session_action": "none",
+      "error": null,
+      "elapsed_ms": 1062
+    },
+    {
+      "case_id": "U05",
+      "category": "U",
+      "mode": "live",
+      "model_requested": true,
+      "prepared_http": false,
+      "raw_text": "{\"kind\":\"create\",\"title\":\"长期摄影协助\",\"description\":\"围绕长期摄影协助的启动方式、拍摄需求、风格偏好、协作流程与后续安排。\",\"reason\":\"用户明确询问以后长期帮我摄影如何开始，属于新的长期持续事项，现有候选主题均不匹配。\"}",
+      "raw_choice": {
+        "kind": "create",
+        "title": "长期摄影协助",
+        "description": "围绕长期摄影协助的启动方式、拍摄需求、风格偏好、协作流程与后续安排。",
+        "reason": "用户明确询问以后长期帮我摄影如何开始，属于新的长期持续事项，现有候选主题均不匹配。"
+      },
+      "final_choice": {
+        "kind": "clarify",
+        "question": "接下来想继续聊哪一个主题？1.求职；2.健身；3.项目Alpha",
+        "reason": "当前原话未明确持续用途，不能创建主题"
+      },
+      "raw_grade": {
+        "correct": false,
+        "needs_review": false,
+        "action": "create",
+        "target": null,
+        "reason": "动作不匹配"
+      },
+      "final_grade": {
+        "correct": false,
+        "needs_review": false,
+        "action": "clarify",
+        "target": null,
+        "reason": "动作不匹配"
+      },
+      "logical_session_action": "none",
+      "error": null,
+      "elapsed_ms": 1082
+    },
+    {
+      "case_id": "K01",
+      "category": "K",
+      "mode": "live",
+      "model_requested": true,
+      "prepared_http": false,
+      "raw_text": "{\"kind\":\"use\",\"threadId\":\"edd04025-d47e-c3da-7432-ff6dd0c962d7\",\"reason\":\"用户明确提到健身并询问之前约束是否延续，候选中有已绑定的健身主题，语义指向该主题。\"}",
+      "raw_choice": {
+        "kind": "use",
+        "threadId": "edd04025-d47e-c3da-7432-ff6dd0c962d7",
+        "reason": "用户明确提到健身并询问之前约束是否延续，候选中有已绑定的健身主题，语义指向该主题。"
+      },
+      "final_choice": {
+        "kind": "use",
+        "threadId": "edd04025-d47e-c3da-7432-ff6dd0c962d7",
+        "reason": "用户明确提到健身并询问之前约束是否延续，候选中有已绑定的健身主题，语义指向该主题。"
+      },
+      "raw_grade": {
+        "correct": true,
+        "needs_review": false,
+        "action": "reuse",
+        "target": "fitness",
+        "reason": "动作及目标匹配"
+      },
+      "final_grade": {
+        "correct": true,
+        "needs_review": false,
+        "action": "reuse",
+        "target": "fitness",
+        "reason": "动作及目标匹配"
+      },
+      "logical_session_action": "reuse",
+      "error": null,
+      "elapsed_ms": 834
+    },
+    {
+      "case_id": "K08",
+      "category": "K",
+      "mode": "live",
+      "model_requested": true,
+      "prepared_http": false,
+      "raw_text": "{\"kind\":\"use\",\"threadId\":\"61853aee-88b1-a097-63c6-8d48fa2b89a9\",\"reason\":\"当前原话明确延续求职事项，且当前绑定主题即求职\"}",
+      "raw_choice": {
+        "kind": "use",
+        "threadId": "61853aee-88b1-a097-63c6-8d48fa2b89a9",
+        "reason": "当前原话明确延续求职事项，且当前绑定主题即求职"
+      },
+      "final_choice": {
+        "kind": "use",
+        "threadId": "61853aee-88b1-a097-63c6-8d48fa2b89a9",
+        "reason": "当前原话明确延续求职事项，且当前绑定主题即求职"
+      },
+      "raw_grade": {
+        "correct": true,
+        "needs_review": false,
+        "action": "reuse",
+        "target": "career",
+        "reason": "动作及目标匹配"
+      },
+      "final_grade": {
+        "correct": true,
+        "needs_review": false,
+        "action": "reuse",
+        "target": "career",
+        "reason": "动作及目标匹配"
+      },
+      "logical_session_action": "reuse",
+      "error": null,
+      "elapsed_ms": 871
+    },
+    {
+      "case_id": "C05",
+      "category": "C",
+      "mode": "live",
+      "model_requested": true,
+      "prepared_http": false,
+      "raw_text": "{\"kind\":\"use\",\"threadId\":\"b63be034-8849-9990-3ccb-5024224a55cc\",\"reason\":\"用户明确说健身话题继续，候选中有已绑定的健身主题，语义指向该主题。\"}",
+      "raw_choice": {
+        "kind": "use",
+        "threadId": "b63be034-8849-9990-3ccb-5024224a55cc",
+        "reason": "用户明确说健身话题继续，候选中有已绑定的健身主题，语义指向该主题。"
+      },
+      "final_choice": {
+        "kind": "use",
+        "threadId": "b63be034-8849-9990-3ccb-5024224a55cc",
+        "reason": "用户明确说健身话题继续，候选中有已绑定的健身主题，语义指向该主题。"
+      },
+      "raw_grade": {
+        "correct": true,
+        "needs_review": false,
+        "action": "reuse",
+        "target": "fitness",
+        "reason": "动作及目标匹配"
+      },
+      "final_grade": {
+        "correct": true,
+        "needs_review": false,
+        "action": "reuse",
+        "target": "fitness",
+        "reason": "动作及目标匹配"
+      },
+      "logical_session_action": "reuse",
+      "error": null,
+      "elapsed_ms": 859
+    },
+    {
+      "case_id": "C07",
+      "category": "C",
+      "mode": "live",
+      "model_requested": true,
+      "prepared_http": false,
+      "raw_text": "{\"kind\":\"use\",\"threadId\":\"555b042b-9e9e-d7ee-25d1-660e3002d1a8\",\"reason\":\"当前在求职讨论中，仅解释已贴出的项目资料，属于当前主题延续\"}",
+      "raw_choice": {
+        "kind": "use",
+        "threadId": "555b042b-9e9e-d7ee-25d1-660e3002d1a8",
+        "reason": "当前在求职讨论中，仅解释已贴出的项目资料，属于当前主题延续"
+      },
+      "final_choice": {
+        "kind": "use",
+        "threadId": "555b042b-9e9e-d7ee-25d1-660e3002d1a8",
+        "reason": "当前在求职讨论中，仅解释已贴出的项目资料，属于当前主题延续"
+      },
+      "raw_grade": {
+        "correct": true,
+        "needs_review": false,
+        "action": "reuse",
+        "target": "career",
+        "reason": "动作及目标匹配"
+      },
+      "final_grade": {
+        "correct": true,
+        "needs_review": false,
+        "action": "reuse",
+        "target": "career",
+        "reason": "动作及目标匹配"
+      },
+      "logical_session_action": "reuse",
+      "error": null,
+      "elapsed_ms": 781
+    },
+    {
+      "case_id": "L01",
+      "category": "L",
+      "mode": "live",
+      "model_requested": true,
+      "prepared_http": false,
+      "raw_text": "{\"kind\":\"use\",\"threadId\":\"8c887d7e-62fe-1458-d54a-60b75a8bbcea\",\"reason\":\"用户明确说继续项目Beta的登录模块，候选中有绑定的项目Beta主题，语义直接匹配。\"}",
+      "raw_choice": {
+        "kind": "use",
+        "threadId": "8c887d7e-62fe-1458-d54a-60b75a8bbcea",
+        "reason": "用户明确说继续项目Beta的登录模块，候选中有绑定的项目Beta主题，语义直接匹配。"
+      },
+      "final_choice": {
+        "kind": "use",
+        "threadId": "8c887d7e-62fe-1458-d54a-60b75a8bbcea",
+        "reason": "用户明确说继续项目Beta的登录模块，候选中有绑定的项目Beta主题，语义直接匹配。"
+      },
+      "raw_grade": {
+        "correct": true,
+        "needs_review": false,
+        "action": "reuse",
+        "target": "beta",
+        "reason": "动作及目标匹配"
+      },
+      "final_grade": {
+        "correct": true,
+        "needs_review": false,
+        "action": "reuse",
+        "target": "beta",
+        "reason": "动作及目标匹配"
+      },
+      "logical_session_action": "reuse",
+      "error": null,
+      "elapsed_ms": 1040
+    },
+    {
+      "case_id": "L07",
+      "category": "L",
+      "mode": "live",
+      "model_requested": false,
+      "prepared_http": false,
+      "raw_text": null,
+      "raw_choice": null,
+      "final_choice": {
+        "kind": "clarify",
+        "question": "候选超过20个主题或8 KiB，请明确主题名称或完整ID以缩小范围。",
+        "reason": "目录超出20主题或8KiB"
+      },
+      "raw_grade": null,
+      "final_grade": {
+        "correct": true,
+        "needs_review": false,
+        "action": "clarify",
+        "target": null,
+        "reason": "动作及目标匹配"
+      },
+      "logical_session_action": "none",
+      "error": null,
+      "elapsed_ms": 14
+    }
+  ],
+  "evidence_note": "全部输入为冻结合成状态，原始请求、dispatch账本、模型输出在本地忽略目录；新建范围按冻结词匹配并逐条核对，不代表人工标注一致性验证。"
+}

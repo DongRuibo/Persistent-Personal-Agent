@@ -543,7 +543,11 @@ export async function createPiExecutor(config: Config, tasks: TaskService, chatK
       additionalSkillPaths: skillFile ? [skillFile] : reader ? skills!.list().map(info => info.filePath) : [],
       extensionFactories: [(pi) => {
         pi.on('before_agent_start', event => {
-          if (scope === 'chat' && limits.getStore()?.request.prepareChat) return { systemPrompt: event.systemPrompt + '\n当前为持续主题模式：主题由宿主在本轮执行前冻结；仅“以后在这里帮我健身/求职”或持续交流只继续对话，不能创建Job或Goal。普通主题内小问、单次文字交付直接回答。新Job需明确后台委托或持续/分阶段推进具体文字交付；明确创建、管理Goal仍走原goal_manage审批和执行。工作归属不是工作身份，同主题多个Job不能按最新选择；具名修订始终沿原工作链，不因当前聊天主题搬工作。原提示中的持续协助只用于明确执行交付，不用于持续对话。' };
+          if (scope === 'chat' && limits.getStore()?.request.prepareChat) {
+            // 仅实际绑定的主题Session提供宿主事实，不把主题名称/简介提升为系统指令。
+            const topicFact = contextKey ? '宿主事实：当前独立主题Session已经建立并完成持久化绑定，你正在其中回答；主题会话由宿主管理，无需模型调用创建工具。若历史回答否认已建主题，以本轮宿主事实为准，不再否认该会话已建立。这项会话绑定本身不表示已创建Job、Goal、提醒或Memory，也不表示已启动后台自动跟进；执行结果仍按原工具收据判断。' : '';
+            return { systemPrompt: event.systemPrompt + '\n当前为持续主题模式：主题由宿主在本轮执行前冻结；' + topicFact + '仅“以后在这里帮我健身/求职”或持续交流只继续对话，不能创建Job或Goal。普通主题内小问、单次文字交付直接回答。新Job需明确后台委托或持续/分阶段推进具体文字交付；明确创建、管理Goal仍走原goal_manage审批和执行。工作归属不是工作身份，同主题多个Job不能按最新选择；具名修订始终沿原工作链，不因当前聊天主题搬工作。原提示中的持续协助只用于明确执行交付，不用于持续对话。' };
+          }
         });
         pi.on('before_provider_request', (event, sdkContext) => {
           if (scope === 'chat' && !limits.getStore()?.budget && (coordinator || skills || web || search || localFiles || output)) {

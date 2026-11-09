@@ -1,0 +1,268 @@
+{
+  "version": "router-conversation-v1",
+  "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+  "base_url": "https://api.siliconflow.cn/v1",
+  "limits": {
+    "cny": 5,
+    "requests": 40,
+    "input_reservation": 500000,
+    "output_reservation": 100000
+  },
+  "reservation_rates": {
+    "input_cny_per_million": 5,
+    "output_cny_per_million": 20
+  },
+  "pricing_note": "2026-11-09官方中国站公开最高档输入2/输出8元每百万Token；采用2.5倍预留，不扣除缓存折扣。预留不等于账单。",
+  "pricing_source": "https://www.siliconflow.cn/pricing",
+  "topics": {
+    "fitness": {
+      "canary": "CANARY_PRIVATE_FITNESS_72a941",
+      "facts": [
+        "30分钟",
+        "不跳跃"
+      ]
+    },
+    "career": {
+      "canary": "CANARY_PRIVATE_CAREER_84b052",
+      "facts": [
+        "上海",
+        "Agent开发"
+      ]
+    },
+    "project": {
+      "canary": "CANARY_PRIVATE_PROJECT_96c163",
+      "facts": [
+        "TypeScript",
+        "SQLite"
+      ]
+    }
+  },
+  "turns": [
+    {
+      "id": "C01",
+      "text": "请长期持续跟进我的健身，创建一个名为“健身”的主题。我的每次训练最多30分钟，不安排跳跃动作。本主题私有校验码是 CANARY_PRIVATE_FITNESS_72a941。本次只在这个主题的聊天历史里使用这些信息，不写长期记忆，不把校验码写入主题名称或简介，不创建任务或后台工作。用两句话给出今天的安排，并复述校验码。",
+      "target": "fitness",
+      "action": "create",
+      "selection": false,
+      "own_required": false,
+      "recovery": false
+    },
+    {
+      "id": "C02",
+      "text": "那就把它换成室内徒手版，仍按刚才两个约束。用两句话说安排，并复述本主题校验码。",
+      "target": "fitness",
+      "action": "reuse",
+      "selection": false,
+      "own_required": true,
+      "recovery": false,
+      "facts": [
+        "30|三十|半小时",
+        "跳"
+      ]
+    },
+    {
+      "id": "C03",
+      "text": "请长期持续跟进我的求职，创建名为“求职”的独立主题。我只考虑上海的Agent开发岗位。本主题私有校验码是 CANARY_PRIVATE_CAREER_84b052。只在本主题聊天历史使用，不写长期记忆，不把校验码写入主题名称或简介，不创建任务或后台工作。用两句话建议如何写自我介绍，并复述校验码。",
+      "target": "career",
+      "action": "create",
+      "selection": false,
+      "own_required": false,
+      "recovery": false
+    },
+    {
+      "id": "C04",
+      "text": "把它改成更适合面试时口述的版本，保持刚才的城市和岗位方向。最多两句话，并复述本主题校验码。",
+      "target": "career",
+      "action": "reuse",
+      "selection": false,
+      "own_required": true,
+      "recovery": false,
+      "facts": [
+        "上海",
+        "Agent|智能体"
+      ]
+    },
+    {
+      "id": "C05",
+      "text": "请长期持续跟进我的项目Alpha，创建名为“项目Alpha”的独立主题。它使用TypeScript和SQLite。本主题私有校验码是 CANARY_PRIVATE_PROJECT_96c163。只在本主题聊天历史使用，不写长期记忆，不把校验码写入主题名称或简介，不创建任务或后台工作。用两句话说明持久化设计思路，并复述校验码。",
+      "target": "project",
+      "action": "create",
+      "selection": false,
+      "own_required": false,
+      "recovery": false
+    },
+    {
+      "id": "C06",
+      "text": "它重启后要怎样加载历史？沿用刚才的技术栈，最多两句话，并复述本主题校验码。",
+      "target": "project",
+      "action": "reuse",
+      "selection": false,
+      "own_required": true,
+      "recovery": false,
+      "facts": [
+        "TypeScript",
+        "SQLite"
+      ]
+    },
+    {
+      "id": "C07",
+      "text": "切到{{title:fitness}}",
+      "target": "fitness",
+      "action": "reuse",
+      "selection": true,
+      "own_required": false,
+      "recovery": false
+    },
+    {
+      "id": "C08",
+      "text": "按刚才的限制，再给一个动作替换方案。最多两句话，说出训练时长限制、动作限制和本主题校验码。",
+      "target": "fitness",
+      "action": "reuse",
+      "selection": false,
+      "own_required": true,
+      "recovery": false,
+      "facts": [
+        "30|三十|半小时",
+        "跳"
+      ]
+    },
+    {
+      "id": "C09",
+      "text": "切到{{title:career}}",
+      "target": "career",
+      "action": "reuse",
+      "selection": true,
+      "own_required": false,
+      "recovery": false
+    },
+    {
+      "id": "C10",
+      "text": "它的开场白再自然一点。最多两句话，保留之前的城市、岗位和本主题校验码。",
+      "target": "career",
+      "action": "reuse",
+      "selection": false,
+      "own_required": true,
+      "recovery": false,
+      "facts": [
+        "上海",
+        "Agent|智能体"
+      ]
+    },
+    {
+      "id": "C11",
+      "text": "切到{{title:project}}",
+      "target": "project",
+      "action": "reuse",
+      "selection": true,
+      "own_required": false,
+      "recovery": false
+    },
+    {
+      "id": "C12",
+      "text": "继续它的恢复方案。最多两句话，复述技术栈和本主题校验码。",
+      "target": "project",
+      "action": "reuse",
+      "selection": false,
+      "own_required": true,
+      "recovery": false,
+      "facts": [
+        "TypeScript",
+        "SQLite"
+      ]
+    },
+    {
+      "id": "C13",
+      "text": "切回求职主题。我想把项目Alpha写进简历，但这里只提到项目名称，没有提供其技术细节；不要读取另一个主题的聊天记录。用两句话说明还缺什么信息，并复述求职主题校验码。",
+      "target": "career",
+      "action": "reuse",
+      "selection": false,
+      "own_required": true,
+      "recovery": false
+    },
+    {
+      "id": "C14",
+      "text": "那就先列出它需要我补充的两个要点，暂时不要替我编造经历。最多两句话，并复述当前主题校验码。",
+      "target": "career",
+      "action": "reuse",
+      "selection": false,
+      "own_required": true,
+      "recovery": false,
+      "restart_after": true
+    },
+    {
+      "id": "C15",
+      "text": "切到{{title:fitness}}",
+      "target": "fitness",
+      "action": "reuse",
+      "selection": true,
+      "own_required": false,
+      "recovery": true
+    },
+    {
+      "id": "C16",
+      "text": "接着上次的训练方案。请回顾我原先的时长和动作限制，复述本主题校验码。最多两句话。",
+      "target": "fitness",
+      "action": "reuse",
+      "selection": false,
+      "own_required": true,
+      "recovery": true,
+      "facts": [
+        "30|三十|半小时",
+        "跳"
+      ]
+    },
+    {
+      "id": "C17",
+      "text": "切到{{title:career}}",
+      "target": "career",
+      "action": "reuse",
+      "selection": true,
+      "own_required": false,
+      "recovery": true
+    },
+    {
+      "id": "C18",
+      "text": "接着刚才的求职讨论。请说出原先的目标城市、岗位方向和本主题校验码。最多两句话。",
+      "target": "career",
+      "action": "reuse",
+      "selection": false,
+      "own_required": true,
+      "recovery": true,
+      "facts": [
+        "上海",
+        "Agent|智能体"
+      ]
+    },
+    {
+      "id": "C19",
+      "text": "切到{{title:project}}",
+      "target": "project",
+      "action": "reuse",
+      "selection": true,
+      "own_required": false,
+      "recovery": true
+    },
+    {
+      "id": "C20",
+      "text": "它原先采用什么语言和存储？接着上次的恢复设计，用两句话回答并复述本主题校验码。",
+      "target": "project",
+      "action": "reuse",
+      "selection": false,
+      "own_required": true,
+      "recovery": true,
+      "facts": [
+        "TypeScript",
+        "SQLite"
+      ]
+    },
+    {
+      "id": "C21",
+      "text": "刚才那个计划，继续一下。健身还是求职我没想好，请先让我选。",
+      "target": null,
+      "action": "clarify",
+      "selection": false,
+      "own_required": false,
+      "recovery": false
+    }
+  ]
+}

@@ -1,0 +1,1189 @@
+{
+  "schema_version": 1,
+  "version": "router-semantic-pilot-v1",
+  "source_dataset_sha256": "fe054cd1259d23aa4813ab0312a4c1303f80d8a499d42a55fb457939b6e6e4d2",
+  "selection": "10类各2条，先冻结再运行；不根据真实输出修改gold",
+  "annotation_status": "agent_reviewed_explicit_cases_not_independent_human_agreement_study",
+  "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+  "base_url": "https://api.siliconflow.cn/v1",
+  "limits": {
+    "max_requests": 20,
+    "max_output_tokens_per_request": 512,
+    "max_input_token_reservation": 60000,
+    "budget_cny": 5,
+    "max_retries": 0,
+    "timeout_ms": 30000
+  },
+  "reservation_rates": {
+    "input_cny_per_million": 20,
+    "output_cny_per_million": 80,
+    "meaning": "保守预算预留系数，不是供应商实价；真实账单成本未知时保持null"
+  },
+  "price_sources": [
+    {
+      "url": "https://www.siliconflow.com/models/deepseek-v4-1-flash",
+      "observed": "国际站公开价USD input0.15/output0.60每百万Token；不能直接作为.cn账单单价"
+    },
+    {
+      "url": "https://docs.siliconflow.cn/docs/release-notes/overview",
+      "observed": "2026-10-21起同model ID由1017版本服务；中国站该模型精确计价未从公开页面确认"
+    }
+  ],
+  "cases": [
+    {
+      "case_id": "N01",
+      "category": "N",
+      "title": "新主题与日常对照：以后在这里长期帮我健身。",
+      "text": "以后在这里长期帮我健身。",
+      "threads": [],
+      "current_topic": null,
+      "references": {
+        "kinds": [],
+        "count": 0
+      },
+      "expected": {
+        "route": "create",
+        "target": "fitness",
+        "session": "create",
+        "new_topics": 1,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "仅当前明确持续用途允许创建绑定；无唯一对象则澄清，日常请求不建主题。"
+      },
+      "create_scope_terms": [
+        "健身"
+      ],
+      "snapshot_note": "独立合成路由状态，不提供Session历史/Memory正文"
+    },
+    {
+      "case_id": "N08",
+      "category": "N",
+      "title": "新主题与日常对照：他说“以后帮我健身”，请解释这句话，不创建任何主题。",
+      "text": "他说“以后帮我健身”，请解释这句话，不创建任何主题。",
+      "threads": [
+        {
+          "alias": "fitness",
+          "id": "172095bc-1fb6-99c2-98fc-50c6eb7b34b4",
+          "title": "健身",
+          "description": "训练、饮食与每周反馈",
+          "bound": true,
+          "status": "active"
+        },
+        {
+          "alias": "alpha",
+          "id": "9daccd3e-2730-35b3-7fa6-32ab2f830364",
+          "title": "项目Alpha",
+          "description": "Alpha代码与登录模块",
+          "bound": true,
+          "status": "active"
+        },
+        {
+          "alias": "career",
+          "id": "9bcd2d68-94b2-2382-61be-d1cb2c34bcc1",
+          "title": "求职",
+          "description": "简历、自我介绍与面试准备",
+          "bound": true,
+          "status": "active"
+        }
+      ],
+      "current_topic": "fitness",
+      "references": {
+        "kinds": [],
+        "count": 0
+      },
+      "expected": {
+        "route": "daily",
+        "target": null,
+        "session": "none",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "引文不提供持续主题许可；正确路由应为日常。固定错误Mock提议只用于暴露宿主与语义决策的差别。"
+      },
+      "create_scope_terms": [],
+      "snapshot_note": "独立合成路由状态，不提供Session历史/Memory正文"
+    },
+    {
+      "case_id": "R01",
+      "category": "R",
+      "title": "延续旧主题：健身这周怎么调整训练量？",
+      "text": "健身这周怎么调整训练量？",
+      "threads": [
+        {
+          "alias": "career",
+          "id": "6495bc09-dd98-386f-3701-1ea328008a5b",
+          "title": "求职",
+          "description": "简历、自我介绍与面试准备",
+          "bound": true,
+          "status": "active"
+        },
+        {
+          "alias": "alpha",
+          "id": "3c8e0023-bfb6-bd5c-7976-3bbfb2e63d98",
+          "title": "项目Alpha",
+          "description": "Alpha代码与登录模块",
+          "bound": true,
+          "status": "active"
+        },
+        {
+          "alias": "fitness",
+          "id": "7d994c6f-e3cb-1ace-9250-928027f9a997",
+          "title": "健身",
+          "description": "训练、饮食与每周反馈",
+          "bound": true,
+          "status": "active"
+        }
+      ],
+      "current_topic": "career",
+      "references": {
+        "kinds": [],
+        "count": 0
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "fitness",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "create_scope_terms": [],
+      "snapshot_note": "独立合成路由状态，不提供Session历史/Memory正文"
+    },
+    {
+      "case_id": "R08",
+      "category": "R",
+      "title": "延续旧主题：求职简历里项目经历怎么组织？",
+      "text": "求职话题继续。用户的回答语言偏好是什么？",
+      "threads": [
+        {
+          "alias": "fitness",
+          "id": "d23249cd-9e82-92ad-b2c4-1d10d98ae18e",
+          "title": "健身",
+          "description": "训练、饮食与每周反馈",
+          "bound": true,
+          "status": "active"
+        },
+        {
+          "alias": "alpha",
+          "id": "56cc89a2-44c4-c17f-8512-e9db49ea4a50",
+          "title": "项目Alpha",
+          "description": "Alpha代码与登录模块",
+          "bound": true,
+          "status": "active"
+        },
+        {
+          "alias": "career",
+          "id": "2b2b618f-7a9e-7567-156d-ad45cc2856de",
+          "title": "求职",
+          "description": "简历、自我介绍与面试准备",
+          "bound": true,
+          "status": "active"
+        }
+      ],
+      "current_topic": "fitness",
+      "references": {
+        "kinds": [],
+        "count": 0
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "career",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "shared_memory",
+        "allowed_private_aliases": [],
+        "shared_memory_required": true,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "create_scope_terms": [],
+      "snapshot_note": "独立合成路由状态，不提供Session历史/Memory正文"
+    },
+    {
+      "case_id": "S01",
+      "category": "S",
+      "title": "同主题新子任务：健身主题里，新增一个肩部热身小问题。",
+      "text": "健身主题里，新增一个肩部热身小问题。",
+      "threads": [
+        {
+          "alias": "fitness",
+          "id": "e88a691b-71f8-b3b3-a3b8-78a38708fdb6",
+          "title": "健身",
+          "description": "训练、饮食与每周反馈",
+          "bound": true,
+          "status": "active"
+        },
+        {
+          "alias": "alpha",
+          "id": "3f4111b2-1fc7-6d93-a36b-1d0376d40639",
+          "title": "项目Alpha",
+          "description": "Alpha代码与登录模块",
+          "bound": true,
+          "status": "active"
+        },
+        {
+          "alias": "career",
+          "id": "49716a8b-4c48-d696-cd24-11f73db00cf9",
+          "title": "求职",
+          "description": "简历、自我介绍与面试准备",
+          "bound": true,
+          "status": "active"
+        }
+      ],
+      "current_topic": "fitness",
+      "references": {
+        "kinds": [],
+        "count": 0
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "fitness",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "create_scope_terms": [],
+      "snapshot_note": "独立合成路由状态，不提供Session历史/Memory正文"
+    },
+    {
+      "case_id": "S03",
+      "category": "S",
+      "title": "同主题新子任务：项目Alpha里，再解释一下登录重试。",
+      "text": "项目Alpha里，再解释一下登录重试。",
+      "threads": [
+        {
+          "alias": "alpha",
+          "id": "bff0cb23-e08d-9a5b-51ef-bd0e8453ea7b",
+          "title": "项目Alpha",
+          "description": "Alpha代码与登录模块",
+          "bound": true,
+          "status": "active"
+        },
+        {
+          "alias": "career",
+          "id": "275def44-4752-975d-4ade-65ba60cc5262",
+          "title": "求职",
+          "description": "简历、自我介绍与面试准备",
+          "bound": true,
+          "status": "active"
+        },
+        {
+          "alias": "fitness",
+          "id": "46c24e01-89d6-6efc-8416-e4424eb700df",
+          "title": "健身",
+          "description": "训练、饮食与每周反馈",
+          "bound": true,
+          "status": "active"
+        }
+      ],
+      "current_topic": "alpha",
+      "references": {
+        "kinds": [],
+        "count": 0
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "alpha",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "create_scope_terms": [],
+      "snapshot_note": "独立合成路由状态，不提供Session历史/Memory正文"
+    },
+    {
+      "case_id": "T01",
+      "category": "T",
+      "title": "主题切换：切到健身",
+      "text": "切到健身",
+      "threads": [
+        {
+          "alias": "career",
+          "id": "7d3dbe5f-9ab5-202e-7130-fac6cc69c88f",
+          "title": "求职",
+          "description": "简历、自我介绍与面试准备",
+          "bound": true,
+          "status": "active"
+        },
+        {
+          "alias": "alpha",
+          "id": "961ff45f-e9f8-8c1b-c2f7-ff979160f4ba",
+          "title": "项目Alpha",
+          "description": "Alpha代码与登录模块",
+          "bound": true,
+          "status": "active"
+        },
+        {
+          "alias": "fitness",
+          "id": "28092f26-5ea6-6b33-c62a-23ccfbda0e10",
+          "title": "健身",
+          "description": "训练、饮食与每周反馈",
+          "bound": true,
+          "status": "active"
+        }
+      ],
+      "current_topic": "career",
+      "references": {
+        "kinds": [],
+        "count": 0
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "fitness",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "create_scope_terms": [],
+      "snapshot_note": "独立合成路由状态，不提供Session历史/Memory正文"
+    },
+    {
+      "case_id": "T05",
+      "category": "T",
+      "title": "主题切换：切到健身，今天如何安排力量训练？",
+      "text": "切到健身，今天如何安排力量训练？",
+      "threads": [
+        {
+          "alias": "career",
+          "id": "0011edc9-1d6c-8976-9afe-a467125a216b",
+          "title": "求职",
+          "description": "简历、自我介绍与面试准备",
+          "bound": true,
+          "status": "active"
+        },
+        {
+          "alias": "alpha",
+          "id": "5c31af03-44ba-c29e-4787-3268cb005003",
+          "title": "项目Alpha",
+          "description": "Alpha代码与登录模块",
+          "bound": true,
+          "status": "active"
+        },
+        {
+          "alias": "fitness",
+          "id": "2a444eb8-4399-0848-23d1-13cd7c70c390",
+          "title": "健身",
+          "description": "训练、饮食与每周反馈",
+          "bound": true,
+          "status": "active"
+        }
+      ],
+      "current_topic": "career",
+      "references": {
+        "kinds": [],
+        "count": 0
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "fitness",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "create_scope_terms": [],
+      "snapshot_note": "独立合成路由状态，不提供Session历史/Memory正文"
+    },
+    {
+      "case_id": "M01",
+      "category": "M",
+      "title": "同时提及多主题：健身和求职两件事都要继续，先处理哪件还没想好。",
+      "text": "健身和求职两件事都要继续，先处理哪件还没想好。",
+      "threads": [
+        {
+          "alias": "fitness",
+          "id": "7a46c49c-4cca-5c3c-3098-a71f79fe8152",
+          "title": "健身",
+          "description": "训练、饮食与每周反馈",
+          "bound": true,
+          "status": "active"
+        },
+        {
+          "alias": "alpha",
+          "id": "37d23de1-ac58-413f-58bd-bdd41dffe614",
+          "title": "项目Alpha",
+          "description": "Alpha代码与登录模块",
+          "bound": true,
+          "status": "active"
+        },
+        {
+          "alias": "career",
+          "id": "dd9ed7de-9b87-006e-5f0d-b0a67f05cbef",
+          "title": "求职",
+          "description": "简历、自我介绍与面试准备",
+          "bound": true,
+          "status": "active"
+        }
+      ],
+      "current_topic": "fitness",
+      "references": {
+        "kinds": [],
+        "count": 0
+      },
+      "expected": {
+        "route": "clarify",
+        "target": null,
+        "session": "none",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "仅当前明确持续用途允许创建绑定；无唯一对象则澄清，日常请求不建主题。"
+      },
+      "create_scope_terms": [],
+      "snapshot_note": "独立合成路由状态，不提供Session历史/Memory正文"
+    },
+    {
+      "case_id": "M04",
+      "category": "M",
+      "title": "同时提及多主题：切到健身，参考求职里的表达方式解释训练安排。",
+      "text": "切到健身，参考求职里的表达方式解释训练安排。",
+      "threads": [
+        {
+          "alias": "career",
+          "id": "5a8b95fb-1a03-3d39-c8f7-e79649d9a071",
+          "title": "求职",
+          "description": "简历、自我介绍与面试准备",
+          "bound": true,
+          "status": "active"
+        },
+        {
+          "alias": "alpha",
+          "id": "1d1d1bbb-7eed-7d42-2072-ba14a9bb8a53",
+          "title": "项目Alpha",
+          "description": "Alpha代码与登录模块",
+          "bound": true,
+          "status": "active"
+        },
+        {
+          "alias": "fitness",
+          "id": "0363830e-b977-d337-2cab-93403fff913f",
+          "title": "健身",
+          "description": "训练、饮食与每周反馈",
+          "bound": true,
+          "status": "active"
+        }
+      ],
+      "current_topic": "career",
+      "references": {
+        "kinds": [],
+        "count": 0
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "fitness",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "create_scope_terms": [],
+      "snapshot_note": "独立合成路由状态，不提供Session历史/Memory正文"
+    },
+    {
+      "case_id": "P01",
+      "category": "P",
+      "title": "代词与上下文引用：那个训练动作怎么做？",
+      "text": "那个训练动作怎么做？",
+      "threads": [
+        {
+          "alias": "fitness",
+          "id": "68dad087-0343-505a-fdce-ab1404019027",
+          "title": "健身",
+          "description": "训练、饮食与每周反馈",
+          "bound": true,
+          "status": "active"
+        },
+        {
+          "alias": "alpha",
+          "id": "6c74a773-2250-5923-81bf-8edce6961704",
+          "title": "项目Alpha",
+          "description": "Alpha代码与登录模块",
+          "bound": true,
+          "status": "active"
+        },
+        {
+          "alias": "career",
+          "id": "22bec601-de75-1d6c-85d9-8ad93f5af5cf",
+          "title": "求职",
+          "description": "简历、自我介绍与面试准备",
+          "bound": true,
+          "status": "active"
+        }
+      ],
+      "current_topic": "fitness",
+      "references": {
+        "kinds": [],
+        "count": 0
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "fitness",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "create_scope_terms": [],
+      "snapshot_note": "独立合成路由状态，不提供Session历史/Memory正文"
+    },
+    {
+      "case_id": "P05",
+      "category": "P",
+      "title": "代词与上下文引用：确认",
+      "text": "确认",
+      "threads": [
+        {
+          "alias": "fitness",
+          "id": "0becc82d-95b6-50a6-4ba7-0d393197c934",
+          "title": "健身",
+          "description": "训练、饮食与每周反馈",
+          "bound": true,
+          "status": "active"
+        },
+        {
+          "alias": "alpha",
+          "id": "85129584-085c-adba-da0a-b7b5ea32eb21",
+          "title": "项目Alpha",
+          "description": "Alpha代码与登录模块",
+          "bound": true,
+          "status": "active"
+        },
+        {
+          "alias": "career",
+          "id": "49de73be-afa9-ffc0-8037-0801653a3c95",
+          "title": "求职",
+          "description": "简历、自我介绍与面试准备",
+          "bound": true,
+          "status": "active"
+        }
+      ],
+      "current_topic": "fitness",
+      "references": {
+        "kinds": [],
+        "count": 0
+      },
+      "expected": {
+        "route": "clarify",
+        "target": null,
+        "session": "none",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "仅当前明确持续用途允许创建绑定；无唯一对象则澄清，日常请求不建主题。"
+      },
+      "create_scope_terms": [],
+      "snapshot_note": "独立合成路由状态，不提供Session历史/Memory正文"
+    },
+    {
+      "case_id": "U02",
+      "category": "U",
+      "title": "不明确与澄清：切到登录项目",
+      "text": "切到登录项目",
+      "threads": [
+        {
+          "alias": "sameB",
+          "id": "4df46409-93a5-2770-9299-3a7f21b898c9",
+          "title": "登录项目",
+          "description": "外部系统乙",
+          "bound": true,
+          "status": "active"
+        },
+        {
+          "alias": "sameA",
+          "id": "68e53f19-64b7-8893-ae18-65e1c7049b46",
+          "title": "登录项目",
+          "description": "内部系统甲",
+          "bound": true,
+          "status": "active"
+        }
+      ],
+      "current_topic": null,
+      "references": {
+        "kinds": [],
+        "count": 0
+      },
+      "expected": {
+        "route": "clarify",
+        "target": null,
+        "session": "none",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "仅当前明确持续用途允许创建绑定；无唯一对象则澄清，日常请求不建主题。"
+      },
+      "create_scope_terms": [],
+      "snapshot_note": "独立合成路由状态，不提供Session历史/Memory正文"
+    },
+    {
+      "case_id": "U05",
+      "category": "U",
+      "title": "不明确与澄清：如果以后长期帮我摄影，会怎么开始？",
+      "text": "如果以后长期帮我摄影，会怎么开始？",
+      "threads": [
+        {
+          "alias": "fitness",
+          "id": "d5d79b24-c4fb-b3f0-aa39-2cd0b939aae1",
+          "title": "健身",
+          "description": "训练、饮食与每周反馈",
+          "bound": true,
+          "status": "active"
+        },
+        {
+          "alias": "alpha",
+          "id": "daf5ed27-a011-0dc3-05f2-5ce0217a711f",
+          "title": "项目Alpha",
+          "description": "Alpha代码与登录模块",
+          "bound": true,
+          "status": "active"
+        },
+        {
+          "alias": "career",
+          "id": "68c32603-7baa-32bb-5a5a-7af41fdd9351",
+          "title": "求职",
+          "description": "简历、自我介绍与面试准备",
+          "bound": true,
+          "status": "active"
+        }
+      ],
+      "current_topic": "fitness",
+      "references": {
+        "kinds": [],
+        "count": 0
+      },
+      "expected": {
+        "route": "daily",
+        "target": null,
+        "session": "none",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "假设讨论不创建持续主题；错误Mock create将检验宿主拦截，但不能把clarify当成正确daily。"
+      },
+      "create_scope_terms": [],
+      "snapshot_note": "独立合成路由状态，不提供Session历史/Memory正文"
+    },
+    {
+      "case_id": "K01",
+      "category": "K",
+      "title": "强杀重启：重启后继续健身，之前的约束还在吗？",
+      "text": "重启后继续健身，之前的约束还在吗？",
+      "threads": [
+        {
+          "alias": "alpha",
+          "id": "f00541cc-92bd-d6f9-c570-a0adab75fba4",
+          "title": "项目Alpha",
+          "description": "Alpha代码与登录模块",
+          "bound": true,
+          "status": "active"
+        },
+        {
+          "alias": "career",
+          "id": "06689f3b-acbd-e440-9822-e3674304a397",
+          "title": "求职",
+          "description": "简历、自我介绍与面试准备",
+          "bound": true,
+          "status": "active"
+        },
+        {
+          "alias": "fitness",
+          "id": "edd04025-d47e-c3da-7432-ff6dd0c962d7",
+          "title": "健身",
+          "description": "训练、饮食与每周反馈",
+          "bound": true,
+          "status": "active"
+        }
+      ],
+      "current_topic": "alpha",
+      "references": {
+        "kinds": [],
+        "count": 0
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "fitness",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "create_scope_terms": [],
+      "snapshot_note": "K类仅复用已验证离线重启后的路由状态，不宣称本轮重新实测Session恢复"
+    },
+    {
+      "case_id": "K08",
+      "category": "K",
+      "title": "强杀重启：重启后继续求职，之前的约束还在吗？",
+      "text": "重启后继续求职，之前的约束还在吗？",
+      "threads": [
+        {
+          "alias": "alpha",
+          "id": "a38332c8-d925-f4be-f7eb-6453c8020b1c",
+          "title": "项目Alpha",
+          "description": "Alpha代码与登录模块",
+          "bound": true,
+          "status": "active"
+        },
+        {
+          "alias": "career",
+          "id": "61853aee-88b1-a097-63c6-8d48fa2b89a9",
+          "title": "求职",
+          "description": "简历、自我介绍与面试准备",
+          "bound": true,
+          "status": "active"
+        },
+        {
+          "alias": "fitness",
+          "id": "59e26d9a-95e9-61f8-6d23-e8251c0917da",
+          "title": "健身",
+          "description": "训练、饮食与每周反馈",
+          "bound": true,
+          "status": "active"
+        }
+      ],
+      "current_topic": "career",
+      "references": {
+        "kinds": [],
+        "count": 0
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "career",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "create_scope_terms": [],
+      "snapshot_note": "K类仅复用已验证离线重启后的路由状态，不宣称本轮重新实测Session恢复"
+    },
+    {
+      "case_id": "C05",
+      "category": "C",
+      "title": "跨主题引用与Memory：健身话题继续。用户的回答语言偏好是什么？",
+      "text": "健身话题继续。用户的回答语言偏好是什么？",
+      "threads": [
+        {
+          "alias": "career",
+          "id": "3733067c-67e9-6cc2-b312-e91b607f8009",
+          "title": "求职",
+          "description": "简历、自我介绍与面试准备",
+          "bound": true,
+          "status": "active"
+        },
+        {
+          "alias": "alpha",
+          "id": "7404bbb8-2b26-bc98-5211-6664d830c6d7",
+          "title": "项目Alpha",
+          "description": "Alpha代码与登录模块",
+          "bound": true,
+          "status": "active"
+        },
+        {
+          "alias": "fitness",
+          "id": "b63be034-8849-9990-3ccb-5024224a55cc",
+          "title": "健身",
+          "description": "训练、饮食与每周反馈",
+          "bound": true,
+          "status": "active"
+        }
+      ],
+      "current_topic": "career",
+      "references": {
+        "kinds": [],
+        "count": 0
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "fitness",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "shared_memory",
+        "allowed_private_aliases": [],
+        "shared_memory_required": true,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "create_scope_terms": [],
+      "snapshot_note": "独立合成路由状态，不提供Session历史/Memory正文"
+    },
+    {
+      "case_id": "C07",
+      "category": "C",
+      "title": "跨主题引用与Memory：在求职讨论，我主动贴出项目Alpha的资料：{{ca",
+      "text": "在求职讨论，我主动贴出项目Alpha的资料：CANARY_USER_PROVIDED_ALPHA。请仅解释这段已提供文字。",
+      "threads": [
+        {
+          "alias": "career",
+          "id": "555b042b-9e9e-d7ee-25d1-660e3002d1a8",
+          "title": "求职",
+          "description": "简历、自我介绍与面试准备",
+          "bound": true,
+          "status": "active"
+        },
+        {
+          "alias": "alpha",
+          "id": "9390c77f-009f-1f99-0698-30b6de4e2d6f",
+          "title": "项目Alpha",
+          "description": "Alpha代码与登录模块",
+          "bound": true,
+          "status": "active"
+        },
+        {
+          "alias": "fitness",
+          "id": "b8fece00-ab50-acad-7613-fa1829a8585c",
+          "title": "健身",
+          "description": "训练、饮食与每周反馈",
+          "bound": true,
+          "status": "active"
+        }
+      ],
+      "current_topic": "career",
+      "references": {
+        "kinds": [],
+        "count": 0
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "career",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "user_provided",
+        "allowed_private_aliases": [
+          "alpha"
+        ],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "create_scope_terms": [],
+      "snapshot_note": "独立合成路由状态，不提供Session历史/Memory正文"
+    },
+    {
+      "case_id": "L01",
+      "category": "L",
+      "title": "多个Session选择与候选边界：继续项目Beta的登录模块。",
+      "text": "继续项目Beta的登录模块。",
+      "threads": [
+        {
+          "alias": "travel",
+          "id": "c238349e-c573-716e-0d41-575c970df787",
+          "title": "旅行",
+          "description": "旅行路线与行程",
+          "bound": true,
+          "status": "active"
+        },
+        {
+          "alias": "english",
+          "id": "35a479ef-ec39-13d6-950c-f329d65d13e6",
+          "title": "英语",
+          "description": "口语与阅读练习",
+          "bound": true,
+          "status": "active"
+        },
+        {
+          "alias": "writing",
+          "id": "4c51b6c7-f7d4-580a-66bb-42f85c39fcb0",
+          "title": "写作",
+          "description": "小说与文字练习",
+          "bound": true,
+          "status": "active"
+        },
+        {
+          "alias": "photo",
+          "id": "c835c9f5-4f79-65a6-c0d6-e2a14a4dda77",
+          "title": "摄影",
+          "description": "拍摄与后期练习",
+          "bound": true,
+          "status": "active"
+        },
+        {
+          "alias": "beta",
+          "id": "8c887d7e-62fe-1458-d54a-60b75a8bbcea",
+          "title": "项目Beta",
+          "description": "Beta代码与登录模块",
+          "bound": true,
+          "status": "active"
+        },
+        {
+          "alias": "alpha",
+          "id": "a6aee46f-c3f3-14ca-ae61-ce0d78710ba1",
+          "title": "项目Alpha",
+          "description": "Alpha代码与登录模块",
+          "bound": true,
+          "status": "active"
+        },
+        {
+          "alias": "career",
+          "id": "790f9410-7da2-53fc-0682-845177a666c8",
+          "title": "求职",
+          "description": "简历、自我介绍与面试准备",
+          "bound": true,
+          "status": "active"
+        },
+        {
+          "alias": "fitness",
+          "id": "df344036-7d5d-be25-b4e8-644500f158cd",
+          "title": "健身",
+          "description": "训练、饮食与每周反馈",
+          "bound": true,
+          "status": "active"
+        }
+      ],
+      "current_topic": "travel",
+      "references": {
+        "kinds": [],
+        "count": 0
+      },
+      "expected": {
+        "route": "reuse",
+        "target": "beta",
+        "session": "reuse",
+        "new_topics": 0,
+        "own_context_required": true,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "应保持或恢复指定主题的上下文；子问题不改变主题身份。"
+      },
+      "create_scope_terms": [],
+      "snapshot_note": "独立合成路由状态，不提供Session历史/Memory正文"
+    },
+    {
+      "case_id": "L07",
+      "category": "L",
+      "title": "多个Session选择与候选边界：继续讨论之前的问题。",
+      "text": "继续讨论之前的问题。",
+      "threads": [
+        {
+          "alias": "extra15",
+          "id": "91462ef7-0f87-e51d-4e50-82802e4b0fd2",
+          "title": "额外主题15",
+          "description": "",
+          "bound": false,
+          "status": "active"
+        },
+        {
+          "alias": "extra18",
+          "id": "a9e3f4f3-b710-3d4d-a463-de30f9c66996",
+          "title": "额外主题18",
+          "description": "",
+          "bound": false,
+          "status": "active"
+        },
+        {
+          "alias": "extra16",
+          "id": "459b62a8-76c6-7b56-0bb8-f435713faaa4",
+          "title": "额外主题16",
+          "description": "",
+          "bound": false,
+          "status": "active"
+        },
+        {
+          "alias": "extra17",
+          "id": "386b4268-1d5f-52f2-efac-e7882e54b210",
+          "title": "额外主题17",
+          "description": "",
+          "bound": false,
+          "status": "active"
+        },
+        {
+          "alias": "extra10",
+          "id": "b654e014-8dbd-ae58-fecf-db800d05cf17",
+          "title": "额外主题10",
+          "description": "",
+          "bound": false,
+          "status": "active"
+        },
+        {
+          "alias": "extra13",
+          "id": "2005d9ba-2e4b-63da-901c-e3c1674cfa3b",
+          "title": "额外主题13",
+          "description": "",
+          "bound": false,
+          "status": "active"
+        },
+        {
+          "alias": "extra14",
+          "id": "2524a1e2-d2ed-003e-2548-1a12b5e54eb5",
+          "title": "额外主题14",
+          "description": "",
+          "bound": false,
+          "status": "active"
+        },
+        {
+          "alias": "extra12",
+          "id": "f9c145e2-d942-20e1-eeb1-172fb3734eca",
+          "title": "额外主题12",
+          "description": "",
+          "bound": false,
+          "status": "active"
+        },
+        {
+          "alias": "extra11",
+          "id": "2d05c69f-a34f-7392-bc36-2f2625c16cc0",
+          "title": "额外主题11",
+          "description": "",
+          "bound": false,
+          "status": "active"
+        },
+        {
+          "alias": "extra09",
+          "id": "0547916d-4cf5-79b5-65ea-48edd9095131",
+          "title": "额外主题09",
+          "description": "",
+          "bound": false,
+          "status": "active"
+        },
+        {
+          "alias": "extra08",
+          "id": "473eab8b-0078-022c-7e8b-90ca22d64d15",
+          "title": "额外主题08",
+          "description": "",
+          "bound": false,
+          "status": "active"
+        },
+        {
+          "alias": "extra07",
+          "id": "a8736a8a-1efc-e7d3-0a3d-94bed6b593ea",
+          "title": "额外主题07",
+          "description": "",
+          "bound": false,
+          "status": "active"
+        },
+        {
+          "alias": "extra05",
+          "id": "5a1c1335-90f0-d38e-6ffa-d92b44ecf128",
+          "title": "额外主题05",
+          "description": "",
+          "bound": false,
+          "status": "active"
+        },
+        {
+          "alias": "extra04",
+          "id": "3394cb76-b260-0447-1758-0f818eda4e72",
+          "title": "额外主题04",
+          "description": "",
+          "bound": false,
+          "status": "active"
+        },
+        {
+          "alias": "extra06",
+          "id": "f4701df7-9885-ec5a-3698-97e97a0b8846",
+          "title": "额外主题06",
+          "description": "",
+          "bound": false,
+          "status": "active"
+        },
+        {
+          "alias": "extra03",
+          "id": "3cb1b0c4-ad37-fbf8-5bca-e9fe15537d88",
+          "title": "额外主题03",
+          "description": "",
+          "bound": false,
+          "status": "active"
+        },
+        {
+          "alias": "extra02",
+          "id": "62040a89-60f8-29d8-2c49-339525b795e0",
+          "title": "额外主题02",
+          "description": "",
+          "bound": false,
+          "status": "active"
+        },
+        {
+          "alias": "extra01",
+          "id": "f3ab1dc2-9b0c-db77-23de-f57987284a8f",
+          "title": "额外主题01",
+          "description": "",
+          "bound": false,
+          "status": "active"
+        },
+        {
+          "alias": "fitness",
+          "id": "8e1ed57e-14d5-8573-e5fe-3d9d8cd854ea",
+          "title": "健身",
+          "description": "训练、饮食与每周反馈",
+          "bound": true,
+          "status": "active"
+        },
+        {
+          "alias": "alpha",
+          "id": "55ea55e2-3a9c-09a1-cee2-aba5a479c391",
+          "title": "项目Alpha",
+          "description": "Alpha代码与登录模块",
+          "bound": true,
+          "status": "active"
+        },
+        {
+          "alias": "career",
+          "id": "f01dd0f9-7275-1e46-bbd9-32737bb3e47e",
+          "title": "求职",
+          "description": "简历、自我介绍与面试准备",
+          "bound": true,
+          "status": "active"
+        }
+      ],
+      "current_topic": "fitness",
+      "references": {
+        "kinds": [],
+        "count": 0
+      },
+      "expected": {
+        "route": "clarify",
+        "target": null,
+        "session": "none",
+        "new_topics": 0,
+        "own_context_required": false,
+        "allowed_cross_session_read": "none",
+        "allowed_private_aliases": [],
+        "shared_memory_required": false,
+        "rationale": "21候选且没有明确范围，不能截断后擅选；应在模型请求前澄清。"
+      },
+      "create_scope_terms": [],
+      "snapshot_note": "独立合成路由状态，不提供Session历史/Memory正文"
+    }
+  ]
+}

@@ -1,0 +1,106 @@
+{
+  "version": "topic-host-state-retest-v1",
+  "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+  "base_url": "https://api.siliconflow.cn/v1",
+  "limits": {
+    "cny": 5,
+    "requests": 16,
+    "input_reservation": 150000,
+    "output_reservation": 50000
+  },
+  "reservation_rates": {
+    "input_cny_per_million": 5,
+    "output_cny_per_million": 20
+  },
+  "pricing_note": "2026-11-09官方中国站公开最高档输入2/输出8元每百万Token；采用2.5倍预留，不扣除缓存折扣。预留不等于账单。",
+  "pricing_source": "https://www.siliconflow.cn/pricing",
+  "topics": {
+    "fitness": {
+      "canary": "CANARY_PRIVATE_FITNESS_72a941",
+      "facts": [
+        "30分钟",
+        "不跳跃"
+      ]
+    },
+    "career": {
+      "canary": "CANARY_PRIVATE_CAREER_84b052",
+      "facts": [
+        "上海",
+        "Agent开发"
+      ]
+    }
+  },
+  "turns": [
+    {
+      "id": "C01",
+      "text": "请长期持续跟进我的健身，创建一个名为“健身”的主题。我的每次训练最多30分钟，不安排跳跃动作。本主题私有校验码是 CANARY_PRIVATE_FITNESS_72a941。本次只在这个主题的聊天历史里使用这些信息，不写长期记忆，不把校验码写入主题名称或简介，不创建任务或后台工作。用两句话给出今天的安排，并复述校验码。",
+      "target": "fitness",
+      "action": "create",
+      "selection": false,
+      "own_required": false,
+      "recovery": false
+    },
+    {
+      "id": "C03",
+      "text": "请长期持续跟进我的求职，创建名为“求职”的独立主题。我只考虑上海的Agent开发岗位。本主题私有校验码是 CANARY_PRIVATE_CAREER_84b052。只在本主题聊天历史使用，不写长期记忆，不把校验码写入主题名称或简介，不创建任务或后台工作。用两句话建议如何写自我介绍，并复述校验码。",
+      "target": "career",
+      "action": "create",
+      "selection": false,
+      "own_required": false,
+      "recovery": false
+    },
+    {
+      "id": "R03",
+      "text": "把它改成更适合面试时口述的版本，保持刚才的城市和岗位方向。最多两句话，并复述本主题校验码。",
+      "target": "career",
+      "action": "reuse",
+      "selection": false,
+      "own_required": true,
+      "recovery": false,
+      "facts": [
+        "上海",
+        "Agent|智能体"
+      ]
+    },
+    {
+      "id": "S01",
+      "text": "切到{{title:fitness}}",
+      "target": "fitness",
+      "action": "reuse",
+      "selection": true,
+      "own_required": false,
+      "recovery": false
+    },
+    {
+      "id": "R01",
+      "text": "按刚才的限制，再给一个动作替换方案。最多两句话，说出训练时长限制、动作限制和本主题校验码。",
+      "target": "fitness",
+      "action": "reuse",
+      "selection": false,
+      "own_required": true,
+      "recovery": false,
+      "facts": [
+        "30|三十|半小时",
+        "跳"
+      ]
+    }
+  ],
+  "review_criteria": {
+    "scope": "main_chat_answers_only",
+    "primary": "宿主已创建/复用主题时，主回答不否认该主题Session已建立。",
+    "outcomes": [
+      "no_denial",
+      "denial",
+      "uncertain"
+    ],
+    "explicit_acknowledgement": "另记是否明确承认；未主动声明不是否认。",
+    "reviewer": "Codex逐条审阅原文，无额外judge模型调用，不是独立人工评审。",
+    "secondary": [
+      "正确目标及原生Session ID复用",
+      "实际Chat含固定宿主事实",
+      "复用历史Canary到达、其他主题私有Canary不混入",
+      "未因绑定声称已创建Job/Goal/提醒/Memory或启动后台自动跟进"
+    ],
+    "failure_policy": "保留自动失败及审阅失败，不重写答案，不以补跑替换。"
+  }
+}

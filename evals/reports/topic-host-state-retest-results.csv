@@ -1,0 +1,24 @@
+id,expected_action,topic,automatic_result,topic_denial,explicit_acknowledgement,host_fact_in_main_context,same_native_session_id,own_history_present,context_polluted,format_issue,model_answer
+C01,create,fitness,passed,no_denial,True,True,False,,False,False,"今天的安排：做一套 30 分钟以内的力量循环训练，包括深蹲、髋铰链、推、拉以及核心支撑，并根据体能安排 2–3 轮，全程避免跳跃动作。
+
+主题已经按“健身”建立，这些信息只保留在本主题的聊天记录里，不会写入长期记忆，不会创建任务或后台工作，也不会把校验码放进名称或简介。校验码：CANARY_PRIVATE_FITNESS_72a941。"
+C03,create,career,passed,no_denial,True,True,False,,False,True,"宿主已建立“求职”独立主题并完成绑定。这一轮我不创建任务、不建后台工作，也不写长期记忆。
+
+两句话的自我介绍建议：
+
+1. 第一句开门见山定位自己：“我是专注 Agent 应用开发的工程师，熟悉大模型工具调用、多步任务编排与 RAG 落地”，用一句可验证的能力标签让招聘方立刻归类和匹配岗位。
+2. 第二句给出可量化的交付证据并落到目标岗位上：“我主导过从原型到上线的 Agent 产品，把某项核心流程耗时降低约 X%”，随后说明希望在上海的 Agent 开发团队继续做这类端到端交付。
+
+校验码复述：CANARY_PRIVATE_CAREER_84b052
+
+后续在这个主题里，你随时可以把岗位 JD、简历片段或面试题发来，我会接着帮你看。"
+R03,reuse,career,passed,no_denial,False,True,True,True,False,True,"面试口述版（最多两句，仍是上海 Agent 开发方向）：
+
+1. “我是做 Agent 应用开发的，平时主要做工具调用、多步任务编排这类工作，比较擅长把一个想法从原型一路做到能上线。”
+2. “之前我主导过一个 Agent 产品从零上线，其中一条核心流程的耗时降了大约 X%，所以这次特别希望在咱们上海的 Agent 团队继续做这种端到端的落地。”
+
+口述时建议把 X% 换成你的真实数字，并把“核心流程”说成具体业务场景，会更有说服力。
+
+校验码复述：CANARY_PRIVATE_CAREER_84b052"
+S01,reuse,fitness,passed,not_applicable,False,,True,,False,False,已切换到健身；本轮只选择主题，未执行上一条请求。请发送要处理的新内容。
+R01,reuse,fitness,passed,no_denial,False,True,True,True,False,False,替换方案：把深蹲改为坐姿起立，把箭步蹲改为靠墙静蹲，俯卧撑改为上斜俯卧撑，其余动作按自身能力调整。约束仍然是单次训练不超过30分钟、不安排跳跃动作；校验码：CANARY_PRIVATE_FITNESS_72a941。
